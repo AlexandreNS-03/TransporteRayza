@@ -1,0 +1,165 @@
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+html,
+body,
+#root{
+    width:100%;
+    height:100%;
+    margin:0;
+    padding:0;
+}
+
+.login-container{
+    display:flex;
+    width:100%;
+    height:100vh;
+}
+.logo-container{
+    position:absolute;
+    top:25px;
+    left:25px;
+    z-index:10;
+}
+
+.logo{
+    width:100px;
+    height:auto;
+    display:block;
+}
+
+/*panel izquierdo*/
+.left-panel{
+    width:50%;
+    height:100vh;
+    position:relative;
+    background:
+            linear-gradient(
+                    rgba(0,85,255,.85),
+                    rgba(0,85,255,.85)
+            ),
+            url('./IMGIN.png')
+            center/cover no-repeat;
+    overflow:hidden;
+}
+
+.overlay{
+    width:100%;
+    height:100%;
+    display:flex;
+    flex-direction:column;
+    padding-left:55px;
+    padding-top:140px;
+    color:white;
+}
+
+
+.brand-section{
+    margin-bottom:25px;
+}
+
+.brand-section h1{
+    color:#23b7c8;
+    font-size:40px;
+    font-weight:700;
+    margin-left:-320px;
+}
+
+.brand-line{
+    width:120px;
+    height:4px;
+    background:#1ec8d3;
+    border-radius:10px;
+    margin-top:8px;
+}
+
+.overlay h2{
+    font-size:32px;
+    font-weight:700;
+    line-height:1.3;
+    max-width:350px;
+}
+
+.overlay p{
+    max-width:450px;
+    font-size:16px;
+    line-height:1.8;
+    color:white;
+}
+
+/* PANEL DERECHO */
+.right-panel {
+    width: 50%;
+    background: #f4f5f8;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.login-card {
+    width: 420px;
+    background: white;
+    padding: 40px;
+    border-radius: 15px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+
+.login-card h2 {
+    font-size: 2rem;
+    margin-bottom: 10px;
+    color: #222;
+}
+
+.subtitle {
+    color: #777;
+    margin-bottom: 25px;
+    font-size: 14px;
+}
+
+.login-card label {
+    display: block;
+    margin-bottom: 8px;
+    margin-top: 15px;
+    color: #444;
+    font-size: 14px;
+}
+
+.login-card input[type="text"],
+.login-card input[type="password"] {
+    width: 100%;
+    padding: 14px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: #f7f8fb;
+    font-size: 14px;
+}
+
+.remember {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 20px;
+    margin-bottom: 25px;
+    color: #666;
+    font-size: 14px;
+}
+
+.login-card button {
+    width: 100%;
+    padding: 15px;
+    border: none;
+    border-radius: 10px;
+    background: #0c2d83;
+    color: white;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.login-card button:hover {
+    background: #092060;
+}

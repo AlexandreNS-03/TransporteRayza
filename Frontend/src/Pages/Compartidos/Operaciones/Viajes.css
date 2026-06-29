@@ -1,0 +1,270 @@
+.viajes-page {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* ENCABEZADO */
+.viajes-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.viajes-header h2 {
+    font-size: 22px;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+}
+
+.viajes-header p {
+    font-size: 13px;
+    color: #6b7280;
+    margin: 2px 0 0;
+}
+
+.btn-recargar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 36px;
+    padding: 0 16px;
+    background: #1a4db5;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.btn-recargar:hover {
+    background: #1440a0;
+}
+
+/* FILTROS */
+.viajes-filtros {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 16px 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    align-items: flex-end;
+}
+
+.filtro-grupo {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.filtro-grupo label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.filtro-grupo select,
+.filtro-grupo input[type="date"] {
+    height: 34px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    padding: 0 10px;
+    font-size: 13px;
+    color: #1e293b;
+    background: #fff;
+    outline: none;
+    cursor: pointer;
+}
+
+.filtro-grupo select:focus,
+.filtro-grupo input:focus {
+    border-color: #2563b0;
+}
+
+.filtro-fechas {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.filtro-fechas span {
+    color: #9ca3af;
+}
+
+.filtro-buscar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    padding: 0 10px;
+    height: 34px;
+    background: #fff;
+}
+
+.filtro-buscar i {
+    color: #9ca3af;
+    font-size: 16px;
+}
+
+.filtro-buscar input {
+    border: none;
+    outline: none;
+    font-size: 13px;
+    color: #1e293b;
+    width: 160px;
+    background: transparent;
+}
+
+.btn-limpiar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 34px;
+    padding: 0 14px;
+    border: 1px solid #2563b0;
+    background: transparent;
+    color: #2563b0;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.15s;
+    align-self: flex-end;
+}
+
+.btn-limpiar:hover {
+    background: #eff6ff;
+}
+
+/* ESTADOS DE CARGA / ERROR */
+.viajes-estado {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 40px;
+    color: #6b7280;
+    font-size: 14px;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+}
+
+.viajes-estado.error {
+    color: #b91c1c;
+    background: #fef2f2;
+    border-color: #fecaca;
+}
+
+.viajes-estado.error button {
+    background: none;
+    border: 1px solid #b91c1c;
+    color: #b91c1c;
+    padding: 4px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.spin {
+    animation: spin 1s linear infinite;
+    font-size: 20px;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+}
+
+/* TABLA */
+.viajes-tabla-wrapper {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    overflow-x: auto;
+}
+
+.viajes-tabla {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    min-width: 900px;
+}
+
+.viajes-tabla thead tr {
+    background: #f8fafc;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.viajes-tabla th {
+    padding: 12px 14px;
+    text-align: left;
+    font-size: 12px;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    white-space: nowrap;
+}
+
+.viajes-tabla td {
+    padding: 12px 14px;
+    color: #1e293b;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: top;
+}
+
+.viajes-tabla tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.viajes-tabla tbody tr:hover {
+    background: #f8fafc;
+}
+
+.viajes-tabla .codigo {
+    font-size: 11px;
+    color: #6b7280;
+    font-family: monospace;
+    white-space: nowrap;
+}
+
+.viajes-tabla .paradas {
+    font-size: 12px;
+    color: #6b7280;
+    max-width: 200px;
+}
+
+/* TABLA VACÍA */
+.tabla-vacia {
+    text-align: center;
+    padding: 40px !important;
+    color: #9ca3af;
+}
+
+.tabla-vacia i {
+    font-size: 32px;
+    display: block;
+    margin-bottom: 8px;
+}
+
+/* BADGES */
+.badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.badge-programado { background: #eff6ff; color: #1d4ed8; }
+.badge-encurso    { background: #fefce8; color: #a16207; }
+.badge-completado { background: #f0fdf4; color: #15803d; }
+.badge-cancelado  { background: #fef2f2; color: #b91c1c; }
