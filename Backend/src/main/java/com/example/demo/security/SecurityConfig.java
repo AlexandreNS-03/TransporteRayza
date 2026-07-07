@@ -36,7 +36,10 @@ public class SecurityConfig {
                         .requestMatchers("/auth/**").permitAll()
 
                         /*VIAJES*/
-                        .requestMatchers("/api/viajes/**").hasAnyRole("ADMIN", "SUPERVISOR")
+                        .requestMatchers(HttpMethod.GET,    "/api/viajes/**").hasAnyRole("ADMIN", "SUPERVISOR", "EMPLEADO")
+                        .requestMatchers(HttpMethod.POST,   "/api/viajes/**").hasAnyRole("ADMIN", "SUPERVISOR")
+                        .requestMatchers(HttpMethod.PUT,    "/api/viajes/**").hasAnyRole("ADMIN", "SUPERVISOR")
+                        .requestMatchers(HttpMethod.DELETE, "/api/viajes/**").hasRole("ADMIN")
 
                         /*SUCURSAL*/
                         .requestMatchers(HttpMethod.GET,    "/api/sucursales/**").hasAnyRole("ADMIN", "SUPERVISOR", "EMPLEADO")
@@ -56,9 +59,10 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT,    "/api/rutas/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/rutas/**").hasRole("ADMIN")
 
-                        /*ASIENTOS*/
-                        .requestMatchers(HttpMethod.GET, "/api/viajes/*/asientos/**")
-                        .hasAnyRole("ADMIN", "SUPERVISOR", "EMPLEADO")
+//                        /*ASIENTOS*/
+//                        .requestMatchers(HttpMethod.GET, "/api/viajes/**")
+//                        .hasAnyRole("ADMIN", "SUPERVISOR", "EMPLEADO")
+
 
                         /*VENTAS*/
                         .requestMatchers(HttpMethod.GET,   "/api/ventas/**").hasAnyRole("ADMIN", "SUPERVISOR", "EMPLEADO")

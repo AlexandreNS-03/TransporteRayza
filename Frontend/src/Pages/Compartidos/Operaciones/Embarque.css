@@ -1,0 +1,329 @@
+.embarque-page {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.embarque-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.embarque-header h2 {
+    font-size: 22px;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+}
+
+.embarque-header p {
+    font-size: 13px;
+    color: #6b7280;
+    margin: 2px 0 0;
+}
+
+/* CONTROLES */
+.embarque-controles {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: flex-end;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.control-grupo {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    flex: 1;
+    min-width: 200px;
+}
+
+.control-grupo label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.control-grupo select {
+    height: 36px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    padding: 0 10px;
+    font-size: 13px;
+    color: #1e293b;
+    background: #fff;
+    outline: none;
+}
+
+.control-separador {
+    font-size: 13px;
+    color: #9ca3af;
+    font-weight: 500;
+    padding-bottom: 8px;
+}
+
+.buscar-doc {
+    display: flex;
+    gap: 8px;
+}
+
+.buscar-doc input {
+    flex: 1;
+    height: 36px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    padding: 0 12px;
+    font-size: 13px;
+    color: #1e293b;
+    outline: none;
+}
+
+.buscar-doc input:focus { border-color: #2563b0; }
+
+.btn-buscar {
+    height: 36px;
+    padding: 0 14px;
+    background: #1a4db5;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+}
+
+.btn-buscar:hover { background: #1440a0; }
+
+/* RESUMEN */
+.embarque-resumen {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.resumen-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 12px 16px;
+    flex: 1;
+    min-width: 150px;
+}
+
+.resumen-item i { font-size: 22px; color: #6b7280; }
+.resumen-embarcados i { color: #15803d; }
+.resumen-pendientes i { color: #a16207; }
+
+.resumen-item div {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.resumen-label {
+    font-size: 11px;
+    color: #6b7280;
+    font-weight: 500;
+}
+
+.resumen-valor {
+    font-size: 15px;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+/* FILTROS */
+.embarque-filtros {
+    display: flex;
+    gap: 8px;
+}
+
+.filtro-btn {
+    height: 32px;
+    padding: 0 14px;
+    border: 1px solid #e5e7eb;
+    background: #fff;
+    border-radius: 20px;
+    font-size: 12px;
+    color: #6b7280;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.filtro-btn:hover { border-color: #1a4db5; color: #1a4db5; }
+.filtro-btn.activo { background: #1a4db5; color: #fff; border-color: #1a4db5; }
+
+/* ESTADO */
+.embarque-estado {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 40px;
+    color: #6b7280;
+    font-size: 14px;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+}
+
+.embarque-estado.error {
+    color: #b91c1c;
+    background: #fef2f2;
+    border-color: #fecaca;
+}
+
+.embarque-vacio {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 60px;
+    color: #9ca3af;
+    font-size: 14px;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+}
+
+.embarque-vacio i { font-size: 40px; }
+
+.spin { animation: spin 1s linear infinite; }
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+/* TABLA */
+.embarque-tabla-wrapper {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    overflow-x: auto;
+}
+
+.embarque-tabla {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.embarque-tabla thead tr {
+    background: #f8fafc;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.embarque-tabla th {
+    padding: 12px 14px;
+    text-align: left;
+    font-size: 12px;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    white-space: nowrap;
+}
+
+.embarque-tabla td {
+    padding: 12px 14px;
+    color: #1e293b;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+}
+
+.embarque-tabla tbody tr:last-child td { border-bottom: none; }
+.embarque-tabla tbody tr:hover { background: #f8fafc; }
+.fila-embarcada { background: #f0fdf4 !important; }
+
+.codigo { font-size: 11px; color: #6b7280; font-family: monospace; }
+
+/* ASIENTO */
+.asiento-badge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+}
+
+.asiento-tipo {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.asiento-tipo.vip    { background: #fef9c3; color: #a16207; }
+.asiento-tipo.normal { background: #eff6ff; color: #1d4ed8; }
+
+/* PASAJERO */
+.pasajero-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.pasajero-info strong { font-size: 13px; color: #1e293b; }
+.pasajero-info span   { font-size: 11px; color: #6b7280; }
+
+/* TRAMO */
+.tramo-info {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #374151;
+}
+
+.tramo-info i { font-size: 12px; color: #9ca3af; }
+
+/* BADGES */
+.badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.badge-embarcado { background: #f0fdf4; color: #15803d; }
+.badge-pendiente { background: #fefce8; color: #a16207; }
+
+/* BOTÓN EMBARCAR */
+.btn-embarcar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 30px;
+    padding: 0 12px;
+    background: #1a4db5;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background 0.15s;
+    white-space: nowrap;
+}
+
+.btn-embarcar:hover    { background: #1440a0; }
+.btn-embarcar:disabled { background: #93c5fd; cursor: not-allowed; }
+
+.ya-embarcado {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    color: #15803d;
+    font-weight: 500;
+}

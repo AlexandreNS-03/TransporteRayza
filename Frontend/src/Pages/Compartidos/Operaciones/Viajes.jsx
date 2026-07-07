@@ -1,74 +1,127 @@
 import { useState, useEffect } from "react";
 import "./Viajes.css";
 
-function Viajes() {
+const ESTADOS = ["Todos los estados", "PROGRAMADO", "EN_CURSO", "COMPLETADO", "CANCELADO"];
+const ESTADO_LABEL = {
+    PROGRAMADO: "Programado",
+    EN_CURSO:   "En Curso",
+    COMPLETADO: "Completado",
+    CANCELADO:  "Cancelado",
+};
 
-    const usuario = JSON.parse(localStorage.getItem("usuario"));
+function badgeClass(estado) {
+    switch (estado) {
+        case "PROGRAMADO":  return "badge badge-programado";
+        case "EN_CURSO":    return "badge badge-encurso";
+        case "COMPLETADO":  return "badge badge-completado";
+        case "CANCELADO":   return "badge badge-cancelado";
+        default:            return "badge";
+    }
+}
+
+function Viajes() {
+    const usuario      = JSON.parse(localStorage.getItem("usuario"));
     const esAdmin      = usuario?.rol === "ADMIN";
     const esSupervisor = usuario?.rol === "SUPERVISOR";
-    const esEmpleado   = usuario?.rol === "EMPLEADO";
-    const [viajes, setViajes]           = useState([]);
-    const [cargando, setCargando]       = useState(true);
-    const [error, setError]             = useState(null);
+
+    const [viajes, setViajes]         = useState([]);
+    const [cargando, setCargando]     = useState(true);
+    const [error, setError]           = useState(null);
 
     // Filtros
-    const [fechaDesde, setFechaDesde]   = useState("");
-    const [fechaHasta, setFechaHasta]   = useState("");
-    const [rutaFiltro, setRutaFiltro]   = useState("");
-    const [embFiltro, setEmbFiltro]     = useState("");
-    const [estadoFiltro, setEstado]     = useState("Todos los estados");
-    const [busqueda, setBusqueda]       = useState("");
+    const [fechaDesde, setFechaDesde] = useState("");
+    const [fechaHasta, setFechaHasta] = useState("");
+    const [rutaFiltro, setRutaFiltro] = useState("");
+    const [embFiltro, setEmbFiltro]   = useState("");
+    const [estadoFiltro, setEstado]   = useState("Todos los estados");
+    const [busqueda, setBusqueda]     = useState("");
 
-    // Modal
+    // Listas para selects
+    const [rutas, setRutas]           = useState([]);
+    const [embarcaciones, setEmb]     = useState([]);
+
+    // Modal crear viaje
     const [modalAbierto, setModalAbierto] = useState(false);
-    const [modoEditar, setModoEditar]     = useState(false);
-    const [viajeSeleccionada, setViajeSeleccionada] = useState(null);
     const [guardando, setGuardando]       = useState(false);
     const [errorModal, setErrorModal]     = useState(null);
-
-    // Form
+    const [rutasDisponibles, setRutasDisponibles]   = useState([]);
+    const [embsDisponibles, setEmbsDisponibles]     = useState([]);
+    const [sucursalesDisponibles, setSucursalesDisponibles] = useState([]);
     const [form, setForm] = useState({
-        nombre: "", direccion: "", ciudad: "", telefono: "", activo: true
+        rutaId: "", embarcacionId: "", sucursalId: "",
+        fechaSalida: "", horaSalida: ""
     });
 
-    // Listas únicas para los selects
-    const [rutas, setRutas]             = useState([]);
-    const [embarcaciones, setEmb]       = useState([]);
-
-    useEffect(() => {
-        fetchViajes();
-    }, []);
+    useEffect(() => { fetchViajes(); }, []);
 
     const fetchViajes = async () => {
         setCargando(true);
         setError(null);
         try {
             const token = localStorage.getItem("token");
-
-            console.log("Token:", token); // ← para verificar en consola
-
             const res = await fetch("http://localhost:8080/api/viajes", {
-                method: "GET",
-                headers: {
-                    "Authorization": `Bearer ${token}`,
-                    "Content-Type": "application/json"
-                }
+                headers: { "Authorization": `Bearer ${token}` }
             });
-
             if (!res.ok) throw new Error("Error al obtener viajes");
-
             const data = await res.json();
             setViajes(data);
-
-            const rutasUnicas = [...new Set(data.map(v => v.rutaNombre).filter(Boolean))];
-            const embsUnicas  = [...new Set(data.map(v => v.embarcacionNombre).filter(Boolean))];
-
-            setRutas(rutasUnicas);
-            setEmb(embsUnicas);
+            setRutas([...new Set(data.map(v => v.rutaNombre).filter(Boolean))]);
+            setEmb([...new Set(data.map(v => v.embarcacionNombre).filter(Boolean))]);
         } catch (err) {
             setError(err.message);
         } finally {
             setCargando(false);
+        }
+    };
+
+    const abrirModal = async () => {
+        setForm({ rutaId: "", embarcacionId: "", sucursalId: "", fechaSalida: "", horaSalida: "" });
+        setErrorModal(null);
+        setModalAbierto(true);
+
+        // Cargar datos para los selects
+        const token = localStorage.getItem("token");
+        const [rutasRes, embsRes, sucRes] = await Promise.all([
+            fetch("http://localhost:8080/api/rutas/activas", { headers: { "Authorization": `Bearer ${token}` } }),
+            fetch("http://localhost:8080/api/embarcaciones/activas", { headers: { "Authorization": `Bearer ${token}` } }),
+            fetch("http://localhost:8080/api/sucursales/activas", { headers: { "Authorization": `Bearer ${token}` } })
+        ]);
+        setRutasDisponibles(await rutasRes.json());
+        setEmbsDisponibles(await embsRes.json());
+        setSucursalesDisponibles(await sucRes.json());
+    };
+
+    const cerrarModal = () => { setModalAbierto(false); setErrorModal(null); };
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setForm(prev => ({ ...prev, [name]: value }));
+    };
+
+    const guardar = async () => {
+        if (!form.rutaId || !form.embarcacionId || !form.sucursalId || !form.fechaSalida || !form.horaSalida) {
+            setErrorModal("Todos los campos son obligatorios");
+            return;
+        }
+        setGuardando(true);
+        setErrorModal(null);
+        try {
+            const token = localStorage.getItem("token");
+            const res = await fetch("http://localhost:8080/api/viajes", {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(form)
+            });
+            if (!res.ok) throw new Error("Error al crear viaje");
+            cerrarModal();
+            fetchViajes();
+        } catch (err) {
+            setErrorModal(err.message);
+        } finally {
+            setGuardando(false);
         }
     };
 
@@ -100,14 +153,20 @@ function Viajes() {
                     <h2>Viajes</h2>
                     <p>Gestión administrativa de trayectos fluviales</p>
                 </div>
-                <button className="btn-recargar" onClick={fetchViajes}>
-                    <i className="ti ti-refresh"></i> Recargar
-                </button>
+                <div style={{ display: "flex", gap: "10px" }}>
+                    {(esAdmin || esSupervisor) && (
+                        <button className="btn-nuevo" onClick={abrirModal}>
+                            <i className="ti ti-plus"></i> Nuevo Viaje
+                        </button>
+                    )}
+                    <button className="btn-recargar" onClick={fetchViajes}>
+                        <i className="ti ti-refresh"></i> Recargar
+                    </button>
+                </div>
             </div>
 
             {/* FILTROS */}
             <div className="viajes-filtros">
-
                 <div className="filtro-grupo">
                     <label>Rango de Fechas</label>
                     <div className="filtro-fechas">
@@ -156,7 +215,6 @@ function Viajes() {
                 <button className="btn-limpiar" onClick={limpiarFiltros}>
                     <i className="ti ti-filter-off"></i> Limpiar filtro
                 </button>
-
             </div>
 
             {/* ESTADOS DE CARGA */}
@@ -167,7 +225,6 @@ function Viajes() {
                 </div>
             )}
 
-
             {error && !cargando && (
                 <div className="viajes-estado error">
                     <i className="ti ti-alert-circle"></i>
@@ -176,10 +233,8 @@ function Viajes() {
                 </div>
             )}
 
-            {/* TABLA */}
-
-            {!cargando && !error && esAdmin && esEmpleado && esSupervisor (
-
+            {/* TABLA - todos los roles la ven */}
+            {!cargando && !error && (
                 <div className="viajes-tabla-wrapper">
                     <table className="viajes-tabla">
                         <thead>
@@ -217,9 +272,9 @@ function Viajes() {
                                     <td>{v.embarcacionNombre || "—"}</td>
                                     <td>{v.sucursalNombre || "—"}</td>
                                     <td>
-                <span className={badgeClass(v.estado)}>
-                {ESTADO_LABEL[v.estado] || v.estado}
-                </span>
+                                            <span className={badgeClass(v.estado)}>
+                                                {ESTADO_LABEL[v.estado] || v.estado}
+                                            </span>
                                     </td>
                                 </tr>
                             ))
@@ -227,7 +282,99 @@ function Viajes() {
                         </tbody>
                     </table>
                 </div>
+            )}
 
+            {/* MODAL NUEVO VIAJE */}
+            {modalAbierto && (
+                <div className="modal-overlay" onClick={cerrarModal}>
+                    <div className="modal" onClick={e => e.stopPropagation()}>
+
+                        <div className="modal-header">
+                            <h3>Nuevo Viaje</h3>
+                            <button className="modal-cerrar" onClick={cerrarModal}>
+                                <i className="ti ti-x"></i>
+                            </button>
+                        </div>
+
+                        <div className="modal-body">
+                            <div className="form-grupo">
+                                <label>Ruta *</label>
+                                <select name="rutaId" value={form.rutaId} onChange={handleChange}>
+                                    <option value="">Seleccionar ruta...</option>
+                                    {rutasDisponibles.map(r => (
+                                        <option key={r.id} value={r.id}>
+                                            {r.origen} → {r.destino}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className="form-grupo">
+                                <label>Embarcación *</label>
+                                <select name="embarcacionId" value={form.embarcacionId} onChange={handleChange}>
+                                    <option value="">Seleccionar embarcación...</option>
+                                    {embsDisponibles.map(e => (
+                                        <option key={e.id} value={e.id}>
+                                            {e.nombre}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className="form-grupo">
+                                <label>Sucursal *</label>
+                                <select name="sucursalId" value={form.sucursalId} onChange={handleChange}>
+                                    <option value="">Seleccionar sucursal...</option>
+                                    {sucursalesDisponibles.map(s => (
+                                        <option key={s.id} value={s.id}>
+                                            {s.nombre}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className="form-grupo">
+                                <label>Fecha de Salida *</label>
+                                <input
+                                    type="date"
+                                    name="fechaSalida"
+                                    value={form.fechaSalida}
+                                    onChange={handleChange}
+                                />
+                            </div>
+
+                            <div className="form-grupo">
+                                <label>Hora de Salida *</label>
+                                <input
+                                    type="time"
+                                    name="horaSalida"
+                                    value={form.horaSalida}
+                                    onChange={handleChange}
+                                />
+                            </div>
+
+                            {errorModal && (
+                                <div className="modal-error">
+                                    <i className="ti ti-alert-circle"></i>
+                                    {errorModal}
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="modal-footer">
+                            <button className="btn-cancelar" onClick={cerrarModal}>
+                                Cancelar
+                            </button>
+                            <button className="btn-guardar" onClick={guardar} disabled={guardando}>
+                                {guardando
+                                    ? <><i className="ti ti-loader-2 spin"></i> Guardando...</>
+                                    : <><i className="ti ti-check"></i> Crear Viaje</>
+                                }
+                            </button>
+                        </div>
+
+                    </div>
+                </div>
             )}
 
         </div>

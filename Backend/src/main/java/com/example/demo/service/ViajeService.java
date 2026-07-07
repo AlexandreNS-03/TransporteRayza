@@ -10,7 +10,7 @@ import com.example.demo.repository.RutaRepository;
 import com.example.demo.repository.SucursalRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -40,6 +40,15 @@ public class ViajeService {
     // Listar todos
     public List<ViajeDTO> listarViajes() {
         return viajeRepository.findAllByOrderByFechaSalidaDesc()
+                .stream()
+                .map(this::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    public List<ViajeDTO> filtrarPorFechas(String fechaInicio, String fechaFin) {
+        LocalDate inicio = LocalDate.parse(fechaInicio);
+        LocalDate fin = LocalDate.parse(fechaFin);
+        return viajeRepository.findByFechaSalidaBetween(inicio, fin)
                 .stream()
                 .map(this::toDTO)
                 .collect(Collectors.toList());
@@ -103,6 +112,7 @@ public class ViajeService {
         dto.setPrecioNormal(v.getPrecioNormal());
         dto.setPrecioVip(v.getPrecioVip());
         dto.setEstado(v.getEstado() != null ? v.getEstado().name() : null);
+        dto.setRutaId(v.getRutaId());
 
         if (v.getParadas() != null) {
             List<ViajeDTO.ParadaDTO> paradas = v.getParadas().stream()

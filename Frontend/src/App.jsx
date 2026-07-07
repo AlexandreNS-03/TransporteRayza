@@ -9,12 +9,13 @@ import PrivateRoute from "./Router/PrivateRoute";
 //ADMINISTRACION
 
 import Sucursales from "./Pages/Compartidos/Administracion/Sucursales.jsx";
-
 import Viajes from "./Pages/Compartidos/Operaciones/Viajes.jsx";
+import Rutas from "./Pages/Compartidos/Administracion/Rutas.jsx"
 // import Manifiesto from "./Pages/Compartidos/Operaciones/Manifesto.jsx";
-// import Embarque from "./Pages/Compartidos/Operaciones/Embarque.jsx";
-// import Paradas from "./Pages/Compartidos/Operaciones/Paradas.jsx";
-// import Pasajes from "./Pages/Compartidos/Ventas/Pasajes.jsx";
+import Embarque from "./Pages/Compartidos/Operaciones/Embarque.jsx";
+import Embarcaciones from "./Pages/Compartidos/Administracion/Embarcaciones.jsx";
+import Paradas from "./Pages/Compartidos/Operaciones/Paradas.jsx";
+import Pasajes from "./Pages/Compartidos/Ventas/Pasajes.jsx";
 // import Encomiendas from "./Pages/Compartidos/Ventas/Encomiendas.jsx";
 // import Cajas from "./Pages/Compartidos/Finanzas/Cajas.jsx";
 // import Comprobantes from "./Pages/Compartidos/Finanzas/Comprobantes.jsx";
@@ -36,6 +37,11 @@ function App() {
                 >
                     <Route path="viajes" element={<Viajes />} />
                     <Route path="sucursales" element={<Sucursales />} />
+                    <Route path="rutas" element={<Rutas />} />
+                    <Route path="embarque" element={<Embarque />} />
+                    <Route path="embarcaciones" element={<Embarcaciones />} />
+                    <Route path="pasajes" element={<Pasajes />} />
+                    <Route path="paradas" element={<Paradas />} />
 
                 </Route>
 
@@ -48,6 +54,11 @@ function App() {
                     }
                 >
                     <Route path="sucursales" element={<Sucursales />} />
+                    <Route path="rutas" element={<Rutas />} />
+                    <Route path="embarque" element={<Embarque />} />
+                    <Route path="embarcaciones" element={<Embarcaciones />} />
+                    <Route path="pasajes" element={<Pasajes />} />
+                    <Route path="paradas" element={<Paradas />} />
                 </Route>
 
                 {/* EMPLEADO con rutas hijas */}
@@ -59,8 +70,11 @@ function App() {
                         </PrivateRoute>
                     }
                 >
-                    <Route path="viajes"       element={<Viajes />} />
+                    <Route path="viajes" element={<Viajes />} />
                     <Route path="sucursales" element={<Sucursales />} />
+                    <Route path="rutas" element={<Rutas />} />
+                    <Route path="pasajes" element={<Pasajes />} />
+                    <Route path="paradas" element={<Paradas />} />
                 </Route>
 
             </Routes>

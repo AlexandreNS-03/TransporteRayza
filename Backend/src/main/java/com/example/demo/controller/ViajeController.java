@@ -29,4 +29,11 @@ public class ViajeController {
         return ResponseEntity.ok(viajeService.crearViaje(req));
     }
 
+    @GetMapping("/filtrar")
+    public ResponseEntity<List<ViajeDTO>> filtrarPorFechas(
+            @RequestParam String fechaInicio,
+            @RequestParam String fechaFin) {
+        return ResponseEntity.ok(viajeService.filtrarPorFechas(fechaInicio, fechaFin));
+    }
+
 }

@@ -55,4 +55,9 @@ public class VentaController {
     public ResponseEntity<VentaDTO> anular(@PathVariable String id) {
         return ResponseEntity.ok(ventaService.anularVenta(id));
     }
+
+    @PatchMapping("/{id}/embarcar")
+    public ResponseEntity<VentaDTO> embarcar(@PathVariable String id) {
+        return ResponseEntity.ok(ventaService.embarcarPasajero(id));
+    }
 }

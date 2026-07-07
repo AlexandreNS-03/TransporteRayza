@@ -50,4 +50,12 @@ public class RutaController {
         rutaService.desactivar(id);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/{id}/tarifa")
+    public ResponseEntity<?> obtenerTarifa(
+            @PathVariable String id,
+            @RequestParam int ordenOrigen,
+            @RequestParam int ordenDestino) {
+        return ResponseEntity.ok(rutaService.obtenerTarifa(id, ordenOrigen, ordenDestino));
+    }
 }

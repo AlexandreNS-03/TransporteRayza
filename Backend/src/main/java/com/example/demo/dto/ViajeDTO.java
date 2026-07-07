@@ -17,6 +17,7 @@ public class ViajeDTO {
     private BigDecimal precioNormal;
     private BigDecimal precioVip;
     private String estado;
+    private String rutaId;
     private List<ParadaDTO> paradas;
 
     public static class ParadaDTO {
@@ -68,6 +69,9 @@ public class ViajeDTO {
 
     public String getEstado() { return estado; }
     public void setEstado(String estado) { this.estado = estado; }
+
+    public String getRutaId() { return rutaId; }
+    public void setRutaId(String rutaId) { this.rutaId = rutaId; }
 
     public List<ParadaDTO> getParadas() { return paradas; }
     public void setParadas(List<ParadaDTO> paradas) { this.paradas = paradas; }

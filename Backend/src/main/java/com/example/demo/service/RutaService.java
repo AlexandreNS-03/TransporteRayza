@@ -13,7 +13,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -156,6 +158,19 @@ public class RutaService {
         int contador = 2;
         while (rutaRepository.existsById(idBase + "_" + contador)) contador++;
         return idBase + "_" + contador;
+    }
+
+    public Map<String, Object> obtenerTarifa(String rutaId, int ordenOrigen, int ordenDestino) {
+        return tarifaRepository.findByRutaId(rutaId).stream()
+                .filter(t -> t.getOrdenOrigen() == ordenOrigen && t.getOrdenDestino() == ordenDestino)
+                .findFirst()
+                .map(t -> {
+                    Map<String, Object> result = new HashMap<>();
+                    result.put("precioNormal", t.getPrecioNormal());
+                    result.put("precioVip", t.getPrecioVip());
+                    return result;
+                })
+                .orElseThrow(() -> new RuntimeException("Tarifa no encontrada para ese tramo"));
     }
 
     private RutaDTO toDTO(Ruta r, boolean conDetalle) {

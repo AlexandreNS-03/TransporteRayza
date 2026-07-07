@@ -32,6 +32,22 @@ public class VentaService {
         this.asientoService       = asientoService;
     }
 
+    public VentaDTO embarcarPasajero(String id) {
+        Venta venta = ventaRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Venta no encontrada"));
+
+        if (venta.getEstado() == Venta.EstadoVenta.ANULADO)
+            throw new RuntimeException("La venta está anulada");
+
+        if (venta.getEmbarqueEstado() == Venta.EmbarqueEstado.EMBARCADO)
+            throw new RuntimeException("El pasajero ya embarcó");
+
+        venta.setEmbarqueEstado(Venta.EmbarqueEstado.EMBARCADO);
+        venta.setEmbarcadoAt(LocalDateTime.now());
+
+        return toDTO(ventaRepository.save(venta));
+    }
+
     // Listar todas
     public List<VentaDTO> listarVentas() {
         return ventaRepository.findAllByOrderByFechaVentaDesc()

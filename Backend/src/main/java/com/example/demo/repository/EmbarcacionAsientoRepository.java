@@ -9,5 +9,6 @@ import java.util.List;
 @Repository
 public interface EmbarcacionAsientoRepository extends JpaRepository<EmbarcacionAsiento, String> {
     List<EmbarcacionAsiento> findByEmbarcacionIdOrderByNumeroAsc(String embarcacionId);
+    List<EmbarcacionAsiento> findByEmbarcacionId(String embarcacionId);
     void deleteByEmbarcacionId(String embarcacionId);
 }

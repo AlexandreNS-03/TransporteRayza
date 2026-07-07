@@ -57,10 +57,6 @@ function AdminDashboard() {
                         <i className="ti ti-package"></i> Embarque
                     </NavLink>
 
-                    <NavLink to="/admin/paradas" className={({ isActive }) => isActive ? "sb-item active" : "sb-item"}>
-                        <i className="ti ti-map-pin"></i> Paradas
-                    </NavLink>
-
                     <p className="sb-section">VENTAS</p>
                     <NavLink to="/admin/pasajes" className={({ isActive }) => isActive ? "sb-item active" : "sb-item"}>
                         <i className="ti ti-ticket"></i> Pasajes
@@ -84,11 +80,18 @@ function AdminDashboard() {
                     {esAdmin && (
                         <>
                             <p className="sb-section">ADMINISTRACIÓN</p>
+                            <NavLink to="/admin/embarcaciones" className={({ isActive }) => isActive ? "sb-item active" : "sb-item"}>
+                                <i className="ti ti-building"></i> Embarcaciones
+                            </NavLink>
                             <NavLink to="/admin/sucursales" className={({ isActive }) => isActive ? "sb-item active" : "sb-item"}>
                                 <i className="ti ti-building"></i> Sucursales
                             </NavLink>
                             <NavLink to="/admin/rutas" className={({ isActive }) => isActive ? "sb-item active" : "sb-item"}>
                                 <i className="ti ti-route"></i> Rutas
+                            </NavLink>
+
+                            <NavLink to="/admin/paradas" className={({ isActive }) => isActive ? "sb-item active" : "sb-item"}>
+                                <i className="ti ti-map-pin"></i> Paradas
                             </NavLink>
                         </>
                     )}

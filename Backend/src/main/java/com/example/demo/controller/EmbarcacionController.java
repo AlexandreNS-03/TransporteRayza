@@ -2,9 +2,12 @@ package com.example.demo.controller;
 
 import com.example.demo.dto.EmbarcacionDTO;
 import com.example.demo.dto.EmbarcacionRequest;
+import com.example.demo.model.EmbarcacionAsiento;
 import com.example.demo.service.EmbarcacionService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.example.demo.repository.EmbarcacionAsientoRepository;
 
 import java.util.List;
 
@@ -19,6 +22,9 @@ public class EmbarcacionController {
         this.embarcacionService = embarcacionService;
     }
 
+    @Autowired
+    private EmbarcacionAsientoRepository embarcacionAsientoRepository;
+
     @GetMapping
     public ResponseEntity<List<EmbarcacionDTO>> listar() {
         return ResponseEntity.ok(embarcacionService.listarTodas());
@@ -32,6 +38,16 @@ public class EmbarcacionController {
     @GetMapping("/{id}")
     public ResponseEntity<EmbarcacionDTO> obtener(@PathVariable String id) {
         return ResponseEntity.ok(embarcacionService.obtener(id));
+    }
+
+    // EmbarcacionController.java
+    @GetMapping("/{id}/asientos")
+    public ResponseEntity<List<EmbarcacionAsiento>> getAsientos(@PathVariable String id) {
+        System.out.println("Buscando asientos para: " + id); // ← debe imprimir "suc_ray"
+        List<EmbarcacionAsiento> asientos = embarcacionAsientoRepository
+                .findByEmbarcacionIdOrderByNumeroAsc(id);
+        System.out.println("Encontrados: " + asientos.size()); // ← cuántos trajo
+        return ResponseEntity.ok(asientos);
     }
 
     @PostMapping
