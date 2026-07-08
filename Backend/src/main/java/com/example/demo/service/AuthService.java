@@ -6,31 +6,30 @@ import com.example.demo.model.Usuario;
 import com.example.demo.repository.UsuarioRepository;
 import com.example.demo.security.JwtUtil;
 import org.springframework.stereotype.Service;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Service
 public class AuthService {
 
     private final UsuarioRepository usuarioRepository;
     private final JwtUtil jwtUtil;
+    private final PasswordEncoder passwordEncoder;
 
-
-    public AuthService(UsuarioRepository usuarioRepository, JwtUtil jwtUtil) {
-
+    public AuthService(UsuarioRepository usuarioRepository, JwtUtil jwtUtil, PasswordEncoder passwordEncoder) {
         this.usuarioRepository = usuarioRepository;
         this.jwtUtil = jwtUtil;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public LoginResponse login(LoginRequest request) {
-
-        Usuario usuario = usuarioRepository
-                .findByUsername(request.getUsername())
+        Usuario usuario = usuarioRepository.findByUsername(request.getUsername())
                 .orElse(null);
 
         if (usuario == null) {
             throw new RuntimeException("Usuario no encontrado");
         }
 
-        if (!usuario.getPassword().equals(request.getPassword())) {
+        if (!passwordEncoder.matches(request.getPassword(), usuario.getPassword())) {
             throw new RuntimeException("Contraseña incorrecta");
         }
 
@@ -38,16 +37,8 @@ public class AuthService {
             throw new RuntimeException("Usuario inactivo");
         }
 
-        String token = jwtUtil.generateToken(
-                usuario.getUsername(),
-                usuario.getRol().name()
-        );
+        String token = jwtUtil.generateToken(usuario.getUsername(), usuario.getRol().name());
 
-        return new LoginResponse(
-                token,
-                usuario.getUsername(),
-                usuario.getNombre(),
-                usuario.getRol().name()
-        );
+        return new LoginResponse(token, usuario.getUsername(), usuario.getNombre(), usuario.getRol().name());
     }
 }

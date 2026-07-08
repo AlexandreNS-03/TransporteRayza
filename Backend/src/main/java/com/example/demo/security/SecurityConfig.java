@@ -4,6 +4,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -23,6 +25,11 @@ public class SecurityConfig {
     }
 
     @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http)
             throws Exception {
 
@@ -34,6 +41,11 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**").permitAll()
+
+                        /*USUARIOS*/
+                        .requestMatchers(HttpMethod.GET,    "/api/usuarios/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST,   "/api/usuarios").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PATCH,  "/api/usuarios/**").hasRole("ADMIN")
 
                         /*VIAJES*/
                         .requestMatchers(HttpMethod.GET,    "/api/viajes/**").hasAnyRole("ADMIN", "SUPERVISOR", "EMPLEADO")
@@ -59,15 +71,16 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT,    "/api/rutas/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/rutas/**").hasRole("ADMIN")
 
-//                        /*ASIENTOS*/
-//                        .requestMatchers(HttpMethod.GET, "/api/viajes/**")
-//                        .hasAnyRole("ADMIN", "SUPERVISOR", "EMPLEADO")
-
-
                         /*VENTAS*/
                         .requestMatchers(HttpMethod.GET,   "/api/ventas/**").hasAnyRole("ADMIN", "SUPERVISOR", "EMPLEADO")
                         .requestMatchers(HttpMethod.POST,  "/api/ventas").hasAnyRole("ADMIN", "SUPERVISOR")
                         .requestMatchers(HttpMethod.PATCH, "/api/ventas/*/anular").hasAnyRole("ADMIN", "SUPERVISOR")
+
+                        /*DASHBOARD*/
+                        .requestMatchers(HttpMethod.GET, "/api/dashboard/**").hasAnyRole("ADMIN", "SUPERVISOR", "EMPLEADO")
+
+                        /*COMPROBANTE*/
+                        .requestMatchers(HttpMethod.POST, "/api/ventas/*/enviar-comprobante").hasAnyRole("ADMIN", "SUPERVISOR", "EMPLEADO")
 
                         .anyRequest().authenticated()
                 )
@@ -87,7 +100,7 @@ public class SecurityConfig {
                 List.of("http://localhost:5173"));
 
         configuration.setAllowedMethods(
-                List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+                List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
 
         configuration.setAllowedHeaders(
                 List.of("*"));

@@ -25,6 +25,8 @@ function Paradas() {
     const [cargando, setCargando]         = useState(false);
     const [cargandoRutas, setCargandoRutas] = useState(true);
     const [error, setError]               = useState(null);
+    const [tabActivo, setTabActivo] = useState("paradas");
+    const [embarcaciones, setEmbarcaciones] = useState([]);
 
     // Modal
     const [modalAbierto, setModal]        = useState(false);
@@ -59,6 +61,15 @@ function Paradas() {
             setParadas([...(data.paradas || [])].sort((a, b) => a.orden - b.orden));
         } catch (err) { setError("Error al cargar paradas"); }
         finally { setCargando(false); }
+    };
+
+    const fetchEmbarcaciones = async () => {
+        try {
+            const data = await apiFetch("/api/embarcaciones");
+            // Filtrar solo las que tienen viajes en esta ruta
+            // Por ahora mostramos todas las activas
+            setEmbarcaciones(data.filter(e => e.activo));
+        } catch (err) { console.error(err); }
     };
 
     const abrirModalCrear = () => {
@@ -238,7 +249,7 @@ function Paradas() {
                         </option>
                         {rutas.map(r => (
                             <option key={r.id} value={r.id}>
-                                {r.origen} → {r.destino}
+                                {r.origen} → {r.destino} — {r.sucursalAdministradoraNombre || "Sin sucursal"}
                             </option>
                         ))}
                     </select>
@@ -280,101 +291,163 @@ function Paradas() {
                             <span><strong>{rutaSeleccionada?.origen}</strong> → <strong>{rutaSeleccionada?.destino}</strong></span>
                         </div>
                         <div className="ruta-info-item">
+                            <i className="ti ti-building"></i>
+                            <span>{rutaDetalle?.sucursalAdministradoraNombre || "—"}</span>
+                        </div>
+                        <div className="ruta-info-item">
                             <i className="ti ti-clock"></i>
                             <span>{rutaSeleccionada?.duracionAproximada || "—"}</span>
                         </div>
                         <div className="ruta-info-item">
-                            <i className="ti ti-map-pin"></i>
-                            <span>{paradas.length} paradas</span>
+                            <i className="ti ti-cash"></i>
+                            <span>Normal: <strong>S/ {rutaDetalle?.precioNormal}</strong></span>
+                        </div>
+                        <div className="ruta-info-item">
+                            <i className="ti ti-star"></i>
+                            <span>VIP: <strong>S/ {rutaDetalle?.precioVip}</strong></span>
                         </div>
                     </div>
 
-                    {/* ACCIONES */}
-                    {esAdmin && (
-                        <div className="paradas-acciones">
-                            <button className="btn-nuevo" onClick={abrirModalCrear}>
-                                <i className="ti ti-plus"></i> Agregar Parada
+                    {/* TABS */}
+                    <div className="tabs-container">
+                        <div className="tabs-header">
+                            <button
+                                className={`tab-btn ${tabActivo === "paradas" ? "activo" : ""}`}
+                                onClick={() => setTabActivo("paradas")}
+                            >
+                                <i className="ti ti-map-pin"></i> Paradas ({paradas.length})
                             </button>
-                            {!reordenando ? (
-                                <button className="btn-reordenar" onClick={() => setReordenando(true)}>
-                                    <i className="ti ti-arrows-sort"></i> Reordenar
-                                </button>
-                            ) : (
+                            <button
+                                className={`tab-btn ${tabActivo === "tarifas" ? "activo" : ""}`}
+                                onClick={() => setTabActivo("tarifas")}
+                            >
+                                <i className="ti ti-receipt"></i> Tarifas por Tramo ({rutaDetalle?.tarifas?.length || 0})
+                            </button>
+
+                        </div>
+
+                        <div className="tabs-body">
+
+                            {/* TAB PARADAS */}
+                            {tabActivo === "paradas" && (
                                 <>
-                                    <button className="btn-guardar-orden" onClick={guardarOrden} disabled={guardandoOrden}>
-                                        {guardandoOrden
-                                            ? <><i className="ti ti-loader-2 spin"></i> Guardando...</>
-                                            : <><i className="ti ti-check"></i> Guardar Orden</>
-                                        }
-                                    </button>
-                                    <button className="btn-cancelar-orden" onClick={() => { setReordenando(false); fetchParadas(); }}>
-                                        Cancelar
-                                    </button>
+                                    {esAdmin && (
+                                        <div className="paradas-acciones">
+                                            <button className="btn-nuevo" onClick={abrirModalCrear}>
+                                                <i className="ti ti-plus"></i> Agregar Parada
+                                            </button>
+                                            {!reordenando ? (
+                                                <button className="btn-reordenar" onClick={() => setReordenando(true)}>
+                                                    <i className="ti ti-arrows-sort"></i> Reordenar
+                                                </button>
+                                            ) : (
+                                                <>
+                                                    <button className="btn-guardar-orden" onClick={guardarOrden} disabled={guardandoOrden}>
+                                                        {guardandoOrden
+                                                            ? <><i className="ti ti-loader-2 spin"></i> Guardando...</>
+                                                            : <><i className="ti ti-check"></i> Guardar Orden</>
+                                                        }
+                                                    </button>
+                                                    <button className="btn-cancelar-orden" onClick={() => { setReordenando(false); fetchParadas(); }}>
+                                                        Cancelar
+                                                    </button>
+                                                </>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {paradas.length === 0 ? (
+                                        <div className="tab-vacio">
+                                            <i className="ti ti-map-pin-off"></i>
+                                            <span>Esta ruta no tiene paradas registradas</span>
+                                        </div>
+                                    ) : (
+                                        <div className="paradas-lista">
+                                            {paradas.map((p, i) => (
+                                                <div key={p.id || i} className={`parada-card ${reordenando ? "reordenando" : ""}`}>
+                                                    {i < paradas.length - 1 && <div className="parada-linea"></div>}
+                                                    <div className="parada-orden-badge">{p.orden}</div>
+                                                    <div className="parada-info">
+                                                        <strong>{p.nombre}</strong>
+                                                        {i === 0 && <span className="parada-tag origen">Origen</span>}
+                                                        {i === paradas.length - 1 && <span className="parada-tag destino">Destino</span>}
+                                                        {i > 0 && i < paradas.length - 1 && <span className="parada-tag intermedia">Parada</span>}
+                                                    </div>
+                                                    {reordenando && (
+                                                        <div className="parada-orden-btns">
+                                                            <button className="btn-orden" onClick={() => moverArriba(i)} disabled={i === 0}>
+                                                                <i className="ti ti-chevron-up"></i>
+                                                            </button>
+                                                            <button className="btn-orden" onClick={() => moverAbajo(i)} disabled={i === paradas.length - 1}>
+                                                                <i className="ti ti-chevron-down"></i>
+                                                            </button>
+                                                        </div>
+                                                    )}
+                                                    {esAdmin && !reordenando && (
+                                                        <div className="parada-btns">
+                                                            <button className="btn-accion editar" onClick={() => abrirModalEditar(p)}>
+                                                                <i className="ti ti-pencil"></i>
+                                                            </button>
+                                                            <button className="btn-accion eliminar" onClick={() => eliminarParada(p)}>
+                                                                <i className="ti ti-trash"></i>
+                                                            </button>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
                                 </>
                             )}
-                        </div>
-                    )}
 
-                    {/* LISTA DE PARADAS */}
-                    {paradas.length === 0 ? (
-                        <div className="paradas-vacio">
-                            <i className="ti ti-map-pin-off"></i>
-                            <span>Esta ruta no tiene paradas registradas</span>
-                        </div>
-                    ) : (
-                        <div className="paradas-lista">
-                            {paradas.map((p, i) => (
-                                <div key={p.id || i} className={`parada-card ${reordenando ? "reordenando" : ""}`}>
-
-                                    {/* Línea conectora */}
-                                    {i < paradas.length - 1 && (
-                                        <div className="parada-linea"></div>
-                                    )}
-
-                                    <div className="parada-orden-badge">{p.orden}</div>
-
-                                    <div className="parada-info">
-                                        <strong>{p.nombre}</strong>
-                                        {i === 0 && <span className="parada-tag origen">Origen</span>}
-                                        {i === paradas.length - 1 && <span className="parada-tag destino">Destino</span>}
-                                        {i > 0 && i < paradas.length - 1 && <span className="parada-tag intermedia">Parada</span>}
-                                    </div>
-
-                                    {/* Botones reordenar */}
-                                    {reordenando && (
-                                        <div className="parada-orden-btns">
-                                            <button
-                                                className="btn-orden"
-                                                onClick={() => moverArriba(i)}
-                                                disabled={i === 0}
-                                            >
-                                                <i className="ti ti-chevron-up"></i>
-                                            </button>
-                                            <button
-                                                className="btn-orden"
-                                                onClick={() => moverAbajo(i)}
-                                                disabled={i === paradas.length - 1}
-                                            >
-                                                <i className="ti ti-chevron-down"></i>
-                                            </button>
+                            {/* TAB TARIFAS */}
+                            {tabActivo === "tarifas" && (
+                                <div className="tarifas-wrapper">
+                                    {!rutaDetalle?.tarifas?.length ? (
+                                        <div className="tab-vacio">
+                                            <i className="ti ti-receipt-off"></i>
+                                            <span>No hay tarifas registradas para esta ruta</span>
                                         </div>
-                                    )}
-
-                                    {/* Botones editar/eliminar */}
-                                    {esAdmin && !reordenando && (
-                                        <div className="parada-btns">
-                                            <button className="btn-accion editar" onClick={() => abrirModalEditar(p)}>
-                                                <i className="ti ti-pencil"></i>
-                                            </button>
-                                            <button className="btn-accion eliminar" onClick={() => eliminarParada(p)}>
-                                                <i className="ti ti-trash"></i>
-                                            </button>
-                                        </div>
+                                    ) : (
+                                        <table className="tarifas-tabla">
+                                            <thead>
+                                            <tr>
+                                                <th>Origen</th>
+                                                <th>Destino</th>
+                                                <th>Orden Origen</th>
+                                                <th>Orden Destino</th>
+                                                <th>Precio Normal</th>
+                                                <th>Precio VIP</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            {rutaDetalle.tarifas
+                                                .sort((a, b) => a.ordenOrigen - b.ordenOrigen)
+                                                .map((t, i) => (
+                                                    <tr key={i}>
+                                                        <td><strong>{t.origenTramo}</strong></td>
+                                                        <td><strong>{t.destinoTramo}</strong></td>
+                                                        <td>
+                                                            <span className="orden-badge">{t.ordenOrigen}</span>
+                                                        </td>
+                                                        <td>
+                                                            <span className="orden-badge">{t.ordenDestino}</span>
+                                                        </td>
+                                                        <td>
+                                                            <span className="precio-normal">S/ {t.precioNormal}</span>
+                                                        </td>
+                                                        <td>
+                                                            <span className="precio-vip">S/ {t.precioVip}</span>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
                                     )}
                                 </div>
-                            ))}
+                            )}
                         </div>
-                    )}
+                    </div>
                 </div>
             )}
 

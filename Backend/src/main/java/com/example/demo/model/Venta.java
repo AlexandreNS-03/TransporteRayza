@@ -39,6 +39,9 @@ public class Venta {
     @Column(name = "pasajero_telefono", length = 20)
     private String pasajeroTelefono;
 
+    @Column(name = "cliente_email", length = 100)
+    private String clienteEmail;
+
     @Column(name = "edad")
     private Integer edad;
 
@@ -103,6 +106,9 @@ public class Venta {
     @Column(name = "embarcado_at")
     private LocalDateTime embarcadoAt;
 
+    @Column(name = "embarcado_por", length = 100)
+    private String embarcadoPor;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "estado")
     private EstadoVenta estado;
@@ -159,6 +165,9 @@ public class Venta {
 
     public String getPasajeroTelefono() { return pasajeroTelefono; }
     public void setPasajeroTelefono(String pasajeroTelefono) { this.pasajeroTelefono = pasajeroTelefono; }
+
+    public String getClienteEmail() { return clienteEmail; }
+    public void setClienteEmail(String clienteEmail) { this.clienteEmail = clienteEmail; }
 
     public Integer getEdad() { return edad; }
     public void setEdad(Integer edad) { this.edad = edad; }
@@ -219,6 +228,9 @@ public class Venta {
 
     public LocalDateTime getEmbarcadoAt() { return embarcadoAt; }
     public void setEmbarcadoAt(LocalDateTime embarcadoAt) { this.embarcadoAt = embarcadoAt; }
+
+    public String getEmbarcadoPor() { return embarcadoPor; }
+    public void setEmbarcadoPor(String embarcadoPor) { this.embarcadoPor = embarcadoPor; }
 
     public EstadoVenta getEstado() { return estado; }
     public void setEstado(EstadoVenta estado) { this.estado = estado; }

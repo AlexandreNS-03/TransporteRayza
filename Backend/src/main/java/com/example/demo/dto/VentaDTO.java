@@ -14,6 +14,7 @@ public class VentaDTO {
     private String pasajeroDocumento;
     private String procedencia;
     private String pasajeroTelefono;
+    private String clienteEmail;
     private Integer edad;
     private String sexo;
     private String observacion;
@@ -36,6 +37,9 @@ public class VentaDTO {
     private String estado;
     private String fechaVenta;
     private String usuarioNombre;
+    private String createdAt;
+    private String embarcadoPor;
+    private String embarcadoAt;
     private List<String> tramosUsados;
 
     // Getters y Setters
@@ -65,6 +69,9 @@ public class VentaDTO {
 
     public String getPasajeroTelefono() { return pasajeroTelefono; }
     public void setPasajeroTelefono(String pasajeroTelefono) { this.pasajeroTelefono = pasajeroTelefono; }
+
+    public String getClienteEmail() { return clienteEmail; }
+    public void setClienteEmail(String clienteEmail) { this.clienteEmail = clienteEmail; }
 
     public Integer getEdad() { return edad; }
     public void setEdad(Integer edad) { this.edad = edad; }
@@ -134,4 +141,13 @@ public class VentaDTO {
 
     public List<String> getTramosUsados() { return tramosUsados; }
     public void setTramosUsados(List<String> tramosUsados) { this.tramosUsados = tramosUsados; }
+
+    public String getCreatedAt() { return createdAt; }
+    public void setCreatedAt(String createdAt) { this.createdAt = createdAt; }
+
+    public String getEmbarcadoPor() { return embarcadoPor; }
+    public void setEmbarcadoPor(String embarcadoPor) { this.embarcadoPor = embarcadoPor; }
+
+    public String getEmbarcadoAt() { return embarcadoAt; }
+    public void setEmbarcadoAt(String embarcadoAt) { this.embarcadoAt = embarcadoAt; }
 }

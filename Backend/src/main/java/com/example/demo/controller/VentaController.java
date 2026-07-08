@@ -1,7 +1,9 @@
 package com.example.demo.controller;
 
+import com.example.demo.dto.UsuarioDTO;
 import com.example.demo.dto.VentaDTO;
 import com.example.demo.dto.VentaRequest;
+import com.example.demo.model.Usuario;
 import com.example.demo.service.VentaService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -51,13 +53,29 @@ public class VentaController {
         return ResponseEntity.ok(ventaService.crearVenta(req, auth.getName()));
     }
 
+    @PostMapping("/{id}/enviar-comprobante")
+    public ResponseEntity<Void> enviarComprobante(@PathVariable String id) {
+        ventaService.enviarComprobante(id);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/mis-embarques-hoy")
+    public ResponseEntity<List<VentaDTO>> misEmbarquesHoy(Authentication authentication) {
+        String usuarioNombre = authentication.getName();
+        return ResponseEntity.ok(ventaService.listarMisEmbarquesHoy(usuarioNombre));
+    }
+
     @PatchMapping("/{id}/anular")
     public ResponseEntity<VentaDTO> anular(@PathVariable String id) {
         return ResponseEntity.ok(ventaService.anularVenta(id));
     }
 
     @PatchMapping("/{id}/embarcar")
-    public ResponseEntity<VentaDTO> embarcar(@PathVariable String id) {
-        return ResponseEntity.ok(ventaService.embarcarPasajero(id));
+    public ResponseEntity<VentaDTO> embarcar(
+            @PathVariable String id,
+            Authentication authentication) {
+
+        String usuarioNombre = authentication.getName();
+        return ResponseEntity.ok(ventaService.embarcarPasajero(id, usuarioNombre));
     }
 }

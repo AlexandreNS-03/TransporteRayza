@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import "./Pasajes.css";
+import generarComprobante from "../../../Utils/generarComprobante.jsx";
+
 
 const API = "http://localhost:8080";
 
@@ -56,7 +58,7 @@ function Pasajes() {
         viajeId: "",
         // Paso 2
         tipoDocumento: "DNI", pasajeroNombre: "", pasajeroDocumento: "",
-        procedencia: "", pasajeroTelefono: "", edad: "", sexo: "Masculino", observacion: "",
+        procedencia: "", pasajeroTelefono: "", edad: "", sexo: "Masculino", clienteEmail: "",
         // Paso 3
         paradaOrigen: "", paradaDestino: "", ordenOrigen: "", ordenDestino: "",
         // Paso 4
@@ -99,7 +101,7 @@ function Pasajes() {
         setForm({
             viajeId: "", tipoDocumento: "DNI", pasajeroNombre: "",
             pasajeroDocumento: "", procedencia: "", pasajeroTelefono: "",
-            edad: "", sexo: "Masculino", observacion: "",
+            edad: "", sexo: "Masculino", clienteEmail:"",
             paradaOrigen: "", paradaDestino: "", ordenOrigen: "", ordenDestino: "",
             asientoNumero: "", asientoTipo: "",
             tipoComprobante: "TICKET", clienteNombre: "", clienteTipoDoc: "DNI",
@@ -112,6 +114,20 @@ function Pasajes() {
     const handleChange = (e) => {
         const { name, value } = e.target;
         setForm(prev => ({ ...prev, [name]: value }));
+    };
+
+    const enviarCorreo = async (id) => {
+        try {
+            const token = localStorage.getItem("token");
+            const res = await fetch(`http://localhost:8080/api/ventas/${id}/enviar-comprobante`, {
+                method: "POST",
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+            if (!res.ok) throw new Error();
+            alert("Comprobante enviado exitosamente");
+        } catch (err) {
+            alert("Error al enviar el comprobante");
+        }
     };
 
     // ── PASO 1: seleccionar viaje ──
@@ -207,9 +223,9 @@ function Pasajes() {
                     pasajeroDocumento: form.pasajeroDocumento,
                     procedencia:       form.procedencia,
                     pasajeroTelefono:  form.pasajeroTelefono,
+                    clienteEmail:      form.clienteEmail,
                     edad:              parseInt(form.edad) || null,
                     sexo:              form.sexo,
-                    observacion:       form.observacion,
                     tipoComprobante:   form.tipoComprobante,
                     clienteNombre:     form.clienteNombre,
                     clienteTipoDoc:    form.clienteTipoDoc,
@@ -384,11 +400,35 @@ function Pasajes() {
                                             </span>
                                     </td>
                                     {puedeVender && (
-                                        <td>
+                                        <td className="acciones-cell">
+                                            {/* Botón comprobante - cualquier estado */}
+                                            <button
+                                                className="btn-accion comprobante"
+                                                onClick={() => generarComprobante(v)}
+                                                title="Descargar comprobante"
+                                            >
+                                                <i className="ti ti-file-invoice"></i>
+                                            </button>
+
+                                            {/* Botón anular - solo si está pagado */}
                                             {v.estado === "PAGADO" && (
-                                                <button className="btn-accion anular"
-                                                        onClick={() => anularVenta(v.id)}>
+                                                <button
+                                                    className="btn-accion anular"
+                                                    onClick={() => anularVenta(v.id)}
+                                                    title="Anular venta"
+                                                >
                                                     <i className="ti ti-ban"></i>
+                                                </button>
+                                            )}
+
+                                            {/*Enviar comprobante */}
+                                            {v.clienteEmail && v.estado === "PAGADO" && (
+                                                <button
+                                                    className="btn-accion email"
+                                                    onClick={() => enviarCorreo(v.id)}
+                                                    title={`Enviar a ${v.clienteEmail}`}
+                                                >
+                                                    <i className="ti ti-mail"></i>
                                                 </button>
                                             )}
                                         </td>
@@ -513,11 +553,12 @@ function Pasajes() {
                                                    placeholder="999888777" />
                                         </div>
                                     </div>
+
                                     <div className="form-grupo">
-                                        <label>Observación</label>
-                                        <input type="text" name="observacion"
-                                               value={form.observacion} onChange={handleChange}
-                                               placeholder="Opcional..." />
+                                        <label>Correo electrónico</label>
+                                        <input type="email" name="clienteEmail"
+                                               value={form.clienteEmail} onChange={handleChange}
+                                               placeholder="correo@ejemplo.com" />
                                     </div>
                                 </div>
                             )}

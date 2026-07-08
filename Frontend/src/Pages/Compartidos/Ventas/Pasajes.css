@@ -587,3 +587,6 @@
 .ley-libre   { background: #e6f1fb; border-color: #378add; }
 .ley-ocupado { background: #f1f5f9; border-color: #e2e8f0; opacity: 0.6; }
 .ley-sel     { background: #1a4db5; border-color: #0c447c; }
+
+.btn-accion.email       { background: #f0f9ff; color: #0369a1; }
+.btn-accion.email:hover { background: #e0f2fe; }

@@ -21,18 +21,9 @@ public class VentaService {
     private final VentaTramoUsadoRepository tramoUsadoRepository;
     private final ViajeRepository viajeRepository;
     private final AsientoService asientoService;
+    private final EmailService emailService;
 
-    public VentaService(VentaRepository ventaRepository,
-                        VentaTramoUsadoRepository tramoUsadoRepository,
-                        ViajeRepository viajeRepository,
-                        AsientoService asientoService) {
-        this.ventaRepository      = ventaRepository;
-        this.tramoUsadoRepository = tramoUsadoRepository;
-        this.viajeRepository      = viajeRepository;
-        this.asientoService       = asientoService;
-    }
-
-    public VentaDTO embarcarPasajero(String id) {
+    public VentaDTO embarcarPasajero(String id, String usuarioNombre) {
         Venta venta = ventaRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Venta no encontrada"));
 
@@ -44,8 +35,37 @@ public class VentaService {
 
         venta.setEmbarqueEstado(Venta.EmbarqueEstado.EMBARCADO);
         venta.setEmbarcadoAt(LocalDateTime.now());
+        venta.setEmbarcadoPor(usuarioNombre);
 
-        return toDTO(ventaRepository.save(venta));
+        Venta guardada = ventaRepository.save(venta);
+
+        // Correo de confirmación al pasajero (si registró email) — no bloquea el embarque si falla
+        if (guardada.getClienteEmail() != null && !guardada.getClienteEmail().isBlank()) {
+            try {
+                emailService.enviarConfirmacionEmbarque(
+                        guardada.getClienteEmail(),
+                        guardada.getPasajeroNombre(),
+                        guardada.getViajeDescripcion(),
+                        guardada.getAsientoTipo() + " #" + guardada.getAsientoNumero(),
+                        guardada.getEmbarcadoAt().toString()
+                );
+            } catch (Exception e) {
+                System.err.println("Error enviando correo de embarque: " + e.getMessage());
+            }
+        }
+
+        return toDTO(guardada);
+    }
+
+    public List<VentaDTO> listarMisEmbarquesHoy(String usuarioNombre) {
+        LocalDate hoy = LocalDate.now();
+        return ventaRepository.findAll().stream()
+                .filter(v -> v.getEmbarqueEstado() == Venta.EmbarqueEstado.EMBARCADO)
+                .filter(v -> usuarioNombre.equals(v.getEmbarcadoPor()))
+                .filter(v -> v.getEmbarcadoAt() != null && v.getEmbarcadoAt().toLocalDate().isEqual(hoy))
+                .sorted((a, b) -> b.getEmbarcadoAt().compareTo(a.getEmbarcadoAt()))
+                .map(this::toDTO)
+                .collect(Collectors.toList());
     }
 
     // Listar todas
@@ -96,6 +116,7 @@ public class VentaService {
         venta.setPasajeroDocumento(req.getPasajeroDocumento());
         venta.setProcedencia(req.getProcedencia());
         venta.setPasajeroTelefono(req.getPasajeroTelefono());
+        venta.setClienteEmail(req.getClienteEmail());
         venta.setEdad(req.getEdad());
         if (req.getSexo() != null)
             venta.setSexo(Venta.Sexo.valueOf(req.getSexo()));
@@ -176,6 +197,41 @@ public class VentaService {
         return String.format("%08d", total + 1);
     }
 
+    public VentaService(VentaRepository ventaRepository,
+                        VentaTramoUsadoRepository tramoUsadoRepository,
+                        ViajeRepository viajeRepository,
+                        AsientoService asientoService,
+                        EmailService emailService) {
+        this.ventaRepository      = ventaRepository;
+        this.tramoUsadoRepository = tramoUsadoRepository;
+        this.viajeRepository      = viajeRepository;
+        this.asientoService       = asientoService;
+        this.emailService         = emailService;
+    }
+
+    public void enviarComprobante(String id) {
+        Venta v = ventaRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Venta no encontrada"));
+
+        if (v.getClienteEmail() == null || v.getClienteEmail().isEmpty())
+            throw new RuntimeException("Esta venta no tiene correo registrado");
+
+        try {
+            emailService.enviarComprobante(
+                    v.getClienteEmail(),
+                    v.getPasajeroNombre(),
+                    v.getSerieComprobante() + "-" + v.getNumeroComprobante(),
+                    v.getViajeDescripcion(),
+                    v.getFechaVenta() != null ? v.getFechaVenta().toString() : "—",
+                    v.getAsientoTipo() + " #" + v.getAsientoNumero(),
+                    v.getPrecio() != null ? v.getPrecio().toString() : "—",
+                    v.getCodigoQr()
+            );
+        } catch (Exception e) {
+            throw new RuntimeException("Error al enviar correo: " + e.getMessage());
+        }
+    }
+
     private VentaDTO toDTO(Venta v) {
         VentaDTO dto = new VentaDTO();
         dto.setId(v.getId());
@@ -187,6 +243,7 @@ public class VentaService {
         dto.setPasajeroDocumento(v.getPasajeroDocumento());
         dto.setProcedencia(v.getProcedencia());
         dto.setPasajeroTelefono(v.getPasajeroTelefono());
+        dto.setClienteEmail(v.getClienteEmail());
         dto.setEdad(v.getEdad());
         dto.setSexo(v.getSexo() != null ? v.getSexo().name() : null);
         dto.setObservacion(v.getObservacion());
@@ -215,6 +272,10 @@ public class VentaService {
                     .map(VentaTramoUsado::getTramo)
                     .collect(Collectors.toList()));
         }
+
+        dto.setCreatedAt(v.getCreatedAt() != null ? v.getCreatedAt().toString() : null);
+        dto.setEmbarcadoPor(v.getEmbarcadoPor());
+        dto.setEmbarcadoAt(v.getEmbarcadoAt() != null ? v.getEmbarcadoAt().toString() : null);
 
         return dto;
     }

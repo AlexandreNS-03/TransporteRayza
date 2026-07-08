@@ -11,11 +11,14 @@ import PrivateRoute from "./Router/PrivateRoute";
 import Sucursales from "./Pages/Compartidos/Administracion/Sucursales.jsx";
 import Viajes from "./Pages/Compartidos/Operaciones/Viajes.jsx";
 import Rutas from "./Pages/Compartidos/Administracion/Rutas.jsx"
-// import Manifiesto from "./Pages/Compartidos/Operaciones/Manifesto.jsx";
+import Manifiesto from "./Pages/Compartidos/Operaciones/Manifesto.jsx";
 import Embarque from "./Pages/Compartidos/Operaciones/Embarque.jsx";
 import Embarcaciones from "./Pages/Compartidos/Administracion/Embarcaciones.jsx";
 import Paradas from "./Pages/Compartidos/Operaciones/Paradas.jsx";
 import Pasajes from "./Pages/Compartidos/Ventas/Pasajes.jsx";
+import Dashboard from "./Pages/Compartidos/Sistemas/Dashboard.jsx";
+import Roles from "./Pages/Compartidos/Sistemas/RolesPermisos.jsx";
+import Reportes from "./Pages/Compartidos/Sistemas/Reportes.jsx";
 // import Encomiendas from "./Pages/Compartidos/Ventas/Encomiendas.jsx";
 // import Cajas from "./Pages/Compartidos/Finanzas/Cajas.jsx";
 // import Comprobantes from "./Pages/Compartidos/Finanzas/Comprobantes.jsx";
@@ -42,7 +45,10 @@ function App() {
                     <Route path="embarcaciones" element={<Embarcaciones />} />
                     <Route path="pasajes" element={<Pasajes />} />
                     <Route path="paradas" element={<Paradas />} />
-
+                    <Route index element={<Dashboard />} />
+                    <Route  path="roles" element={<Roles />} />
+                    <Route  path="reportes" element={<Reportes />} />
+                    <Route path="manifiesto" element={<Manifiesto />} />
                 </Route>
 
                 <Route
@@ -59,6 +65,10 @@ function App() {
                     <Route path="embarcaciones" element={<Embarcaciones />} />
                     <Route path="pasajes" element={<Pasajes />} />
                     <Route path="paradas" element={<Paradas />} />
+                    <Route index element={<Dashboard />} />
+                    <Route  path="roles" element={<Roles />} />
+                    <Route  path="reportes" element={<Reportes />} />
+                    <Route  path="manifiesto" element={<Manifiesto />} />ss
                 </Route>
 
                 {/* EMPLEADO con rutas hijas */}
@@ -75,6 +85,10 @@ function App() {
                     <Route path="rutas" element={<Rutas />} />
                     <Route path="pasajes" element={<Pasajes />} />
                     <Route path="paradas" element={<Paradas />} />
+                    <Route index element={<Dashboard />} />
+                    <Route  path="roles" element={<Roles />} />
+                    <Route  path="reportes" element={<Reportes />} />
+                    <Route  path="manifiesto" element={<Manifiesto />} />
                 </Route>
 
             </Routes>

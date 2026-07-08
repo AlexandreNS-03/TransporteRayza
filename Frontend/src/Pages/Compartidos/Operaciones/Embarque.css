@@ -327,3 +327,197 @@
     color: #15803d;
     font-weight: 500;
 }
+
+/* ===== TOAST ===== */
+.toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 14px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #1e293b;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    z-index: 1000;
+    min-width: 280px;
+    max-width: 380px;
+    animation: toast-in 0.25s ease;
+}
+
+@keyframes toast-in {
+    from { opacity: 0; transform: translateY(-10px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.toast i:first-child { font-size: 20px; flex-shrink: 0; }
+
+.toast span { flex: 1; line-height: 1.4; }
+
+.toast-success {
+    background: #f0fdf4;
+    border-color: #bbf7d0;
+    color: #15803d;
+}
+
+.toast-success i:first-child { color: #15803d; }
+
+.toast-error {
+    background: #fef2f2;
+    border-color: #fecaca;
+    color: #b91c1c;
+}
+
+.toast-error i:first-child { color: #b91c1c; }
+
+.toast-cerrar {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: inherit;
+    opacity: 0.6;
+    display: flex;
+    align-items: center;
+    padding: 0;
+    flex-shrink: 0;
+}
+
+.toast-cerrar:hover { opacity: 1; }
+.toast-cerrar i { font-size: 16px; }
+
+/* ===== BOTÓN VER MI TURNO ===== */
+.btn-mi-turno {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 36px;
+    padding: 0 16px;
+    background: #fff;
+    color: #1a4db5;
+    border: 1px solid #1a4db5;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+}
+
+.btn-mi-turno:hover { background: #1a4db5; color: #fff; }
+.btn-mi-turno i { font-size: 15px; }
+
+/* ===== MODAL OVERLAY ===== */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1100;
+    animation: overlay-in 0.15s ease;
+}
+
+@keyframes overlay-in {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+/* ===== MODAL TURNO ===== */
+.modal-turno {
+    background: #fff;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 440px;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    animation: modal-in 0.2s ease;
+}
+
+@keyframes modal-in {
+    from { opacity: 0; transform: scale(0.96) translateY(8px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.modal-turno-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.modal-turno-header h3 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 16px;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+}
+
+.modal-turno-header h3 i { color: #1a4db5; font-size: 18px; }
+
+.modal-turno-header button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #6b7280;
+    display: flex;
+    align-items: center;
+    padding: 4px;
+    border-radius: 6px;
+    transition: background 0.15s;
+}
+
+.modal-turno-header button:hover { background: #f1f5f9; color: #1e293b; }
+.modal-turno-header button i { font-size: 18px; }
+
+.modal-turno-resumen {
+    padding: 14px 20px 0;
+    font-size: 13px;
+    color: #6b7280;
+    margin: 0;
+}
+
+.modal-turno-resumen strong { color: #1a4db5; }
+
+.modal-turno-lista {
+    list-style: none;
+    margin: 0;
+    padding: 10px 20px 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.modal-turno-lista li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 14px;
+    background: #f8fafc;
+    border: 1px solid #f1f5f9;
+    border-radius: 8px;
+}
+
+.modal-turno-hora {
+    font-size: 12px;
+    font-weight: 600;
+    color: #15803d;
+    background: #f0fdf4;
+    padding: 4px 10px;
+    border-radius: 20px;
+    white-space: nowrap;
+}

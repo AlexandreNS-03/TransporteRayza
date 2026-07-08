@@ -10,6 +10,7 @@ public class VentaRequest {
     private String pasajeroDocumento;
     private String procedencia;
     private String pasajeroTelefono;
+    private String clienteEmail;
     private Integer edad;
     private String sexo;
     private String observacion;
@@ -44,6 +45,9 @@ public class VentaRequest {
 
     public String getPasajeroTelefono() { return pasajeroTelefono; }
     public void setPasajeroTelefono(String pasajeroTelefono) { this.pasajeroTelefono = pasajeroTelefono; }
+
+    public String getClienteEmail() { return clienteEmail; }
+    public void setClienteEmail(String clienteEmail) { this.clienteEmail = clienteEmail; }
 
     public Integer getEdad() { return edad; }
     public void setEdad(Integer edad) { this.edad = edad; }

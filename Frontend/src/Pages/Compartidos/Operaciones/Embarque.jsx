@@ -17,8 +17,23 @@ function Embarque() {
     const [filtroEstado, setFiltroEstado] = useState("todos");
     const [procesando, setProcesando]   = useState(null);
 
+    // --- NUEVO: toast de confirmación ---
+    const [toast, setToast] = useState(null); // { tipo: "success" | "error", mensaje: string }
+
+    // --- NUEVO: modal "Ver mi turno" ---
+    const [modalTurnoAbierto, setModalTurnoAbierto] = useState(false);
+    const [misEmbarques, setMisEmbarques]           = useState([]);
+    const [cargandoTurno, setCargandoTurno]         = useState(false);
+
     useEffect(() => { fetchViajes(); }, []);
     useEffect(() => { if (viajeId) fetchPasajeros(); }, [viajeId]);
+
+    // --- NUEVO: autocerrar el toast a los 4s ---
+    useEffect(() => {
+        if (!toast) return;
+        const timer = setTimeout(() => setToast(null), 4000);
+        return () => clearTimeout(timer);
+    }, [toast]);
 
     const fetchViajes = async () => {
         setCargandoViajes(true);
@@ -28,7 +43,6 @@ function Embarque() {
                 headers: { "Authorization": `Bearer ${token}` }
             });
             const data = await res.json();
-            // Solo viajes programados o en curso
             setViajes(data.filter(v =>
                 v.estado === "PROGRAMADO" || v.estado === "EN_CURSO"
             ));
@@ -57,7 +71,7 @@ function Embarque() {
         }
     };
 
-    const marcarEmbarcado = async (ventaId) => {
+    const marcarEmbarcado = async (ventaId, pasajeroNombre) => {
         setProcesando(ventaId);
         try {
             const token = localStorage.getItem("token");
@@ -65,10 +79,31 @@ function Embarque() {
                 method: "PATCH",
                 headers: { "Authorization": `Bearer ${token}` }
             });
-            if (!res.ok) throw new Error("Error al embarcar pasajero");
+
+            if (!res.ok) {
+                let mensaje = "Error al embarcar pasajero";
+                if (res.status === 403) {
+                    mensaje = "No tienes permiso para embarcar pasajeros";
+                } else if (res.status === 401) {
+                    mensaje = "Tu sesión expiró, vuelve a iniciar sesión";
+                } else {
+                    try {
+                        const data = await res.json();
+                        mensaje = data.message || data.error || mensaje;
+                    } catch {}
+                }
+                throw new Error(mensaje);
+            }
+
+            // --- NUEVO: toast de éxito en vez de solo refrescar ---
+            setToast({
+                tipo: "success",
+                mensaje: `${pasajeroNombre} embarcado correctamente. Se envió confirmación por correo.`
+            });
+
             fetchPasajeros();
         } catch (err) {
-            alert(err.message);
+            setToast({ tipo: "error", mensaje: err.message });
         } finally {
             setProcesando(null);
         }
@@ -80,7 +115,6 @@ function Embarque() {
         setError(null);
         try {
             const token = localStorage.getItem("token");
-            // Intenta buscar por documento primero
             const res = await fetch(
                 `http://localhost:8080/api/ventas/documento/${busqueda.trim()}`,
                 { headers: { "Authorization": `Bearer ${token}` } }
@@ -93,6 +127,26 @@ function Embarque() {
             setError(err.message);
         } finally {
             setCargando(false);
+        }
+    };
+
+    // --- NUEVO: cargar "mis embarques de hoy" ---
+    const abrirModalTurno = async () => {
+        setModalTurnoAbierto(true);
+        setCargandoTurno(true);
+        try {
+            const token = localStorage.getItem("token");
+            const res = await fetch("http://localhost:8080/api/ventas/mis-embarques-hoy", {
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+            if (!res.ok) throw new Error("No se pudo cargar tu turno");
+            const data = await res.json();
+            setMisEmbarques(data);
+        } catch (err) {
+            setToast({ tipo: "error", mensaje: err.message });
+            setModalTurnoAbierto(false);
+        } finally {
+            setCargandoTurno(false);
         }
     };
 
@@ -110,12 +164,29 @@ function Embarque() {
     return (
         <div className="embarque-page">
 
+            {/* --- NUEVO: TOAST --- */}
+            {toast && (
+                <div className={`toast toast-${toast.tipo}`}>
+                    <i className={`ti ${toast.tipo === "success" ? "ti-circle-check" : "ti-alert-circle"}`}></i>
+                    <span>{toast.mensaje}</span>
+                    <button className="toast-cerrar" onClick={() => setToast(null)}>
+                        <i className="ti ti-x"></i>
+                    </button>
+                </div>
+            )}
+
             {/* ENCABEZADO */}
             <div className="embarque-header">
                 <div>
                     <h2>Embarque</h2>
                     <p>Control de embarque de pasajeros</p>
                 </div>
+                {/* --- NUEVO: botón Ver mi turno --- */}
+                {puedeEmbarcar && (
+                    <button className="btn-mi-turno" onClick={abrirModalTurno}>
+                        <i className="ti ti-clipboard-list"></i> Ver mi turno
+                    </button>
+                )}
             </div>
 
             {/* SELECTOR DE VIAJE Y BÚSQUEDA */}
@@ -303,7 +374,7 @@ function Embarque() {
                                             {p.embarqueEstado === "PENDIENTE" ? (
                                                 <button
                                                     className="btn-embarcar"
-                                                    onClick={() => marcarEmbarcado(p.id)}
+                                                    onClick={() => marcarEmbarcado(p.id, p.pasajeroNombre)}
                                                     disabled={procesando === p.id}
                                                 >
                                                     {procesando === p.id
@@ -330,6 +401,55 @@ function Embarque() {
                 <div className="embarque-vacio">
                     <i className="ti ti-users-off"></i>
                     <span>No hay pasajeros registrados para este viaje</span>
+                </div>
+            )}
+
+            {/* --- NUEVO: MODAL "Ver mi turno" --- */}
+            {modalTurnoAbierto && (
+                <div className="modal-overlay" onClick={() => setModalTurnoAbierto(false)}>
+                    <div className="modal-turno" onClick={e => e.stopPropagation()}>
+                        <div className="modal-turno-header">
+                            <h3><i className="ti ti-clipboard-list"></i> Mi turno de hoy</h3>
+                            <button onClick={() => setModalTurnoAbierto(false)}>
+                                <i className="ti ti-x"></i>
+                            </button>
+                        </div>
+
+                        {cargandoTurno ? (
+                            <div className="embarque-estado">
+                                <i className="ti ti-loader-2 spin"></i>
+                                <span>Cargando tu turno...</span>
+                            </div>
+                        ) : misEmbarques.length === 0 ? (
+                            <div className="embarque-vacio">
+                                <i className="ti ti-users-off"></i>
+                                <span>Todavía no embarcaste a nadie hoy</span>
+                            </div>
+                        ) : (
+                            <>
+                                <p className="modal-turno-resumen">
+                                    Embarcaste a <strong>{misEmbarques.length}</strong> pasajero(s) hoy
+                                </p>
+                                <ul className="modal-turno-lista">
+                                    {misEmbarques.map(p => (
+                                        <li key={p.id}>
+                                            <div className="pasajero-info">
+                                                <strong>{p.pasajeroNombre}</strong>
+                                                <span>{p.viajeDescripcion}</span>
+                                            </div>
+                                            <span className="modal-turno-hora">
+                                                {p.embarcadoAt
+                                                    ? new Date(p.embarcadoAt).toLocaleTimeString("es-PE", {
+                                                        hour: "2-digit", minute: "2-digit"
+                                                    })
+                                                    : ""}
+                                            </span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </>
+                        )}
+                    </div>
                 </div>
             )}
 
