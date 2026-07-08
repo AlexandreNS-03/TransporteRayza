@@ -1,196 +1,249 @@
-.manifiesto-container{
-    background:#f5f7fb;
-    min-height:100vh;
-    padding:30px;
+.manifiesto-page {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
 }
 
-.acciones{
-    display:flex;
-    justify-content:flex-end;
-    margin-bottom:20px;
+/* ENCABEZADO */
+.manifiesto-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }
 
-.btn-imprimir{
-    background:#2563eb;
-    color:white;
-    border:none;
-    padding:12px 22px;
-    border-radius:8px;
-    cursor:pointer;
-    font-size:15px;
-    font-weight:600;
+.manifiesto-header h2 {
+    font-size: 22px;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
 }
 
-.btn-imprimir:hover{
-    background:#1d4ed8;
+.manifiesto-header p {
+    font-size: 13px;
+    color: #6b7280;
+    margin: 2px 0 0;
 }
 
-.documento{
-
-    background:white;
-    width:100%;
-    max-width:1100px;
-    margin:auto;
-    padding:40px;
-    box-shadow:0 5px 20px rgba(0,0,0,.12);
-
+.btn-descargar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 38px;
+    padding: 0 18px;
+    background: #1a4db5;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s;
 }
 
-.documento h1{
+.btn-descargar:hover { background: #1440a0; }
+.btn-descargar:disabled { opacity: 0.6; cursor: not-allowed; }
 
-    text-align:center;
-    margin:0;
-    color:#0f172a;
-    letter-spacing:1px;
-
+/* CONTROLES */
+.manifiesto-controles {
+    display: flex;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 14px 16px;
 }
 
-.documento h2{
-
-    text-align:center;
-    margin-top:10px;
-    margin-bottom:35px;
-    color:#334155;
-
+.control-grupo {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
 }
 
-.cabecera{
-
-    display:grid;
-    grid-template-columns:repeat(2,1fr);
-    gap:12px;
-    margin-bottom:25px;
-    font-size:15px;
-
+.control-grupo label {
+    font-size: 11px;
+    color: #6b7280;
+    font-weight: 500;
 }
 
-.tabla-manifiesto{
-
-    width:100%;
-    border-collapse:collapse;
-    font-size:14px;
-
+.control-grupo select {
+    height: 40px;
+    padding: 0 12px;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    font-size: 13px;
+    color: #1e293b;
+    background: #fff;
 }
 
-.tabla-manifiesto th{
-
-    background:#1e3a8a;
-    color:white;
-    padding:10px;
-
+/* ESTADOS */
+.manifiesto-vacio,
+.manifiesto-estado {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 50px;
+    color: #9ca3af;
+    font-size: 14px;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
 }
 
-.tabla-manifiesto td{
+.manifiesto-vacio i,
+.manifiesto-estado i { font-size: 30px; }
 
-    border:1px solid #d1d5db;
-    padding:9px;
-    text-align:center;
+.manifiesto-estado.error { color: #b91c1c; background: #fef2f2; border-color: #fecaca; }
 
+.spin { animation: spin 1s linear infinite; }
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+/* FICHA DEL VIAJE */
+.manifiesto-ficha {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 18px 20px;
 }
 
-.tabla-manifiesto tbody tr:nth-child(even){
-
-    background:#f8fafc;
-
+.ficha-item {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
 }
 
-.firmas{
-
-    margin-top:80px;
-    display:flex;
-    justify-content:space-between;
-    text-align:center;
-
+.ficha-label {
+    font-size: 11px;
+    color: #9ca3af;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
 }
 
-.loading{
-
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    height:100vh;
-    font-size:22px;
-
+.ficha-item strong {
+    font-size: 14px;
+    color: #1e293b;
 }
 
-@media print{
-
-    body{
-
-        background:white;
-
-    }
-
-    .acciones{
-
-        display:none;
-
-    }
-
-    .documento{
-
-        box-shadow:none;
-        width:100%;
-        margin:0;
-        padding:0;
-
-    }
-
+/* RESUMEN */
+.manifiesto-resumen {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
 }
 
-/* ===== SELECTOR DE VIAJE ===== */
-.manifiesto-selector{
-    background:white;
-    width:100%;
-    max-width:1100px;
-    margin:0 auto 20px;
-    padding:20px 24px;
-    border-radius:10px;
-    box-shadow:0 5px 20px rgba(0,0,0,.08);
-    display:flex;
-    flex-direction:column;
-    gap:6px;
+.resumen-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 20px;
+    border-radius: 10px;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
 }
 
-.manifiesto-selector label{
-    font-size:12px;
-    font-weight:600;
-    color:#64748b;
-    text-transform:uppercase;
-    letter-spacing:0.5px;
+.resumen-card i { font-size: 24px; color: #1d4ed8; }
+
+.resumen-card.verde     { background: #f0fdf4; border-color: #bbf7d0; }
+.resumen-card.verde i    { color: #15803d; }
+
+.resumen-card.amarillo   { background: #fefce8; border-color: #fde68a; }
+.resumen-card.amarillo i { color: #a16207; }
+
+.resumen-card.morado     { background: #faf5ff; border-color: #e9d5ff; }
+.resumen-card.morado i   { color: #7c3aed; }
+
+.resumen-label {
+    display: block;
+    font-size: 12px;
+    color: #6b7280;
+    font-weight: 500;
 }
 
-.manifiesto-selector select{
-    height:40px;
-    border:1px solid #d1d5db;
-    border-radius:8px;
-    padding:0 12px;
-    font-size:14px;
-    color:#0f172a;
-    background:white;
-    outline:none;
+.resumen-valor {
+    display: block;
+    font-size: 22px;
+    font-weight: 700;
+    color: #1e293b;
 }
 
-.manifiesto-selector select:focus{
-    border-color:#2563eb;
+/* TABLA */
+.manifiesto-tabla-wrapper {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    overflow: auto;
 }
 
-.manifiesto-selector select:disabled{
-    background:#f1f5f9;
-    color:#94a3b8;
-    cursor:not-allowed;
+.manifiesto-tabla {
+    width: 100%;
+    border-collapse: collapse;
 }
 
-/* ===== ESTADO VACÍO / ERROR (dentro del contenedor, no fullscreen) ===== */
-.loading{
-    background:white;
-    max-width:1100px;
-    margin:0 auto;
-    padding:60px 30px;
-    border-radius:10px;
-    box-shadow:0 5px 20px rgba(0,0,0,.08);
-    text-align:center;
-    color:#64748b;
-    font-size:16px;
-    height:auto;
+.manifiesto-tabla thead th {
+    text-align: left;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: #6b7280;
+    font-weight: 600;
+    padding: 12px 14px;
+    background: #f8fafc;
+    border-bottom: 1px solid #e5e7eb;
+    white-space: nowrap;
+}
+
+.manifiesto-tabla tbody td {
+    padding: 10px 14px;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 13px;
+    color: #1e293b;
+    white-space: nowrap;
+}
+
+.manifiesto-tabla tbody tr:last-child td { border-bottom: none; }
+.manifiesto-tabla tbody tr:hover { background: #f8fafc; }
+
+.col-numero { color: #9ca3af; font-size: 12px; }
+
+.tramo-info {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #6b7280;
+}
+
+.tramo-info i { font-size: 12px; color: #9ca3af; }
+
+.asiento-tipo {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 10px;
+    font-weight: 600;
+    margin-right: 4px;
+}
+
+.asiento-tipo.vip    { background: #fef9c3; color: #a16207; }
+.asiento-tipo.normal { background: #eff6ff; color: #1d4ed8; }
+
+.badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.badge-embarcado { background: #f0fdf4; color: #15803d; }
+.badge-pendiente { background: #fefce8; color: #a16207; }
+
+@media (max-width: 768px) {
+    .manifiesto-ficha { grid-template-columns: 1fr 1fr; }
 }
