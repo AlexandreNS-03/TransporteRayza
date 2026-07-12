@@ -1,595 +1,1730 @@
--- ============================================================
---  BASE DE DATOS: Transportes Rayza
---  Motor: MySQL 8.0+
---  Versión corregida y optimizada
--- ============================================================
+-- phpMyAdmin SQL Dump
+-- version 5.2.2
+-- https://www.phpmyadmin.net/
+--
+-- Host: localhost:3306
+-- Generation Time: Jul 12, 2026 at 04:22 AM
+-- Server version: 8.0.30
+-- PHP Version: 8.3.26
 
-CREATE DATABASE IF NOT EXISTS transportes_rayza
-  CHARACTER SET utf8mb4
-  COLLATE utf8mb4_unicode_ci;
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+START TRANSACTION;
+SET time_zone = "+00:00";
 
-USE transportes_rayza;
 
--- ============================================================
--- 1. SUCURSALES
--- ============================================================
-CREATE TABLE sucursales (
-    id          VARCHAR(36)   NOT NULL DEFAULT (UUID()),
-    nombre      VARCHAR(100)  NOT NULL,
-    direccion   VARCHAR(200)  NOT NULL,
-    ciudad      VARCHAR(100)  NOT NULL,
-    telefono    VARCHAR(20),
-    activo      TINYINT(1)    NOT NULL DEFAULT 1,
-    created_at  TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (id)
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
+
+--
+-- Database: `transportes_rayza`
+--
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `auditoria`
+--
+
+CREATE TABLE `auditoria` (
+  `id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT (uuid()),
+  `usuario_id` varchar(36) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `usuario_nombre` varchar(150) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `usuario_rol` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `accion` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `modulo` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `referencia_id` varchar(36) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `descripcion` text COLLATE utf8mb4_unicode_ci,
+  `ip_origen` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ============================================================
--- 2. USUARIOS
--- ============================================================
-CREATE TABLE usuarios (
-    id             VARCHAR(36)  NOT NULL DEFAULT (UUID()),
-    username       VARCHAR(50)  NOT NULL,
-    password       VARCHAR(255) NOT NULL,
-    nombre         VARCHAR(150) NOT NULL,
-    email          VARCHAR(150),
-    rol            ENUM('ADMIN','SUPERVISOR','EMPLEADO') NOT NULL,
-    sucursal_id    VARCHAR(36),
-    activo         TINYINT(1)   NOT NULL DEFAULT 1,
-    ultimo_login   TIMESTAMP    NULL,
-    created_at     TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (id),
-    UNIQUE KEY uq_usuario_username (username),
-    UNIQUE KEY uq_usuario_email (email),
-    CONSTRAINT fk_usuario_sucursal
-        FOREIGN KEY (sucursal_id)
-        REFERENCES sucursales(id)
-        ON DELETE SET NULL
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `cajas`
+--
+
+CREATE TABLE `cajas` (
+  `id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT (uuid()),
+  `usuario_nombre` varchar(150) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `usuario_rol` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `sucursal_id` varchar(36) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `sucursal_nombre` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `fecha_apertura` date NOT NULL,
+  `hora_apertura` varchar(10) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `monto_inicial` decimal(12,2) NOT NULL DEFAULT '0.00',
+  `estado` enum('ABIERTA','CERRADA') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'ABIERTA',
+  `observacion_apertura` text COLLATE utf8mb4_unicode_ci,
+  `total_ventas` decimal(12,2) DEFAULT '0.00',
+  `total_anulaciones` decimal(12,2) DEFAULT '0.00',
+  `total_neto` decimal(12,2) DEFAULT '0.00',
+  `monto_cierre` decimal(12,2) DEFAULT '0.00',
+  `diferencia` decimal(12,2) DEFAULT '0.00',
+  `observacion_cierre` text COLLATE utf8mb4_unicode_ci,
+  `cerrada_at` timestamp NULL DEFAULT NULL,
+  `usuario_id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ============================================================
--- 3. EMBARCACIONES
--- ============================================================
-CREATE TABLE embarcaciones (
-    id               VARCHAR(36)  NOT NULL DEFAULT (UUID()),
-    nombre           VARCHAR(100) NOT NULL,
-    codigo           VARCHAR(20)  NOT NULL,
-    cantidad_vip     SMALLINT     NOT NULL DEFAULT 0,
-    cantidad_normal  SMALLINT     NOT NULL DEFAULT 0,
-    capacidad_total  SMALLINT     NOT NULL,
-    activo           TINYINT(1)   NOT NULL DEFAULT 1,
-    created_at       TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (id),
-    UNIQUE KEY uq_embarcacion_codigo (codigo)
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `config_comprobantes`
+--
+
+CREATE TABLE `config_comprobantes` (
+  `id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT (uuid()),
+  `sucursal_id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `sucursal_nombre` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `punto_venta` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `tipo_comprobante` enum('TICKET','BOLETA','FACTURA','NOTA_VENTA') COLLATE utf8mb4_unicode_ci NOT NULL,
+  `serie` varchar(10) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `correlativo_actual` int NOT NULL DEFAULT '1',
+  `activo` tinyint(1) NOT NULL DEFAULT '1',
+  `formato_impresion` enum('A4','TICKET') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'A4',
+  `items_maximos` smallint NOT NULL DEFAULT '99',
+  `logo_cab` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `logo_pie` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `impresora` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Asientos de cada embarcación
-CREATE TABLE embarcacion_asientos (
-    id               VARCHAR(36)  NOT NULL DEFAULT (UUID()),
-    embarcacion_id   VARCHAR(36)  NOT NULL,
-    numero           SMALLINT     NOT NULL,
-    tipo             ENUM('NORMAL','VIP') NOT NULL,
-    PRIMARY KEY (id),
-    UNIQUE KEY uq_embarcacion_asiento (embarcacion_id, numero),
-    CONSTRAINT fk_asiento_embarcacion
-        FOREIGN KEY (embarcacion_id)
-        REFERENCES embarcaciones(id)
-        ON DELETE CASCADE
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `embarcaciones`
+--
+
+CREATE TABLE `embarcaciones` (
+  `id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT (uuid()),
+  `nombre` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `codigo` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `cantidad_vip` smallint NOT NULL DEFAULT '0',
+  `cantidad_normal` smallint NOT NULL DEFAULT '0',
+  `capacidad_total` smallint NOT NULL,
+  `activo` tinyint(1) NOT NULL DEFAULT '1',
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ============================================================
--- 4. RUTAS
--- ============================================================
-CREATE TABLE rutas (
-    id                             VARCHAR(36)   NOT NULL DEFAULT (UUID()),
-    origen                         VARCHAR(100)  NOT NULL,
-    destino                        VARCHAR(100)  NOT NULL,
-    sucursal_administradora_id     VARCHAR(36),
-    sucursal_administradora_nombre VARCHAR(100),
-    precio_normal                  DECIMAL(10,2) NOT NULL DEFAULT 0,
-    precio_vip                     DECIMAL(10,2) NOT NULL DEFAULT 0,
-    duracion_aproximada            VARCHAR(50),
-    activo                         TINYINT(1)    NOT NULL DEFAULT 1,
-    created_at                     TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (id),
-    CONSTRAINT fk_ruta_sucursal
-        FOREIGN KEY (sucursal_administradora_id)
-        REFERENCES sucursales(id)
-        ON DELETE SET NULL
+--
+-- Dumping data for table `embarcaciones`
+--
+
+INSERT INTO `embarcaciones` (`id`, `nombre`, `codigo`, `cantidad_vip`, `cantidad_normal`, `capacidad_total`, `activo`, `created_at`) VALUES
+('emb_rayi', 'RAYZA I', 'RAY-001', 5, 10, 15, 1, '2026-07-11 05:15:17');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `embarcacion_asientos`
+--
+
+CREATE TABLE `embarcacion_asientos` (
+  `id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT (uuid()),
+  `embarcacion_id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `numero` smallint NOT NULL,
+  `tipo` enum('NORMAL','VIP') COLLATE utf8mb4_unicode_ci NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Paradas base de cada ruta
-CREATE TABLE ruta_paradas (
-    id       VARCHAR(36)  NOT NULL DEFAULT (UUID()),
-    ruta_id  VARCHAR(36)  NOT NULL,
-    nombre   VARCHAR(100) NOT NULL,
-    orden    SMALLINT     NOT NULL,
-    PRIMARY KEY (id),
-    UNIQUE KEY uq_ruta_parada_orden (ruta_id, orden),
-    CONSTRAINT fk_parada_ruta
-        FOREIGN KEY (ruta_id)
-        REFERENCES rutas(id)
-        ON DELETE CASCADE
+--
+-- Dumping data for table `embarcacion_asientos`
+--
+
+INSERT INTO `embarcacion_asientos` (`id`, `embarcacion_id`, `numero`, `tipo`) VALUES
+('083a85ed-3a0d-4692-b4d6-de0f2d00e460', 'emb_rayi', 6, 'NORMAL'),
+('176bc0d6-ebbd-4f98-8c4d-51e9c04a11dd', 'emb_rayi', 14, 'NORMAL'),
+('19ece4bd-8088-481e-b53e-8984c667cb0d', 'emb_rayi', 5, 'VIP'),
+('57eb748a-7764-4722-b05d-784a4db9fdf0', 'emb_rayi', 13, 'NORMAL'),
+('5d47c637-c0e6-4b67-8a50-e268e21ba923', 'emb_rayi', 3, 'VIP'),
+('6ab8e932-779f-442e-aa8b-b6250155bf1d', 'emb_rayi', 7, 'NORMAL'),
+('8bb977e0-82e1-4b08-bf31-34d5ad701fca', 'emb_rayi', 10, 'NORMAL'),
+('ad304b8b-8add-412f-ad9d-0277b81dfea1', 'emb_rayi', 8, 'NORMAL'),
+('b24a84da-1725-4714-9cf9-54157fc639b3', 'emb_rayi', 1, 'VIP'),
+('b4adaed1-7f0a-4f46-809a-7af879a0b975', 'emb_rayi', 12, 'NORMAL'),
+('cc15acb1-30b1-4a65-b22a-78b91ee0eea0', 'emb_rayi', 2, 'VIP'),
+('cff5f83a-b3c6-40a0-9081-442aee364823', 'emb_rayi', 11, 'NORMAL'),
+('dbaae25b-a1fe-466a-9a10-d38259ac7b4d', 'emb_rayi', 15, 'NORMAL'),
+('df64b9f6-1cd8-4a7b-bf1b-292347b2e50f', 'emb_rayi', 9, 'NORMAL'),
+('fc57b2db-4b41-4b82-a45a-96af54745177', 'emb_rayi', 4, 'VIP');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `encomiendas`
+--
+
+CREATE TABLE `encomiendas` (
+  `id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT (uuid()),
+  `codigo_encomienda` varchar(30) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `fecha_registro` date NOT NULL,
+  `remitente_nombre` varchar(150) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `remitente_documento` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `remitente_telefono` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `destinatario_nombre` varchar(150) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `destinatario_documento` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `destinatario_telefono` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `viaje_id` varchar(36) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `viaje_descripcion` varchar(200) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `sucursal_origen_id` varchar(36) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `sucursal_origen_nombre` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `sucursal_destino_id` varchar(36) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `sucursal_destino_nombre` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `descripcion` varchar(300) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `peso` decimal(8,3) DEFAULT '0.000',
+  `precio` decimal(10,2) NOT NULL DEFAULT '0.00',
+  `observacion` text COLLATE utf8mb4_unicode_ci,
+  `archivo_url` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `archivo_nombre` varchar(200) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `archivo_tipo` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `estado` enum('REGISTRADO','EN_TRANSITO','ENTREGADO','DEVUELTO') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'REGISTRADO',
+  `usuario_id` varchar(36) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `usuario_nombre` varchar(150) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Tarifas por tramo de cada ruta
-CREATE TABLE ruta_tarifas_tramo (
-    id            VARCHAR(36)   NOT NULL DEFAULT (UUID()),
-    ruta_id       VARCHAR(36)   NOT NULL,
-    origen_tramo  VARCHAR(100)  NOT NULL,
-    destino_tramo VARCHAR(100)  NOT NULL,
-    orden_origen  SMALLINT      NOT NULL,
-    orden_destino SMALLINT      NOT NULL,
-    precio_normal DECIMAL(10,2) NOT NULL DEFAULT 0,
-    precio_vip    DECIMAL(10,2) NOT NULL DEFAULT 0,
-    PRIMARY KEY (id),
-    CONSTRAINT fk_tarifa_ruta
-        FOREIGN KEY (ruta_id)
-        REFERENCES rutas(id)
-        ON DELETE CASCADE
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `gastos`
+--
+
+CREATE TABLE `gastos` (
+  `id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT (uuid()),
+  `fecha` date NOT NULL,
+  `categoria` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'OTROS',
+  `descripcion` varchar(300) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `monto` decimal(12,2) NOT NULL DEFAULT '0.00',
+  `sucursal_id` varchar(36) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `sucursal_nombre` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `responsable_id` varchar(36) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `responsable_nombre` varchar(150) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `observacion` text COLLATE utf8mb4_unicode_ci,
+  `archivo_url` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `archivo_nombre` varchar(200) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `archivo_tipo` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ============================================================
--- 5. VIAJES
--- ============================================================
-CREATE TABLE viajes (
-    id                  VARCHAR(36)   NOT NULL DEFAULT (UUID()),
-    codigo_viaje        VARCHAR(50)   NOT NULL,
-    sucursal_id         VARCHAR(36),
-    sucursal_nombre     VARCHAR(100),
-    ruta_id             VARCHAR(36),
-    ruta_nombre         VARCHAR(200),
-    origen              VARCHAR(100)  NOT NULL,
-    destino             VARCHAR(100)  NOT NULL,
-    embarcacion_id      VARCHAR(36),
-    embarcacion_nombre  VARCHAR(100),
-    fecha_salida        DATE          NOT NULL,
-    hora_salida         TIME          NOT NULL,
-    precio_normal       DECIMAL(10,2) NOT NULL DEFAULT 0,
-    precio_vip          DECIMAL(10,2) NOT NULL DEFAULT 0,
-    estado              ENUM('PROGRAMADO','EN_CURSO','COMPLETADO','CANCELADO') NOT NULL DEFAULT 'PROGRAMADO',
-    created_at          TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (id),
-    UNIQUE KEY uq_viaje_codigo (codigo_viaje),
-    CONSTRAINT fk_viaje_sucursal
-        FOREIGN KEY (sucursal_id)
-        REFERENCES sucursales(id)
-        ON DELETE SET NULL,
-    CONSTRAINT fk_viaje_ruta
-        FOREIGN KEY (ruta_id)
-        REFERENCES rutas(id)
-        ON DELETE SET NULL,
-    CONSTRAINT fk_viaje_embarcacion
-        FOREIGN KEY (embarcacion_id)
-        REFERENCES embarcaciones(id)
-        ON DELETE SET NULL
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `movimientos_caja`
+--
+
+CREATE TABLE `movimientos_caja` (
+  `id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT (uuid()),
+  `caja_id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `tipo` enum('INGRESO','EGRESO') COLLATE utf8mb4_unicode_ci NOT NULL,
+  `monto` decimal(12,2) NOT NULL,
+  `motivo` varchar(200) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `observacion` text COLLATE utf8mb4_unicode_ci,
+  `usuario_nombre` varchar(150) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `sucursal_id` varchar(36) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `sucursal_nombre` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `fecha` date NOT NULL,
+  `hora` varchar(10) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `usuario_id` varchar(36) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Paradas del viaje
-CREATE TABLE viaje_paradas (
-    id        VARCHAR(36)  NOT NULL DEFAULT (UUID()),
-    viaje_id  VARCHAR(36)  NOT NULL,
-    nombre    VARCHAR(100) NOT NULL,
-    orden     SMALLINT     NOT NULL,
-    PRIMARY KEY (id),
-    UNIQUE KEY uq_viaje_parada_orden (viaje_id, orden),
-    CONSTRAINT fk_vparada_viaje
-        FOREIGN KEY (viaje_id)
-        REFERENCES viajes(id)
-        ON DELETE CASCADE
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `notificaciones`
+--
+
+CREATE TABLE `notificaciones` (
+  `id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT (uuid()),
+  `titulo` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `mensaje` text COLLATE utf8mb4_unicode_ci NOT NULL,
+  `tipo` enum('INFO','WARNING','SUCCESS','ERROR') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'INFO',
+  `usuario_destino_id` varchar(36) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `sucursal_destino_id` varchar(36) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `modulo` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `referencia_id` varchar(36) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `leido` tinyint(1) NOT NULL DEFAULT '0',
+  `leido_at` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Tarifas por tramo del viaje
-CREATE TABLE viaje_tarifas_tramo (
-    id            VARCHAR(36)   NOT NULL DEFAULT (UUID()),
-    viaje_id      VARCHAR(36)   NOT NULL,
-    origen_tramo  VARCHAR(100)  NOT NULL,
-    destino_tramo VARCHAR(100)  NOT NULL,
-    orden_origen  SMALLINT      NOT NULL,
-    orden_destino SMALLINT      NOT NULL,
-    precio_normal DECIMAL(10,2) NOT NULL DEFAULT 0,
-    precio_vip    DECIMAL(10,2) NOT NULL DEFAULT 0,
-    PRIMARY KEY (id),
-    CONSTRAINT fk_vtarifa_viaje
-        FOREIGN KEY (viaje_id)
-        REFERENCES viajes(id)
-        ON DELETE CASCADE
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `rutas`
+--
+
+CREATE TABLE `rutas` (
+  `id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT (uuid()),
+  `origen` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `destino` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `sucursal_administradora_id` varchar(36) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `sucursal_administradora_nombre` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `precio_normal` decimal(10,2) NOT NULL DEFAULT '0.00',
+  `precio_vip` decimal(10,2) NOT NULL DEFAULT '0.00',
+  `duracion_aproximada` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `activo` tinyint(1) NOT NULL DEFAULT '1',
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Estado de cada asiento por viaje
-CREATE TABLE viaje_asientos_estado (
-    id              VARCHAR(36)  NOT NULL DEFAULT (UUID()),
-    viaje_id        VARCHAR(36)  NOT NULL,
-    numero          SMALLINT     NOT NULL,
-    tipo            ENUM('NORMAL','VIP') NOT NULL,
-    estado          ENUM('LIBRE','VENDIDO') NOT NULL DEFAULT 'LIBRE',
-    venta_id        VARCHAR(36),
-    pasajero_nombre VARCHAR(150),
-    pasajero_doc    VARCHAR(20),
-    pasajero_tel    VARCHAR(20),
-    PRIMARY KEY (id),
-    UNIQUE KEY uq_viaje_asiento (viaje_id, numero),
-    CONSTRAINT fk_vasiento_viaje
-        FOREIGN KEY (viaje_id)
-        REFERENCES viajes(id)
-        ON DELETE CASCADE
+--
+-- Dumping data for table `rutas`
+--
+
+INSERT INTO `rutas` (`id`, `origen`, `destino`, `sucursal_administradora_id`, `sucursal_administradora_nombre`, `precio_normal`, `precio_vip`, `duracion_aproximada`, `activo`, `created_at`) VALUES
+('rut_iqu_req', 'Iquitos', 'Requena', 'suc_iqu', 'Sucursal Iquitos', 35.00, 60.00, '8 horas', 1, '2026-07-11 05:42:53');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `ruta_paradas`
+--
+
+CREATE TABLE `ruta_paradas` (
+  `id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT (uuid()),
+  `ruta_id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `nombre` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `orden` smallint NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Tramos ocupados por asiento/viaje
-CREATE TABLE viaje_asiento_tramos_ocupados (
-    id                      VARCHAR(36) NOT NULL DEFAULT (UUID()),
-    viaje_asiento_estado_id VARCHAR(36) NOT NULL,
-    tramo                   VARCHAR(10) NOT NULL,
-    PRIMARY KEY (id),
-    CONSTRAINT fk_tramo_asiento_estado
-        FOREIGN KEY (viaje_asiento_estado_id)
-        REFERENCES viaje_asientos_estado(id)
-        ON DELETE CASCADE
+--
+-- Dumping data for table `ruta_paradas`
+--
+
+INSERT INTO `ruta_paradas` (`id`, `ruta_id`, `nombre`, `orden`) VALUES
+('fa8e859c-fb94-45dd-8bd4-26d2edfbe62a', 'rut_iqu_req', 'Iquitos', 1);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `ruta_tarifas_tramo`
+--
+
+CREATE TABLE `ruta_tarifas_tramo` (
+  `id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT (uuid()),
+  `ruta_id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `origen_tramo` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `destino_tramo` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `orden_origen` smallint NOT NULL,
+  `orden_destino` smallint NOT NULL,
+  `precio_normal` decimal(10,2) NOT NULL DEFAULT '0.00',
+  `precio_vip` decimal(10,2) NOT NULL DEFAULT '0.00'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ============================================================
--- 6. VENTAS (TICKETS / BOLETAS / FACTURAS)
--- ============================================================
-CREATE TABLE ventas (
-    id                   VARCHAR(36)   NOT NULL DEFAULT (UUID()),
-    -- Viaje
-    viaje_id             VARCHAR(36),
-    viaje_codigo         VARCHAR(50),
-    viaje_descripcion    VARCHAR(200),
-    -- Pasajero
-    tipo_documento       ENUM('DNI','CE','PASAPORTE','RUC') NOT NULL DEFAULT 'DNI',
-    pasajero_nombre      VARCHAR(150)  NOT NULL,
-    pasajero_documento   VARCHAR(20)   NOT NULL,
-    procedencia          VARCHAR(100),
-    pasajero_telefono    VARCHAR(20),
-    edad                 SMALLINT,
-    sexo                 ENUM('Masculino','Femenino','Otro'),
-    observacion          TEXT,
-    -- Comprobante
-    tipo_comprobante     ENUM('TICKET','BOLETA','FACTURA','NOTA_VENTA') NOT NULL DEFAULT 'TICKET',
-    serie_comprobante    VARCHAR(10)   NOT NULL,
-    numero_comprobante   VARCHAR(10)   NOT NULL,
-    -- Cliente (para boleta/factura)
-    cliente_nombre       VARCHAR(150),
-    cliente_tipo_doc     VARCHAR(20),
-    cliente_documento    VARCHAR(20),
-    detalle_comprobante  TEXT,
-    -- Asiento
-    asiento_numero       SMALLINT      NOT NULL,
-    asiento_tipo         ENUM('NORMAL','VIP') NOT NULL,
-    -- Tramo
-    parada_origen        VARCHAR(100),
-    parada_destino       VARCHAR(100),
-    orden_origen         SMALLINT,
-    orden_destino        SMALLINT,
-    -- Precio
-    precio               DECIMAL(10,2) NOT NULL DEFAULT 0,
-    -- Embarque
-    codigo_qr            VARCHAR(100)  NOT NULL,
-    embarque_estado      ENUM('PENDIENTE','EMBARCADO') NOT NULL DEFAULT 'PENDIENTE',
-    embarcado_at         TIMESTAMP     NULL,
-    -- Estado
-    estado               ENUM('PAGADO','ANULADO') NOT NULL DEFAULT 'PAGADO',
-    anulada_at           TIMESTAMP     NULL,
-    fecha_venta          DATE          NOT NULL,
-    -- Usuario vendedor
-    usuario_id           VARCHAR(36),
-    usuario_nombre       VARCHAR(150),
-    created_at           TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (id),
-    UNIQUE KEY uq_venta_codigo_qr (codigo_qr),
-    CONSTRAINT fk_venta_viaje
-        FOREIGN KEY (viaje_id)
-        REFERENCES viajes(id)
-        ON DELETE SET NULL,
-    CONSTRAINT fk_venta_usuario
-        FOREIGN KEY (usuario_id)
-        REFERENCES usuarios(id)
-        ON DELETE SET NULL
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `solicitudes_intersucursal`
+--
+
+CREATE TABLE `solicitudes_intersucursal` (
+  `id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT (uuid()),
+  `codigo_solicitud` varchar(30) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `fecha_registro` date NOT NULL,
+  `sucursal_origen_id` varchar(36) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `sucursal_origen_nombre` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `sucursal_destino_id` varchar(36) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `sucursal_destino_nombre` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `tipo_solicitud` enum('PASAJERO','ENCOMIENDA','OTRO') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'PASAJERO',
+  `cliente_nombre` varchar(150) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `cliente_documento` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `cliente_telefono` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `ruta_referencia` varchar(200) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `detalle` text COLLATE utf8mb4_unicode_ci,
+  `observacion` text COLLATE utf8mb4_unicode_ci,
+  `archivo_url` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `archivo_nombre` varchar(200) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `archivo_tipo` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `estado` enum('PENDIENTE','APROBADO','RECHAZADO','COMPLETADO') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'PENDIENTE',
+  `usuario_id` varchar(36) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `usuario_nombre` varchar(150) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Tramos usados por cada venta
-CREATE TABLE venta_tramos_usados (
-    id       VARCHAR(36) NOT NULL DEFAULT (UUID()),
-    venta_id VARCHAR(36) NOT NULL,
-    tramo    VARCHAR(10) NOT NULL,
-    PRIMARY KEY (id),
-    CONSTRAINT fk_tramo_venta
-        FOREIGN KEY (venta_id)
-        REFERENCES ventas(id)
-        ON DELETE CASCADE
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `sucursales`
+--
+
+CREATE TABLE `sucursales` (
+  `id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT (uuid()),
+  `nombre` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `direccion` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `ciudad` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `telefono` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `activo` tinyint(1) NOT NULL DEFAULT '1',
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- FK circular: relacionar venta con asiento_estado
-ALTER TABLE viaje_asientos_estado
-    ADD CONSTRAINT fk_vasiento_venta
-        FOREIGN KEY (venta_id)
-        REFERENCES ventas(id)
-        ON DELETE SET NULL;
+--
+-- Dumping data for table `sucursales`
+--
 
--- ============================================================
--- 7. ENCOMIENDAS
--- ============================================================
-CREATE TABLE encomiendas (
-    id                       VARCHAR(36)   NOT NULL DEFAULT (UUID()),
-    codigo_encomienda        VARCHAR(30)   NOT NULL,
-    fecha_registro           DATE          NOT NULL,
-    -- Remitente
-    remitente_nombre         VARCHAR(150)  NOT NULL,
-    remitente_documento      VARCHAR(20),
-    remitente_telefono       VARCHAR(20),
-    -- Destinatario
-    destinatario_nombre      VARCHAR(150)  NOT NULL,
-    destinatario_documento   VARCHAR(20),
-    destinatario_telefono    VARCHAR(20),
-    -- Viaje
-    viaje_id                 VARCHAR(36),
-    viaje_descripcion        VARCHAR(200),
-    -- Sucursales
-    sucursal_origen_id       VARCHAR(36),
-    sucursal_origen_nombre   VARCHAR(100),
-    sucursal_destino_id      VARCHAR(36),
-    sucursal_destino_nombre  VARCHAR(100),
-    -- Paquete
-    descripcion              VARCHAR(300),
-    peso                     DECIMAL(8,3)  DEFAULT 0,
-    precio                   DECIMAL(10,2) NOT NULL DEFAULT 0,
-    observacion              TEXT,
-    -- Archivo adjunto
-    archivo_url              VARCHAR(500),
-    archivo_nombre           VARCHAR(200),
-    archivo_tipo             VARCHAR(50),
-    -- Estado
-    estado                   ENUM('REGISTRADO','EN_TRANSITO','ENTREGADO','DEVUELTO') NOT NULL DEFAULT 'REGISTRADO',
-    -- Usuario
-    usuario_id               VARCHAR(36),
-    usuario_nombre           VARCHAR(150),
-    created_at               TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (id),
-    UNIQUE KEY uq_encomienda_codigo (codigo_encomienda),
-    CONSTRAINT fk_encomienda_viaje
-        FOREIGN KEY (viaje_id)
-        REFERENCES viajes(id)
-        ON DELETE SET NULL,
-    CONSTRAINT fk_encomienda_sucursal_origen
-        FOREIGN KEY (sucursal_origen_id)
-        REFERENCES sucursales(id)
-        ON DELETE SET NULL,
-    CONSTRAINT fk_encomienda_sucursal_destino
-        FOREIGN KEY (sucursal_destino_id)
-        REFERENCES sucursales(id)
-        ON DELETE SET NULL,
-    CONSTRAINT fk_encomienda_usuario
-        FOREIGN KEY (usuario_id)
-        REFERENCES usuarios(id)
-        ON DELETE SET NULL
+INSERT INTO `sucursales` (`id`, `nombre`, `direccion`, `ciudad`, `telefono`, `activo`, `created_at`) VALUES
+('suc_iqu', 'Sucursal Iquitos', 'Jr. Próspero 456', 'Iquitos', '065-234567', 1, '2026-07-11 05:14:05');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `usuarios`
+--
+
+CREATE TABLE `usuarios` (
+  `id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT (uuid()),
+  `username` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `password` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `nombre` varchar(150) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `email` varchar(150) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `rol` enum('ADMIN','SUPERVISOR','EMPLEADO') COLLATE utf8mb4_unicode_ci NOT NULL,
+  `sucursal_id` varchar(36) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `activo` tinyint(1) NOT NULL DEFAULT '1',
+  `ultimo_login` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ============================================================
--- 8. CAJAS
--- ============================================================
-CREATE TABLE cajas (
-    id                   VARCHAR(36)   NOT NULL DEFAULT (UUID()),
-    usuario_nombre       VARCHAR(150),
-    usuario_rol          VARCHAR(50),
-    sucursal_id          VARCHAR(36),
-    sucursal_nombre      VARCHAR(100),
-    fecha_apertura       DATE          NOT NULL,
-    hora_apertura        VARCHAR(10)   NOT NULL,
-    monto_inicial        DECIMAL(12,2) NOT NULL DEFAULT 0,
-    estado               ENUM('ABIERTA','CERRADA') NOT NULL DEFAULT 'ABIERTA',
-    observacion_apertura TEXT,
-    -- Cierre
-    total_ventas         DECIMAL(12,2) DEFAULT 0,
-    total_anulaciones    DECIMAL(12,2) DEFAULT 0,
-    total_neto           DECIMAL(12,2) DEFAULT 0,
-    monto_cierre         DECIMAL(12,2) DEFAULT 0,
-    diferencia           DECIMAL(12,2) DEFAULT 0,
-    observacion_cierre   TEXT,
-    cerrada_at           TIMESTAMP     NULL,
-    usuario_id           VARCHAR(36)   NOT NULL,
-    created_at           TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (id),
-    CONSTRAINT fk_caja_sucursal
-        FOREIGN KEY (sucursal_id)
-        REFERENCES sucursales(id)
-        ON DELETE SET NULL,
-    CONSTRAINT fk_caja_usuario
-        FOREIGN KEY (usuario_id)
-        REFERENCES usuarios(id)
+--
+-- Dumping data for table `usuarios`
+--
+
+INSERT INTO `usuarios` (`id`, `username`, `password`, `nombre`, `email`, `rol`, `sucursal_id`, `activo`, `ultimo_login`, `created_at`) VALUES
+('44558526-7f42-4505-b594-8494e62a6bbd', 'alezRyz', '$2a$10$AOMZF7ynPqD2YMQLMxCuautY7hyUnRPGjpNX.6u1/2zqE4yeR/lX.', 'Alexander Nuñez', 'fabricionusanchez@gmail.com', 'EMPLEADO', NULL, 1, NULL, '2026-07-08 03:06:57'),
+('7e1092d6-0903-4e75-b43d-92d819495183', 'RafaelRyz', '$2a$10$E8Ygg7kQvXUdPSxWj3h5YOtSAySYPQwcNU/sUd6jBk5z.tH33oKu.', 'Rafael Flores', 'RafaelFlores@gmail.com', 'EMPLEADO', NULL, 1, NULL, '2026-07-08 00:30:21'),
+('ca77aa83-434e-4d65-b10c-0700e4cfe9ba', 'admin', '$2a$10$pgoOEsZeXO9ReU9iZTHJtO62/eN4MRq3gLF666yAvjwFxtScuMAiG', 'Administrador', 'admin@rayza.com', 'ADMIN', NULL, 1, NULL, '2026-07-08 00:11:45');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `ventas`
+--
+
+CREATE TABLE `ventas` (
+  `id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT (uuid()),
+  `viaje_id` varchar(36) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `viaje_codigo` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `viaje_descripcion` varchar(200) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `tipo_documento` enum('DNI','CE','PASAPORTE','RUC') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'DNI',
+  `pasajero_nombre` varchar(150) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `pasajero_documento` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `procedencia` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `pasajero_telefono` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `cliente_email` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `edad` smallint DEFAULT NULL,
+  `sexo` enum('Masculino','Femenino','Otro') COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `observacion` text COLLATE utf8mb4_unicode_ci,
+  `tipo_comprobante` enum('TICKET','BOLETA','FACTURA','NOTA_VENTA') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'TICKET',
+  `serie_comprobante` varchar(10) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `numero_comprobante` varchar(10) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `cliente_nombre` varchar(150) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `cliente_tipo_doc` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `cliente_documento` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `detalle_comprobante` text COLLATE utf8mb4_unicode_ci,
+  `asiento_numero` smallint NOT NULL,
+  `asiento_tipo` enum('NORMAL','VIP') COLLATE utf8mb4_unicode_ci NOT NULL,
+  `parada_origen` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `parada_destino` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `orden_origen` smallint DEFAULT NULL,
+  `orden_destino` smallint DEFAULT NULL,
+  `precio` decimal(10,2) NOT NULL DEFAULT '0.00',
+  `codigo_qr` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `embarque_estado` enum('PENDIENTE','EMBARCADO') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'PENDIENTE',
+  `embarcado_at` timestamp NULL DEFAULT NULL,
+  `estado` enum('PAGADO','ANULADO') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'PAGADO',
+  `anulada_at` timestamp NULL DEFAULT NULL,
+  `fecha_venta` date NOT NULL,
+  `usuario_id` varchar(36) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `usuario_nombre` varchar(150) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `embarcado_por` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ============================================================
--- 9. MOVIMIENTOS DE CAJA
--- ============================================================
-CREATE TABLE movimientos_caja (
-    id              VARCHAR(36)   NOT NULL DEFAULT (UUID()),
-    caja_id         VARCHAR(36)   NOT NULL,
-    tipo            ENUM('INGRESO','EGRESO') NOT NULL,
-    monto           DECIMAL(12,2) NOT NULL,
-    motivo          VARCHAR(200),
-    observacion     TEXT,
-    usuario_nombre  VARCHAR(150),
-    sucursal_id     VARCHAR(36),
-    sucursal_nombre VARCHAR(100),
-    fecha           DATE          NOT NULL,
-    hora            VARCHAR(10)   NOT NULL,
-    usuario_id      VARCHAR(36),
-    created_at      TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (id),
-    CONSTRAINT fk_mov_caja
-        FOREIGN KEY (caja_id)
-        REFERENCES cajas(id)
-        ON DELETE CASCADE,
-    CONSTRAINT fk_mov_sucursal
-        FOREIGN KEY (sucursal_id)
-        REFERENCES sucursales(id)
-        ON DELETE SET NULL,
-    CONSTRAINT fk_mov_usuario
-        FOREIGN KEY (usuario_id)
-        REFERENCES usuarios(id)
-        ON DELETE SET NULL
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `venta_tramos_usados`
+--
+
+CREATE TABLE `venta_tramos_usados` (
+  `id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT (uuid()),
+  `venta_id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `tramo` varchar(10) COLLATE utf8mb4_unicode_ci NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ============================================================
--- 10. GASTOS
--- ============================================================
-CREATE TABLE gastos (
-    id                 VARCHAR(36)   NOT NULL DEFAULT (UUID()),
-    fecha              DATE          NOT NULL,
-    categoria          VARCHAR(50)   NOT NULL DEFAULT 'OTROS',
-    descripcion        VARCHAR(300)  NOT NULL,
-    monto              DECIMAL(12,2) NOT NULL DEFAULT 0,
-    sucursal_id        VARCHAR(36),
-    sucursal_nombre    VARCHAR(100),
-    responsable_id     VARCHAR(36),
-    responsable_nombre VARCHAR(150),
-    observacion        TEXT,
-    archivo_url        VARCHAR(500),
-    archivo_nombre     VARCHAR(200),
-    archivo_tipo       VARCHAR(50),
-    created_at         TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (id),
-    CONSTRAINT fk_gasto_sucursal
-        FOREIGN KEY (sucursal_id)
-        REFERENCES sucursales(id)
-        ON DELETE SET NULL,
-    CONSTRAINT fk_gasto_usuario
-        FOREIGN KEY (responsable_id)
-        REFERENCES usuarios(id)
-        ON DELETE SET NULL
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `viajes`
+--
+
+CREATE TABLE `viajes` (
+  `id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT (uuid()),
+  `codigo_viaje` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `sucursal_id` varchar(36) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `sucursal_nombre` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `ruta_id` varchar(36) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `ruta_nombre` varchar(200) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `origen` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `destino` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `embarcacion_id` varchar(36) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `embarcacion_nombre` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `fecha_salida` date NOT NULL,
+  `hora_salida` time NOT NULL,
+  `precio_normal` decimal(10,2) NOT NULL DEFAULT '0.00',
+  `precio_vip` decimal(10,2) NOT NULL DEFAULT '0.00',
+  `estado` enum('PROGRAMADO','EN_CURSO','COMPLETADO','CANCELADO') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'PROGRAMADO',
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ============================================================
--- 11. CONFIGURACIÓN DE COMPROBANTES
--- ============================================================
-CREATE TABLE config_comprobantes (
-    id                  VARCHAR(36)  NOT NULL DEFAULT (UUID()),
-    sucursal_id         VARCHAR(36)  NOT NULL,
-    sucursal_nombre     VARCHAR(100),
-    punto_venta         VARCHAR(50),
-    tipo_comprobante    ENUM('TICKET','BOLETA','FACTURA','NOTA_VENTA') NOT NULL,
-    serie               VARCHAR(10)  NOT NULL,
-    correlativo_actual  INT          NOT NULL DEFAULT 1,
-    activo              TINYINT(1)   NOT NULL DEFAULT 1,
-    formato_impresion   ENUM('A4','TICKET') NOT NULL DEFAULT 'A4',
-    items_maximos       SMALLINT     NOT NULL DEFAULT 99,
-    logo_cab            VARCHAR(500),
-    logo_pie            VARCHAR(500),
-    impresora           VARCHAR(100),
-    PRIMARY KEY (id),
-    UNIQUE KEY uq_config_comprobante (sucursal_id, tipo_comprobante, serie),
-    CONSTRAINT fk_config_sucursal
-        FOREIGN KEY (sucursal_id)
-        REFERENCES sucursales(id)
-        ON DELETE CASCADE
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `viaje_asientos_estado`
+--
+
+CREATE TABLE `viaje_asientos_estado` (
+  `id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT (uuid()),
+  `viaje_id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `numero` smallint NOT NULL,
+  `tipo` enum('NORMAL','VIP') COLLATE utf8mb4_unicode_ci NOT NULL,
+  `estado` enum('LIBRE','VENDIDO') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'LIBRE',
+  `venta_id` varchar(36) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `pasajero_nombre` varchar(150) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `pasajero_doc` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `pasajero_tel` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ============================================================
--- 12. SOLICITUDES INTERSUCURSAL
--- ============================================================
-CREATE TABLE solicitudes_intersucursal (
-    id                      VARCHAR(36)  NOT NULL DEFAULT (UUID()),
-    codigo_solicitud        VARCHAR(30)  NOT NULL,
-    fecha_registro          DATE         NOT NULL,
-    sucursal_origen_id      VARCHAR(36),
-    sucursal_origen_nombre  VARCHAR(100),
-    sucursal_destino_id     VARCHAR(36),
-    sucursal_destino_nombre VARCHAR(100),
-    tipo_solicitud          ENUM('PASAJERO','ENCOMIENDA','OTRO') NOT NULL DEFAULT 'PASAJERO',
-    cliente_nombre          VARCHAR(150),
-    cliente_documento       VARCHAR(20),
-    cliente_telefono        VARCHAR(20),
-    ruta_referencia         VARCHAR(200),
-    detalle                 TEXT,
-    observacion             TEXT,
-    archivo_url             VARCHAR(500),
-    archivo_nombre          VARCHAR(200),
-    archivo_tipo            VARCHAR(50),
-    estado                  ENUM('PENDIENTE','APROBADO','RECHAZADO','COMPLETADO') NOT NULL DEFAULT 'PENDIENTE',
-    usuario_id              VARCHAR(36),
-    usuario_nombre          VARCHAR(150),
-    created_at              TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (id),
-    UNIQUE KEY uq_solicitud_codigo (codigo_solicitud),
-    CONSTRAINT fk_solicitud_origen
-        FOREIGN KEY (sucursal_origen_id)
-        REFERENCES sucursales(id)
-        ON DELETE SET NULL,
-    CONSTRAINT fk_solicitud_destino
-        FOREIGN KEY (sucursal_destino_id)
-        REFERENCES sucursales(id)
-        ON DELETE SET NULL,
-    CONSTRAINT fk_solicitud_usuario
-        FOREIGN KEY (usuario_id)
-        REFERENCES usuarios(id)
-        ON DELETE SET NULL
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `viaje_asiento_tramos_ocupados`
+--
+
+CREATE TABLE `viaje_asiento_tramos_ocupados` (
+  `id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT (uuid()),
+  `viaje_asiento_estado_id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `tramo` varchar(10) COLLATE utf8mb4_unicode_ci NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ============================================================
--- 13. NOTIFICACIONES
--- ============================================================
-CREATE TABLE notificaciones (
-    id                   VARCHAR(36)  NOT NULL DEFAULT (UUID()),
-    titulo               VARCHAR(200) NOT NULL,
-    mensaje              TEXT         NOT NULL,
-    tipo                 ENUM('INFO','WARNING','SUCCESS','ERROR') NOT NULL DEFAULT 'INFO',
-    usuario_destino_id   VARCHAR(36),
-    sucursal_destino_id  VARCHAR(36),
-    modulo               VARCHAR(50),
-    referencia_id        VARCHAR(36),
-    leido                TINYINT(1)   NOT NULL DEFAULT 0,
-    leido_at             TIMESTAMP    NULL,
-    created_at           TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (id),
-    CONSTRAINT fk_notif_sucursal
-        FOREIGN KEY (sucursal_destino_id)
-        REFERENCES sucursales(id)
-        ON DELETE CASCADE,
-    CONSTRAINT fk_notificacion_usuario
-        FOREIGN KEY (usuario_destino_id)
-        REFERENCES usuarios(id)
-        ON DELETE CASCADE
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `viaje_paradas`
+--
+
+CREATE TABLE `viaje_paradas` (
+  `id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT (uuid()),
+  `viaje_id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `nombre` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `orden` smallint NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ============================================================
--- 14. AUDITORÍA
--- ============================================================
-CREATE TABLE auditoria (
-    id             VARCHAR(36)  NOT NULL DEFAULT (UUID()),
-    usuario_id     VARCHAR(36),
-    usuario_nombre VARCHAR(150),
-    usuario_rol    VARCHAR(50),
-    accion         VARCHAR(100) NOT NULL,
-    modulo         VARCHAR(50)  NOT NULL,
-    referencia_id  VARCHAR(36),
-    descripcion    TEXT,
-    ip_origen      VARCHAR(50),
-    created_at     TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (id),
-    CONSTRAINT fk_auditoria_usuario
-        FOREIGN KEY (usuario_id)
-        REFERENCES usuarios(id)
-        ON DELETE SET NULL
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `viaje_tarifas_tramo`
+--
+
+CREATE TABLE `viaje_tarifas_tramo` (
+  `id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT (uuid()),
+  `viaje_id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `origen_tramo` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `destino_tramo` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `orden_origen` smallint NOT NULL,
+  `orden_destino` smallint NOT NULL,
+  `precio_normal` decimal(10,2) NOT NULL DEFAULT '0.00',
+  `precio_vip` decimal(10,2) NOT NULL DEFAULT '0.00'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ============================================================
--- ÍNDICES RECOMENDADOS
--- ============================================================
-CREATE INDEX idx_viajes_fecha        ON viajes(fecha_salida);
-CREATE INDEX idx_viajes_estado       ON viajes(estado);
-CREATE INDEX idx_viajes_sucursal     ON viajes(sucursal_id);
-CREATE INDEX idx_ventas_viaje        ON ventas(viaje_id);
-CREATE INDEX idx_ventas_estado       ON ventas(estado);
-CREATE INDEX idx_ventas_fecha        ON ventas(fecha_venta);
-CREATE INDEX idx_ventas_documento    ON ventas(pasajero_documento);
-CREATE INDEX idx_ventas_qr           ON ventas(codigo_qr);
-CREATE INDEX idx_encomiendas_estado  ON encomiendas(estado);
-CREATE INDEX idx_cajas_usuario       ON cajas(usuario_id);
-CREATE INDEX idx_cajas_estado        ON cajas(estado);
-CREATE INDEX idx_mov_caja            ON movimientos_caja(caja_id);
-CREATE INDEX idx_gastos_sucursal     ON gastos(sucursal_id);
-CREATE INDEX idx_notif_destino_uid   ON notificaciones(usuario_destino_id);
-CREATE INDEX idx_notif_sucursal      ON notificaciones(sucursal_destino_id);
-CREATE INDEX idx_auditoria_modulo    ON auditoria(modulo);
-CREATE INDEX idx_auditoria_usuario   ON auditoria(usuario_id);
+--
+-- Indexes for dumped tables
+--
+
+--
+-- Indexes for table `auditoria`
+--
+ALTER TABLE `auditoria`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_auditoria_modulo` (`modulo`),
+  ADD KEY `idx_auditoria_usuario` (`usuario_id`);
+
+--
+-- Indexes for table `cajas`
+--
+ALTER TABLE `cajas`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `fk_caja_sucursal` (`sucursal_id`),
+  ADD KEY `idx_cajas_usuario` (`usuario_id`),
+  ADD KEY `idx_cajas_estado` (`estado`);
+
+--
+-- Indexes for table `config_comprobantes`
+--
+ALTER TABLE `config_comprobantes`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uq_config_comprobante` (`sucursal_id`,`tipo_comprobante`,`serie`);
+
+--
+-- Indexes for table `embarcaciones`
+--
+ALTER TABLE `embarcaciones`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uq_embarcacion_codigo` (`codigo`);
+
+--
+-- Indexes for table `embarcacion_asientos`
+--
+ALTER TABLE `embarcacion_asientos`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uq_embarcacion_asiento` (`embarcacion_id`,`numero`);
+
+--
+-- Indexes for table `encomiendas`
+--
+ALTER TABLE `encomiendas`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uq_encomienda_codigo` (`codigo_encomienda`),
+  ADD KEY `fk_encomienda_viaje` (`viaje_id`),
+  ADD KEY `fk_encomienda_sucursal_origen` (`sucursal_origen_id`),
+  ADD KEY `fk_encomienda_sucursal_destino` (`sucursal_destino_id`),
+  ADD KEY `fk_encomienda_usuario` (`usuario_id`),
+  ADD KEY `idx_encomiendas_estado` (`estado`);
+
+--
+-- Indexes for table `gastos`
+--
+ALTER TABLE `gastos`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `fk_gasto_usuario` (`responsable_id`),
+  ADD KEY `idx_gastos_sucursal` (`sucursal_id`);
+
+--
+-- Indexes for table `movimientos_caja`
+--
+ALTER TABLE `movimientos_caja`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `fk_mov_sucursal` (`sucursal_id`),
+  ADD KEY `fk_mov_usuario` (`usuario_id`),
+  ADD KEY `idx_mov_caja` (`caja_id`);
+
+--
+-- Indexes for table `notificaciones`
+--
+ALTER TABLE `notificaciones`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_notif_destino_uid` (`usuario_destino_id`),
+  ADD KEY `idx_notif_sucursal` (`sucursal_destino_id`);
+
+--
+-- Indexes for table `rutas`
+--
+ALTER TABLE `rutas`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `fk_ruta_sucursal` (`sucursal_administradora_id`);
+
+--
+-- Indexes for table `ruta_paradas`
+--
+ALTER TABLE `ruta_paradas`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uq_ruta_parada_orden` (`ruta_id`,`orden`);
+
+--
+-- Indexes for table `ruta_tarifas_tramo`
+--
+ALTER TABLE `ruta_tarifas_tramo`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `fk_tarifa_ruta` (`ruta_id`);
+
+--
+-- Indexes for table `solicitudes_intersucursal`
+--
+ALTER TABLE `solicitudes_intersucursal`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uq_solicitud_codigo` (`codigo_solicitud`),
+  ADD KEY `fk_solicitud_origen` (`sucursal_origen_id`),
+  ADD KEY `fk_solicitud_destino` (`sucursal_destino_id`),
+  ADD KEY `fk_solicitud_usuario` (`usuario_id`);
+
+--
+-- Indexes for table `sucursales`
+--
+ALTER TABLE `sucursales`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `usuarios`
+--
+ALTER TABLE `usuarios`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uq_usuario_username` (`username`),
+  ADD UNIQUE KEY `uq_usuario_email` (`email`),
+  ADD KEY `fk_usuario_sucursal` (`sucursal_id`);
+
+--
+-- Indexes for table `ventas`
+--
+ALTER TABLE `ventas`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uq_venta_codigo_qr` (`codigo_qr`),
+  ADD KEY `fk_venta_usuario` (`usuario_id`),
+  ADD KEY `idx_ventas_viaje` (`viaje_id`),
+  ADD KEY `idx_ventas_estado` (`estado`),
+  ADD KEY `idx_ventas_fecha` (`fecha_venta`),
+  ADD KEY `idx_ventas_documento` (`pasajero_documento`),
+  ADD KEY `idx_ventas_qr` (`codigo_qr`);
+
+--
+-- Indexes for table `venta_tramos_usados`
+--
+ALTER TABLE `venta_tramos_usados`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `fk_tramo_venta` (`venta_id`);
+
+--
+-- Indexes for table `viajes`
+--
+ALTER TABLE `viajes`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uq_viaje_codigo` (`codigo_viaje`),
+  ADD KEY `fk_viaje_ruta` (`ruta_id`),
+  ADD KEY `fk_viaje_embarcacion` (`embarcacion_id`),
+  ADD KEY `idx_viajes_fecha` (`fecha_salida`),
+  ADD KEY `idx_viajes_estado` (`estado`),
+  ADD KEY `idx_viajes_sucursal` (`sucursal_id`);
+
+--
+-- Indexes for table `viaje_asientos_estado`
+--
+ALTER TABLE `viaje_asientos_estado`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uq_viaje_asiento` (`viaje_id`,`numero`),
+  ADD KEY `fk_vasiento_venta` (`venta_id`);
+
+--
+-- Indexes for table `viaje_asiento_tramos_ocupados`
+--
+ALTER TABLE `viaje_asiento_tramos_ocupados`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `fk_tramo_asiento_estado` (`viaje_asiento_estado_id`);
+
+--
+-- Indexes for table `viaje_paradas`
+--
+ALTER TABLE `viaje_paradas`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uq_viaje_parada_orden` (`viaje_id`,`orden`);
+
+--
+-- Indexes for table `viaje_tarifas_tramo`
+--
+ALTER TABLE `viaje_tarifas_tramo`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `fk_vtarifa_viaje` (`viaje_id`);
+
+--
+-- Constraints for dumped tables
+--
+
+--
+-- Constraints for table `auditoria`
+--
+ALTER TABLE `auditoria`
+  ADD CONSTRAINT `fk_auditoria_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL;
+
+--
+-- Constraints for table `cajas`
+--
+ALTER TABLE `cajas`
+  ADD CONSTRAINT `fk_caja_sucursal` FOREIGN KEY (`sucursal_id`) REFERENCES `sucursales` (`id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `fk_caja_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`);
+
+--
+-- Constraints for table `config_comprobantes`
+--
+ALTER TABLE `config_comprobantes`
+  ADD CONSTRAINT `fk_config_sucursal` FOREIGN KEY (`sucursal_id`) REFERENCES `sucursales` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `embarcacion_asientos`
+--
+ALTER TABLE `embarcacion_asientos`
+  ADD CONSTRAINT `fk_asiento_embarcacion` FOREIGN KEY (`embarcacion_id`) REFERENCES `embarcaciones` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `encomiendas`
+--
+ALTER TABLE `encomiendas`
+  ADD CONSTRAINT `fk_encomienda_sucursal_destino` FOREIGN KEY (`sucursal_destino_id`) REFERENCES `sucursales` (`id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `fk_encomienda_sucursal_origen` FOREIGN KEY (`sucursal_origen_id`) REFERENCES `sucursales` (`id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `fk_encomienda_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `fk_encomienda_viaje` FOREIGN KEY (`viaje_id`) REFERENCES `viajes` (`id`) ON DELETE SET NULL;
+
+--
+-- Constraints for table `gastos`
+--
+ALTER TABLE `gastos`
+  ADD CONSTRAINT `fk_gasto_sucursal` FOREIGN KEY (`sucursal_id`) REFERENCES `sucursales` (`id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `fk_gasto_usuario` FOREIGN KEY (`responsable_id`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL;
+
+--
+-- Constraints for table `movimientos_caja`
+--
+ALTER TABLE `movimientos_caja`
+  ADD CONSTRAINT `fk_mov_caja` FOREIGN KEY (`caja_id`) REFERENCES `cajas` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_mov_sucursal` FOREIGN KEY (`sucursal_id`) REFERENCES `sucursales` (`id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `fk_mov_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL;
+
+--
+-- Constraints for table `notificaciones`
+--
+ALTER TABLE `notificaciones`
+  ADD CONSTRAINT `fk_notif_sucursal` FOREIGN KEY (`sucursal_destino_id`) REFERENCES `sucursales` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_notificacion_usuario` FOREIGN KEY (`usuario_destino_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `rutas`
+--
+ALTER TABLE `rutas`
+  ADD CONSTRAINT `fk_ruta_sucursal` FOREIGN KEY (`sucursal_administradora_id`) REFERENCES `sucursales` (`id`) ON DELETE SET NULL;
+
+--
+-- Constraints for table `ruta_paradas`
+--
+ALTER TABLE `ruta_paradas`
+  ADD CONSTRAINT `fk_parada_ruta` FOREIGN KEY (`ruta_id`) REFERENCES `rutas` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `ruta_tarifas_tramo`
+--
+ALTER TABLE `ruta_tarifas_tramo`
+  ADD CONSTRAINT `fk_tarifa_ruta` FOREIGN KEY (`ruta_id`) REFERENCES `rutas` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `solicitudes_intersucursal`
+--
+ALTER TABLE `solicitudes_intersucursal`
+  ADD CONSTRAINT `fk_solicitud_destino` FOREIGN KEY (`sucursal_destino_id`) REFERENCES `sucursales` (`id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `fk_solicitud_origen` FOREIGN KEY (`sucursal_origen_id`) REFERENCES `sucursales` (`id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `fk_solicitud_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL;
+
+--
+-- Constraints for table `usuarios`
+--
+ALTER TABLE `usuarios`
+  ADD CONSTRAINT `fk_usuario_sucursal` FOREIGN KEY (`sucursal_id`) REFERENCES `sucursales` (`id`) ON DELETE SET NULL;
+
+--
+-- Constraints for table `ventas`
+--
+ALTER TABLE `ventas`
+  ADD CONSTRAINT `fk_venta_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `fk_venta_viaje` FOREIGN KEY (`viaje_id`) REFERENCES `viajes` (`id`) ON DELETE SET NULL;
+
+--
+-- Constraints for table `venta_tramos_usados`
+--
+ALTER TABLE `venta_tramos_usados`
+  ADD CONSTRAINT `fk_tramo_venta` FOREIGN KEY (`venta_id`) REFERENCES `ventas` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `viajes`
+--
+ALTER TABLE `viajes`
+  ADD CONSTRAINT `fk_viaje_embarcacion` FOREIGN KEY (`embarcacion_id`) REFERENCES `embarcaciones` (`id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `fk_viaje_ruta` FOREIGN KEY (`ruta_id`) REFERENCES `rutas` (`id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `fk_viaje_sucursal` FOREIGN KEY (`sucursal_id`) REFERENCES `sucursales` (`id`) ON DELETE SET NULL;
+
+--
+-- Constraints for table `viaje_asientos_estado`
+--
+ALTER TABLE `viaje_asientos_estado`
+  ADD CONSTRAINT `fk_vasiento_venta` FOREIGN KEY (`venta_id`) REFERENCES `ventas` (`id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `fk_vasiento_viaje` FOREIGN KEY (`viaje_id`) REFERENCES `viajes` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `viaje_asiento_tramos_ocupados`
+--
+ALTER TABLE `viaje_asiento_tramos_ocupados`
+  ADD CONSTRAINT `fk_tramo_asiento_estado` FOREIGN KEY (`viaje_asiento_estado_id`) REFERENCES `viaje_asientos_estado` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `viaje_paradas`
+--
+ALTER TABLE `viaje_paradas`
+  ADD CONSTRAINT `fk_vparada_viaje` FOREIGN KEY (`viaje_id`) REFERENCES `viajes` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `viaje_tarifas_tramo`
+--
+ALTER TABLE `viaje_tarifas_tramo`
+  ADD CONSTRAINT `fk_vtarifa_viaje` FOREIGN KEY (`viaje_id`) REFERENCES `viajes` (`id`) ON DELETE CASCADE;
+COMMIT;
+
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+-- phpMyAdmin SQL Dump
+-- version 5.2.2
+-- https://www.phpmyadmin.net/
+--
+-- Host: localhost:3306
+-- Generation Time: Jul 12, 2026 at 04:22 AM
+-- Server version: 8.0.30
+-- PHP Version: 8.3.26
+
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+START TRANSACTION;
+SET time_zone = "+00:00";
+
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
+
+--
+-- Database: `transportes_rayza`
+--
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `auditoria`
+--
+
+CREATE TABLE `auditoria` (
+  `id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT (uuid()),
+  `usuario_id` varchar(36) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `usuario_nombre` varchar(150) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `usuario_rol` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `accion` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `modulo` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `referencia_id` varchar(36) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `descripcion` text COLLATE utf8mb4_unicode_ci,
+  `ip_origen` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `cajas`
+--
+
+CREATE TABLE `cajas` (
+  `id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT (uuid()),
+  `usuario_nombre` varchar(150) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `usuario_rol` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `sucursal_id` varchar(36) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `sucursal_nombre` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `fecha_apertura` date NOT NULL,
+  `hora_apertura` varchar(10) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `monto_inicial` decimal(12,2) NOT NULL DEFAULT '0.00',
+  `estado` enum('ABIERTA','CERRADA') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'ABIERTA',
+  `observacion_apertura` text COLLATE utf8mb4_unicode_ci,
+  `total_ventas` decimal(12,2) DEFAULT '0.00',
+  `total_anulaciones` decimal(12,2) DEFAULT '0.00',
+  `total_neto` decimal(12,2) DEFAULT '0.00',
+  `monto_cierre` decimal(12,2) DEFAULT '0.00',
+  `diferencia` decimal(12,2) DEFAULT '0.00',
+  `observacion_cierre` text COLLATE utf8mb4_unicode_ci,
+  `cerrada_at` timestamp NULL DEFAULT NULL,
+  `usuario_id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `config_comprobantes`
+--
+
+CREATE TABLE `config_comprobantes` (
+  `id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT (uuid()),
+  `sucursal_id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `sucursal_nombre` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `punto_venta` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `tipo_comprobante` enum('TICKET','BOLETA','FACTURA','NOTA_VENTA') COLLATE utf8mb4_unicode_ci NOT NULL,
+  `serie` varchar(10) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `correlativo_actual` int NOT NULL DEFAULT '1',
+  `activo` tinyint(1) NOT NULL DEFAULT '1',
+  `formato_impresion` enum('A4','TICKET') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'A4',
+  `items_maximos` smallint NOT NULL DEFAULT '99',
+  `logo_cab` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `logo_pie` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `impresora` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `embarcaciones`
+--
+
+CREATE TABLE `embarcaciones` (
+  `id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT (uuid()),
+  `nombre` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `codigo` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `cantidad_vip` smallint NOT NULL DEFAULT '0',
+  `cantidad_normal` smallint NOT NULL DEFAULT '0',
+  `capacidad_total` smallint NOT NULL,
+  `activo` tinyint(1) NOT NULL DEFAULT '1',
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `embarcaciones`
+--
+
+INSERT INTO `embarcaciones` (`id`, `nombre`, `codigo`, `cantidad_vip`, `cantidad_normal`, `capacidad_total`, `activo`, `created_at`) VALUES
+('emb_rayi', 'RAYZA I', 'RAY-001', 5, 10, 15, 1, '2026-07-11 05:15:17');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `embarcacion_asientos`
+--
+
+CREATE TABLE `embarcacion_asientos` (
+  `id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT (uuid()),
+  `embarcacion_id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `numero` smallint NOT NULL,
+  `tipo` enum('NORMAL','VIP') COLLATE utf8mb4_unicode_ci NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `embarcacion_asientos`
+--
+
+INSERT INTO `embarcacion_asientos` (`id`, `embarcacion_id`, `numero`, `tipo`) VALUES
+('083a85ed-3a0d-4692-b4d6-de0f2d00e460', 'emb_rayi', 6, 'NORMAL'),
+('176bc0d6-ebbd-4f98-8c4d-51e9c04a11dd', 'emb_rayi', 14, 'NORMAL'),
+('19ece4bd-8088-481e-b53e-8984c667cb0d', 'emb_rayi', 5, 'VIP'),
+('57eb748a-7764-4722-b05d-784a4db9fdf0', 'emb_rayi', 13, 'NORMAL'),
+('5d47c637-c0e6-4b67-8a50-e268e21ba923', 'emb_rayi', 3, 'VIP'),
+('6ab8e932-779f-442e-aa8b-b6250155bf1d', 'emb_rayi', 7, 'NORMAL'),
+('8bb977e0-82e1-4b08-bf31-34d5ad701fca', 'emb_rayi', 10, 'NORMAL'),
+('ad304b8b-8add-412f-ad9d-0277b81dfea1', 'emb_rayi', 8, 'NORMAL'),
+('b24a84da-1725-4714-9cf9-54157fc639b3', 'emb_rayi', 1, 'VIP'),
+('b4adaed1-7f0a-4f46-809a-7af879a0b975', 'emb_rayi', 12, 'NORMAL'),
+('cc15acb1-30b1-4a65-b22a-78b91ee0eea0', 'emb_rayi', 2, 'VIP'),
+('cff5f83a-b3c6-40a0-9081-442aee364823', 'emb_rayi', 11, 'NORMAL'),
+('dbaae25b-a1fe-466a-9a10-d38259ac7b4d', 'emb_rayi', 15, 'NORMAL'),
+('df64b9f6-1cd8-4a7b-bf1b-292347b2e50f', 'emb_rayi', 9, 'NORMAL'),
+('fc57b2db-4b41-4b82-a45a-96af54745177', 'emb_rayi', 4, 'VIP');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `encomiendas`
+--
+
+CREATE TABLE `encomiendas` (
+  `id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT (uuid()),
+  `codigo_encomienda` varchar(30) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `fecha_registro` date NOT NULL,
+  `remitente_nombre` varchar(150) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `remitente_documento` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `remitente_telefono` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `destinatario_nombre` varchar(150) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `destinatario_documento` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `destinatario_telefono` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `viaje_id` varchar(36) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `viaje_descripcion` varchar(200) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `sucursal_origen_id` varchar(36) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `sucursal_origen_nombre` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `sucursal_destino_id` varchar(36) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `sucursal_destino_nombre` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `descripcion` varchar(300) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `peso` decimal(8,3) DEFAULT '0.000',
+  `precio` decimal(10,2) NOT NULL DEFAULT '0.00',
+  `observacion` text COLLATE utf8mb4_unicode_ci,
+  `archivo_url` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `archivo_nombre` varchar(200) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `archivo_tipo` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `estado` enum('REGISTRADO','EN_TRANSITO','ENTREGADO','DEVUELTO') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'REGISTRADO',
+  `usuario_id` varchar(36) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `usuario_nombre` varchar(150) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `gastos`
+--
+
+CREATE TABLE `gastos` (
+  `id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT (uuid()),
+  `fecha` date NOT NULL,
+  `categoria` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'OTROS',
+  `descripcion` varchar(300) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `monto` decimal(12,2) NOT NULL DEFAULT '0.00',
+  `sucursal_id` varchar(36) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `sucursal_nombre` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `responsable_id` varchar(36) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `responsable_nombre` varchar(150) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `observacion` text COLLATE utf8mb4_unicode_ci,
+  `archivo_url` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `archivo_nombre` varchar(200) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `archivo_tipo` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `movimientos_caja`
+--
+
+CREATE TABLE `movimientos_caja` (
+  `id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT (uuid()),
+  `caja_id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `tipo` enum('INGRESO','EGRESO') COLLATE utf8mb4_unicode_ci NOT NULL,
+  `monto` decimal(12,2) NOT NULL,
+  `motivo` varchar(200) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `observacion` text COLLATE utf8mb4_unicode_ci,
+  `usuario_nombre` varchar(150) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `sucursal_id` varchar(36) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `sucursal_nombre` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `fecha` date NOT NULL,
+  `hora` varchar(10) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `usuario_id` varchar(36) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `notificaciones`
+--
+
+CREATE TABLE `notificaciones` (
+  `id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT (uuid()),
+  `titulo` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `mensaje` text COLLATE utf8mb4_unicode_ci NOT NULL,
+  `tipo` enum('INFO','WARNING','SUCCESS','ERROR') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'INFO',
+  `usuario_destino_id` varchar(36) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `sucursal_destino_id` varchar(36) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `modulo` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `referencia_id` varchar(36) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `leido` tinyint(1) NOT NULL DEFAULT '0',
+  `leido_at` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `rutas`
+--
+
+CREATE TABLE `rutas` (
+  `id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT (uuid()),
+  `origen` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `destino` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `sucursal_administradora_id` varchar(36) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `sucursal_administradora_nombre` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `precio_normal` decimal(10,2) NOT NULL DEFAULT '0.00',
+  `precio_vip` decimal(10,2) NOT NULL DEFAULT '0.00',
+  `duracion_aproximada` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `activo` tinyint(1) NOT NULL DEFAULT '1',
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `rutas`
+--
+
+INSERT INTO `rutas` (`id`, `origen`, `destino`, `sucursal_administradora_id`, `sucursal_administradora_nombre`, `precio_normal`, `precio_vip`, `duracion_aproximada`, `activo`, `created_at`) VALUES
+('rut_iqu_req', 'Iquitos', 'Requena', 'suc_iqu', 'Sucursal Iquitos', 35.00, 60.00, '8 horas', 1, '2026-07-11 05:42:53');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `ruta_paradas`
+--
+
+CREATE TABLE `ruta_paradas` (
+  `id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT (uuid()),
+  `ruta_id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `nombre` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `orden` smallint NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `ruta_paradas`
+--
+
+INSERT INTO `ruta_paradas` (`id`, `ruta_id`, `nombre`, `orden`) VALUES
+('fa8e859c-fb94-45dd-8bd4-26d2edfbe62a', 'rut_iqu_req', 'Iquitos', 1);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `ruta_tarifas_tramo`
+--
+
+CREATE TABLE `ruta_tarifas_tramo` (
+  `id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT (uuid()),
+  `ruta_id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `origen_tramo` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `destino_tramo` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `orden_origen` smallint NOT NULL,
+  `orden_destino` smallint NOT NULL,
+  `precio_normal` decimal(10,2) NOT NULL DEFAULT '0.00',
+  `precio_vip` decimal(10,2) NOT NULL DEFAULT '0.00'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `solicitudes_intersucursal`
+--
+
+CREATE TABLE `solicitudes_intersucursal` (
+  `id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT (uuid()),
+  `codigo_solicitud` varchar(30) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `fecha_registro` date NOT NULL,
+  `sucursal_origen_id` varchar(36) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `sucursal_origen_nombre` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `sucursal_destino_id` varchar(36) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `sucursal_destino_nombre` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `tipo_solicitud` enum('PASAJERO','ENCOMIENDA','OTRO') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'PASAJERO',
+  `cliente_nombre` varchar(150) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `cliente_documento` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `cliente_telefono` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `ruta_referencia` varchar(200) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `detalle` text COLLATE utf8mb4_unicode_ci,
+  `observacion` text COLLATE utf8mb4_unicode_ci,
+  `archivo_url` varchar(500) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `archivo_nombre` varchar(200) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `archivo_tipo` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `estado` enum('PENDIENTE','APROBADO','RECHAZADO','COMPLETADO') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'PENDIENTE',
+  `usuario_id` varchar(36) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `usuario_nombre` varchar(150) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `sucursales`
+--
+
+CREATE TABLE `sucursales` (
+  `id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT (uuid()),
+  `nombre` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `direccion` varchar(200) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `ciudad` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `telefono` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `activo` tinyint(1) NOT NULL DEFAULT '1',
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `sucursales`
+--
+
+INSERT INTO `sucursales` (`id`, `nombre`, `direccion`, `ciudad`, `telefono`, `activo`, `created_at`) VALUES
+('suc_iqu', 'Sucursal Iquitos', 'Jr. Próspero 456', 'Iquitos', '065-234567', 1, '2026-07-11 05:14:05');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `usuarios`
+--
+
+CREATE TABLE `usuarios` (
+  `id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT (uuid()),
+  `username` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `password` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `nombre` varchar(150) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `email` varchar(150) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `rol` enum('ADMIN','SUPERVISOR','EMPLEADO') COLLATE utf8mb4_unicode_ci NOT NULL,
+  `sucursal_id` varchar(36) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `activo` tinyint(1) NOT NULL DEFAULT '1',
+  `ultimo_login` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `usuarios`
+--
+
+INSERT INTO `usuarios` (`id`, `username`, `password`, `nombre`, `email`, `rol`, `sucursal_id`, `activo`, `ultimo_login`, `created_at`) VALUES
+('44558526-7f42-4505-b594-8494e62a6bbd', 'alezRyz', '$2a$10$AOMZF7ynPqD2YMQLMxCuautY7hyUnRPGjpNX.6u1/2zqE4yeR/lX.', 'Alexander Nuñez', 'fabricionusanchez@gmail.com', 'EMPLEADO', NULL, 1, NULL, '2026-07-08 03:06:57'),
+('7e1092d6-0903-4e75-b43d-92d819495183', 'RafaelRyz', '$2a$10$E8Ygg7kQvXUdPSxWj3h5YOtSAySYPQwcNU/sUd6jBk5z.tH33oKu.', 'Rafael Flores', 'RafaelFlores@gmail.com', 'EMPLEADO', NULL, 1, NULL, '2026-07-08 00:30:21'),
+('ca77aa83-434e-4d65-b10c-0700e4cfe9ba', 'admin', '$2a$10$pgoOEsZeXO9ReU9iZTHJtO62/eN4MRq3gLF666yAvjwFxtScuMAiG', 'Administrador', 'admin@rayza.com', 'ADMIN', NULL, 1, NULL, '2026-07-08 00:11:45');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `ventas`
+--
+
+CREATE TABLE `ventas` (
+  `id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT (uuid()),
+  `viaje_id` varchar(36) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `viaje_codigo` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `viaje_descripcion` varchar(200) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `tipo_documento` enum('DNI','CE','PASAPORTE','RUC') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'DNI',
+  `pasajero_nombre` varchar(150) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `pasajero_documento` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `procedencia` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `pasajero_telefono` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `cliente_email` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `edad` smallint DEFAULT NULL,
+  `sexo` enum('Masculino','Femenino','Otro') COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `observacion` text COLLATE utf8mb4_unicode_ci,
+  `tipo_comprobante` enum('TICKET','BOLETA','FACTURA','NOTA_VENTA') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'TICKET',
+  `serie_comprobante` varchar(10) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `numero_comprobante` varchar(10) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `cliente_nombre` varchar(150) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `cliente_tipo_doc` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `cliente_documento` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `detalle_comprobante` text COLLATE utf8mb4_unicode_ci,
+  `asiento_numero` smallint NOT NULL,
+  `asiento_tipo` enum('NORMAL','VIP') COLLATE utf8mb4_unicode_ci NOT NULL,
+  `parada_origen` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `parada_destino` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `orden_origen` smallint DEFAULT NULL,
+  `orden_destino` smallint DEFAULT NULL,
+  `precio` decimal(10,2) NOT NULL DEFAULT '0.00',
+  `codigo_qr` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `embarque_estado` enum('PENDIENTE','EMBARCADO') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'PENDIENTE',
+  `embarcado_at` timestamp NULL DEFAULT NULL,
+  `estado` enum('PAGADO','ANULADO') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'PAGADO',
+  `anulada_at` timestamp NULL DEFAULT NULL,
+  `fecha_venta` date NOT NULL,
+  `usuario_id` varchar(36) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `usuario_nombre` varchar(150) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `embarcado_por` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `venta_tramos_usados`
+--
+
+CREATE TABLE `venta_tramos_usados` (
+  `id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT (uuid()),
+  `venta_id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `tramo` varchar(10) COLLATE utf8mb4_unicode_ci NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `viajes`
+--
+
+CREATE TABLE `viajes` (
+  `id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT (uuid()),
+  `codigo_viaje` varchar(50) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `sucursal_id` varchar(36) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `sucursal_nombre` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `ruta_id` varchar(36) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `ruta_nombre` varchar(200) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `origen` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `destino` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `embarcacion_id` varchar(36) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `embarcacion_nombre` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `fecha_salida` date NOT NULL,
+  `hora_salida` time NOT NULL,
+  `precio_normal` decimal(10,2) NOT NULL DEFAULT '0.00',
+  `precio_vip` decimal(10,2) NOT NULL DEFAULT '0.00',
+  `estado` enum('PROGRAMADO','EN_CURSO','COMPLETADO','CANCELADO') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'PROGRAMADO',
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `viaje_asientos_estado`
+--
+
+CREATE TABLE `viaje_asientos_estado` (
+  `id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT (uuid()),
+  `viaje_id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `numero` smallint NOT NULL,
+  `tipo` enum('NORMAL','VIP') COLLATE utf8mb4_unicode_ci NOT NULL,
+  `estado` enum('LIBRE','VENDIDO') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'LIBRE',
+  `venta_id` varchar(36) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `pasajero_nombre` varchar(150) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `pasajero_doc` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `pasajero_tel` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `viaje_asiento_tramos_ocupados`
+--
+
+CREATE TABLE `viaje_asiento_tramos_ocupados` (
+  `id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT (uuid()),
+  `viaje_asiento_estado_id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `tramo` varchar(10) COLLATE utf8mb4_unicode_ci NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `viaje_paradas`
+--
+
+CREATE TABLE `viaje_paradas` (
+  `id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT (uuid()),
+  `viaje_id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `nombre` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `orden` smallint NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `viaje_tarifas_tramo`
+--
+
+CREATE TABLE `viaje_tarifas_tramo` (
+  `id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT (uuid()),
+  `viaje_id` varchar(36) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `origen_tramo` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `destino_tramo` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `orden_origen` smallint NOT NULL,
+  `orden_destino` smallint NOT NULL,
+  `precio_normal` decimal(10,2) NOT NULL DEFAULT '0.00',
+  `precio_vip` decimal(10,2) NOT NULL DEFAULT '0.00'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Indexes for dumped tables
+--
+
+--
+-- Indexes for table `auditoria`
+--
+ALTER TABLE `auditoria`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_auditoria_modulo` (`modulo`),
+  ADD KEY `idx_auditoria_usuario` (`usuario_id`);
+
+--
+-- Indexes for table `cajas`
+--
+ALTER TABLE `cajas`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `fk_caja_sucursal` (`sucursal_id`),
+  ADD KEY `idx_cajas_usuario` (`usuario_id`),
+  ADD KEY `idx_cajas_estado` (`estado`);
+
+--
+-- Indexes for table `config_comprobantes`
+--
+ALTER TABLE `config_comprobantes`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uq_config_comprobante` (`sucursal_id`,`tipo_comprobante`,`serie`);
+
+--
+-- Indexes for table `embarcaciones`
+--
+ALTER TABLE `embarcaciones`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uq_embarcacion_codigo` (`codigo`);
+
+--
+-- Indexes for table `embarcacion_asientos`
+--
+ALTER TABLE `embarcacion_asientos`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uq_embarcacion_asiento` (`embarcacion_id`,`numero`);
+
+--
+-- Indexes for table `encomiendas`
+--
+ALTER TABLE `encomiendas`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uq_encomienda_codigo` (`codigo_encomienda`),
+  ADD KEY `fk_encomienda_viaje` (`viaje_id`),
+  ADD KEY `fk_encomienda_sucursal_origen` (`sucursal_origen_id`),
+  ADD KEY `fk_encomienda_sucursal_destino` (`sucursal_destino_id`),
+  ADD KEY `fk_encomienda_usuario` (`usuario_id`),
+  ADD KEY `idx_encomiendas_estado` (`estado`);
+
+--
+-- Indexes for table `gastos`
+--
+ALTER TABLE `gastos`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `fk_gasto_usuario` (`responsable_id`),
+  ADD KEY `idx_gastos_sucursal` (`sucursal_id`);
+
+--
+-- Indexes for table `movimientos_caja`
+--
+ALTER TABLE `movimientos_caja`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `fk_mov_sucursal` (`sucursal_id`),
+  ADD KEY `fk_mov_usuario` (`usuario_id`),
+  ADD KEY `idx_mov_caja` (`caja_id`);
+
+--
+-- Indexes for table `notificaciones`
+--
+ALTER TABLE `notificaciones`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_notif_destino_uid` (`usuario_destino_id`),
+  ADD KEY `idx_notif_sucursal` (`sucursal_destino_id`);
+
+--
+-- Indexes for table `rutas`
+--
+ALTER TABLE `rutas`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `fk_ruta_sucursal` (`sucursal_administradora_id`);
+
+--
+-- Indexes for table `ruta_paradas`
+--
+ALTER TABLE `ruta_paradas`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uq_ruta_parada_orden` (`ruta_id`,`orden`);
+
+--
+-- Indexes for table `ruta_tarifas_tramo`
+--
+ALTER TABLE `ruta_tarifas_tramo`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `fk_tarifa_ruta` (`ruta_id`);
+
+--
+-- Indexes for table `solicitudes_intersucursal`
+--
+ALTER TABLE `solicitudes_intersucursal`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uq_solicitud_codigo` (`codigo_solicitud`),
+  ADD KEY `fk_solicitud_origen` (`sucursal_origen_id`),
+  ADD KEY `fk_solicitud_destino` (`sucursal_destino_id`),
+  ADD KEY `fk_solicitud_usuario` (`usuario_id`);
+
+--
+-- Indexes for table `sucursales`
+--
+ALTER TABLE `sucursales`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `usuarios`
+--
+ALTER TABLE `usuarios`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uq_usuario_username` (`username`),
+  ADD UNIQUE KEY `uq_usuario_email` (`email`),
+  ADD KEY `fk_usuario_sucursal` (`sucursal_id`);
+
+--
+-- Indexes for table `ventas`
+--
+ALTER TABLE `ventas`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uq_venta_codigo_qr` (`codigo_qr`),
+  ADD KEY `fk_venta_usuario` (`usuario_id`),
+  ADD KEY `idx_ventas_viaje` (`viaje_id`),
+  ADD KEY `idx_ventas_estado` (`estado`),
+  ADD KEY `idx_ventas_fecha` (`fecha_venta`),
+  ADD KEY `idx_ventas_documento` (`pasajero_documento`),
+  ADD KEY `idx_ventas_qr` (`codigo_qr`);
+
+--
+-- Indexes for table `venta_tramos_usados`
+--
+ALTER TABLE `venta_tramos_usados`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `fk_tramo_venta` (`venta_id`);
+
+--
+-- Indexes for table `viajes`
+--
+ALTER TABLE `viajes`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uq_viaje_codigo` (`codigo_viaje`),
+  ADD KEY `fk_viaje_ruta` (`ruta_id`),
+  ADD KEY `fk_viaje_embarcacion` (`embarcacion_id`),
+  ADD KEY `idx_viajes_fecha` (`fecha_salida`),
+  ADD KEY `idx_viajes_estado` (`estado`),
+  ADD KEY `idx_viajes_sucursal` (`sucursal_id`);
+
+--
+-- Indexes for table `viaje_asientos_estado`
+--
+ALTER TABLE `viaje_asientos_estado`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uq_viaje_asiento` (`viaje_id`,`numero`),
+  ADD KEY `fk_vasiento_venta` (`venta_id`);
+
+--
+-- Indexes for table `viaje_asiento_tramos_ocupados`
+--
+ALTER TABLE `viaje_asiento_tramos_ocupados`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `fk_tramo_asiento_estado` (`viaje_asiento_estado_id`);
+
+--
+-- Indexes for table `viaje_paradas`
+--
+ALTER TABLE `viaje_paradas`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uq_viaje_parada_orden` (`viaje_id`,`orden`);
+
+--
+-- Indexes for table `viaje_tarifas_tramo`
+--
+ALTER TABLE `viaje_tarifas_tramo`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `fk_vtarifa_viaje` (`viaje_id`);
+
+--
+-- Constraints for dumped tables
+--
+
+--
+-- Constraints for table `auditoria`
+--
+ALTER TABLE `auditoria`
+  ADD CONSTRAINT `fk_auditoria_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL;
+
+--
+-- Constraints for table `cajas`
+--
+ALTER TABLE `cajas`
+  ADD CONSTRAINT `fk_caja_sucursal` FOREIGN KEY (`sucursal_id`) REFERENCES `sucursales` (`id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `fk_caja_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`);
+
+--
+-- Constraints for table `config_comprobantes`
+--
+ALTER TABLE `config_comprobantes`
+  ADD CONSTRAINT `fk_config_sucursal` FOREIGN KEY (`sucursal_id`) REFERENCES `sucursales` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `embarcacion_asientos`
+--
+ALTER TABLE `embarcacion_asientos`
+  ADD CONSTRAINT `fk_asiento_embarcacion` FOREIGN KEY (`embarcacion_id`) REFERENCES `embarcaciones` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `encomiendas`
+--
+ALTER TABLE `encomiendas`
+  ADD CONSTRAINT `fk_encomienda_sucursal_destino` FOREIGN KEY (`sucursal_destino_id`) REFERENCES `sucursales` (`id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `fk_encomienda_sucursal_origen` FOREIGN KEY (`sucursal_origen_id`) REFERENCES `sucursales` (`id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `fk_encomienda_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `fk_encomienda_viaje` FOREIGN KEY (`viaje_id`) REFERENCES `viajes` (`id`) ON DELETE SET NULL;
+
+--
+-- Constraints for table `gastos`
+--
+ALTER TABLE `gastos`
+  ADD CONSTRAINT `fk_gasto_sucursal` FOREIGN KEY (`sucursal_id`) REFERENCES `sucursales` (`id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `fk_gasto_usuario` FOREIGN KEY (`responsable_id`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL;
+
+--
+-- Constraints for table `movimientos_caja`
+--
+ALTER TABLE `movimientos_caja`
+  ADD CONSTRAINT `fk_mov_caja` FOREIGN KEY (`caja_id`) REFERENCES `cajas` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_mov_sucursal` FOREIGN KEY (`sucursal_id`) REFERENCES `sucursales` (`id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `fk_mov_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL;
+
+--
+-- Constraints for table `notificaciones`
+--
+ALTER TABLE `notificaciones`
+  ADD CONSTRAINT `fk_notif_sucursal` FOREIGN KEY (`sucursal_destino_id`) REFERENCES `sucursales` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_notificacion_usuario` FOREIGN KEY (`usuario_destino_id`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `rutas`
+--
+ALTER TABLE `rutas`
+  ADD CONSTRAINT `fk_ruta_sucursal` FOREIGN KEY (`sucursal_administradora_id`) REFERENCES `sucursales` (`id`) ON DELETE SET NULL;
+
+--
+-- Constraints for table `ruta_paradas`
+--
+ALTER TABLE `ruta_paradas`
+  ADD CONSTRAINT `fk_parada_ruta` FOREIGN KEY (`ruta_id`) REFERENCES `rutas` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `ruta_tarifas_tramo`
+--
+ALTER TABLE `ruta_tarifas_tramo`
+  ADD CONSTRAINT `fk_tarifa_ruta` FOREIGN KEY (`ruta_id`) REFERENCES `rutas` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `solicitudes_intersucursal`
+--
+ALTER TABLE `solicitudes_intersucursal`
+  ADD CONSTRAINT `fk_solicitud_destino` FOREIGN KEY (`sucursal_destino_id`) REFERENCES `sucursales` (`id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `fk_solicitud_origen` FOREIGN KEY (`sucursal_origen_id`) REFERENCES `sucursales` (`id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `fk_solicitud_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL;
+
+--
+-- Constraints for table `usuarios`
+--
+ALTER TABLE `usuarios`
+  ADD CONSTRAINT `fk_usuario_sucursal` FOREIGN KEY (`sucursal_id`) REFERENCES `sucursales` (`id`) ON DELETE SET NULL;
+
+--
+-- Constraints for table `ventas`
+--
+ALTER TABLE `ventas`
+  ADD CONSTRAINT `fk_venta_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `fk_venta_viaje` FOREIGN KEY (`viaje_id`) REFERENCES `viajes` (`id`) ON DELETE SET NULL;
+
+--
+-- Constraints for table `venta_tramos_usados`
+--
+ALTER TABLE `venta_tramos_usados`
+  ADD CONSTRAINT `fk_tramo_venta` FOREIGN KEY (`venta_id`) REFERENCES `ventas` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `viajes`
+--
+ALTER TABLE `viajes`
+  ADD CONSTRAINT `fk_viaje_embarcacion` FOREIGN KEY (`embarcacion_id`) REFERENCES `embarcaciones` (`id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `fk_viaje_ruta` FOREIGN KEY (`ruta_id`) REFERENCES `rutas` (`id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `fk_viaje_sucursal` FOREIGN KEY (`sucursal_id`) REFERENCES `sucursales` (`id`) ON DELETE SET NULL;
+
+--
+-- Constraints for table `viaje_asientos_estado`
+--
+ALTER TABLE `viaje_asientos_estado`
+  ADD CONSTRAINT `fk_vasiento_venta` FOREIGN KEY (`venta_id`) REFERENCES `ventas` (`id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `fk_vasiento_viaje` FOREIGN KEY (`viaje_id`) REFERENCES `viajes` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `viaje_asiento_tramos_ocupados`
+--
+ALTER TABLE `viaje_asiento_tramos_ocupados`
+  ADD CONSTRAINT `fk_tramo_asiento_estado` FOREIGN KEY (`viaje_asiento_estado_id`) REFERENCES `viaje_asientos_estado` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `viaje_paradas`
+--
+ALTER TABLE `viaje_paradas`
+  ADD CONSTRAINT `fk_vparada_viaje` FOREIGN KEY (`viaje_id`) REFERENCES `viajes` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `viaje_tarifas_tramo`
+--
+ALTER TABLE `viaje_tarifas_tramo`
+  ADD CONSTRAINT `fk_vtarifa_viaje` FOREIGN KEY (`viaje_id`) REFERENCES `viajes` (`id`) ON DELETE CASCADE;
+COMMIT;
+
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
