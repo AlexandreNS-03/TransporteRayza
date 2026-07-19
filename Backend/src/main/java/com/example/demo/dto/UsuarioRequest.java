@@ -6,6 +6,7 @@ public class UsuarioRequest {
     private String nombre;
     private String email;
     private String rol;
+    private String sucursalId;
 
     public String getUsername() { return username; }
     public void setUsername(String username) { this.username = username; }
@@ -21,4 +22,7 @@ public class UsuarioRequest {
 
     public String getRol() { return rol; }
     public void setRol(String rol) { this.rol = rol; }
+
+    public String getSucursalId() { return sucursalId; }
+    public void setSucursalId(String sucursalId) { this.sucursalId = sucursalId; }
 }

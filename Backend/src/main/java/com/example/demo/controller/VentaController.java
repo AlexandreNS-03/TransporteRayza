@@ -2,6 +2,7 @@ package com.example.demo.controller;
 
 import com.example.demo.dto.UsuarioDTO;
 import com.example.demo.dto.VentaDTO;
+import com.example.demo.dto.VentaEditRequest;
 import com.example.demo.dto.VentaRequest;
 import com.example.demo.model.Usuario;
 import com.example.demo.service.VentaService;
@@ -13,7 +14,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/ventas")
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = "${app.frontend.url}")
 public class VentaController {
 
     private final VentaService ventaService;
@@ -65,9 +66,16 @@ public class VentaController {
         return ResponseEntity.ok(ventaService.listarMisEmbarquesHoy(usuarioNombre));
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<VentaDTO> editar(@PathVariable String id,
+                                           @RequestBody VentaEditRequest req,
+                                           Authentication auth) {
+        return ResponseEntity.ok(ventaService.editarVenta(id, req, auth.getName()));
+    }
+
     @PatchMapping("/{id}/anular")
-    public ResponseEntity<VentaDTO> anular(@PathVariable String id) {
-        return ResponseEntity.ok(ventaService.anularVenta(id));
+    public ResponseEntity<VentaDTO> anular(@PathVariable String id, Authentication auth) {
+        return ResponseEntity.ok(ventaService.anularVenta(id, auth.getName()));
     }
 
     @PatchMapping("/{id}/embarcar")

@@ -1,0 +1,247 @@
+/* ── Página de Comprobantes Electrónicos ── */
+
+/* Tarjetas de resumen */
+.comp-stats {
+    display: flex;
+    gap: 14px;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+}
+
+.comp-stat {
+    flex: 1;
+    min-width: 160px;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.comp-stat i {
+    font-size: 24px;
+    color: #1a4db5;
+    background: #eff6ff;
+    border-radius: 8px;
+    width: 42px; height: 42px;
+    display: flex; align-items: center; justify-content: center;
+}
+
+.comp-stat.anulado i { color: #b91c1c; background: #fef2f2; }
+.comp-stat.monto i   { color: #15803d; background: #f0fdf4; }
+
+.comp-stat strong { display: block; font-size: 18px; color: #1e293b; }
+.comp-stat span   { font-size: 11px; color: #6b7280; }
+
+/* Badge de tipo boleta / factura */
+.comp-tipo {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 600;
+    width: fit-content;
+}
+
+.comp-tipo.boleta       { background: #eff6ff; color: #1d4ed8; }
+.comp-tipo.factura      { background: #fef9c3; color: #a16207; }
+.comp-tipo.nota_credito { background: #fdf2f8; color: #be185d; }
+
+.comp-ref {
+    font-size: 10px;
+    color: #9ca3af;
+    font-style: italic;
+}
+
+/* Vista JSON Nubefact */
+.comp-json {
+    background: #0f172a;
+    color: #a5f3fc;
+    border-radius: 8px;
+    padding: 14px;
+    font-size: 11px;
+    font-family: monospace;
+    overflow-x: auto;
+    max-height: 260px;
+    overflow-y: auto;
+    margin: 0;
+    white-space: pre;
+}
+
+/* Nota de exoneración de IGV (Ley 27037 - Amazonía) */
+.comp-nota-exoneracion {
+    margin: 8px 0 0;
+    font-size: 11px;
+    color: #6b7280;
+    font-style: italic;
+    line-height: 1.4;
+}
+
+/* Modal de anulación */
+.modal-anular { max-width: 480px; }
+
+.comp-alerta {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    color: #92400e;
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-size: 12.5px;
+    line-height: 1.5;
+}
+
+.comp-alerta i { font-size: 18px; flex-shrink: 0; }
+
+.modal-anular textarea {
+    padding: 9px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 13px;
+    outline: none;
+    resize: vertical;
+    font-family: inherit;
+}
+
+.modal-anular textarea:focus { border-color: #2563b0; }
+
+.btn-anular-confirmar {
+    background: #b91c1c;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 9px 18px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.15s;
+}
+
+.btn-anular-confirmar:hover    { background: #991b1b; }
+.btn-anular-confirmar:disabled { background: #fca5a5; cursor: not-allowed; }
+
+/* Inputs de fecha en filtros */
+.pasajes-filtros input[type="date"] {
+    padding: 8px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 13px;
+    outline: none;
+    background: #fff;
+    color: #1e293b;
+}
+
+.pasajes-filtros input[type="date"]:focus { border-color: #2563b0; }
+
+/* Estados de encomiendas */
+.badge-transito  { background: #fef9c3; color: #a16207; }
+.badge-entregado { background: #ecfdf5; color: #047857; }
+
+/* Página de soporte */
+.soporte-form {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    max-width: 720px;
+}
+
+.soporte-form textarea {
+    padding: 9px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 13px;
+    outline: none;
+    resize: vertical;
+    font-family: inherit;
+}
+
+.soporte-form textarea:focus { border-color: #2563b0; }
+
+.soporte-severidades { flex-wrap: wrap; }
+
+.soporte-form-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.soporte-nota { font-size: 11.5px; color: #6b7280; max-width: 380px; }
+
+.soporte-detalle {
+    max-width: 320px;
+    font-size: 12px;
+    white-space: pre-wrap;
+}
+
+/* Consulta de DNI / RUC */
+.doc-consulta { display: flex; gap: 6px; }
+.doc-consulta input { flex: 1; }
+
+.btn-consulta {
+    display: flex; align-items: center; gap: 5px;
+    padding: 0 12px;
+    background: #1a4db5; color: #fff;
+    border: none; border-radius: 8px;
+    font-size: 12px; font-weight: 600;
+    cursor: pointer; white-space: nowrap;
+    transition: background 0.15s;
+}
+.btn-consulta:hover:not(:disabled) { background: #1440a0; }
+.btn-consulta:disabled { background: #cbd5e1; cursor: not-allowed; }
+
+.consulta-resultado {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 10px; flex-wrap: wrap;
+    background: #eff6ff; border: 1px solid #bfdbfe;
+    border-radius: 8px; padding: 10px 12px;
+}
+.consulta-empresa { display: flex; align-items: flex-start; gap: 8px; }
+.consulta-empresa i { font-size: 18px; color: #1a4db5; flex-shrink: 0; margin-top: 2px; }
+.consulta-empresa strong { display: block; font-size: 12.5px; color: #1e293b; }
+.consulta-empresa span { display: block; font-size: 11px; color: #6b7280; }
+.consulta-estado { color: #15803d !important; font-weight: 600; }
+
+.btn-usar-empresa {
+    display: flex; align-items: center; gap: 5px;
+    padding: 6px 12px;
+    background: #fff; color: #1a4db5;
+    border: 1px solid #1a4db5; border-radius: 8px;
+    font-size: 12px; font-weight: 600; cursor: pointer;
+    white-space: nowrap;
+}
+.btn-usar-empresa:hover { background: #dbeafe; }
+
+/* Contactos de soporte */
+.soporte-contactos {
+    display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 18px;
+}
+.contacto-card {
+    flex: 1; min-width: 220px;
+    display: flex; align-items: center; gap: 12px;
+    background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
+    padding: 14px 16px; text-decoration: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+.contacto-card:hover { border-color: #cbd5e1; box-shadow: 0 4px 14px rgba(15,23,42,0.08); }
+.contacto-card i {
+    font-size: 24px; width: 44px; height: 44px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.contacto-card.whatsapp i { color: #15803d; background: #f0fdf4; }
+.contacto-card.correo i   { color: #1a4db5; background: #eff6ff; }
+.contacto-card strong { display: block; font-size: 14px; color: #1e293b; }
+.contacto-card span   { display: block; font-size: 11.5px; color: #6b7280; }
+.contacto-card .contacto-dato { font-size: 12.5px; color: #1a4db5; font-weight: 600; margin-top: 2px; }

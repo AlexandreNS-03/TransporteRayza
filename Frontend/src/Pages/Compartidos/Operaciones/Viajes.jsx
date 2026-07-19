@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
 import "./Viajes.css";
 
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8080";
+
+
 const ESTADOS = ["Todos los estados", "PROGRAMADO", "EN_CURSO", "COMPLETADO", "CANCELADO"];
 const ESTADO_LABEL = {
     PROGRAMADO: "Programado",
@@ -59,7 +62,7 @@ function Viajes() {
         setError(null);
         try {
             const token = localStorage.getItem("token");
-            const res = await fetch("http://localhost:8080/api/viajes", {
+            const res = await fetch(`${API_BASE}/api/viajes`, {
                 headers: { "Authorization": `Bearer ${token}` }
             });
             if (!res.ok) throw new Error("Error al obtener viajes");
@@ -82,9 +85,9 @@ function Viajes() {
         // Cargar datos para los selects
         const token = localStorage.getItem("token");
         const [rutasRes, embsRes, sucRes] = await Promise.all([
-            fetch("http://localhost:8080/api/rutas/activas", { headers: { "Authorization": `Bearer ${token}` } }),
-            fetch("http://localhost:8080/api/embarcaciones/activas", { headers: { "Authorization": `Bearer ${token}` } }),
-            fetch("http://localhost:8080/api/sucursales/activas", { headers: { "Authorization": `Bearer ${token}` } })
+            fetch(`${API_BASE}/api/rutas/activas`, { headers: { "Authorization": `Bearer ${token}` } }),
+            fetch(`${API_BASE}/api/embarcaciones/activas`, { headers: { "Authorization": `Bearer ${token}` } }),
+            fetch(`${API_BASE}/api/sucursales/activas`, { headers: { "Authorization": `Bearer ${token}` } })
         ]);
         setRutasDisponibles(await rutasRes.json());
         setEmbsDisponibles(await embsRes.json());
@@ -107,7 +110,7 @@ function Viajes() {
         setErrorModal(null);
         try {
             const token = localStorage.getItem("token");
-            const res = await fetch("http://localhost:8080/api/viajes", {
+            const res = await fetch(`${API_BASE}/api/viajes`, {
                 method: "POST",
                 headers: {
                     "Authorization": `Bearer ${token}`,

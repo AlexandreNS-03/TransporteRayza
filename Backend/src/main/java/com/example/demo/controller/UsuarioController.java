@@ -53,6 +53,15 @@ public class UsuarioController {
         }
     }
 
+    @PatchMapping("/{id}/sucursal")
+    public ResponseEntity<?> cambiarSucursal(@PathVariable String id, @RequestBody Map<String, String> body) {
+        try {
+            return ResponseEntity.ok(usuarioService.cambiarSucursal(id, body.get("sucursalId")));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
     @PatchMapping("/{id}/password")
     public ResponseEntity<?> resetearPassword(@PathVariable String id, @RequestBody ResetPasswordRequest req) {
         try {

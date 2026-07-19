@@ -5,15 +5,7 @@ import {
 } from "recharts";
 import "./Dashboard.css";
 
-const API = "http://localhost:8080";
-function token() { return localStorage.getItem("token"); }
-async function apiFetch(url) {
-    const res = await fetch(`${API}${url}`, {
-        headers: { "Authorization": `Bearer ${token()}` }
-    });
-    if (!res.ok) throw new Error("Error");
-    return res.json();
-}
+import { apiFetch } from "../../../Services/api.js";
 
 const ESTADO_LABEL = { PROGRAMADO: "Programado", EN_CURSO: "En Curso", COMPLETADO: "Completado", CANCELADO: "Cancelado" };
 function badgeViaje(estado) {
@@ -83,6 +75,7 @@ function ChartTooltip({ active, payload, label }) {
 function Dashboard() {
     const usuario  = JSON.parse(localStorage.getItem("usuario"));
     const [data, setData]       = useState(null);
+    const [extras, setExtras]   = useState(null); // encomiendas + caja
     const [cargando, setCargando] = useState(true);
     const [error, setError]     = useState(null);
     const [tab, setTab]         = useState("hoy");
@@ -93,8 +86,25 @@ function Dashboard() {
         setCargando(true);
         setError(null);
         try {
-            const d = await apiFetch("/api/dashboard");
+            const [d, encomiendas, cajas] = await Promise.all([
+                apiFetch("/api/dashboard"),
+                apiFetch("/api/encomiendas").catch(() => []),
+                apiFetch("/api/cajas").catch(() => []),
+            ]);
             setData(d);
+
+            const hoy = new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD en hora local (no UTC)
+            const encHoy = encomiendas.filter(e => e.fechaRegistro === hoy);
+            const cajasAbiertas = cajas.filter(c => c.estado === "ABIERTA");
+            const cerradasHoy = cajas.filter(c => c.estado === "CERRADA" && (c.cerradaAt || "").slice(0, 10) === hoy);
+            setExtras({
+                encomiendasHoy: encHoy.length,
+                ingresoEncomiendasHoy: encHoy.filter(e => e.estado !== "DEVUELTO").reduce((s, e) => s + (Number(e.precio) || 0), 0),
+                encomiendasPendientes: encomiendas.filter(e => e.estado === "REGISTRADO" || e.estado === "EN_TRANSITO").length,
+                cajasAbiertas: cajasAbiertas.length,
+                cajasAbiertasList: cajasAbiertas,
+                netoCerradasHoy: cerradasHoy.reduce((s, c) => s + (Number(c.totalNeto) || 0), 0),
+            });
         } catch (err) { setError("Error al cargar el dashboard"); }
         finally { setCargando(false); }
     };
@@ -207,6 +217,44 @@ function Dashboard() {
             <div className="dash-stats">
                 {statsActivas.map((s, i) => <StatCard key={i} {...s} />)}
             </div>
+
+            {/* ENCOMIENDAS Y CAJA */}
+            {extras && (
+                <div className="dash-extras">
+                    <div className="dash-extras-cards">
+                        <StatCard label="Encomiendas Hoy" valorRaw={extras.encomiendasHoy} icono="ti-box-seam" color="cyan" />
+                        <StatCard label="Ingreso Encomiendas" valorRaw={extras.ingresoEncomiendasHoy} formato="moneda" icono="ti-cash" color="verde" />
+                        <StatCard label="Encomiendas Pendientes" valorRaw={extras.encomiendasPendientes} icono="ti-truck-delivery" color="amarillo" />
+                        <StatCard label="Cajas Abiertas" valorRaw={extras.cajasAbiertas} icono="ti-cash" color="morado" />
+                    </div>
+
+                    <div className="dash-cajas-panel">
+                        <div className="dash-cajas-header">
+                            <strong><i className="ti ti-cash"></i> Cajas abiertas ahora</strong>
+                            <span>Neto de cajas cerradas hoy: <b>S/ {extras.netoCerradasHoy.toLocaleString("es-PE")}</b></span>
+                        </div>
+                        {extras.cajasAbiertasList.length === 0 ? (
+                            <p className="dash-cajas-vacio"><i className="ti ti-lock"></i> No hay cajas abiertas en este momento</p>
+                        ) : (
+                            <table className="dash-cajas-tabla">
+                                <thead>
+                                <tr><th>Usuario</th><th>Sucursal</th><th>Apertura</th><th>Monto inicial</th></tr>
+                                </thead>
+                                <tbody>
+                                {extras.cajasAbiertasList.map(c => (
+                                    <tr key={c.id}>
+                                        <td><strong>{c.usuarioNombre}</strong></td>
+                                        <td>{c.sucursalNombre || "—"}</td>
+                                        <td>{c.fechaApertura} {(c.horaApertura || "").slice(0, 5)}</td>
+                                        <td>S/ {Number(c.montoInicial).toFixed(2)}</td>
+                                    </tr>
+                                ))}
+                                </tbody>
+                            </table>
+                        )}
+                    </div>
+                </div>
+            )}
 
             {/* GRÁFICOS */}
             <div className="dash-charts">

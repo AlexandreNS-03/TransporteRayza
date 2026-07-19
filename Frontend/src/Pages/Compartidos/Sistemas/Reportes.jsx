@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import "./Reportes.css";
 
-const API = "http://localhost:8080/api";
+const API = (import.meta.env.VITE_API_URL || "http://localhost:8080") + "/api";
 const authHeaders = () => ({ "Authorization": `Bearer ${localStorage.getItem("token")}` });
 
 const hoy = () => new Date().toISOString().slice(0, 10);

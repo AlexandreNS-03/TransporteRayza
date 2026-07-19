@@ -358,3 +358,31 @@
 
 .badge-programado { background: #eff6ff; color: #1d4ed8; }
 .badge-encurso    { background: #fefce8; color: #a16207; }
+/* Sección de encomiendas y caja */
+.dash-extras { display: flex; flex-direction: column; gap: 16px; margin-bottom: 22px; }
+.dash-extras-cards {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px;
+}
+.dash-cajas-panel {
+    background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px 18px;
+}
+.dash-cajas-header {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    flex-wrap: wrap; margin-bottom: 10px;
+}
+.dash-cajas-header strong { font-size: 14px; color: #1e293b; display: flex; align-items: center; gap: 6px; }
+.dash-cajas-header strong i { color: #1a4db5; }
+.dash-cajas-header span { font-size: 12px; color: #6b7280; }
+.dash-cajas-header b { color: #15803d; }
+.dash-cajas-vacio { display: flex; align-items: center; gap: 8px; color: #9ca3af; font-size: 13px; padding: 10px 0; }
+.dash-cajas-tabla { width: 100%; border-collapse: collapse; font-size: 13px; }
+.dash-cajas-tabla th {
+    text-align: left; padding: 8px 10px; font-size: 11px; text-transform: uppercase;
+    letter-spacing: 0.4px; color: #6b7280; border-bottom: 1px solid #e5e7eb;
+}
+.dash-cajas-tabla td { padding: 9px 10px; color: #1e293b; border-bottom: 1px solid #f1f5f9; }
+.dash-cajas-tabla tbody tr:last-child td { border-bottom: none; }
+
+/* Color cyan para las tarjetas de encomiendas */
+.stat-cyan  { background: #ecfeff; border-color: #a5f3fc; }
+.stat-cyan .stat-icono { background: #cffafe; color: #0891b2; }

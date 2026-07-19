@@ -29,6 +29,13 @@ public class Usuario {
     @Enumerated(EnumType.STRING)
     private Rol rol;
 
+    // Sucursal a la que pertenece el usuario (NULL = todas, p.ej. administradores)
+    @Column(name = "sucursal_id", length = 36)
+    private String sucursalId;
+
+    @Column(name = "sucursal_nombre", length = 100)
+    private String sucursalNombre;
+
     @Column(name = "ultimo_login")
     private LocalDateTime ultimoLogin;
 
@@ -91,6 +98,12 @@ public class Usuario {
     public void setActivo(Boolean activo) {
         this.activo = activo;
     }
+
+    public String getSucursalId() { return sucursalId; }
+    public void setSucursalId(String sucursalId) { this.sucursalId = sucursalId; }
+
+    public String getSucursalNombre() { return sucursalNombre; }
+    public void setSucursalNombre(String sucursalNombre) { this.sucursalNombre = sucursalNombre; }
 
     public LocalDateTime getUltimoLogin() {
         return ultimoLogin;

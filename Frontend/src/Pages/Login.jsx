@@ -23,9 +23,11 @@ function Login() {
 
             localStorage.setItem("token", respuesta.token);
             localStorage.setItem("usuario", JSON.stringify({
-                username: respuesta.username,
-                nombre:   respuesta.nombre,
-                rol:      respuesta.rol
+                username:       respuesta.username,
+                nombre:         respuesta.nombre,
+                rol:            respuesta.rol,
+                sucursalId:     respuesta.sucursalId,
+                sucursalNombre: respuesta.sucursalNombre
             }));
 
             if (respuesta.rol === "ADMIN") {

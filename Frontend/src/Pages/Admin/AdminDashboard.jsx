@@ -61,6 +61,9 @@ function AdminDashboard() {
                     <NavLink to="/admin/pasajes" className={({ isActive }) => isActive ? "sb-item active" : "sb-item"}>
                         <i className="ti ti-ticket"></i> Pasajes
                     </NavLink>
+                    <NavLink to="/admin/encomiendas" className={({ isActive }) => isActive ? "sb-item active" : "sb-item"}>
+                        <i className="ti ti-box-seam"></i> Encomiendas
+                    </NavLink>
 
                     <p className="sb-section">FINANZAS</p>
                     <NavLink to="/admin/caja" className={({ isActive }) => isActive ? "sb-item active" : "sb-item"}>
@@ -101,8 +104,16 @@ function AdminDashboard() {
                             <NavLink to="/admin/roles" className={({ isActive }) => isActive ? "sb-item active" : "sb-item"}>
                                 <i className="ti ti-users"></i> Roles
                             </NavLink>
+                            <NavLink to="/admin/auditoria" className={({ isActive }) => isActive ? "sb-item active" : "sb-item"}>
+                                <i className="ti ti-clipboard-check"></i> Auditoría
+                            </NavLink>
                         </>
                     )}
+
+                    <p className="sb-section">AYUDA</p>
+                    <NavLink to="/admin/soporte" className={({ isActive }) => isActive ? "sb-item active" : "sb-item"}>
+                        <i className="ti ti-lifebuoy"></i> Soporte
+                    </NavLink>
 
                 </nav>
             </aside>

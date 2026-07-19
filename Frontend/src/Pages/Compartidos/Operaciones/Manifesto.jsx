@@ -2,16 +2,7 @@ import { useState, useEffect } from "react";
 import "./Manifiesto.css";
 import generarManifiestoPDF    from "./generarManifiestoPDF.jsx";
 
-const API = "http://localhost:8080";
-function token() { return localStorage.getItem("token"); }
-
-async function apiFetch(url) {
-    const res = await fetch(`${API}${url}`, {
-        headers: { "Authorization": `Bearer ${token()}` }
-    });
-    if (!res.ok) throw new Error("Error al obtener datos");
-    return res.json();
-}
+import { apiFetch } from "../../../Services/api.js";
 
 function Manifiesto() {
     const [viajes, setViajes]       = useState([]);
@@ -78,7 +69,7 @@ function Manifiesto() {
         if (!viajeSeleccionado || pasajeros.length === 0) return;
         setGenerandoPdf(true);
         try {
-            generarManifiestoPDF(viajeSeleccionado, pasajeros, capacidad);
+            await generarManifiestoPDF(viajeSeleccionado, pasajeros, capacidad);
         } finally {
             setGenerandoPdf(false);
         }

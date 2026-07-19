@@ -9,6 +9,8 @@ public class VentaDTO {
     private String viajeId;
     private String viajeCodigo;
     private String viajeDescripcion;
+    private String fechaSalida;
+    private String horaSalida;
     private String tipoDocumento;
     private String pasajeroNombre;
     private String pasajeroDocumento;
@@ -54,6 +56,12 @@ public class VentaDTO {
 
     public String getViajeDescripcion() { return viajeDescripcion; }
     public void setViajeDescripcion(String viajeDescripcion) { this.viajeDescripcion = viajeDescripcion; }
+
+    public String getFechaSalida() { return fechaSalida; }
+    public void setFechaSalida(String fechaSalida) { this.fechaSalida = fechaSalida; }
+
+    public String getHoraSalida() { return horaSalida; }
+    public void setHoraSalida(String horaSalida) { this.horaSalida = horaSalida; }
 
     public String getTipoDocumento() { return tipoDocumento; }
     public void setTipoDocumento(String tipoDocumento) { this.tipoDocumento = tipoDocumento; }

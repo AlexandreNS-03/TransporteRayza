@@ -7,4 +7,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ViajeAsientoTramoOcupadoRepository extends JpaRepository<ViajeAsientoTramoOcupado, String> {
     void deleteByViajeAsientoEstadoId(String asientoEstadoId);
+
+    boolean existsByViajeAsientoEstadoIdAndTramoIn(String asientoEstadoId, java.util.List<String> tramos);
 }

@@ -218,6 +218,14 @@
 .btn-accion.anular       { background: #fef2f2; color: #b91c1c; }
 .btn-accion.anular:hover { background: #fee2e2; }
 
+.btn-accion.comprobante       { background: #eff6ff; color: #1d4ed8; }
+.btn-accion.comprobante:hover { background: #dbeafe; }
+
+.btn-accion.generar       { background: #fefce8; color: #a16207; }
+.btn-accion.generar:hover { background: #fef9c3; }
+
+.btn-accion.emitido { background: #f0fdf4; color: #15803d; cursor: default; }
+
 .tabla-vacia { text-align: center; padding: 40px !important; color: #9ca3af; }
 .tabla-vacia i { font-size: 32px; display: block; margin-bottom: 8px; }
 
@@ -590,3 +598,40 @@
 
 .btn-accion.email       { background: #f0f9ff; color: #0369a1; }
 .btn-accion.email:hover { background: #e0f2fe; }
+/* Botones de acción adicionales */
+.btn-accion.a4          { background: #f5f3ff; color: #6d28d9; }
+.btn-accion.a4:hover    { background: #ede9fe; }
+.btn-accion.editar      { background: #ecfeff; color: #0e7490; }
+.btn-accion.editar:hover{ background: #cffafe; }
+
+/* Nota informativa del modal de edición */
+.edit-nota {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    color: #1e40af;
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.edit-nota i { font-size: 16px; flex-shrink: 0; }
+
+/* Consulta de documento (DNI) en el wizard */
+.doc-consulta { display: flex; gap: 6px; }
+.doc-consulta input { flex: 1; min-width: 0; }
+
+.btn-consulta {
+    display: flex; align-items: center; gap: 5px;
+    padding: 0 12px;
+    background: #1a4db5; color: #fff;
+    border: none; border-radius: 8px;
+    font-size: 12px; font-weight: 600;
+    cursor: pointer; white-space: nowrap;
+    transition: background 0.15s;
+}
+.btn-consulta:hover:not(:disabled) { background: #1440a0; }
+.btn-consulta:disabled { background: #cbd5e1; cursor: not-allowed; }

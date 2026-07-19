@@ -1,0 +1,94 @@
+/* ── Módulo de Caja ── */
+
+.caja-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 18px;
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 0;
+}
+
+.caja-tabs button {
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    padding: 10px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #6b7280;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: color 0.15s, border-color 0.15s;
+}
+
+.caja-tabs button:hover  { color: #1a4db5; }
+.caja-tabs button.activo { color: #1a4db5; border-bottom-color: #1a4db5; }
+
+.caja-acciones {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.btn-cerrar-caja {
+    background: #fef2f2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    padding: 9px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.15s;
+}
+
+.btn-cerrar-caja:hover { background: #fee2e2; }
+
+.caja-cerrada-card {
+    background: #fff;
+    border: 1px dashed #cbd5e1;
+    border-radius: 12px;
+    padding: 48px 24px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.caja-cerrada-card i {
+    font-size: 40px;
+    color: #94a3b8;
+}
+
+.caja-cerrada-card h3 { margin: 0; font-size: 17px; color: #1e293b; }
+.caja-cerrada-card p  { margin: 0 0 8px; font-size: 13px; color: #6b7280; }
+
+.caja-dif {
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.caja-dif.ok  { background: #f0fdf4; color: #15803d; }
+.caja-dif.neg { background: #fef2f2; color: #b91c1c; }
+
+.caja-check {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #374151;
+    cursor: pointer;
+}
+
+.badge-cerrada { background: #f1f5f9; color: #475569; }
+
+.dif-ok       { color: #15803d; }
+.dif-negativa { color: #b91c1c; }

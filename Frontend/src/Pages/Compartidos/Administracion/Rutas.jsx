@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
 import "./Rutas.css";
 
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8080";
+
+
 function Rutas() {
     const usuario = JSON.parse(localStorage.getItem("usuario"));
     const esAdmin = usuario?.rol === "ADMIN";
@@ -46,7 +49,7 @@ function Rutas() {
         setError(null);
         try {
             const token = localStorage.getItem("token");
-            const res = await fetch("http://localhost:8080/api/rutas", {
+            const res = await fetch(`${API_BASE}/api/rutas`, {
                 headers: { "Authorization": `Bearer ${token}` }
             });
             if (!res.ok) throw new Error("Error al obtener rutas");
@@ -66,7 +69,7 @@ function Rutas() {
         setCargandoDetalle(true);
         try {
             const token = localStorage.getItem("token");
-            const res = await fetch(`http://localhost:8080/api/rutas/${ruta.id}`, {
+            const res = await fetch(`${API_BASE}/api/rutas/${ruta.id}`, {
                 headers: { "Authorization": `Bearer ${token}` }
             });
             setRutaDetalle(await res.json());
@@ -104,7 +107,7 @@ function Rutas() {
 
         // Cargar detalle para tener paradas y tarifas
         const token = localStorage.getItem("token");
-        const res = await fetch(`http://localhost:8080/api/rutas/${r.id}`, {
+        const res = await fetch(`${API_BASE}/api/rutas/${r.id}`, {
             headers: { "Authorization": `Bearer ${token}` }
         });
         const detalle = await res.json();
@@ -131,7 +134,7 @@ function Rutas() {
 
     const cargarSucursales = async () => {
         const token = localStorage.getItem("token");
-        const res = await fetch("http://localhost:8080/api/sucursales/activas", {
+        const res = await fetch(`${API_BASE}/api/sucursales/activas`, {
             headers: { "Authorization": `Bearer ${token}` }
         });
         setSucursales(await res.json());
@@ -188,8 +191,8 @@ function Rutas() {
         try {
             const token = localStorage.getItem("token");
             const url = modoEditar
-                ? `http://localhost:8080/api/rutas/${rutaSeleccionada.id}`
-                : "http://localhost:8080/api/rutas";
+                ? `${API_BASE}/api/rutas/${rutaSeleccionada.id}`
+                : `${API_BASE}/api/rutas`;
             const method = modoEditar ? "PUT" : "POST";
 
             const body = {
@@ -229,12 +232,12 @@ function Rutas() {
         try {
             const token = localStorage.getItem("token");
             if (r.activo) {
-                await fetch(`http://localhost:8080/api/rutas/${r.id}`, {
+                await fetch(`${API_BASE}/api/rutas/${r.id}`, {
                     method: "DELETE",
                     headers: { "Authorization": `Bearer ${token}` }
                 });
             } else {
-                await fetch(`http://localhost:8080/api/rutas/${r.id}`, {
+                await fetch(`${API_BASE}/api/rutas/${r.id}`, {
                     method: "PUT",
                     headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
                     body: JSON.stringify({ ...r, activo: true })

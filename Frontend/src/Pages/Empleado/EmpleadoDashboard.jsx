@@ -110,6 +110,10 @@ function EmpleadoDashboard() {
                         </>
                     )}
 
+                    <p className="sb-section">AYUDA</p>
+                    <NavLink to="/empleado/soporte" className={({ isActive }) => isActive ? "sb-item active" : "sb-item"}>
+                        <i className="ti ti-lifebuoy"></i> Soporte
+                    </NavLink>
                 </nav>
             </aside>
 

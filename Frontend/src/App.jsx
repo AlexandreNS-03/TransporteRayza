@@ -19,9 +19,11 @@ import Pasajes from "./Pages/Compartidos/Ventas/Pasajes.jsx";
 import Dashboard from "./Pages/Compartidos/Sistemas/Dashboard.jsx";
 import Roles from "./Pages/Compartidos/Sistemas/RolesPermisos.jsx";
 import Reportes from "./Pages/Compartidos/Sistemas/Reportes.jsx";
-// import Encomiendas from "./Pages/Compartidos/Ventas/Encomiendas.jsx";
-// import Cajas from "./Pages/Compartidos/Finanzas/Cajas.jsx";
-// import Comprobantes from "./Pages/Compartidos/Finanzas/Comprobantes.jsx";
+import Comprobantes from "./Pages/Compartidos/Finanzas/Comprobantes.jsx";
+import Cajas from "./Pages/Compartidos/Finanzas/Cajas.jsx";
+import Encomiendas from "./Pages/Compartidos/Ventas/Encomiendas.jsx";
+import Auditorias from "./Pages/Compartidos/Sistemas/Auditorias.jsx";
+import Soporte from "./Pages/Compartidos/Sistemas/Soporte.jsx";
 
 function App() {
     return (
@@ -44,11 +46,16 @@ function App() {
                     <Route path="embarque" element={<Embarque />} />
                     <Route path="embarcaciones" element={<Embarcaciones />} />
                     <Route path="pasajes" element={<Pasajes />} />
+                    <Route path="encomiendas" element={<Encomiendas />} />
+                    <Route path="soporte" element={<Soporte />} />
                     <Route path="paradas" element={<Paradas />} />
+                    <Route path="caja" element={<Cajas />} />
+                    <Route path="comprobantes" element={<Comprobantes />} />
                     <Route index element={<Dashboard />} />
                     <Route  path="roles" element={<Roles />} />
                     <Route  path="reportes" element={<Reportes />} />
                     <Route path="manifiesto" element={<Manifiesto />} />
+                    <Route path="auditoria" element={<Auditorias />} />
                 </Route>
 
                 <Route
@@ -59,16 +66,21 @@ function App() {
                         </PrivateRoute>
                     }
                 >
+                    <Route path="viajes" element={<Viajes />} />
                     <Route path="sucursales" element={<Sucursales />} />
                     <Route path="rutas" element={<Rutas />} />
                     <Route path="embarque" element={<Embarque />} />
                     <Route path="embarcaciones" element={<Embarcaciones />} />
                     <Route path="pasajes" element={<Pasajes />} />
+                    <Route path="encomiendas" element={<Encomiendas />} />
+                    <Route path="soporte" element={<Soporte />} />
                     <Route path="paradas" element={<Paradas />} />
+                    <Route path="caja" element={<Cajas />} />
+                    <Route path="comprobantes" element={<Comprobantes />} />
                     <Route index element={<Dashboard />} />
                     <Route  path="roles" element={<Roles />} />
                     <Route  path="reportes" element={<Reportes />} />
-                    <Route  path="manifiesto" element={<Manifiesto />} />ss
+                    <Route  path="manifiesto" element={<Manifiesto />} />
                 </Route>
 
                 {/* EMPLEADO con rutas hijas */}
@@ -84,7 +96,11 @@ function App() {
                     <Route path="sucursales" element={<Sucursales />} />
                     <Route path="rutas" element={<Rutas />} />
                     <Route path="pasajes" element={<Pasajes />} />
+                    <Route path="encomiendas" element={<Encomiendas />} />
+                    <Route path="soporte" element={<Soporte />} />
                     <Route path="paradas" element={<Paradas />} />
+                    <Route path="caja" element={<Cajas />} />
+                    <Route path="comprobantes" element={<Comprobantes />} />
                     <Route index element={<Dashboard />} />
                     <Route  path="roles" element={<Roles />} />
                     <Route  path="reportes" element={<Reportes />} />

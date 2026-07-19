@@ -33,3 +33,6 @@ build/
 .vscode/
 
 
+
+### Secretos (credenciales locales) ###
+secrets.properties
