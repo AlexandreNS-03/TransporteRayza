@@ -1,6 +1,7 @@
 package com.example.demo.service;
 
 import com.example.demo.dto.VentaDTO;
+import com.example.demo.dto.VentaEditRequest;
 import com.example.demo.dto.VentaRequest;
 import com.example.demo.model.*;
 import com.example.demo.repository.*;
@@ -20,8 +21,11 @@ public class VentaService {
     private final VentaRepository ventaRepository;
     private final VentaTramoUsadoRepository tramoUsadoRepository;
     private final ViajeRepository viajeRepository;
+    private final UsuarioRepository usuarioRepository;
     private final AsientoService asientoService;
     private final EmailService emailService;
+    private final CajaService cajaService;
+    private final AuditoriaService auditoriaService;
 
     public VentaDTO embarcarPasajero(String id, String usuarioNombre) {
         Venta venta = ventaRepository.findById(id)
@@ -32,6 +36,8 @@ public class VentaService {
 
         if (venta.getEmbarqueEstado() == Venta.EmbarqueEstado.EMBARCADO)
             throw new RuntimeException("El pasajero ya embarcó");
+
+        validarVentanaDeEmbarque(venta);
 
         venta.setEmbarqueEstado(Venta.EmbarqueEstado.EMBARCADO);
         venta.setEmbarcadoAt(LocalDateTime.now());
@@ -55,6 +61,29 @@ public class VentaService {
         }
 
         return toDTO(guardada);
+    }
+
+    /**
+     * El embarque solo está permitido desde 2 horas antes de la salida
+     * hasta 20 minutos después de la hora programada del viaje.
+     */
+    private void validarVentanaDeEmbarque(Venta venta) {
+        if (venta.getViajeId() == null) return;
+        Viaje viaje = viajeRepository.findById(venta.getViajeId()).orElse(null);
+        if (viaje == null || viaje.getFechaSalida() == null || viaje.getHoraSalida() == null) return;
+
+        LocalDateTime salida = LocalDateTime.of(viaje.getFechaSalida(), viaje.getHoraSalida());
+        LocalDateTime inicio = salida.minusHours(2);
+        LocalDateTime fin    = salida.plusMinutes(20);
+        LocalDateTime ahora  = LocalDateTime.now();
+
+        java.time.format.DateTimeFormatter fmt = java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+        if (ahora.isBefore(inicio))
+            throw new RuntimeException("El embarque aún no está habilitado. Se abre el " + inicio.format(fmt)
+                    + " (2 horas antes de la salida programada: " + salida.format(fmt) + ")");
+        if (ahora.isAfter(fin))
+            throw new RuntimeException("El embarque ya cerró el " + fin.format(fmt)
+                    + " (20 minutos después de la salida programada: " + salida.format(fmt) + ")");
     }
 
     public List<VentaDTO> listarMisEmbarquesHoy(String usuarioNombre) {
@@ -105,6 +134,18 @@ public class VentaService {
     public VentaDTO crearVenta(VentaRequest req, String usuarioNombre) {
         Viaje viaje = viajeRepository.findById(req.getViajeId())
                 .orElseThrow(() -> new RuntimeException("Viaje no encontrado"));
+
+        // Venta por sucursal: cada sucursal solo vende los viajes que salen de ella
+        // (el ADMIN y los usuarios sin sucursal asignada pueden vender cualquier viaje)
+        Usuario vendedor = usuarioRepository.findByUsername(usuarioNombre).orElse(null);
+        if (vendedor != null
+                && vendedor.getRol() != Rol.ADMIN
+                && vendedor.getSucursalId() != null
+                && !vendedor.getSucursalId().equals(viaje.getSucursalId())) {
+            throw new RuntimeException("Solo puedes vender viajes de tu sucursal ("
+                    + vendedor.getSucursalNombre() + "). Este viaje pertenece a "
+                    + viaje.getSucursalNombre());
+        }
 
         Venta venta = new Venta();
         venta.setId(UUID.randomUUID().toString());
@@ -158,12 +199,65 @@ public class VentaService {
                 req.getOrdenDestino()
         );
 
+        // Ingreso en la caja abierta del vendedor (si tiene una)
+        cajaService.registrarMovimientoAutomatico(usuarioNombre,
+                MovimientoCaja.TipoMovimiento.INGRESO,
+                venta.getPrecio(),
+                "Venta pasaje " + venta.getSerieComprobante() + "-" + venta.getNumeroComprobante()
+                        + " — " + venta.getPasajeroNombre());
+
+        auditoriaService.registrar("CREAR", "VENTAS", venta.getId(),
+                "Venta " + venta.getSerieComprobante() + "-" + venta.getNumeroComprobante()
+                        + " a " + venta.getPasajeroNombre() + " (S/ " + venta.getPrecio()
+                        + ", asiento " + venta.getAsientoTipo() + " #" + venta.getAsientoNumero() + ")");
+
+        return toDTO(venta);
+    }
+
+    // Editar datos del pasajero / comprobante de una venta (no toca asiento, tramo ni precio)
+    @Transactional
+    public VentaDTO editarVenta(String id, VentaEditRequest req, String usuarioNombre) {
+        Venta venta = ventaRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Venta no encontrada"));
+
+        if (venta.getEstado() == Venta.EstadoVenta.ANULADO)
+            throw new RuntimeException("No se puede editar una venta anulada");
+
+        if (req.getPasajeroNombre() == null || req.getPasajeroNombre().isBlank())
+            throw new RuntimeException("El nombre del pasajero es obligatorio");
+        if (req.getPasajeroDocumento() == null || req.getPasajeroDocumento().isBlank())
+            throw new RuntimeException("El documento del pasajero es obligatorio");
+
+        if (req.getTipoDocumento() != null)
+            venta.setTipoDocumento(Venta.TipoDocumento.valueOf(req.getTipoDocumento()));
+        venta.setPasajeroNombre(req.getPasajeroNombre().trim());
+        venta.setPasajeroDocumento(req.getPasajeroDocumento().trim());
+        venta.setProcedencia(req.getProcedencia());
+        venta.setPasajeroTelefono(req.getPasajeroTelefono());
+        venta.setClienteEmail(req.getClienteEmail());
+        venta.setEdad(req.getEdad());
+        if (req.getSexo() != null && !req.getSexo().isBlank())
+            venta.setSexo(Venta.Sexo.valueOf(req.getSexo()));
+        venta.setClienteNombre(req.getClienteNombre());
+        venta.setClienteTipoDoc(req.getClienteTipoDoc());
+        venta.setClienteDocumento(req.getClienteDocumento());
+        venta.setDetalleComprobante(req.getDetalleComprobante());
+        ventaRepository.save(venta);
+
+        // Mantener sincronizados los datos del pasajero en el mapa de asientos
+        asientoService.actualizarDatosPasajero(id,
+                req.getPasajeroNombre().trim(), req.getPasajeroDocumento().trim(), req.getPasajeroTelefono());
+
+        auditoriaService.registrar("EDITAR", "VENTAS", venta.getId(),
+                "Venta " + venta.getSerieComprobante() + "-" + venta.getNumeroComprobante()
+                        + ", pasajero: " + venta.getPasajeroNombre());
+
         return toDTO(venta);
     }
 
     // Anular venta
     @Transactional
-    public VentaDTO anularVenta(String id) {
+    public VentaDTO anularVenta(String id, String usuarioNombre) {
         Venta venta = ventaRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Venta no encontrada"));
 
@@ -176,6 +270,17 @@ public class VentaService {
 
         // Liberar asiento
         asientoService.liberarAsiento(id);
+
+        // Egreso (devolución) en la caja abierta del usuario que anula
+        cajaService.registrarMovimientoAutomatico(usuarioNombre,
+                MovimientoCaja.TipoMovimiento.EGRESO,
+                venta.getPrecio(),
+                "Anulación venta " + venta.getSerieComprobante() + "-" + venta.getNumeroComprobante()
+                        + " — " + venta.getPasajeroNombre());
+
+        auditoriaService.registrar("ANULAR", "VENTAS", venta.getId(),
+                "Venta " + venta.getSerieComprobante() + "-" + venta.getNumeroComprobante()
+                        + " de " + venta.getPasajeroNombre() + " (S/ " + venta.getPrecio() + ")");
 
         return toDTO(venta);
     }
@@ -192,21 +297,34 @@ public class VentaService {
         tramoUsadoRepository.saveAll(tramos);
     }
 
+    // Correlativo basado en el máximo emitido (count() se descuadra si se borran filas
+    // y puede duplicar números con ventas simultáneas)
     private String generarNumeroComprobante() {
-        long total = ventaRepository.count();
-        return String.format("%08d", total + 1);
+        long siguiente = ventaRepository.findTopByOrderByNumeroComprobanteDesc()
+                .map(v -> {
+                    try { return Long.parseLong(v.getNumeroComprobante()) + 1; }
+                    catch (NumberFormatException e) { return ventaRepository.count() + 1; }
+                })
+                .orElse(1L);
+        return String.format("%08d", siguiente);
     }
 
     public VentaService(VentaRepository ventaRepository,
                         VentaTramoUsadoRepository tramoUsadoRepository,
                         ViajeRepository viajeRepository,
+                        UsuarioRepository usuarioRepository,
                         AsientoService asientoService,
-                        EmailService emailService) {
+                        EmailService emailService,
+                        CajaService cajaService,
+                        AuditoriaService auditoriaService) {
         this.ventaRepository      = ventaRepository;
         this.tramoUsadoRepository = tramoUsadoRepository;
         this.viajeRepository      = viajeRepository;
+        this.usuarioRepository    = usuarioRepository;
         this.asientoService       = asientoService;
         this.emailService         = emailService;
+        this.cajaService          = cajaService;
+        this.auditoriaService     = auditoriaService;
     }
 
     public void enviarComprobante(String id) {
@@ -238,6 +356,14 @@ public class VentaService {
         dto.setViajeId(v.getViajeId());
         dto.setViajeCodigo(v.getViajeCodigo());
         dto.setViajeDescripcion(v.getViajeDescripcion());
+
+        // Fecha y hora de salida del viaje (para el ticket y la ventana de embarque)
+        if (v.getViajeId() != null) {
+            viajeRepository.findById(v.getViajeId()).ifPresent(viaje -> {
+                dto.setFechaSalida(viaje.getFechaSalida() != null ? viaje.getFechaSalida().toString() : null);
+                dto.setHoraSalida(viaje.getHoraSalida() != null ? viaje.getHoraSalida().toString() : null);
+            });
+        }
         dto.setTipoDocumento(v.getTipoDocumento() != null ? v.getTipoDocumento().name() : null);
         dto.setPasajeroNombre(v.getPasajeroNombre());
         dto.setPasajeroDocumento(v.getPasajeroDocumento());

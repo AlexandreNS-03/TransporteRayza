@@ -1,0 +1,9 @@
+# Configuración de build para Railway (Nixpacks) — backend Spring Boot con Java 17
+[phases.setup]
+nixPkgs = ["maven", "jdk17"]
+
+[phases.build]
+cmds = ["mvn -q clean package -DskipTests"]
+
+[start]
+cmd = "java -jar target/app.jar"

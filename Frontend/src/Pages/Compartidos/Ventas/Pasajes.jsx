@@ -1,9 +1,13 @@
 import { useState, useEffect } from "react";
 import "./Pasajes.css";
 import generarComprobante from "../../../Utils/generarComprobante.jsx";
+import generarTicketA4 from "../../../Utils/generarTicketA4.jsx";
+import GenerarComprobanteModal from "../Finanzas/GenerarComprobanteModal.jsx";
 
 
-const API = "http://localhost:8080";
+import { apiFetch, consultarDni } from "../../../Services/api.js";
+import { useToast, Toasts } from "../../../Components/Toast.jsx";
+import { usePaginacion, Paginacion } from "../../../Components/Paginacion.jsx";
 
 const TIPO_DOC     = ["DNI", "CE", "PASAPORTE", "RUC"];
 const SEXO         = ["Masculino", "Femenino", "Otro"];
@@ -16,22 +20,12 @@ function badgeEstado(estado) {
     return estado === "PAGADO" ? "badge badge-pagado" : "badge badge-anulado";
 }
 
-function token() { return localStorage.getItem("token"); }
-
-async function apiFetch(url, opts = {}) {
-    const res = await fetch(`${API}${url}`, {
-        ...opts,
-        headers: { "Authorization": `Bearer ${token()}`, "Content-Type": "application/json", ...opts.headers }
-    });
-    if (!res.ok) throw new Error(await res.text());
-    return res.json();
-}
-
 function Pasajes() {
     const usuario      = JSON.parse(localStorage.getItem("usuario"));
     const esAdmin      = usuario?.rol === "ADMIN";
     const esSupervisor = usuario?.rol === "SUPERVISOR";
     const puedeVender  = esAdmin || esSupervisor;
+    const { toasts, mostrarToast } = useToast();
 
     // Lista ventas
     const [ventas, setVentas]         = useState([]);
@@ -40,11 +34,22 @@ function Pasajes() {
     const [busqueda, setBusqueda]     = useState("");
     const [filtroEstado, setFiltro]   = useState("todos");
 
+    // Comprobantes electrónicos (Nubefact)
+    const [comprobantes, setComprobantes]           = useState([]);
+    const [ventaParaComprobante, setVentaParaComp]  = useState(null);
+
+    // Edición de venta
+    const [ventaEdit, setVentaEdit]   = useState(null);
+    const [formEdit, setFormEdit]     = useState(null);
+    const [guardandoEdit, setGuardandoEdit] = useState(false);
+    const [errorEdit, setErrorEdit]   = useState(null);
+
     // Modal wizard
     const [modalAbierto, setModal]    = useState(false);
     const [paso, setPaso]             = useState(1);
     const [guardando, setGuardando]   = useState(false);
     const [errorModal, setErrorModal] = useState(null);
+    const [consultandoDni, setConsultandoDni] = useState(false);
 
     // Datos para selects
     const [viajes, setViajes]         = useState([]);
@@ -70,7 +75,18 @@ function Pasajes() {
         precio: ""
     });
 
-    useEffect(() => { fetchVentas(); }, []);
+    useEffect(() => { fetchVentas(); fetchComprobantes(); }, []);
+
+    const fetchComprobantes = async () => {
+        try {
+            const data = await apiFetch("/api/comprobantes");
+            setComprobantes(data);
+        } catch (err) { console.error(err); }
+    };
+
+    // Comprobante electrónico vigente (ACEPTADO) por venta — las notas de crédito no cuentan
+    const comprobantePorVenta = (ventaId) =>
+        comprobantes.find(c => c.ventaId === ventaId && c.estado === "ACEPTADO" && c.tipoDeComprobante !== "NOTA_CREDITO");
 
     const fetchVentas = async () => {
         setCargando(true);
@@ -87,7 +103,13 @@ function Pasajes() {
         resetForm();
         try {
             const data = await apiFetch("/api/viajes");
-            setViajes(data.filter(v => v.estado === "PROGRAMADO"));
+            // Venta por sucursal: cada sucursal solo vende los viajes que salen de ella
+            // (ADMIN o usuarios sin sucursal asignada ven todos)
+            const soloMiSucursal = !esAdmin && usuario?.sucursalId;
+            setViajes(data.filter(v =>
+                v.estado === "PROGRAMADO" &&
+                (!soloMiSucursal || v.sucursalId === usuario.sucursalId)
+            ));
         } catch (err) { console.error(err); }
         setModal(true);
     };
@@ -118,15 +140,10 @@ function Pasajes() {
 
     const enviarCorreo = async (id) => {
         try {
-            const token = localStorage.getItem("token");
-            const res = await fetch(`http://localhost:8080/api/ventas/${id}/enviar-comprobante`, {
-                method: "POST",
-                headers: { "Authorization": `Bearer ${token}` }
-            });
-            if (!res.ok) throw new Error();
-            alert("Comprobante enviado exitosamente");
+            await apiFetch(`/api/ventas/${id}/enviar-comprobante`, { method: "POST" });
+            mostrarToast("success", "Comprobante enviado al correo del pasajero");
         } catch (err) {
-            alert("Error al enviar el comprobante");
+            mostrarToast("error", "Error al enviar el comprobante: " + err.message);
         }
     };
 
@@ -140,6 +157,17 @@ function Pasajes() {
             setErrorModal(null);
             setPaso(2);
         } catch (err) { setErrorModal("Error al cargar paradas del viaje"); }
+    };
+
+    // Autocompletar nombre del pasajero por DNI
+    const consultarDniPasajero = async () => {
+        setConsultandoDni(true);
+        setErrorModal(null);
+        try {
+            const data = await consultarDni(form.pasajeroDocumento.trim());
+            setForm(prev => ({ ...prev, pasajeroNombre: data.nombreCompleto }));
+        } catch (err) { setErrorModal(err.message); }
+        finally { setConsultandoDni(false); }
     };
 
     // ── PASO 2: datos pasajero ──
@@ -246,13 +274,58 @@ function Pasajes() {
         finally { setGuardando(false); }
     };
 
+    // Editar venta (datos del pasajero / comprobante)
+    const abrirEdicion = (v) => {
+        setVentaEdit(v);
+        setErrorEdit(null);
+        setFormEdit({
+            tipoDocumento:     v.tipoDocumento || "DNI",
+            pasajeroNombre:    v.pasajeroNombre || "",
+            pasajeroDocumento: v.pasajeroDocumento || "",
+            procedencia:       v.procedencia || "",
+            pasajeroTelefono:  v.pasajeroTelefono || "",
+            clienteEmail:      v.clienteEmail || "",
+            edad:              v.edad ?? "",
+            sexo:              v.sexo || "Masculino",
+            clienteNombre:     v.clienteNombre || "",
+            clienteTipoDoc:    v.clienteTipoDoc || "DNI",
+            clienteDocumento:  v.clienteDocumento || "",
+            detalleComprobante: v.detalleComprobante || ""
+        });
+    };
+
+    const handleEditChange = (e) => {
+        const { name, value } = e.target;
+        setFormEdit(prev => ({ ...prev, [name]: value }));
+    };
+
+    const guardarEdicion = async () => {
+        if (!formEdit.pasajeroNombre.trim() || !formEdit.pasajeroDocumento.trim()) {
+            setErrorEdit("Nombre y documento del pasajero son obligatorios");
+            return;
+        }
+        setGuardandoEdit(true);
+        setErrorEdit(null);
+        try {
+            await apiFetch(`/api/ventas/${ventaEdit.id}`, {
+                method: "PUT",
+                body: JSON.stringify({ ...formEdit, edad: formEdit.edad ? parseInt(formEdit.edad) : null })
+            });
+            setVentaEdit(null);
+            mostrarToast("success", "Datos del pasaje actualizados");
+            fetchVentas();
+        } catch (err) { setErrorEdit(err.message); }
+        finally { setGuardandoEdit(false); }
+    };
+
     // Anular venta
     const anularVenta = async (id) => {
         if (!confirm("¿Confirmas anular esta venta?")) return;
         try {
             await apiFetch(`/api/ventas/${id}/anular`, { method: "PATCH" });
+            mostrarToast("success", "Venta anulada y asiento liberado");
             fetchVentas();
-        } catch (err) { alert("Error al anular la venta"); }
+        } catch (err) { mostrarToast("error", "Error al anular la venta: " + err.message); }
     };
 
     // Buscar por documento
@@ -271,6 +344,8 @@ function Pasajes() {
         if (filtroEstado === "anulado" && v.estado !== "ANULADO") return false;
         return true;
     });
+
+    const pag = usePaginacion(ventasFiltradas, 10);
 
     const viajeSeleccionado = viajes.find(v => v.id === form.viajeId);
 
@@ -349,7 +424,7 @@ function Pasajes() {
                         </tr>
                         </thead>
                         <tbody>
-                        {ventasFiltradas.length === 0 ? (
+                        {pag.items.length === 0 ? (
                             <tr>
                                 <td colSpan={puedeVender ? 10 : 9} className="tabla-vacia">
                                     <i className="ti ti-ticket-off"></i>
@@ -357,7 +432,7 @@ function Pasajes() {
                                 </td>
                             </tr>
                         ) : (
-                            ventasFiltradas.map(v => (
+                            pag.items.map(v => (
                                 <tr key={v.id} className={v.estado === "ANULADO" ? "fila-anulada" : ""}>
                                     <td className="codigo">
                                         {v.serieComprobante}-{v.numeroComprobante}
@@ -401,14 +476,55 @@ function Pasajes() {
                                     </td>
                                     {puedeVender && (
                                         <td className="acciones-cell">
-                                            {/* Botón comprobante - cualquier estado */}
+                                            {/* Descargar ticket 80mm (térmica) */}
                                             <button
                                                 className="btn-accion comprobante"
                                                 onClick={() => generarComprobante(v)}
-                                                title="Descargar comprobante"
+                                                title="Descargar ticket (80mm)"
                                             >
                                                 <i className="ti ti-file-invoice"></i>
                                             </button>
+
+                                            {/* Descargar ticket A4 */}
+                                            <button
+                                                className="btn-accion a4"
+                                                onClick={() => generarTicketA4(v)}
+                                                title="Descargar ticket (A4)"
+                                            >
+                                                <i className="ti ti-file-type-pdf"></i>
+                                            </button>
+
+                                            {/* Editar datos del pasaje - solo si está pagado */}
+                                            {v.estado === "PAGADO" && (
+                                                <button
+                                                    className="btn-accion editar"
+                                                    onClick={() => abrirEdicion(v)}
+                                                    title="Editar datos del pasajero"
+                                                >
+                                                    <i className="ti ti-edit"></i>
+                                                </button>
+                                            )}
+
+                                            {/* Comprobante electrónico (boleta/factura Nubefact) */}
+                                            {v.estado === "PAGADO" && (
+                                                comprobantePorVenta(v.id) ? (
+                                                    <button
+                                                        className="btn-accion emitido"
+                                                        title={`Comprobante emitido: ${comprobantePorVenta(v.id).serie}-${String(comprobantePorVenta(v.id).numero).padStart(8, "0")}`}
+                                                        disabled
+                                                    >
+                                                        <i className="ti ti-file-check"></i>
+                                                    </button>
+                                                ) : (
+                                                    <button
+                                                        className="btn-accion generar"
+                                                        onClick={() => setVentaParaComp(v)}
+                                                        title="Generar boleta / factura electrónica"
+                                                    >
+                                                        <i className="ti ti-receipt-2"></i>
+                                                    </button>
+                                                )
+                                            )}
 
                                             {/* Botón anular - solo si está pagado */}
                                             {v.estado === "PAGADO" && (
@@ -440,6 +556,8 @@ function Pasajes() {
                     </table>
                 </div>
             )}
+
+            {!cargando && !error && <Paginacion {...pag} />}
 
             {/* MODAL WIZARD */}
             {modalAbierto && (
@@ -514,9 +632,21 @@ function Pasajes() {
                                         </div>
                                         <div className="form-grupo">
                                             <label>Número Documento *</label>
-                                            <input type="text" name="pasajeroDocumento"
-                                                   value={form.pasajeroDocumento} onChange={handleChange}
-                                                   placeholder="12345678" />
+                                            <div className="doc-consulta">
+                                                <input type="text" name="pasajeroDocumento"
+                                                       value={form.pasajeroDocumento} onChange={handleChange}
+                                                       placeholder="12345678" />
+                                                {form.tipoDocumento === "DNI" && (
+                                                    <button type="button" className="btn-consulta"
+                                                            onClick={consultarDniPasajero}
+                                                            disabled={!/^\d{8}$/.test(form.pasajeroDocumento.trim()) || consultandoDni}
+                                                            title="Consultar nombre (RENIEC)">
+                                                        {consultandoDni
+                                                            ? <i className="ti ti-loader-2 spin"></i>
+                                                            : <><i className="ti ti-search"></i></>}
+                                                    </button>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                     <div className="form-grupo">
@@ -631,7 +761,7 @@ function Pasajes() {
                                     <div className="barco-contenedor">
 
                                         {/* VIP */}
-                                        {chunkArray(asientos.filter(a => a.tipo === "VIP"), 4).map((fila, fi) => (
+                                        {asientos.some(a => a.tipo === "VIP") && (
                                             <div className="barco-seccion">
                                                 <p className="barco-seccion-label">⭐ VIP</p>
                                                 <div className="barco-filas">
@@ -664,12 +794,12 @@ function Pasajes() {
                                                     ))}
                                                 </div>
                                             </div>
-                                        ))}
+                                        )}
 
                                         <div className="barco-divisor"></div>
 
                                         {/* NORMAL */}
-                                        {chunkArray(asientos.filter(a => a.tipo === "NORMAL"), 6).map((fila, fi) => (
+                                        {asientos.some(a => a.tipo === "NORMAL") && (
                                             <div className="barco-seccion">
                                                 <p className="barco-seccion-label">💺 Normal</p>
                                                 <div className="barco-filas">
@@ -702,7 +832,7 @@ function Pasajes() {
                                                     ))}
                                                 </div>
                                             </div>
-                                        ))}
+                                        )}
 
                                     </div>
 
@@ -815,6 +945,120 @@ function Pasajes() {
                     </div>
                 </div>
             )}
+
+            {/* MODAL COMPROBANTE ELECTRÓNICO */}
+            {ventaParaComprobante && (
+                <GenerarComprobanteModal
+                    venta={ventaParaComprobante}
+                    onClose={() => setVentaParaComp(null)}
+                    onGenerado={(c) => {
+                        setVentaParaComp(null);
+                        fetchComprobantes();
+                        mostrarToast("success", `Comprobante ${c.serie}-${String(c.numero).padStart(8, "0")} emitido correctamente`);
+                    }}
+                />
+            )}
+
+            {/* MODAL EDITAR PASAJE */}
+            {ventaEdit && formEdit && (
+                <div className="modal-overlay" onClick={() => setVentaEdit(null)}>
+                    <div className="modal modal-wizard" onClick={e => e.stopPropagation()}>
+                        <div className="wizard-header">
+                            <h3>Editar Pasaje — {ventaEdit.serieComprobante}-{ventaEdit.numeroComprobante}</h3>
+                            <button className="modal-cerrar" onClick={() => setVentaEdit(null)}>
+                                <i className="ti ti-x"></i>
+                            </button>
+                        </div>
+                        <div className="modal-body modal-scroll">
+                            <div className="wizard-contenido">
+                                <div className="edit-nota">
+                                    <i className="ti ti-info-circle"></i>
+                                    Puedes corregir los datos del pasajero y del comprobante. El viaje, asiento,
+                                    tramo y precio no se editan (para eso anula y vuelve a vender).
+                                </div>
+
+                                <p className="wizard-titulo">Datos del pasajero</p>
+                                <div className="form-fila">
+                                    <div className="form-grupo">
+                                        <label>Tipo Documento</label>
+                                        <select name="tipoDocumento" value={formEdit.tipoDocumento} onChange={handleEditChange}>
+                                            {TIPO_DOC.map(t => <option key={t}>{t}</option>)}
+                                        </select>
+                                    </div>
+                                    <div className="form-grupo">
+                                        <label>Número Documento *</label>
+                                        <input type="text" name="pasajeroDocumento" value={formEdit.pasajeroDocumento} onChange={handleEditChange} />
+                                    </div>
+                                </div>
+                                <div className="form-grupo">
+                                    <label>Nombre Completo *</label>
+                                    <input type="text" name="pasajeroNombre" value={formEdit.pasajeroNombre} onChange={handleEditChange} />
+                                </div>
+                                <div className="form-fila">
+                                    <div className="form-grupo">
+                                        <label>Edad</label>
+                                        <input type="number" name="edad" value={formEdit.edad} onChange={handleEditChange} min="0" max="120" />
+                                    </div>
+                                    <div className="form-grupo">
+                                        <label>Sexo</label>
+                                        <select name="sexo" value={formEdit.sexo} onChange={handleEditChange}>
+                                            {SEXO.map(s => <option key={s}>{s}</option>)}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div className="form-fila">
+                                    <div className="form-grupo">
+                                        <label>Procedencia</label>
+                                        <input type="text" name="procedencia" value={formEdit.procedencia} onChange={handleEditChange} />
+                                    </div>
+                                    <div className="form-grupo">
+                                        <label>Teléfono</label>
+                                        <input type="text" name="pasajeroTelefono" value={formEdit.pasajeroTelefono} onChange={handleEditChange} />
+                                    </div>
+                                </div>
+                                <div className="form-grupo">
+                                    <label>Correo electrónico</label>
+                                    <input type="email" name="clienteEmail" value={formEdit.clienteEmail} onChange={handleEditChange} />
+                                </div>
+
+                                <p className="wizard-titulo">Datos del comprobante</p>
+                                <div className="form-fila">
+                                    <div className="form-grupo">
+                                        <label>Tipo Doc. Cliente</label>
+                                        <select name="clienteTipoDoc" value={formEdit.clienteTipoDoc} onChange={handleEditChange}>
+                                            {TIPO_DOC.map(t => <option key={t}>{t}</option>)}
+                                        </select>
+                                    </div>
+                                    <div className="form-grupo">
+                                        <label>Documento Cliente</label>
+                                        <input type="text" name="clienteDocumento" value={formEdit.clienteDocumento} onChange={handleEditChange} />
+                                    </div>
+                                </div>
+                                <div className="form-grupo">
+                                    <label>Nombre Cliente</label>
+                                    <input type="text" name="clienteNombre" value={formEdit.clienteNombre} onChange={handleEditChange} />
+                                </div>
+                                <div className="form-grupo">
+                                    <label>Detalle</label>
+                                    <input type="text" name="detalleComprobante" value={formEdit.detalleComprobante} onChange={handleEditChange} />
+                                </div>
+
+                                {errorEdit && <div className="modal-error"><i className="ti ti-alert-circle"></i> {errorEdit}</div>}
+                            </div>
+                        </div>
+                        <div className="modal-footer">
+                            <button className="btn-cancelar" onClick={() => setVentaEdit(null)}>Cancelar</button>
+                            <button className="btn-guardar" onClick={guardarEdicion} disabled={guardandoEdit}>
+                                {guardandoEdit
+                                    ? <><i className="ti ti-loader-2 spin"></i> Guardando...</>
+                                    : <><i className="ti ti-check"></i> Guardar cambios</>}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            <Toasts toasts={toasts} />
         </div>
     );
 }

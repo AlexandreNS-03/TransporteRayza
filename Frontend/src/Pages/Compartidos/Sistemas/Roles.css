@@ -467,3 +467,20 @@
     .form-fila { grid-template-columns: 1fr; }
     .roles-filtros { flex-direction: column; align-items: stretch; }
 }
+/* Selector de sucursal (visible, a diferencia del rol-select que es un overlay) */
+.sucursal-select {
+    position: static;
+    opacity: 1;
+    padding: 6px 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 12px;
+    background: #fff;
+    color: #1e293b;
+    cursor: pointer;
+    outline: none;
+    max-width: 150px;
+}
+
+.sucursal-select:focus { border-color: #2563b0; }
+.sucursal-select:disabled { opacity: 0.5; cursor: not-allowed; }

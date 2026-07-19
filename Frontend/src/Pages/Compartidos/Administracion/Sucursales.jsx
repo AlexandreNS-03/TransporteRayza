@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
 import "./Sucursales.css";
 
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8080";
+
+
 function Sucursales() {
     const usuario = JSON.parse(localStorage.getItem("usuario"));
     const esAdmin = usuario?.rol === "ADMIN";
@@ -34,7 +37,7 @@ function Sucursales() {
         setError(null);
         try {
             const token = localStorage.getItem("token");
-            const res = await fetch("http://localhost:8080/api/sucursales", {
+            const res = await fetch(`${API_BASE}/api/sucursales`, {
                 headers: { "Authorization": `Bearer ${token}` }
             });
             if (!res.ok) throw new Error("Error al obtener sucursales");
@@ -93,8 +96,8 @@ function Sucursales() {
         try {
             const token = localStorage.getItem("token");
             const url = modoEditar
-                ? `http://localhost:8080/api/sucursales/${sucursalSeleccionada.id}`
-                : "http://localhost:8080/api/sucursales";
+                ? `${API_BASE}/api/sucursales/${sucursalSeleccionada.id}`
+                : `${API_BASE}/api/sucursales`;
             const method = modoEditar ? "PUT" : "POST";
 
             const res = await fetch(url, {
@@ -120,8 +123,8 @@ function Sucursales() {
         try {
             const token = localStorage.getItem("token");
             const url = s.activo
-                ? `http://localhost:8080/api/sucursales/${s.id}`
-                : `http://localhost:8080/api/sucursales/${s.id}`;
+                ? `${API_BASE}/api/sucursales/${s.id}`
+                : `${API_BASE}/api/sucursales/${s.id}`;
 
             if (s.activo) {
                 await fetch(url, {

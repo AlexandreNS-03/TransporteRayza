@@ -74,6 +74,7 @@ public class SecurityConfig {
                         /*VENTAS*/
                         .requestMatchers(HttpMethod.GET,   "/api/ventas/**").hasAnyRole("ADMIN", "SUPERVISOR", "EMPLEADO")
                         .requestMatchers(HttpMethod.POST,  "/api/ventas").hasAnyRole("ADMIN", "SUPERVISOR")
+                        .requestMatchers(HttpMethod.PUT,   "/api/ventas/*").hasAnyRole("ADMIN", "SUPERVISOR")
                         .requestMatchers(HttpMethod.PATCH, "/api/ventas/*/anular").hasAnyRole("ADMIN", "SUPERVISOR")
 
                         /*DASHBOARD*/
@@ -81,6 +82,36 @@ public class SecurityConfig {
 
                         /*COMPROBANTE*/
                         .requestMatchers(HttpMethod.POST, "/api/ventas/*/enviar-comprobante").hasAnyRole("ADMIN", "SUPERVISOR", "EMPLEADO")
+
+                        /*CONSULTA DNI / RUC (cualquier usuario autenticado)*/
+                        .requestMatchers(HttpMethod.GET, "/api/consulta/**").hasAnyRole("ADMIN", "SUPERVISOR", "EMPLEADO")
+
+                        /*ENCOMIENDAS*/
+                        .requestMatchers(HttpMethod.GET,   "/api/encomiendas/**").hasAnyRole("ADMIN", "SUPERVISOR", "EMPLEADO")
+                        .requestMatchers(HttpMethod.POST,  "/api/encomiendas").hasAnyRole("ADMIN", "SUPERVISOR")
+                        .requestMatchers(HttpMethod.PATCH, "/api/encomiendas/*/estado").hasAnyRole("ADMIN", "SUPERVISOR")
+
+                        /*AUDITORIA (solo administrador)*/
+                        .requestMatchers("/api/auditoria/**").hasRole("ADMIN")
+
+                        /*SOPORTE*/
+                        .requestMatchers(HttpMethod.POST,  "/api/soporte").hasAnyRole("ADMIN", "SUPERVISOR", "EMPLEADO")
+                        .requestMatchers(HttpMethod.GET,   "/api/soporte").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/api/soporte/*/atendido").hasRole("ADMIN")
+
+                        /*CAJA Y GASTOS*/
+                        .requestMatchers(HttpMethod.GET,    "/api/cajas/**").hasAnyRole("ADMIN", "SUPERVISOR", "EMPLEADO")
+                        .requestMatchers(HttpMethod.POST,   "/api/cajas/**").hasAnyRole("ADMIN", "SUPERVISOR", "EMPLEADO")
+                        .requestMatchers(HttpMethod.PATCH,  "/api/cajas/*/cerrar").hasAnyRole("ADMIN", "SUPERVISOR", "EMPLEADO")
+                        .requestMatchers(HttpMethod.GET,    "/api/gastos").hasAnyRole("ADMIN", "SUPERVISOR", "EMPLEADO")
+                        .requestMatchers(HttpMethod.POST,   "/api/gastos").hasAnyRole("ADMIN", "SUPERVISOR")
+                        .requestMatchers(HttpMethod.DELETE, "/api/gastos/**").hasRole("ADMIN")
+
+                        /*COMPROBANTES ELECTRONICOS (NUBEFACT)*/
+                        .requestMatchers(HttpMethod.GET,   "/api/comprobantes/**").hasAnyRole("ADMIN", "SUPERVISOR", "EMPLEADO")
+                        .requestMatchers(HttpMethod.POST,  "/api/comprobantes").hasAnyRole("ADMIN", "SUPERVISOR")
+                        .requestMatchers(HttpMethod.POST,  "/api/comprobantes/*/nota-credito").hasAnyRole("ADMIN", "SUPERVISOR")
+                        .requestMatchers(HttpMethod.PATCH, "/api/comprobantes/*/anular").hasAnyRole("ADMIN", "SUPERVISOR")
 
                         .anyRequest().authenticated()
                 )
@@ -90,14 +121,18 @@ public class SecurityConfig {
         return http.build();
     }
 
+    @org.springframework.beans.factory.annotation.Value("${app.frontend.url}")
+    private String frontendUrl;
+
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
 
         CorsConfiguration configuration =
                 new CorsConfiguration();
 
+        // Acepta uno o varios orígenes separados por coma (dev + producción)
         configuration.setAllowedOrigins(
-                List.of("http://localhost:5173"));
+                List.of(frontendUrl.split("\\s*,\\s*")));
 
         configuration.setAllowedMethods(
                 List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));

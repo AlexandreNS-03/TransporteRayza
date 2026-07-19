@@ -1,27 +1,10 @@
 import { useState, useEffect } from "react";
 import "./Roles.css";
 
-const API = "http://localhost:8080";
+import { apiFetch } from "../../../Services/api.js";
 
 const ROLES = ["ADMIN", "SUPERVISOR", "EMPLEADO"];
 const ROL_LABEL = { ADMIN: "Administrador", SUPERVISOR: "Supervisor", EMPLEADO: "Empleado" };
-
-function token() { return localStorage.getItem("token"); }
-
-async function apiFetch(url, opts = {}) {
-    const res = await fetch(`${API}${url}`, {
-        ...opts,
-        headers: { "Authorization": `Bearer ${token()}`, "Content-Type": "application/json", ...opts.headers }
-    });
-    if (!res.ok) {
-        const texto = await res.text();
-        try { throw new Error(JSON.parse(texto).error || "Error"); }
-        catch { throw new Error(texto || "Error"); }
-    }
-    // Algunos endpoints (ej. reset password) devuelven un mensaje simple
-    const contentType = res.headers.get("content-type") || "";
-    return contentType.includes("application/json") ? res.json() : null;
-}
 
 function badgeRol(rol) {
     switch (rol) {
@@ -42,6 +25,7 @@ function Roles() {
     const usuarioActual = JSON.parse(localStorage.getItem("usuario"));
 
     const [usuarios, setUsuarios]   = useState([]);
+    const [sucursales, setSucursales] = useState([]);
     const [cargando, setCargando]   = useState(true);
     const [error, setError]         = useState(null);
     const [busqueda, setBusqueda]   = useState("");
@@ -53,7 +37,7 @@ function Roles() {
     const [guardando, setGuardando]     = useState(false);
     const [errorModal, setErrorModal]   = useState(null);
     const [formCrear, setFormCrear] = useState({
-        username: "", password: "", nombre: "", email: "", rol: "EMPLEADO"
+        username: "", password: "", nombre: "", email: "", rol: "EMPLEADO", sucursalId: ""
     });
 
     // Modal resetear contraseña
@@ -66,7 +50,14 @@ function Roles() {
     // Feedback de acciones inline (cambiar rol / activo)
     const [accionandoId, setAccionandoId] = useState(null);
 
-    useEffect(() => { fetchUsuarios(); }, []);
+    useEffect(() => { fetchUsuarios(); fetchSucursales(); }, []);
+
+    const fetchSucursales = async () => {
+        try {
+            const data = await apiFetch("/api/sucursales/activas");
+            setSucursales(data);
+        } catch (err) { console.error(err); }
+    };
 
     const fetchUsuarios = async () => {
         setCargando(true);
@@ -80,7 +71,7 @@ function Roles() {
 
     // ── Crear usuario ──
     const abrirModalCrear = () => {
-        setFormCrear({ username: "", password: "", nombre: "", email: "", rol: "EMPLEADO" });
+        setFormCrear({ username: "", password: "", nombre: "", email: "", rol: "EMPLEADO", sucursalId: "" });
         setErrorModal(null);
         setModalCrear(true);
     };
@@ -121,6 +112,23 @@ function Roles() {
             setUsuarios(prev => prev.map(u => u.id === usuario.id ? actualizado : u));
         } catch (err) {
             alert("Error al cambiar el rol: " + err.message);
+        } finally {
+            setAccionandoId(null);
+        }
+    };
+
+    // ── Cambiar sucursal (inline) ──
+    const cambiarSucursal = async (usuario, nuevaSucursalId) => {
+        if ((usuario.sucursalId || "") === nuevaSucursalId) return;
+        setAccionandoId(usuario.id);
+        try {
+            const actualizado = await apiFetch(`/api/usuarios/${usuario.id}/sucursal`, {
+                method: "PATCH",
+                body: JSON.stringify({ sucursalId: nuevaSucursalId })
+            });
+            setUsuarios(prev => prev.map(u => u.id === usuario.id ? actualizado : u));
+        } catch (err) {
+            alert("Error al cambiar la sucursal: " + err.message);
         } finally {
             setAccionandoId(null);
         }
@@ -245,6 +253,7 @@ function Roles() {
                             <th>Usuario</th>
                             <th>Contacto</th>
                             <th>Rol</th>
+                            <th>Sucursal</th>
                             <th>Estado</th>
                             <th>Último acceso</th>
                             <th>Acciones</th>
@@ -253,7 +262,7 @@ function Roles() {
                         <tbody>
                         {usuariosFiltrados.length === 0 ? (
                             <tr>
-                                <td colSpan={6} className="tabla-vacia">
+                                <td colSpan={7} className="tabla-vacia">
                                     <i className="ti ti-users"></i>
                                     <span>No se encontraron usuarios</span>
                                 </td>
@@ -286,6 +295,20 @@ function Roles() {
                                                 {ROLES.map(r => <option key={r} value={r}>{ROL_LABEL[r]}</option>)}
                                             </select>
                                         </div>
+                                    </td>
+                                    <td>
+                                        <select
+                                            className="sucursal-select"
+                                            value={u.sucursalId || ""}
+                                            disabled={accionandoId === u.id}
+                                            onChange={e => cambiarSucursal(u, e.target.value)}
+                                            title="Asignar sucursal (el usuario solo venderá viajes de su sucursal)"
+                                        >
+                                            <option value="">Todas</option>
+                                            {sucursales.map(s => (
+                                                <option key={s.id} value={s.id}>{s.nombre}</option>
+                                            ))}
+                                        </select>
                                     </td>
                                     <td>
                                         <button
@@ -357,11 +380,22 @@ function Roles() {
                                        onChange={handleChangeCrear} placeholder="jperez@rayza.com" />
                             </div>
 
-                            <div className="form-grupo">
-                                <label>Rol *</label>
-                                <select name="rol" value={formCrear.rol} onChange={handleChangeCrear}>
-                                    {ROLES.map(r => <option key={r} value={r}>{ROL_LABEL[r]}</option>)}
-                                </select>
+                            <div className="form-fila">
+                                <div className="form-grupo">
+                                    <label>Rol *</label>
+                                    <select name="rol" value={formCrear.rol} onChange={handleChangeCrear}>
+                                        {ROLES.map(r => <option key={r} value={r}>{ROL_LABEL[r]}</option>)}
+                                    </select>
+                                </div>
+                                <div className="form-grupo">
+                                    <label>Sucursal</label>
+                                    <select name="sucursalId" value={formCrear.sucursalId} onChange={handleChangeCrear}>
+                                        <option value="">Todas</option>
+                                        {sucursales.map(s => (
+                                            <option key={s.id} value={s.id}>{s.nombre}</option>
+                                        ))}
+                                    </select>
+                                </div>
                             </div>
 
                             {errorModal && (

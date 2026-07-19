@@ -14,6 +14,8 @@ import java.util.Optional;
 @Repository
 public interface VentaRepository extends JpaRepository<Venta, String> {
     List<Venta> findAllByOrderByFechaVentaDesc();
+
+    Optional<Venta> findTopByOrderByNumeroComprobanteDesc();
     List<Venta> findByViajeId(String viajeId);
     Optional<Venta> findByCodigoQr(String codigoQr);
     List<Venta> findByPasajeroDocumento(String documento);

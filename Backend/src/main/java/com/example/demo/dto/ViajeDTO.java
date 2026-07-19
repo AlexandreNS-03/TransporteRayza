@@ -7,6 +7,7 @@ public class ViajeDTO {
 
     private String id;
     private String codigoViaje;
+    private String sucursalId;
     private String sucursalNombre;
     private String rutaNombre;
     private String origen;
@@ -39,6 +40,9 @@ public class ViajeDTO {
 
     public String getCodigoViaje() { return codigoViaje; }
     public void setCodigoViaje(String codigoViaje) { this.codigoViaje = codigoViaje; }
+
+    public String getSucursalId() { return sucursalId; }
+    public void setSucursalId(String sucursalId) { this.sucursalId = sucursalId; }
 
     public String getSucursalNombre() { return sucursalNombre; }
     public void setSucursalNombre(String s) { this.sucursalNombre = s; }

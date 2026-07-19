@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
 import "./Embarcaciones.css";
 
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8080";
+
+
 function Embarcaciones() {
     const usuario = JSON.parse(localStorage.getItem("usuario"));
     const esAdmin = usuario?.rol === "ADMIN";
@@ -33,7 +36,7 @@ function Embarcaciones() {
         setError(null);
         try {
             const token = localStorage.getItem("token");
-            const res = await fetch("http://localhost:8080/api/embarcaciones", {
+            const res = await fetch(`${API_BASE}/api/embarcaciones`, {
                 headers: { "Authorization": `Bearer ${token}` }
             });
             if (!res.ok) throw new Error("Error al obtener embarcaciones");
@@ -50,7 +53,7 @@ function Embarcaciones() {
         setCargandoDetalle(true);
         try {
             const token = localStorage.getItem("token");
-            const res = await fetch(`http://localhost:8080/api/embarcaciones/${emb.id}`, {
+            const res = await fetch(`${API_BASE}/api/embarcaciones/${emb.id}`, {
                 headers: { "Authorization": `Bearer ${token}` }
             });
             setEmbDetalle(await res.json());
@@ -100,8 +103,8 @@ function Embarcaciones() {
         try {
             const token = localStorage.getItem("token");
             const url = modoEditar
-                ? `http://localhost:8080/api/embarcaciones/${embSeleccionada.id}`
-                : "http://localhost:8080/api/embarcaciones";
+                ? `${API_BASE}/api/embarcaciones/${embSeleccionada.id}`
+                : `${API_BASE}/api/embarcaciones`;
             const method = modoEditar ? "PUT" : "POST";
 
             const res = await fetch(url, {
@@ -131,12 +134,12 @@ function Embarcaciones() {
         try {
             const token = localStorage.getItem("token");
             if (emb.activo) {
-                await fetch(`http://localhost:8080/api/embarcaciones/${emb.id}`, {
+                await fetch(`${API_BASE}/api/embarcaciones/${emb.id}`, {
                     method: "DELETE",
                     headers: { "Authorization": `Bearer ${token}` }
                 });
             } else {
-                await fetch(`http://localhost:8080/api/embarcaciones/${emb.id}`, {
+                await fetch(`${API_BASE}/api/embarcaciones/${emb.id}`, {
                     method: "PUT",
                     headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
                     body: JSON.stringify({ ...emb, activo: true })

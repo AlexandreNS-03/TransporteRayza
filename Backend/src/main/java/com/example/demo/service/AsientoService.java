@@ -71,6 +71,16 @@ public class AsientoService {
                 .findByViajeIdAndNumero(viajeId, numeroAsiento)
                 .orElseThrow(() -> new RuntimeException("Asiento no encontrado"));
 
+        // Verificar que ningún tramo solicitado esté ya ocupado (protege contra ventas simultáneas;
+        // el índice único uk_asiento_tramo en BD es la última barrera si dos ventas llegan a la vez)
+        List<String> tramosSolicitados = new ArrayList<>();
+        for (int i = ordenOrigen; i < ordenDestino; i++) {
+            tramosSolicitados.add(String.valueOf(i));
+        }
+        if (tramoOcupadoRepo.existsByViajeAsientoEstadoIdAndTramoIn(asiento.getId(), tramosSolicitados)) {
+            throw new RuntimeException("El asiento #" + numeroAsiento + " ya fue vendido para ese tramo");
+        }
+
         asiento.setEstado(ViajeAsientoEstado.EstadoAsiento.VENDIDO);
         asiento.setVentaId(ventaId);
         asiento.setPasajeroNombre(pasajeroNombre);
@@ -80,14 +90,25 @@ public class AsientoService {
 
         // Registrar los tramos ocupados
         List<ViajeAsientoTramoOcupado> tramos = new ArrayList<>();
-        for (int i = ordenOrigen; i < ordenDestino; i++) {
+        for (String tramo : tramosSolicitados) {
             ViajeAsientoTramoOcupado t = new ViajeAsientoTramoOcupado();
             t.setId(UUID.randomUUID().toString());
             t.setViajeAsientoEstado(asiento);
-            t.setTramo(String.valueOf(i));
+            t.setTramo(tramo);
             tramos.add(t);
         }
         tramoOcupadoRepo.saveAll(tramos);
+    }
+
+    // Sincronizar datos del pasajero en el asiento al editar una venta
+    @Transactional
+    public void actualizarDatosPasajero(String ventaId, String nombre, String doc, String tel) {
+        asientoEstadoRepo.findByVentaId(ventaId).ifPresent(asiento -> {
+            asiento.setPasajeroNombre(nombre);
+            asiento.setPasajeroDoc(doc);
+            asiento.setPasajeroTel(tel);
+            asientoEstadoRepo.save(asiento);
+        });
     }
 
     // Liberar asiento al anular una venta

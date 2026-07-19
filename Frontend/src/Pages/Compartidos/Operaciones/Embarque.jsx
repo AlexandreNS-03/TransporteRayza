@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
 import "./Embarque.css";
 
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8080";
+
+
 function Embarque() {
     const usuario      = JSON.parse(localStorage.getItem("usuario"));
     const esAdmin      = usuario?.rol === "ADMIN";
@@ -39,7 +42,7 @@ function Embarque() {
         setCargandoViajes(true);
         try {
             const token = localStorage.getItem("token");
-            const res = await fetch("http://localhost:8080/api/viajes", {
+            const res = await fetch(`${API_BASE}/api/viajes`, {
                 headers: { "Authorization": `Bearer ${token}` }
             });
             const data = await res.json();
@@ -58,7 +61,7 @@ function Embarque() {
         setError(null);
         try {
             const token = localStorage.getItem("token");
-            const res = await fetch(`http://localhost:8080/api/ventas/viaje/${viajeId}`, {
+            const res = await fetch(`${API_BASE}/api/ventas/viaje/${viajeId}`, {
                 headers: { "Authorization": `Bearer ${token}` }
             });
             if (!res.ok) throw new Error("Error al obtener pasajeros");
@@ -75,7 +78,7 @@ function Embarque() {
         setProcesando(ventaId);
         try {
             const token = localStorage.getItem("token");
-            const res = await fetch(`http://localhost:8080/api/ventas/${ventaId}/embarcar`, {
+            const res = await fetch(`${API_BASE}/api/ventas/${ventaId}/embarcar`, {
                 method: "PATCH",
                 headers: { "Authorization": `Bearer ${token}` }
             });
@@ -116,7 +119,7 @@ function Embarque() {
         try {
             const token = localStorage.getItem("token");
             const res = await fetch(
-                `http://localhost:8080/api/ventas/documento/${busqueda.trim()}`,
+                `${API_BASE}/api/ventas/documento/${busqueda.trim()}`,
                 { headers: { "Authorization": `Bearer ${token}` } }
             );
             if (!res.ok) throw new Error("No se encontró el pasajero");
@@ -136,7 +139,7 @@ function Embarque() {
         setCargandoTurno(true);
         try {
             const token = localStorage.getItem("token");
-            const res = await fetch("http://localhost:8080/api/ventas/mis-embarques-hoy", {
+            const res = await fetch(`${API_BASE}/api/ventas/mis-embarques-hoy`, {
                 headers: { "Authorization": `Bearer ${token}` }
             });
             if (!res.ok) throw new Error("No se pudo cargar tu turno");

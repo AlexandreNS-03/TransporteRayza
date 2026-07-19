@@ -1,18 +1,7 @@
 import { useState, useEffect } from "react";
 import "./Paradas.css";
 
-const API = "http://localhost:8080";
-
-function token() { return localStorage.getItem("token"); }
-
-async function apiFetch(url, opts = {}) {
-    const res = await fetch(`${API}${url}`, {
-        ...opts,
-        headers: { "Authorization": `Bearer ${token()}`, "Content-Type": "application/json", ...opts.headers }
-    });
-    if (!res.ok) throw new Error(await res.text());
-    return res.json();
-}
+import { apiFetch } from "../../../Services/api.js";
 
 function Paradas() {
     const usuario  = JSON.parse(localStorage.getItem("usuario"));

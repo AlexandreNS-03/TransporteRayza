@@ -102,6 +102,7 @@ public class ViajeService {
         ViajeDTO dto = new ViajeDTO();
         dto.setId(v.getId());
         dto.setCodigoViaje(v.getCodigoViaje());
+        dto.setSucursalId(v.getSucursalId());
         dto.setSucursalNombre(v.getSucursalNombre());
         dto.setRutaNombre(v.getRutaNombre());
         dto.setOrigen(v.getOrigen());
