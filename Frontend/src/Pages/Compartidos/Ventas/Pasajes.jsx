@@ -434,42 +434,42 @@ function Pasajes() {
                         ) : (
                             pag.items.map(v => (
                                 <tr key={v.id} className={v.estado === "ANULADO" ? "fila-anulada" : ""}>
-                                    <td className="codigo">
+                                    <td className="codigo" data-label="Comprobante">
                                         {v.serieComprobante}-{v.numeroComprobante}
                                         <br />
                                         <span style={{ fontSize: "10px", color: "#9ca3af" }}>
                                                 {COMP_LABEL[v.tipoComprobante]}
                                             </span>
                                     </td>
-                                    <td>
+                                    <td data-label="Pasajero">
                                         <div className="pasajero-info">
                                             <strong>{v.pasajeroNombre}</strong>
                                             <span>{v.edad} años — {v.sexo}</span>
                                         </div>
                                     </td>
-                                    <td>
+                                    <td data-label="Documento">
                                         <div className="pasajero-info">
                                             <span>{v.tipoDocumento}</span>
                                             <strong>{v.pasajeroDocumento}</strong>
                                         </div>
                                     </td>
-                                    <td className="codigo">{v.viajeCodigo}</td>
-                                    <td>
+                                    <td className="codigo" data-label="Viaje">{v.viajeCodigo}</td>
+                                    <td data-label="Tramo">
                                         <div className="tramo-info">
                                             <span>{v.paradaOrigen}</span>
                                             <i className="ti ti-arrow-right"></i>
                                             <span>{v.paradaDestino}</span>
                                         </div>
                                     </td>
-                                    <td>
+                                    <td data-label="Asiento">
                                             <span className={`asiento-tipo ${v.asientoTipo?.toLowerCase()}`}>
                                                 {v.asientoTipo}
                                             </span>
                                         <strong> #{v.asientoNumero}</strong>
                                     </td>
-                                    <td><strong>S/ {v.precio}</strong></td>
-                                    <td>{v.fechaVenta}</td>
-                                    <td>
+                                    <td data-label="Precio"><strong>S/ {v.precio}</strong></td>
+                                    <td data-label="Fecha">{v.fechaVenta}</td>
+                                    <td data-label="Estado">
                                             <span className={badgeEstado(v.estado)}>
                                                 {ESTADO_LABEL[v.estado]}
                                             </span>

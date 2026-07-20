@@ -211,33 +211,33 @@ function Encomiendas() {
                         ) : (
                             pag.items.map(e => (
                                 <tr key={e.id} className={e.estado === "DEVUELTO" ? "fila-anulada" : ""}>
-                                    <td>
+                                    <td data-label="Código">
                                         <div className="pasajero-info">
                                             <strong className="codigo">{e.codigoEncomienda}</strong>
                                             <span>{e.fechaRegistro}</span>
                                         </div>
                                     </td>
-                                    <td>
+                                    <td data-label="Remitente">
                                         <div className="pasajero-info">
                                             <strong>{e.remitenteNombre}</strong>
                                             <span>{e.remitenteDocumento || "—"}</span>
                                         </div>
                                     </td>
-                                    <td>
+                                    <td data-label="Destinatario">
                                         <div className="pasajero-info">
                                             <strong>{e.destinatarioNombre}</strong>
                                             <span>{e.destinatarioDocumento || "—"}</span>
                                         </div>
                                     </td>
-                                    <td>
+                                    <td data-label="Paquete">
                                         <div className="pasajero-info">
                                             <span>{e.descripcion}</span>
                                             {e.peso && <span>{e.peso} kg</span>}
                                         </div>
                                     </td>
-                                    <td>{e.sucursalDestinoNombre || "—"}</td>
-                                    <td><strong>S/ {Number(e.precio).toFixed(2)}</strong></td>
-                                    <td>
+                                    <td data-label="Destino">{e.sucursalDestinoNombre || "—"}</td>
+                                    <td data-label="Precio"><strong>S/ {Number(e.precio).toFixed(2)}</strong></td>
+                                    <td data-label="Estado">
                                         <span className={`badge ${ESTADO_BADGE[e.estado]}`}>{ESTADO_LABEL[e.estado]}</span>
                                     </td>
                                     {puedeOperar && (

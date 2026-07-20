@@ -1,0 +1,56 @@
+/* ============================================================
+   TEMA CENTRAL — Transportes Rayza
+   Fuente única de colores, espaciados, radios y sombras.
+   Úsalos en el CSS como: color: var(--color-primario);
+   ============================================================ */
+:root {
+    /* Marca / primarios */
+    --color-primario:      #1a4db5;
+    --color-primario-osc:  #1440a0;
+    --color-navy:          #0f172a;
+    --color-azul-bg:       #eff6ff;
+    --color-azul-borde:    #bfdbfe;
+
+    /* Estados */
+    --color-exito:         #15803d;
+    --color-exito-bg:      #f0fdf4;
+    --color-advertencia:   #a16207;
+    --color-advertencia-bg:#fefce8;
+    --color-peligro:       #b91c1c;
+    --color-peligro-bg:    #fef2f2;
+    --color-info:          #0891b2;
+    --color-info-bg:       #ecfeff;
+    --color-morado:        #7c3aed;
+    --color-morado-bg:     #faf5ff;
+
+    /* Neutros / texto */
+    --color-texto:         #1e293b;
+    --color-texto-fuerte:  #0f172a;
+    --color-texto-suave:   #6b7280;
+    --color-borde:         #e5e7eb;
+    --color-borde-input:   #d1d5db;
+    --color-fondo:         #f8fafc;
+    --color-blanco:        #ffffff;
+
+    /* Espaciado (escala) */
+    --sp-1: 4px;
+    --sp-2: 8px;
+    --sp-3: 12px;
+    --sp-4: 16px;
+    --sp-5: 20px;
+    --sp-6: 24px;
+
+    /* Radios */
+    --radio-sm: 6px;
+    --radio:    8px;
+    --radio-md: 10px;
+    --radio-lg: 14px;
+
+    /* Sombras */
+    --sombra-sm: 0 1px 3px rgba(15, 23, 42, 0.08);
+    --sombra:    0 4px 14px rgba(15, 23, 42, 0.08);
+    --sombra-lg: 0 12px 40px rgba(15, 23, 42, 0.12);
+
+    /* Tipografía */
+    --fuente: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
