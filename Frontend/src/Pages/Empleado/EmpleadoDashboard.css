@@ -222,3 +222,61 @@
     overflow-y: auto;
     padding: 24px;
 }
+/* ══════════ RESPONSIVE — móvil y tablet ══════════ */
+
+/* Botón hamburguesa: oculto en escritorio */
+.menu-toggle {
+    display: none;
+    background: none;
+    border: none;
+    color: #1e293b;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 4px 8px;
+    margin-right: 6px;
+    align-items: center;
+}
+
+/* Fondo oscuro detrás del menú abierto (móvil) */
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.5);
+    z-index: 45;
+}
+
+@media (max-width: 860px) {
+    /* El sidebar se convierte en cajón deslizante */
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        z-index: 50;
+        transform: translateX(-100%);
+        transition: transform 0.25s ease;
+        box-shadow: 4px 0 24px rgba(0, 0, 0, 0.25);
+    }
+    .sidebar.abierta { transform: translateX(0); }
+
+    .sidebar-overlay { display: block; }
+
+    /* El contenido ocupa todo el ancho */
+    .main-area { width: 100%; margin-left: 0; }
+
+    /* Mostrar la hamburguesa en la barra superior */
+    .menu-toggle { display: inline-flex; }
+
+    .navbar { padding: 0 14px; }
+    .navbar-title { font-size: 14px; }
+
+    /* Menos padding en el contenido para aprovechar la pantalla */
+    .content { padding: 16px 12px; }
+}
+
+/* Pantallas muy pequeñas: ocultar el texto del usuario, dejar solo el avatar */
+@media (max-width: 480px) {
+    .navbar-user .user-info { display: none; }
+    .navbar-title { font-size: 13px; }
+}

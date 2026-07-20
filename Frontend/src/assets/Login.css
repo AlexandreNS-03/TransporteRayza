@@ -1,165 +1,244 @@
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body, #root { width: 100%; height: 100%; }
+
+.login-container {
+    display: flex;
+    width: 100%;
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
-html,
-body,
-#root{
-    width:100%;
-    height:100%;
-    margin:0;
-    padding:0;
-}
-
-.login-container{
-    display:flex;
-    width:100%;
-    height:100vh;
-}
-.logo-container{
-    position:absolute;
-    top:25px;
-    left:25px;
-    z-index:10;
-}
-
-.logo{
-    width:100px;
-    height:auto;
-    display:block;
-}
-
-/*panel izquierdo*/
-.left-panel{
-    width:50%;
-    height:100vh;
-    position:relative;
+/* ── PANEL IZQUIERDO (marca) ── */
+.left-panel {
+    width: 52%;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
     background:
-            linear-gradient(
-                    rgba(0,85,255,.85),
-                    rgba(0,85,255,.85)
-            ),
-            url('./IMGIN.png')
-            center/cover no-repeat;
-    overflow:hidden;
+        linear-gradient(135deg, rgba(15,23,42,0.92), rgba(26,77,181,0.88)),
+        url('./IMGIN.png') center/cover no-repeat;
+    color: #fff;
+    overflow: hidden;
 }
 
-.overlay{
-    width:100%;
-    height:100%;
-    display:flex;
-    flex-direction:column;
-    padding-left:55px;
-    padding-top:140px;
-    color:white;
+.left-content {
+    max-width: 440px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
 }
 
-
-.brand-section{
-    margin-bottom:25px;
+.login-logo {
+    width: 130px;
+    height: 130px;
+    object-fit: contain;
+    border-radius: 50%;
+    background: #fff;
+    padding: 6px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+    margin-bottom: 24px;
 }
 
-.brand-section h1{
-    color:#23b7c8;
-    font-size:40px;
-    font-weight:700;
-    margin-left:-320px;
+.left-content h1 {
+    font-size: 34px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    line-height: 1.1;
 }
 
-.brand-line{
-    width:120px;
-    height:4px;
-    background:#1ec8d3;
-    border-radius:10px;
-    margin-top:8px;
+.brand-line {
+    width: 90px;
+    height: 4px;
+    background: #38bdf8;
+    border-radius: 10px;
+    margin: 14px 0 22px;
 }
 
-.overlay h2{
-    font-size:32px;
-    font-weight:700;
-    line-height:1.3;
-    max-width:350px;
+.left-content h2 {
+    font-size: 24px;
+    font-weight: 600;
+    line-height: 1.35;
+    margin-bottom: 14px;
 }
 
-.overlay p{
-    max-width:450px;
-    font-size:16px;
-    line-height:1.8;
-    color:white;
+.left-content p {
+    font-size: 15px;
+    line-height: 1.7;
+    color: #cbd5e1;
 }
 
-/* PANEL DERECHO */
+.left-footer {
+    margin-top: 32px;
+    font-size: 12.5px;
+    color: #94a3b8;
+}
+
+/* ── PANEL DERECHO (formulario) ── */
 .right-panel {
-    width: 50%;
-    background: #f4f5f8;
+    width: 48%;
+    background: #f1f5f9;
     display: flex;
     justify-content: center;
     align-items: center;
+    padding: 32px;
 }
 
 .login-card {
-    width: 420px;
-    background: white;
-    padding: 40px;
-    border-radius: 15px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    width: 100%;
+    max-width: 400px;
+    background: #fff;
+    padding: 40px 36px;
+    border-radius: 18px;
+    box-shadow: 0 12px 40px rgba(15,23,42,0.10);
 }
 
-.login-card h2 {
-    font-size: 2rem;
-    margin-bottom: 10px;
-    color: #222;
+.login-logo-mobile {
+    display: none;
+    width: 84px;
+    height: 84px;
+    object-fit: contain;
+    border-radius: 50%;
+    background: #fff;
+    margin: 0 auto 18px;
+    box-shadow: 0 6px 20px rgba(15,23,42,0.12);
+}
+
+.login-card > h2 {
+    font-size: 26px;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 6px;
 }
 
 .subtitle {
-    color: #777;
-    margin-bottom: 25px;
+    color: #64748b;
+    margin-bottom: 26px;
     font-size: 14px;
 }
 
 .login-card label {
     display: block;
-    margin-bottom: 8px;
-    margin-top: 15px;
-    color: #444;
-    font-size: 14px;
+    margin: 16px 0 7px;
+    color: #334155;
+    font-size: 13px;
+    font-weight: 600;
 }
 
-.login-card input[type="text"],
-.login-card input[type="password"] {
+/* ── INPUTS (con el FIX del color de texto) ── */
+.input-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    background: #f8fafc;
+    padding: 0 14px;
+    transition: border-color 0.15s, background 0.15s;
+    color-scheme: light;
+}
+
+.input-wrap:focus-within {
+    border-color: #1a4db5;
+    background: #fff;
+}
+
+.input-wrap > i {
+    font-size: 18px;
+    color: #94a3b8;
+    flex-shrink: 0;
+}
+
+.input-wrap input {
+    flex: 1;
     width: 100%;
-    padding: 14px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    background: #f7f8fb;
-    font-size: 14px;
+    border: none;
+    outline: none;
+    background: transparent;
+    padding: 14px 0;
+    font-size: 15px;
+    color: #0f172a;              /* ← FIX: texto siempre oscuro y visible */
+    color-scheme: light;
 }
 
-.remember {
+.input-wrap input::placeholder { color: #94a3b8; }
+
+.toggle-pass {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #94a3b8;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    padding: 4px;
+}
+.toggle-pass:hover { color: #1a4db5; }
+
+.login-error {
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-top: 20px;
-    margin-bottom: 25px;
-    color: #666;
-    font-size: 14px;
-}
-
-.login-card button {
-    width: 100%;
-    padding: 15px;
-    border: none;
+    margin-top: 16px;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #b91c1c;
     border-radius: 10px;
-    background: #0c2d83;
-    color: white;
-    font-size: 15px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: 0.3s;
+    padding: 10px 12px;
+    font-size: 13px;
 }
 
-.login-card button:hover {
-    background: #092060;
+.btn-login {
+    width: 100%;
+    margin-top: 24px;
+    padding: 14px;
+    border: none;
+    border-radius: 11px;
+    background: #1a4db5;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: background 0.2s;
+}
+.btn-login:hover:not(:disabled) { background: #1440a0; }
+.btn-login:disabled { background: #93c5fd; cursor: not-allowed; }
+
+.spin { animation: login-spin 1s linear infinite; }
+@keyframes login-spin { to { transform: rotate(360deg); } }
+
+.login-ayuda {
+    margin-top: 22px;
+    text-align: center;
+    font-size: 12.5px;
+    color: #94a3b8;
+}
+
+/* ── RESPONSIVE (celulares y tablets) ── */
+@media (max-width: 860px) {
+    .login-container { flex-direction: column; }
+    .left-panel { display: none; }               /* ocultamos el panel de marca en móvil */
+    .right-panel {
+        width: 100%;
+        min-height: 100vh;
+        padding: 20px;
+        background:
+            linear-gradient(135deg, rgba(15,23,42,0.94), rgba(26,77,181,0.90)),
+            url('./IMGIN.png') center/cover no-repeat;
+    }
+    .login-card { padding: 32px 24px; }
+    .login-logo-mobile { display: block; }        /* mostramos el logo dentro de la tarjeta */
+    .login-card > h2 { text-align: center; }
+    .subtitle { text-align: center; }
+}
+
+@media (max-width: 400px) {
+    .login-card { padding: 26px 18px; border-radius: 14px; }
+    .login-card > h2 { font-size: 23px; }
 }

@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 
 function SupervisorDashboard() {
     const navigate = useNavigate();
+    const [menuAbierto, setMenuAbierto] = useState(false);
     const usuario = JSON.parse(localStorage.getItem("usuario"));
 
     const cerrarSesion = () => {
@@ -21,8 +23,10 @@ function SupervisorDashboard() {
     return (
         <div className="dashboard-layout">
 
+            {menuAbierto && <div className="sidebar-overlay" onClick={() => setMenuAbierto(false)}></div>}
+
             {/* SIDEBAR */}
-            <aside className="sidebar">
+            <aside className={"sidebar" + (menuAbierto ? " abierta" : "")}>
                 <div className="sb-header">
                     <div className="sb-logo">
                         <div className="sb-gear">
@@ -36,7 +40,7 @@ function SupervisorDashboard() {
                     </div>
                 </div>
 
-                <nav className="sb-menu">
+                <nav className="sb-menu" onClick={() => setMenuAbierto(false)}>
                     <NavLink to="/supervisor" end className={item}>
                         <i className="ti ti-home"></i> Dashboard
                     </NavLink>
@@ -78,6 +82,7 @@ function SupervisorDashboard() {
             {/* MAIN */}
             <div className="main-area">
                 <header className="navbar">
+                    <button className="menu-toggle" onClick={() => setMenuAbierto(true)} aria-label="Abrir menú"><i className="ti ti-menu-2"></i></button>
                     <span className="navbar-title">SISTEMA ADMINISTRATIVO</span>
                     <div className="navbar-user">
                         <div className="user-info">

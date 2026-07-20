@@ -4,6 +4,7 @@ import "./EmpleadoDashboard.css";
 
 function EmpleadoDashboard() {
     const navigate = useNavigate();
+    const [menuAbierto, setMenuAbierto] = useState(false);
     const usuario = JSON.parse(localStorage.getItem("usuario"));
     const rol = usuario?.rol;
     const esAdmin      = rol === "ADMIN";
@@ -24,8 +25,10 @@ function EmpleadoDashboard() {
     return (
         <div className="dashboard-layout">
 
+            {menuAbierto && <div className="sidebar-overlay" onClick={() => setMenuAbierto(false)}></div>}
+
             {/* SIDEBAR */}
-            <aside className="sidebar">
+            <aside className={"sidebar" + (menuAbierto ? " abierta" : "")}>
                 <div className="sb-header">
                     <div className="sb-logo">
                         <div className="sb-gear">
@@ -39,7 +42,7 @@ function EmpleadoDashboard() {
                     </div>
                 </div>
 
-                <nav className="sb-menu">
+                <nav className="sb-menu" onClick={() => setMenuAbierto(false)}>
                     <NavLink to="/empleado" end className={({ isActive }) => isActive ? "sb-item active" : "sb-item"}>
                         <i className="ti ti-home"></i> Dashboard
                     </NavLink>
@@ -122,6 +125,7 @@ function EmpleadoDashboard() {
 
                 {/* NAVBAR */}
                 <header className="navbar">
+                    <button className="menu-toggle" onClick={() => setMenuAbierto(true)} aria-label="Abrir menú"><i className="ti ti-menu-2"></i></button>
                     <span className="navbar-title">SISTEMA ADMINISTRATIVO</span>
                     <div className="navbar-user">
                         <div className="user-info">
