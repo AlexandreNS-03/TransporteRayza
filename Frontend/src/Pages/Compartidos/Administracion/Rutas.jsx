@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import "./Rutas.css";
 import {
     descargarPlantillaParadas, leerParadas,
-    descargarPlantillaTarifas, leerTarifas
+    descargarPlantillaTarifas, leerTarifas,
+    leerArchivo
 } from "../../../Utils/rutasCsv";
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8080";
@@ -200,12 +201,11 @@ function Rutas() {
     // ---- Carga por Excel. Todo se arma en el navegador y se guarda recién al
     // presionar Guardar, así el mismo flujo sirve para crear y para editar.
 
-    const importarParadas = (archivo, input) => {
+    const importarParadas = async (archivo, input) => {
         if (!archivo) return;
         setMensajeImport(null);
-        const lector = new FileReader();
-        lector.onload = () => {
-            const { paradas: leidas, errores } = leerParadas(lector.result);
+        try {
+            const { paradas: leidas, errores } = leerParadas(await leerArchivo(archivo));
             if (errores.length) {
                 setMensajeImport({ error: true, texto: errores.join(" · ") });
             } else {
@@ -217,17 +217,19 @@ function Rutas() {
                            `Ahora descarga la plantilla de precios.`
                 });
             }
+        } catch (e) {
+            setMensajeImport({ error: true, texto: e.message });
+        } finally {
             if (input) input.value = "";
-        };
-        lector.readAsText(archivo, "UTF-8");
+        }
     };
 
-    const importarTarifas = (archivo, input) => {
+    const importarTarifas = async (archivo, input) => {
         if (!archivo) return;
         setMensajeTarifas(null);
-        const lector = new FileReader();
-        lector.onload = () => {
-            const { tarifas: leidas, ignoradas, errores } = leerTarifas(lector.result, paradasValidas);
+        try {
+            const { tarifas: leidas, ignoradas, errores } =
+                leerTarifas(await leerArchivo(archivo), paradasValidas);
             if (errores.length) {
                 setMensajeTarifas({ error: true, texto: errores.slice(0, 3).join(" · ") });
             } else {
@@ -238,9 +240,11 @@ function Rutas() {
                            (ignoradas ? ` (${ignoradas} sin precio usarán la tarifa base)` : "")
                 });
             }
+        } catch (e) {
+            setMensajeTarifas({ error: true, texto: e.message });
+        } finally {
             if (input) input.value = "";
-        };
-        lector.readAsText(archivo, "UTF-8");
+        }
     };
 
     const guardar = async () => {
