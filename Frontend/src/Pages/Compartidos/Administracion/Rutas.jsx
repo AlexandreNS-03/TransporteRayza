@@ -1,5 +1,9 @@
 import { useState, useEffect } from "react";
 import "./Rutas.css";
+import {
+    descargarPlantillaParadas, leerParadas,
+    descargarPlantillaTarifas, leerTarifas
+} from "../../../Utils/rutasCsv";
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8080";
 
@@ -22,8 +26,8 @@ function Rutas() {
     const [modalAbierto, setModalAbierto]     = useState(false);
     const [modoEditar, setModoEditar]         = useState(false);
     const [rutaSeleccionada, setRutaSeleccionada] = useState(null);
-    const [importando, setImportando]     = useState(false);
     const [mensajeImport, setMensajeImport] = useState(null);
+    const [mensajeTarifas, setMensajeTarifas] = useState(null);
     const [guardando, setGuardando]           = useState(false);
     const [errorModal, setErrorModal]         = useState(null);
     const [sucursales, setSucursales]         = useState([]);
@@ -185,74 +189,78 @@ function Rutas() {
         setTarifas(prev => prev.filter((_, idx) => idx !== i));
     };
 
-    // Descarga la plantilla con TODOS los pares origen→destino de esta ruta
-    const descargarPlantilla = async () => {
+    // Paradas realmente cargadas (con nombre), renumeradas por su posición
+    const paradasValidas = paradas
+        .filter(p => (p.nombre || "").trim())
+        .map((p, i) => ({ ...p, orden: i + 1 }));
+
+    // Con n paradas hay n·(n-1)/2 tramos posibles: 7 paradas = 21
+    const totalCombinaciones = (paradasValidas.length * (paradasValidas.length - 1)) / 2;
+
+    // ---- Carga por Excel. Todo se arma en el navegador y se guarda recién al
+    // presionar Guardar, así el mismo flujo sirve para crear y para editar.
+
+    const importarParadas = (archivo, input) => {
+        if (!archivo) return;
         setMensajeImport(null);
-        try {
-            const token = localStorage.getItem("token");
-            const res = await fetch(
-                `${API_BASE}/api/rutas/${rutaSeleccionada.id}/tarifas/plantilla`,
-                { headers: { "Authorization": `Bearer ${token}` } }
-            );
-            if (!res.ok) {
-                const err = await res.json().catch(() => ({}));
-                throw new Error(err.message || "No se pudo generar la plantilla");
+        const lector = new FileReader();
+        lector.onload = () => {
+            const { paradas: leidas, errores } = leerParadas(lector.result);
+            if (errores.length) {
+                setMensajeImport({ error: true, texto: errores.join(" · ") });
+            } else {
+                setParadas(leidas);
+                setTarifas([]);   // los precios viejos ya no corresponden a estas paradas
+                setMensajeImport({
+                    error: false,
+                    texto: `${leidas.length} paradas cargadas: ${leidas[0].nombre} → ${leidas[leidas.length - 1].nombre}. ` +
+                           `Ahora descarga la plantilla de precios.`
+                });
             }
-            const blob = await res.blob();
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = `tarifas-${rutaSeleccionada.id}.csv`;
-            a.click();
-            URL.revokeObjectURL(url);
-        } catch (e) {
-            setMensajeImport({ error: true, texto: e.message });
-        }
+            if (input) input.value = "";
+        };
+        lector.readAsText(archivo, "UTF-8");
     };
 
-    const importarTarifas = async (archivo, input) => {
+    const importarTarifas = (archivo, input) => {
         if (!archivo) return;
-        setImportando(true);
-        setMensajeImport(null);
-        try {
-            const token = localStorage.getItem("token");
-            const datos = new FormData();
-            datos.append("archivo", archivo);
-            const res = await fetch(
-                `${API_BASE}/api/rutas/${rutaSeleccionada.id}/tarifas/importar`,
-                { method: "POST", headers: { "Authorization": `Bearer ${token}` }, body: datos }
-            );
-            const data = await res.json().catch(() => ({}));
-            if (!res.ok) throw new Error(data.message || "No se pudo importar");
-
-            setMensajeImport({
-                error: false,
-                texto: `Se cargaron ${data.guardadas} tarifas` +
-                       (data.ignoradas ? ` (${data.ignoradas} filas sin precio se dejaron sin tarifa)` : "")
-            });
-            // Recargar la ruta para ver las tarifas nuevas en el formulario
-            const detalle = await (await fetch(`${API_BASE}/api/rutas/${rutaSeleccionada.id}`,
-                { headers: { "Authorization": `Bearer ${token}` } })).json();
-            setTarifas(detalle.tarifas?.length > 0
-                ? detalle.tarifas.map(t => ({
-                    origenTramo: t.origenTramo, destinoTramo: t.destinoTramo,
-                    ordenOrigen: t.ordenOrigen, ordenDestino: t.ordenDestino,
-                    precioNormal: t.precioNormal, precioVip: t.precioVip
-                }))
-                : [{ origenTramo: "", destinoTramo: "", ordenOrigen: "", ordenDestino: "", precioNormal: "", precioVip: "" }]
-            );
-        } catch (e) {
-            setMensajeImport({ error: true, texto: e.message });
-        } finally {
-            setImportando(false);
-            if (input) input.value = "";   // permite volver a subir el mismo archivo
-        }
+        setMensajeTarifas(null);
+        const lector = new FileReader();
+        lector.onload = () => {
+            const { tarifas: leidas, ignoradas, errores } = leerTarifas(lector.result, paradasValidas);
+            if (errores.length) {
+                setMensajeTarifas({ error: true, texto: errores.slice(0, 3).join(" · ") });
+            } else {
+                setTarifas(leidas);
+                setMensajeTarifas({
+                    error: false,
+                    texto: `${leidas.length} tramos con precio` +
+                           (ignoradas ? ` (${ignoradas} sin precio usarán la tarifa base)` : "")
+                });
+            }
+            if (input) input.value = "";
+        };
+        lector.readAsText(archivo, "UTF-8");
     };
 
     const guardar = async () => {
         if (!form.origen || !form.destino || !form.sucursalAdministradoraId) {
             setErrorModal("Origen, destino y sucursal son obligatorios");
             return;
+        }
+        // El recorrido tiene que empezar y terminar en los puertos de la ruta: si no,
+        // no se podrían vender los tramos que salen o llegan a ellos.
+        if (paradasValidas.length >= 2) {
+            const igual = (a, b) => (a || "").trim().toLowerCase() === (b || "").trim().toLowerCase();
+            const primera = paradasValidas[0].nombre;
+            const ultima  = paradasValidas[paradasValidas.length - 1].nombre;
+            if (!igual(primera, form.origen) || !igual(ultima, form.destino)) {
+                setErrorModal(
+                    `La primera parada debe ser ${form.origen} y la última ${form.destino}. ` +
+                    `Ahora son ${primera} y ${ultima}.`
+                );
+                return;
+            }
         }
         setGuardando(true);
         setErrorModal(null);
@@ -267,9 +275,11 @@ function Rutas() {
                 ...form,
                 precioNormal: parseFloat(form.precioNormal),
                 precioVip: parseFloat(form.precioVip),
-                paradas: paradas.filter(p => p.nombre).map(p => ({
-                    ...p,
-                    minutosDesdeSalida: p.minutosDesdeSalida === "" ? null : p.minutosDesdeSalida
+                paradas: paradasValidas.map(p => ({
+                    nombre: p.nombre,
+                    orden: p.orden,
+                    minutosDesdeSalida: p.minutosDesdeSalida === "" || p.minutosDesdeSalida == null
+                        ? null : p.minutosDesdeSalida
                 })),
                 tarifas: tarifas.filter(t => t.origenTramo && t.destinoTramo).map(t => ({
                     ...t,
@@ -585,8 +595,32 @@ function Rutas() {
                             {/* PARADAS */}
                             <div className="modal-separador"></div>
                             <p className="modal-seccion-titulo">
-                                <i className="ti ti-map-pin"></i> Paradas
+                                <i className="ti ti-map-pin"></i> Paso 1 · Paradas del recorrido
                             </p>
+
+                            <div className="carga-excel">
+                                <p className="carga-excel-ayuda">
+                                    La <strong>primera parada es {form.origen || "el puerto de origen"}</strong> y
+                                    la <strong>última es {form.destino || "el de destino"}</strong>; en medio van
+                                    los puertos por los que pasa el bote, en el orden del río.
+                                </p>
+                                <div className="carga-excel-acciones">
+                                    <button type="button" className="btn-plantilla"
+                                            onClick={() => descargarPlantillaParadas(form.origen, form.destino)}>
+                                        <i className="ti ti-download"></i> Descargar plantilla de paradas
+                                    </button>
+                                    <label className="btn-importar">
+                                        <i className="ti ti-upload"></i> Subir paradas
+                                        <input type="file" accept=".csv,text/csv" hidden
+                                               onChange={e => importarParadas(e.target.files[0], e.target)} />
+                                    </label>
+                                </div>
+                                {mensajeImport && (
+                                    <p className={`carga-excel-msg ${mensajeImport.error ? "es-error" : ""}`}>
+                                        {mensajeImport.texto}
+                                    </p>
+                                )}
+                            </div>
 
                             {paradas.map((p, i) => (
                                 <div key={i} className="form-fila form-fila-parada">
@@ -624,33 +658,44 @@ function Rutas() {
                             {/* TARIFAS */}
                             <div className="modal-separador"></div>
                             <p className="modal-seccion-titulo">
-                                <i className="ti ti-receipt"></i> Tarifas por Tramo
+                                <i className="ti ti-receipt"></i> Paso 2 · Precio de cada tramo
+                                {paradasValidas.length >= 2 && (
+                                    <span className="combinaciones-badge">
+                                        {totalCombinaciones} combinaciones
+                                    </span>
+                                )}
                             </p>
 
-                            {/* Con muchas paradas las combinaciones se disparan (7 paradas = 21
-                                tramos), así que se cargan en Excel en vez de una por una */}
-                            {modoEditar && (
-                                <div className="tarifas-excel">
-                                    <p className="tarifas-excel-ayuda">
-                                        ¿Muchos tramos? Descarga la plantilla con todas las combinaciones
-                                        ya listadas, llena los precios en Excel y súbela.
+                            {/* La plantilla se arma con las paradas ya cargadas, por eso este paso
+                                queda bloqueado hasta que existan al menos dos */}
+                            {paradasValidas.length < 2 ? (
+                                <div className="carga-excel bloqueado">
+                                    <p className="carga-excel-ayuda">
+                                        Primero carga las paradas. Con ellas se arma la plantilla de precios
+                                        con todas las combinaciones ya listadas.
                                     </p>
-                                    <div className="tarifas-excel-acciones">
+                                </div>
+                            ) : (
+                                <div className="carga-excel">
+                                    <p className="carga-excel-ayuda">
+                                        La plantilla trae los <strong>{totalCombinaciones} tramos</strong> posibles
+                                        entre tus paradas. Llena las dos columnas de precio en Excel y súbela.
+                                        Los tramos que dejes vacíos cobrarán la tarifa base de la ruta.
+                                    </p>
+                                    <div className="carga-excel-acciones">
                                         <button type="button" className="btn-plantilla"
-                                                onClick={descargarPlantilla} disabled={importando}>
-                                            <i className="ti ti-download"></i> Descargar plantilla
+                                                onClick={() => descargarPlantillaTarifas(paradasValidas, tarifas)}>
+                                            <i className="ti ti-download"></i> Descargar plantilla de precios
                                         </button>
                                         <label className="btn-importar">
-                                            <i className="ti ti-upload"></i>
-                                            {importando ? " Importando…" : " Subir archivo lleno"}
+                                            <i className="ti ti-upload"></i> Subir precios
                                             <input type="file" accept=".csv,text/csv" hidden
-                                                   disabled={importando}
                                                    onChange={e => importarTarifas(e.target.files[0], e.target)} />
                                         </label>
                                     </div>
-                                    {mensajeImport && (
-                                        <p className={`tarifas-excel-msg ${mensajeImport.error ? "es-error" : ""}`}>
-                                            {mensajeImport.texto}
+                                    {mensajeTarifas && (
+                                        <p className={`carga-excel-msg ${mensajeTarifas.error ? "es-error" : ""}`}>
+                                            {mensajeTarifas.texto}
                                         </p>
                                     )}
                                 </div>

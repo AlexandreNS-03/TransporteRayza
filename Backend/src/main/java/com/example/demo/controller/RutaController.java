@@ -3,14 +3,8 @@ package com.example.demo.controller;
 import com.example.demo.dto.RutaDTO;
 import com.example.demo.dto.RutaRequest;
 import com.example.demo.service.RutaService;
-import com.example.demo.service.TarifaCsvService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-
-import java.nio.charset.StandardCharsets;
 
 import java.util.List;
 
@@ -20,11 +14,9 @@ import java.util.List;
 public class RutaController {
 
     private final RutaService rutaService;
-    private final TarifaCsvService tarifaCsvService;
 
-    public RutaController(RutaService rutaService, TarifaCsvService tarifaCsvService) {
+    public RutaController(RutaService rutaService) {
         this.rutaService = rutaService;
-        this.tarifaCsvService = tarifaCsvService;
     }
 
     @GetMapping
@@ -67,23 +59,4 @@ public class RutaController {
         return ResponseEntity.ok(rutaService.obtenerTarifa(id, ordenOrigen, ordenDestino));
     }
 
-    /** Plantilla CSV con todos los pares origen→destino, para llenar precios en Excel. */
-    @GetMapping("/{id}/tarifas/plantilla")
-    public ResponseEntity<byte[]> plantillaTarifas(@PathVariable String id) {
-        byte[] csv = tarifaCsvService.generarPlantilla(id).getBytes(StandardCharsets.UTF_8);
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION,
-                        "attachment; filename=\"tarifas-" + id + ".csv\"")
-                .contentType(MediaType.parseMediaType("text/csv; charset=UTF-8"))
-                .body(csv);
-    }
-
-    @PostMapping("/{id}/tarifas/importar")
-    public ResponseEntity<?> importarTarifas(@PathVariable String id,
-                                             @RequestParam("archivo") MultipartFile archivo)
-            throws java.io.IOException {
-        if (archivo == null || archivo.isEmpty())
-            return ResponseEntity.badRequest().body(java.util.Map.of("message", "Elige un archivo"));
-        return ResponseEntity.ok(tarifaCsvService.importar(id, archivo.getInputStream()));
-    }
 }
