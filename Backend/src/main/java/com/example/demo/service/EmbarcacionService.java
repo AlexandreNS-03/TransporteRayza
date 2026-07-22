@@ -78,9 +78,11 @@ public class EmbarcacionService {
         Embarcacion e = embarcacionRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Embarcación no encontrada"));
 
+        // La numeración depende de las cantidades y de dónde esté la zona VIP
         boolean cambioDistribucion =
                 !java.util.Objects.equals(e.getCantidadVip(), req.getCantidadVip()) ||
-                !java.util.Objects.equals(e.getCantidadNormal(), req.getCantidadNormal());
+                !java.util.Objects.equals(e.getCantidadNormal(), req.getCantidadNormal()) ||
+                e.getVipPosicion() != parseVipPosicion(req.getVipPosicion());
 
         e.setNombre(req.getNombre());
         e.setCantidadVip(req.getCantidadVip());
@@ -134,32 +136,40 @@ public class EmbarcacionService {
         embarcacionRepository.save(e);
     }
 
-    // Genera los asientos automáticamente al crear
+    // Genera los asientos numerándolos en orden físico: se empieza por la proa
+    // (adelante) y se avanza hacia la popa. Así, si el VIP está atrás, los
+    // Normal llevan los primeros números y el VIP los últimos.
     private void generarAsientos(Embarcacion e) {
         List<EmbarcacionAsiento> asientos = new ArrayList<>();
         int numero = 1;
 
-        // Primero los VIP
-        for (int i = 0; i < e.getCantidadVip(); i++) {
-            EmbarcacionAsiento a = new EmbarcacionAsiento();
-            a.setId(UUID.randomUUID().toString());
-            a.setEmbarcacion(e);
-            a.setNumero(numero++);
-            a.setTipo(EmbarcacionAsiento.TipoAsiento.VIP);
-            asientos.add(a);
-        }
+        boolean vipAdelante = e.getVipPosicion() == Embarcacion.VipPosicion.PROA;
 
-        // Luego los NORMAL
-        for (int i = 0; i < e.getCantidadNormal(); i++) {
-            EmbarcacionAsiento a = new EmbarcacionAsiento();
-            a.setId(UUID.randomUUID().toString());
-            a.setEmbarcacion(e);
-            a.setNumero(numero++);
-            a.setTipo(EmbarcacionAsiento.TipoAsiento.NORMAL);
-            asientos.add(a);
+        if (vipAdelante) {
+            numero = agregarAsientos(e, asientos, numero, EmbarcacionAsiento.TipoAsiento.VIP,    e.getCantidadVip());
+            agregarAsientos(e, asientos, numero, EmbarcacionAsiento.TipoAsiento.NORMAL, e.getCantidadNormal());
+        } else {
+            numero = agregarAsientos(e, asientos, numero, EmbarcacionAsiento.TipoAsiento.NORMAL, e.getCantidadNormal());
+            agregarAsientos(e, asientos, numero, EmbarcacionAsiento.TipoAsiento.VIP,    e.getCantidadVip());
         }
 
         asientoRepository.saveAll(asientos);
+    }
+
+    // Agrega 'cantidad' asientos del tipo indicado y devuelve el siguiente número libre
+    private int agregarAsientos(Embarcacion e, List<EmbarcacionAsiento> destino, int desde,
+                                EmbarcacionAsiento.TipoAsiento tipo, Integer cantidad) {
+        int numero = desde;
+        int total = cantidad != null ? cantidad : 0;
+        for (int i = 0; i < total; i++) {
+            EmbarcacionAsiento a = new EmbarcacionAsiento();
+            a.setId(UUID.randomUUID().toString());
+            a.setEmbarcacion(e);
+            a.setNumero(numero++);
+            a.setTipo(tipo);
+            destino.add(a);
+        }
+        return numero;
     }
 
     private String generarId(String nombre) {

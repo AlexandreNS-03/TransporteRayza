@@ -181,10 +181,11 @@ function Embarcaciones() {
     // Calcular capacidad total al vuelo
     const capacidadTotal = parseInt(form.cantidadVip || 0) + parseInt(form.cantidadNormal || 0);
 
-    // El backend solo regenera asientos si cambian las cantidades VIP/Normal
+    // El backend renumera los asientos si cambian las cantidades o la posición del VIP
     const cambioDistribucion = embSeleccionada
         ? parseInt(form.cantidadVip || 0)    !== parseInt(embSeleccionada.cantidadVip || 0) ||
-          parseInt(form.cantidadNormal || 0) !== parseInt(embSeleccionada.cantidadNormal || 0)
+          parseInt(form.cantidadNormal || 0) !== parseInt(embSeleccionada.cantidadNormal || 0) ||
+          form.vipPosicion !== (embSeleccionada.vipPosicion || "POPA")
         : false;
 
     return (
