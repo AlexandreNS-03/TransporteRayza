@@ -189,6 +189,7 @@ SELECT 'COLUMNA FALTANTE', c.tabla, c.col FROM (
   UNION ALL   SELECT 'notificaciones' AS tabla, 'titulo' AS col
   UNION ALL   SELECT 'notificaciones' AS tabla, 'usuario_destino_id' AS col
   UNION ALL   SELECT 'ruta_paradas' AS tabla, 'id' AS col
+  UNION ALL   SELECT 'ruta_paradas' AS tabla, 'minutos_desde_salida' AS col
   UNION ALL   SELECT 'ruta_paradas' AS tabla, 'nombre' AS col
   UNION ALL   SELECT 'ruta_paradas' AS tabla, 'orden' AS col
   UNION ALL   SELECT 'ruta_paradas' AS tabla, 'ruta_id' AS col
@@ -285,6 +286,7 @@ SELECT 'COLUMNA FALTANTE', c.tabla, c.col FROM (
   UNION ALL   SELECT 'viaje_asientos_estado' AS tabla, 'venta_id' AS col
   UNION ALL   SELECT 'viaje_asientos_estado' AS tabla, 'viaje_id' AS col
   UNION ALL   SELECT 'viaje_paradas' AS tabla, 'id' AS col
+  UNION ALL   SELECT 'viaje_paradas' AS tabla, 'minutos_desde_salida' AS col
   UNION ALL   SELECT 'viaje_paradas' AS tabla, 'nombre' AS col
   UNION ALL   SELECT 'viaje_paradas' AS tabla, 'orden' AS col
   UNION ALL   SELECT 'viaje_paradas' AS tabla, 'viaje_id' AS col
