@@ -195,6 +195,18 @@ export function leerTarifas(texto, paradas) {
         if (i === 0 && /^orden_origen/i.test(linea)) return;
 
         const c = columnas(linea, sep);
+
+        // Coma como separador Y coma decimal a la vez: "30,50" se parte en dos y
+        // entraría 30 en vez de 30.50. Antes que importar un precio equivocado en
+        // silencio, se corta y se explica cómo guardarlo.
+        if (sep === "," && c.length > 6) {
+            errores.push(
+                `Línea ${i + 1}: el archivo usa coma para separar columnas y también en los ` +
+                `precios, así que no se puede saber cuál es cuál. Guárdalo desde Excel como ` +
+                `"CSV delimitado por punto y coma", o escribe los precios con punto (30.50).`
+            );
+            return;
+        }
         if (c.length < 6) { errores.push(`Línea ${i + 1}: se esperaban 6 columnas`); return; }
 
         const ordenOrigen = Number(c[0]), ordenDestino = Number(c[2]);
