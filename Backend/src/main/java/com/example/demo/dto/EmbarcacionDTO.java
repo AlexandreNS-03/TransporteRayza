@@ -10,6 +10,9 @@ public class EmbarcacionDTO {
     private Integer cantidadVip;
     private Integer cantidadNormal;
     private Integer capacidadTotal;
+    private String vipPosicion;
+    private String capitan;
+    private List<TripulanteDTO> tripulantes;
     private Boolean activo;
     private String createdAt;
     private List<AsientoDTO> asientos;
@@ -48,6 +51,15 @@ public class EmbarcacionDTO {
 
     public Integer getCapacidadTotal() { return capacidadTotal; }
     public void setCapacidadTotal(Integer capacidadTotal) { this.capacidadTotal = capacidadTotal; }
+
+    public String getVipPosicion() { return vipPosicion; }
+    public void setVipPosicion(String vipPosicion) { this.vipPosicion = vipPosicion; }
+
+    public String getCapitan() { return capitan; }
+    public void setCapitan(String capitan) { this.capitan = capitan; }
+
+    public List<TripulanteDTO> getTripulantes() { return tripulantes; }
+    public void setTripulantes(List<TripulanteDTO> tripulantes) { this.tripulantes = tripulantes; }
 
     public Boolean getActivo() { return activo; }
     public void setActivo(Boolean activo) { this.activo = activo; }

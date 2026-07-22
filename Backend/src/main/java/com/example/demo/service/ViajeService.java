@@ -108,6 +108,14 @@ public class ViajeService {
         dto.setOrigen(v.getOrigen());
         dto.setDestino(v.getDestino());
         dto.setEmbarcacionNombre(v.getEmbarcacionNombre());
+
+        // Datos de la embarcación necesarios para el mapa de asientos
+        if (v.getEmbarcacionId() != null) {
+            embarcacionRepository.findById(v.getEmbarcacionId()).ifPresent(emb -> {
+                dto.setVipPosicion(emb.getVipPosicion() != null ? emb.getVipPosicion().name() : "POPA");
+                dto.setCapitan(emb.getCapitan());
+            });
+        }
         dto.setFechaSalida(v.getFechaSalida() != null ? v.getFechaSalida().toString() : null);
         dto.setHoraSalida(v.getHoraSalida() != null ? v.getHoraSalida().toString() : null);
         dto.setPrecioNormal(v.getPrecioNormal());

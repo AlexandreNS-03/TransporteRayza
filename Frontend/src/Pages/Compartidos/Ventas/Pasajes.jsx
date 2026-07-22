@@ -357,6 +357,49 @@ function Pasajes() {
         return chunks;
     };
 
+    // Orden de las secciones dentro del bote según dónde esté el VIP en esta embarcación.
+    // POPA (por defecto) = VIP atrás → primero Normal, luego VIP.
+    const seccionesBarco = viajeSeleccionado?.vipPosicion === "PROA"
+        ? ["VIP", "NORMAL"]
+        : ["NORMAL", "VIP"];
+
+    // Dibuja una sección (VIP o Normal) con sus filas de 2 + pasillo + 2
+    const renderSeccionAsientos = (tipo) => {
+        const deTipo = asientos.filter(a => a.tipo === tipo);
+        if (deTipo.length === 0) return null;
+
+        const esVip   = tipo === "VIP";
+        const precio  = esVip ? tarifa?.precioVip : tarifa?.precioNormal;
+        const etiqueta = esVip ? "⭐ VIP" : "💺 Normal";
+
+        const boton = (a) => (
+            <button
+                key={a.id}
+                className={`barco-asiento ${esVip ? "vip" : "normal"} ${!a.libreParaTramo ? "ocupado" : ""} ${form.asientoNumero === a.numero ? "seleccionado" : ""}`}
+                onClick={() => a.libreParaTramo && seleccionarAsiento(a)}
+                disabled={!a.libreParaTramo}
+                title={!a.libreParaTramo ? "Ocupado" : `${esVip ? "VIP" : "Normal"} #${a.numero} — S/ ${precio}`}
+            >
+                {a.numero}
+            </button>
+        );
+
+        return (
+            <div className="barco-seccion">
+                <p className="barco-seccion-label">{etiqueta}</p>
+                <div className="barco-filas">
+                    {chunkArray(deTipo, 4).map((fila, fi) => (
+                        <div key={fi} className="barco-fila">
+                            {fila.slice(0, 2).map(boton)}
+                            <div className="barco-pasillo"></div>
+                            {fila.slice(2, 4).map(boton)}
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+    };
+
     return (
         <div className="pasajes-page">
 
@@ -756,87 +799,32 @@ function Pasajes() {
                                         <div className="ley-item"><div className="ley-box ley-sel"></div> Seleccionado</div>
                                     </div>
 
-                                    <div className="proa-label">⬆ proa</div>
+                                    <div className="proa-label">⬆ proa (adelante)</div>
 
                                     <div className="barco-contenedor">
 
-                                        {/* VIP */}
-                                        {asientos.some(a => a.tipo === "VIP") && (
-                                            <div className="barco-seccion">
-                                                <p className="barco-seccion-label">⭐ VIP</p>
-                                                <div className="barco-filas">
-                                                    {chunkArray(asientos.filter(a => a.tipo === "VIP"), 4).map((fila, fi) => (
-                                                        <div key={fi} className="barco-fila">
-                                                            {fila.slice(0, 2).map(a => (
-                                                                <button
-                                                                    key={a.id}
-                                                                    className={`barco-asiento vip ${!a.libreParaTramo ? "ocupado" : ""} ${form.asientoNumero === a.numero ? "seleccionado" : ""}`}
-                                                                    onClick={() => a.libreParaTramo && seleccionarAsiento(a)}
-                                                                    disabled={!a.libreParaTramo}
-                                                                    title={!a.libreParaTramo ? "Ocupado" : `VIP #${a.numero} — S/ ${tarifa?.precioVip}`}
-                                                                >
-                                                                    {a.numero}
-                                                                </button>
-                                                            ))}
-                                                            <div className="barco-pasillo"></div>
-                                                            {fila.slice(2, 4).map(a => (
-                                                                <button
-                                                                    key={a.id}
-                                                                    className={`barco-asiento vip ${!a.libreParaTramo ? "ocupado" : ""} ${form.asientoNumero === a.numero ? "seleccionado" : ""}`}
-                                                                    onClick={() => a.libreParaTramo && seleccionarAsiento(a)}
-                                                                    disabled={!a.libreParaTramo}
-                                                                    title={!a.libreParaTramo ? "Ocupado" : `VIP #${a.numero} — S/ ${tarifa?.precioVip}`}
-                                                                >
-                                                                    {a.numero}
-                                                                </button>
-                                                            ))}
-                                                        </div>
-                                                    ))}
-                                                </div>
+                                        {/* Cabina del capitán, siempre en la proa */}
+                                        <div className="barco-cabina">
+                                            <i className="ti ti-steering-wheel"></i>
+                                            <span>Cabina{viajeSeleccionado?.capitan ? ` — ${viajeSeleccionado.capitan}` : ""}</span>
+                                        </div>
+
+                                        {/* Secciones ordenadas según dónde está el VIP en esta embarcación */}
+                                        {seccionesBarco.map((tipo, idx) => (
+                                            <div key={tipo}>
+                                                {idx > 0 && <div className="barco-divisor"></div>}
+                                                {renderSeccionAsientos(tipo)}
                                             </div>
-                                        )}
+                                        ))}
 
-                                        <div className="barco-divisor"></div>
-
-                                        {/* NORMAL */}
-                                        {asientos.some(a => a.tipo === "NORMAL") && (
-                                            <div className="barco-seccion">
-                                                <p className="barco-seccion-label">💺 Normal</p>
-                                                <div className="barco-filas">
-                                                    {chunkArray(asientos.filter(a => a.tipo === "NORMAL"), 4).map((fila, fi) => (
-                                                        <div key={fi} className="barco-fila">
-                                                            {fila.slice(0, 2).map(a => (
-                                                                <button
-                                                                    key={a.id}
-                                                                    className={`barco-asiento normal ${!a.libreParaTramo ? "ocupado" : ""} ${form.asientoNumero === a.numero ? "seleccionado" : ""}`}
-                                                                    onClick={() => a.libreParaTramo && seleccionarAsiento(a)}
-                                                                    disabled={!a.libreParaTramo}
-                                                                    title={!a.libreParaTramo ? "Ocupado" : `Normal #${a.numero} — S/ ${tarifa?.precioNormal}`}
-                                                                >
-                                                                    {a.numero}
-                                                                </button>
-                                                            ))}
-                                                            <div className="barco-pasillo"></div>
-                                                            {fila.slice(2, 4).map(a => (
-                                                                <button
-                                                                    key={a.id}
-                                                                    className={`barco-asiento normal ${!a.libreParaTramo ? "ocupado" : ""} ${form.asientoNumero === a.numero ? "seleccionado" : ""}`}
-                                                                    onClick={() => a.libreParaTramo && seleccionarAsiento(a)}
-                                                                    disabled={!a.libreParaTramo}
-                                                                    title={!a.libreParaTramo ? "Ocupado" : `Normal #${a.numero} — S/ ${tarifa?.precioNormal}`}
-                                                                >
-                                                                    {a.numero}
-                                                                </button>
-                                                            ))}
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        )}
-
+                                        {/* Motor, siempre en la popa */}
+                                        <div className="barco-motor">
+                                            <i className="ti ti-propeller"></i>
+                                            <span>Motor</span>
+                                        </div>
                                     </div>
 
-                                    <div className="popa-label">⬇ popa</div>
+                                    <div className="popa-label">⬇ popa (atrás)</div>
 
                                     {form.asientoNumero && (
                                         <div className="asiento-seleccionado-info">

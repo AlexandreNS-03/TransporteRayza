@@ -13,6 +13,8 @@ public class ViajeDTO {
     private String origen;
     private String destino;
     private String embarcacionNombre;
+    private String vipPosicion;   // PROA | POPA — para dibujar el mapa de asientos
+    private String capitan;
     private String fechaSalida;
     private String horaSalida;
     private BigDecimal precioNormal;
@@ -58,6 +60,12 @@ public class ViajeDTO {
 
     public String getEmbarcacionNombre() { return embarcacionNombre; }
     public void setEmbarcacionNombre(String e) { this.embarcacionNombre = e; }
+
+    public String getVipPosicion() { return vipPosicion; }
+    public void setVipPosicion(String vipPosicion) { this.vipPosicion = vipPosicion; }
+
+    public String getCapitan() { return capitan; }
+    public void setCapitan(String capitan) { this.capitan = capitan; }
 
     public String getFechaSalida() { return fechaSalida; }
     public void setFechaSalida(String fechaSalida) { this.fechaSalida = fechaSalida; }
