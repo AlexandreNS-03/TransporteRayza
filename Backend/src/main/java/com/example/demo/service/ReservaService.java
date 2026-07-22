@@ -43,6 +43,7 @@ public class ReservaService {
     private final CulqiService culqiService;
     private final VentaService ventaService;
     private final ComprobanteService comprobanteService;
+    private final PublicService publicService;
 
     public ReservaService(ViajeRepository viajeRepository,
                           VentaRepository ventaRepository,
@@ -52,8 +53,10 @@ public class ReservaService {
                           AsientoService asientoService,
                           CulqiService culqiService,
                           VentaService ventaService,
-                          ComprobanteService comprobanteService) {
+                          ComprobanteService comprobanteService,
+                          PublicService publicService) {
         this.comprobanteService = comprobanteService;
+        this.publicService = publicService;
         this.viajeRepository = viajeRepository;
         this.ventaRepository = ventaRepository;
         this.tramoUsadoRepository = tramoUsadoRepository;
@@ -70,6 +73,12 @@ public class ReservaService {
                 .orElseThrow(() -> new RuntimeException("Viaje no encontrado"));
         if (viaje.getEstado() != Viaje.EstadoViaje.PROGRAMADO)
             throw new RuntimeException("Este viaje ya no está disponible para la venta");
+
+        // Mismo criterio que el buscador: si el filtro solo estuviera en la búsqueda,
+        // una página abierta hace rato (o una llamada directa a la API) podría
+        // vender un pasaje de un bote que ya zarpó.
+        if (!publicService.seVendeTodavia(viaje))
+            throw new RuntimeException("Este viaje ya salió o está por salir. Elige otra fecha.");
 
         if (req.getAsientoNumero() == null)
             throw new RuntimeException("Selecciona un asiento");
