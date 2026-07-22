@@ -180,14 +180,14 @@ function Cajas() {
                                 ) : (
                                     movimientos.map(m => (
                                         <tr key={m.id}>
-                                            <td>{m.fecha} {m.hora?.slice(0, 8)}</td>
-                                            <td>
+                                            <td data-label="Fecha / Hora">{m.fecha} {m.hora?.slice(0, 8)}</td>
+                                            <td data-label="Tipo">
                                                 <span className={`badge ${m.tipo === "INGRESO" ? "badge-pagado" : "badge-anulado"}`}>
                                                     {m.tipo === "INGRESO" ? "Ingreso" : "Egreso"}
                                                 </span>
                                             </td>
-                                            <td>{m.motivo}</td>
-                                            <td><strong>{m.tipo === "EGRESO" ? "-" : ""}{fmt(m.monto)}</strong></td>
+                                            <td data-label="Motivo">{m.motivo}</td>
+                                            <td data-label="Monto"><strong>{m.tipo === "EGRESO" ? "-" : ""}{fmt(m.monto)}</strong></td>
                                         </tr>
                                     ))
                                 )}
@@ -230,21 +230,21 @@ function Cajas() {
                         ) : (
                             cajas.map(c => (
                                 <tr key={c.id}>
-                                    <td><strong>{c.usuarioNombre}</strong></td>
-                                    <td>{c.sucursalNombre || "—"}</td>
-                                    <td>{c.fechaApertura} {c.horaApertura?.slice(0, 5)}</td>
-                                    <td>{fmt(c.montoInicial)}</td>
-                                    <td>{c.estado === "CERRADA" ? fmt(c.totalVentas) : "—"}</td>
-                                    <td>{c.estado === "CERRADA" ? fmt(c.totalNeto) : "—"}</td>
-                                    <td>{c.estado === "CERRADA" ? fmt(c.montoCierre) : "—"}</td>
-                                    <td>
+                                    <td data-label="Usuario"><strong>{c.usuarioNombre}</strong></td>
+                                    <td data-label="Sucursal">{c.sucursalNombre || "—"}</td>
+                                    <td data-label="Apertura">{c.fechaApertura} {c.horaApertura?.slice(0, 5)}</td>
+                                    <td data-label="Inicial">{fmt(c.montoInicial)}</td>
+                                    <td data-label="Ventas">{c.estado === "CERRADA" ? fmt(c.totalVentas) : "—"}</td>
+                                    <td data-label="Neto">{c.estado === "CERRADA" ? fmt(c.totalNeto) : "—"}</td>
+                                    <td data-label="Cierre">{c.estado === "CERRADA" ? fmt(c.montoCierre) : "—"}</td>
+                                    <td data-label="Diferencia">
                                         {c.estado === "CERRADA" ? (
                                             <strong className={Number(c.diferencia) < 0 ? "dif-negativa" : "dif-ok"}>
                                                 {fmt(c.diferencia)}
                                             </strong>
                                         ) : "—"}
                                     </td>
-                                    <td>
+                                    <td data-label="Estado">
                                         <span className={`badge ${c.estado === "ABIERTA" ? "badge-pagado" : "badge-cerrada"}`}>
                                             {c.estado === "ABIERTA" ? "Abierta" : "Cerrada"}
                                         </span>
@@ -286,12 +286,12 @@ function Cajas() {
                             ) : (
                                 gastos.map(g => (
                                     <tr key={g.id}>
-                                        <td>{g.fecha}</td>
-                                        <td><span className="comp-tipo boleta">{g.categoria}</span></td>
-                                        <td>{g.descripcion}</td>
-                                        <td>{g.responsableNombre || "—"}</td>
-                                        <td>{g.sucursalNombre || "—"}</td>
-                                        <td><strong>{fmt(g.monto)}</strong></td>
+                                        <td data-label="Fecha">{g.fecha}</td>
+                                        <td data-label="Categoría"><span className="comp-tipo boleta">{g.categoria}</span></td>
+                                        <td data-label="Descripción">{g.descripcion}</td>
+                                        <td data-label="Responsable">{g.responsableNombre || "—"}</td>
+                                        <td data-label="Sucursal">{g.sucursalNombre || "—"}</td>
+                                        <td data-label="Monto"><strong>{fmt(g.monto)}</strong></td>
                                         {esAdmin && (
                                             <td className="acciones-cell">
                                                 <button className="btn-accion anular" onClick={() => eliminarGasto(g)} title="Eliminar gasto">

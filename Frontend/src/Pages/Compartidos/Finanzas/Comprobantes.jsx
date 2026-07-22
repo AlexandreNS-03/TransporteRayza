@@ -256,7 +256,7 @@ function Comprobantes() {
                         ) : (
                             pag.items.map(c => (
                                 <tr key={c.id} className={c.estado === "ANULADO" ? "fila-anulada" : ""}>
-                                    <td>
+                                    <td data-label="Comprobante">
                                         <div className="pasajero-info">
                                             <strong className="codigo">{c.serie}-{numeroFmt(c.numero)}</strong>
                                             <span className={`comp-tipo ${c.tipoDeComprobante.toLowerCase()}`}>
@@ -267,23 +267,23 @@ function Comprobantes() {
                                             )}
                                         </div>
                                     </td>
-                                    <td>
+                                    <td data-label="Cliente">
                                         <div className="pasajero-info">
                                             <strong>{c.clienteDenominacion}</strong>
                                             <span>{DOC_LABEL[c.clienteTipoDeDocumento]}: {c.clienteNumeroDeDocumento}</span>
                                         </div>
                                     </td>
-                                    <td>
+                                    <td data-label="Venta">
                                         <div className="pasajero-info">
                                             <strong className="codigo">{c.viajeCodigo || "—"}</strong>
                                             <span>{c.pasajeroNombre || ""}</span>
                                         </div>
                                     </td>
-                                    <td>{c.fechaDeEmision}</td>
-                                    <td>S/ {Number(c.totalExonerada).toFixed(2)}</td>
-                                    <td>S/ {Number(c.totalIgv).toFixed(2)}</td>
-                                    <td><strong>S/ {Number(c.total).toFixed(2)}</strong></td>
-                                    <td>
+                                    <td data-label="Emisión">{c.fechaDeEmision}</td>
+                                    <td data-label="Op. Exonerada">S/ {Number(c.totalExonerada).toFixed(2)}</td>
+                                    <td data-label="IGV">S/ {Number(c.totalIgv).toFixed(2)}</td>
+                                    <td data-label="Total"><strong>S/ {Number(c.total).toFixed(2)}</strong></td>
+                                    <td data-label="Estado">
                                         <span className={`badge ${c.estado === "ACEPTADO" ? "badge-pagado" : "badge-anulado"}`}>
                                             {c.estado === "ACEPTADO" ? "Aceptado" : "Anulado"}
                                         </span>

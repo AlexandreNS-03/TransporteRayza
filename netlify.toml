@@ -1,0 +1,15 @@
+# Configuración de build para Netlify (auto-deploy desde GitHub)
+# El frontend vive en la subcarpeta Frontend/
+[build]
+  base    = "Frontend"
+  command = "npm run build"
+  publish = "dist"
+
+# SPA: todas las rutas caen en index.html (React Router)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# La URL del backend se define como variable de entorno en Netlify:
+#   Site settings → Environment variables → VITE_API_URL = https://transporterayza-production.up.railway.app

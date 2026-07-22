@@ -635,3 +635,61 @@
 }
 .btn-consulta:hover:not(:disabled) { background: #1440a0; }
 .btn-consulta:disabled { background: #cbd5e1; cursor: not-allowed; }
+
+/* ══════════ TABLAS RESPONSIVE — tarjetas en móvil ══════════ */
+@media (max-width: 720px) {
+    /* La tabla deja de ser tabla y cada fila es una tarjeta */
+    .pasajes-tabla-wrapper { border: none; background: transparent; overflow: visible; }
+    .pasajes-tabla thead { display: none; }
+    .pasajes-tabla,
+    .pasajes-tabla tbody,
+    .pasajes-tabla tr,
+    .pasajes-tabla td { display: block; width: 100%; }
+
+    .pasajes-tabla tr {
+        margin-bottom: 12px;
+        border: 1px solid var(--color-borde);
+        border-radius: var(--radio-md);
+        background: var(--color-blanco);
+        box-shadow: var(--sombra-sm);
+        overflow: hidden;
+    }
+    .pasajes-tabla tbody tr:hover { background: var(--color-blanco); }
+
+    .pasajes-tabla td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 14px;
+        padding: 10px 14px;
+        border: none;
+        border-bottom: 1px solid #f1f5f9;
+        text-align: right;
+    }
+    .pasajes-tabla tr td:last-child { border-bottom: none; }
+
+    /* Etiqueta de la columna a la izquierda de cada dato */
+    .pasajes-tabla td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: var(--color-texto-suave);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        text-align: left;
+        flex-shrink: 0;
+    }
+
+    /* Celdas sin etiqueta o especiales */
+    .pasajes-tabla td.acciones-cell {
+        justify-content: flex-end;
+        flex-wrap: wrap;
+        background: #f8fafc;
+    }
+    .pasajes-tabla td.acciones-cell::before { content: "Acciones"; }
+    .pasajes-tabla td.tabla-vacia { justify-content: center; }
+    .pasajes-tabla td.tabla-vacia::before { display: none; }
+
+    /* Info apilada (pasajero, cliente) se alinea a la derecha */
+    .pasajes-tabla td .pasajero-info { align-items: flex-end; }
+}
