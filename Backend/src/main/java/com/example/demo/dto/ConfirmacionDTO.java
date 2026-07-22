@@ -16,6 +16,8 @@ public class ConfirmacionDTO {
     private BigDecimal precio;
     private boolean correoEnviado;
     private String mensaje;
+    private String comprobanteElectronico;  // serie-número de la boleta/factura, si se emitió
+    private String enlacePdf;               // PDF oficial de Nubefact
 
     public String getVentaId() { return ventaId; }
     public void setVentaId(String ventaId) { this.ventaId = ventaId; }
@@ -52,4 +54,10 @@ public class ConfirmacionDTO {
 
     public String getMensaje() { return mensaje; }
     public void setMensaje(String mensaje) { this.mensaje = mensaje; }
+
+    public String getComprobanteElectronico() { return comprobanteElectronico; }
+    public void setComprobanteElectronico(String c) { this.comprobanteElectronico = c; }
+
+    public String getEnlacePdf() { return enlacePdf; }
+    public void setEnlacePdf(String enlacePdf) { this.enlacePdf = enlacePdf; }
 }

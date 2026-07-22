@@ -28,12 +28,23 @@ export default function Confirmacion({ data }) {
           <div className="linea"><span>Ruta</span><span>{data.ruta}</span></div>
           <div className="linea"><span>Fecha</span><span>{data.fechaSalida || "—"} {data.horaSalida ? "· " + data.horaSalida.slice(0,5) + " h" : ""}</span></div>
           <div className="linea"><span>Asiento</span><span>{data.asiento}</span></div>
-          <div className="linea"><span>Comprobante</span><span>{data.comprobante}</span></div>
+          <div className="linea"><span>Boleto</span><span>{data.comprobante}</span></div>
+          {data.comprobanteElectronico && (
+            <div className="linea">
+              <span>Comprobante electrónico</span>
+              <span>{data.comprobanteElectronico}</span>
+            </div>
+          )}
           <div className="total"><span>Pagado</span><span>{soles(data.precio)}</span></div>
         </div>
       </div>
 
       <div style={{ display: "flex", gap: 12, justifyContent: "center", marginTop: 22, flexWrap: "wrap" }}>
+        {data.enlacePdf && (
+          <a className="btn btn-ghost" href={data.enlacePdf} target="_blank" rel="noreferrer">
+            Descargar comprobante
+          </a>
+        )}
         <Link className="btn btn-ghost" to="/comprar">Comprar otro pasaje</Link>
         <Link className="btn btn-primary" to="/mi-cuenta">Ver mis viajes</Link>
       </div>

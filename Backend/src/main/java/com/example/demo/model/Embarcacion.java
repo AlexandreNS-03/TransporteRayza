@@ -1,6 +1,8 @@
 package com.example.demo.model;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -29,6 +31,7 @@ public class Embarcacion {
 
     // Posición física de la zona VIP en el bote: PROA (adelante) o POPA (atrás)
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.VARCHAR)
     @Column(name = "vip_posicion", length = 10)
     private VipPosicion vipPosicion;
 

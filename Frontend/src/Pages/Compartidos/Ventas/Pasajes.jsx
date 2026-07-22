@@ -516,6 +516,11 @@ function Pasajes() {
                                             <span className={badgeEstado(v.estado)}>
                                                 {ESTADO_LABEL[v.estado]}
                                             </span>
+                                        {v.canal === "WEB" && (
+                                            <span className="badge-canal" title="Comprado por la web de clientes">
+                                                <i className="ti ti-world"></i> Web
+                                            </span>
+                                        )}
                                     </td>
                                     {puedeVender && (
                                         <td className="acciones-cell">

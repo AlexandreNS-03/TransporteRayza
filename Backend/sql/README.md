@@ -34,16 +34,28 @@ ya está aplicado, así que se pueden volver a correr sin miedo. Ante la duda, c
 
 ## Comprobar que la base está al día
 
-Esta consulta debe devolver 6 filas. Si falta alguna, corre la migración correspondiente:
-
-```sql
-SELECT 'ventas.canal'             AS falta FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name='ventas'        AND column_name='canal'
-UNION ALL SELECT 'ventas.cliente_id'       FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name='ventas'        AND column_name='cliente_id'
-UNION ALL SELECT 'ventas.reserva_expira'   FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name='ventas'        AND column_name='reserva_expira'
-UNION ALL SELECT 'ventas.culqi_charge_id'  FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name='ventas'        AND column_name='culqi_charge_id'
-UNION ALL SELECT 'embarcaciones.vip_posicion' FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name='embarcaciones' AND column_name='vip_posicion'
-UNION ALL SELECT 'tabla clientes'         FROM information_schema.tables  WHERE table_schema=DATABASE() AND table_name='clientes';
+```bash
+mysql -h <host> -P <puerto> -u <usuario> -p <base> < Backend/sql/verificar-esquema.sql
 ```
+
+`verificar-esquema.sql` compara las 22 tablas y 261 columnas que el backend necesita
+contra lo que hay en la base. **No modifica nada.** Si no devuelve ninguna fila, la
+base está al día; cada fila que salga es una tabla o columna que falta:
+
+```
+COLUMNA FALTANTE   ventas   canal
+```
+
+El script se generó a partir de las entidades JPA, así que cuando se agreguen campos
+nuevos hay que regenerarlo junto con la migración.
+
+### ¿Por qué no `ddl-auto=validate`?
+
+Sería la forma natural de que la app avisara al arrancar, pero hoy no se puede activar:
+el esquema usa `smallint` y `text` donde las entidades declaran `Integer` y `String`
+(25 diferencias que no afectan al funcionamiento, pero que `validate` rechaza). Cuando
+esos tipos se normalicen se puede activar con `JPA_DDL_AUTO=validate`, que ya está
+contemplado en `application.properties`.
 
 ## Al desplegar
 

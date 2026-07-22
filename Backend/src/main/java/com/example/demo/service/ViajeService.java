@@ -6,8 +6,10 @@ import com.example.demo.model.Viaje;
 import com.example.demo.model.ViajeParada;
 import com.example.demo.repository.ViajeRepository;
 import com.example.demo.repository.EmbarcacionRepository;
+import com.example.demo.repository.RutaParadaRepository;
 import com.example.demo.repository.RutaRepository;
 import com.example.demo.repository.SucursalRepository;
+import com.example.demo.repository.ViajeParadaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
@@ -24,17 +26,23 @@ public class ViajeService {
     private final EmbarcacionRepository embarcacionRepository;
     private final RutaRepository       rutaRepository;
     private final SucursalRepository   sucursalRepository;
+    private final RutaParadaRepository  rutaParadaRepository;
+    private final ViajeParadaRepository viajeParadaRepository;
 
     public ViajeService(ViajeRepository viajeRepository,
                         AsientoService asientoService,
                         EmbarcacionRepository embarcacionRepository,
                         RutaRepository rutaRepository,
-                        SucursalRepository sucursalRepository) {
+                        SucursalRepository sucursalRepository,
+                        RutaParadaRepository rutaParadaRepository,
+                        ViajeParadaRepository viajeParadaRepository) {
         this.viajeRepository      = viajeRepository;
         this.asientoService       = asientoService;
         this.embarcacionRepository = embarcacionRepository;
         this.rutaRepository       = rutaRepository;
         this.sucursalRepository   = sucursalRepository;
+        this.rutaParadaRepository  = rutaParadaRepository;
+        this.viajeParadaRepository = viajeParadaRepository;
     }
 
     // Listar todos
@@ -84,10 +92,34 @@ public class ViajeService {
         v.setEstado(Viaje.EstadoViaje.PROGRAMADO);
         viajeRepository.save(v);
 
+        // Copiar las paradas de la ruta al viaje. Sin esto el viaje no tiene tramos
+        // y la búsqueda pública cae en el respaldo (vende siempre el recorrido
+        // completo como orden 1→2, con nombres que no coinciden con los del mostrador).
+        copiarParadasDeLaRuta(v, ruta.getId());
+
         // Inicializar asientos automáticamente
         asientoService.inicializarAsientosParaViaje(v.getId(), embarcacion.getId());
 
         return toDTO(v);
+    }
+
+    private void copiarParadasDeLaRuta(Viaje v, String rutaId) {
+        List<ViajeParada> paradas = rutaParadaRepository.findByRutaIdOrderByOrdenAsc(rutaId)
+                .stream()
+                .map(rp -> {
+                    ViajeParada p = new ViajeParada();
+                    p.setId(UUID.randomUUID().toString());
+                    p.setViaje(v);
+                    p.setNombre(rp.getNombre());
+                    p.setOrden(rp.getOrden());
+                    return p;
+                })
+                .collect(Collectors.toList());
+
+        if (!paradas.isEmpty()) {
+            viajeParadaRepository.saveAll(paradas);
+            v.setParadas(paradas);
+        }
     }
 
     private String generarCodigo(ViajeRequest req, String sucursalNombre) {

@@ -1,6 +1,8 @@
 package com.example.demo.model;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -21,7 +23,8 @@ public class Comprobante {
     private String encomiendaId;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "tipo_de_comprobante", nullable = false)
+    @JdbcTypeCode(SqlTypes.VARCHAR)
+    @Column(name = "tipo_de_comprobante", nullable = false, length = 15)
     private TipoComprobante tipoDeComprobante;
 
     @Column(name = "serie", length = 10, nullable = false)
@@ -69,8 +72,11 @@ public class Comprobante {
     @Column(name = "descripcion", columnDefinition = "TEXT")
     private String descripcion;
 
+    // La columna es varchar, no un ENUM de MySQL como en el resto del esquema:
+    // hay que decírselo a Hibernate para que la validación de esquema pase.
     @Enumerated(EnumType.STRING)
-    @Column(name = "estado", nullable = false)
+    @JdbcTypeCode(SqlTypes.VARCHAR)
+    @Column(name = "estado", nullable = false, length = 15)
     private EstadoComprobante estado;
 
     @Column(name = "motivo_anulacion", columnDefinition = "TEXT")
