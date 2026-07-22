@@ -16,8 +16,12 @@ import com.example.demo.repository.ViajeRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.beans.factory.annotation.Value;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashSet;
@@ -38,6 +42,10 @@ public class PublicService {
     private final ViajeAsientoEstadoRepository asientoEstadoRepo;
     private final EmbarcacionRepository embarcacionRepository;
     private final AsientoService asientoService;
+
+    /** Minutos mínimos de anticipación para comprar por internet. */
+    @Value("${app.venta-web.anticipacion-minutos:30}")
+    private int anticipacionMinutos;
 
     public PublicService(ViajeRepository viajeRepository,
                          RutaRepository rutaRepository,
@@ -115,6 +123,7 @@ public class PublicService {
 
         for (Viaje v : viajes) {
             if (v.getEstado() != Viaje.EstadoViaje.PROGRAMADO) continue;
+            if (!seVendeTodavia(v)) continue;
 
             List<ViajeParada> paradas = v.getParadas();
             Integer ordenOrigen, ordenDestino;
@@ -175,6 +184,18 @@ public class PublicService {
                 .thenComparing(PublicViajeDTO::getHoraSalida,
                         Comparator.nullsLast(Comparator.naturalOrder())));
         return resultado;
+    }
+
+    /**
+     * ¿El viaje sigue a la venta por internet? Se descartan los que ya salieron y los
+     * que salen demasiado pronto: comprar en línea un bote que zarpa en cinco minutos
+     * no le sirve a nadie. El margen se ajusta con app.venta-web.anticipacion-minutos.
+     */
+    public boolean seVendeTodavia(Viaje v) {
+        if (v.getFechaSalida() == null) return true;   // sin fecha no hay nada que juzgar
+        LocalTime hora = v.getHoraSalida() != null ? v.getHoraSalida() : LocalTime.MIDNIGHT;
+        LocalDateTime salida = LocalDateTime.of(v.getFechaSalida(), hora);
+        return salida.isAfter(LocalDateTime.now().plusMinutes(anticipacionMinutos));
     }
 
     /**
