@@ -22,6 +22,10 @@ public class ViajeParada {
     @Column(name = "orden")
     private Integer orden;
 
+    /** Copiado de la ruta al crear el viaje, para calcular la hora estimada de paso. */
+    @Column(name = "minutos_desde_salida")
+    private Integer minutosDesdeSalida;
+
     // Getters y Setters
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
@@ -34,4 +38,7 @@ public class ViajeParada {
 
     public Integer getOrden() { return orden; }
     public void setOrden(Integer orden) { this.orden = orden; }
+
+    public Integer getMinutosDesdeSalida() { return minutosDesdeSalida; }
+    public void setMinutosDesdeSalida(Integer m) { this.minutosDesdeSalida = m; }
 }

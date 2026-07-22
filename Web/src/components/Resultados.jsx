@@ -21,6 +21,25 @@ export default function Resultados({ viajes, cargando, error, onElegir }) {
             <div style={{ marginTop: 8 }}>
               <span className="tag">{v.asientosLibres} asientos libres</span>
             </div>
+
+            {/* Guía de llegada: por dónde pasa el bote y a qué hora aproximada */}
+            {v.itinerario?.length > 1 && (
+              <details className="itinerario">
+                <summary>Ver paradas y horas aproximadas</summary>
+                <ol className="itinerario-lista">
+                  {v.itinerario.map((e) => (
+                    <li key={e.orden}>
+                      <span className="itinerario-punto" />
+                      <span className="itinerario-nombre">{e.nombre}</span>
+                      <span className="itinerario-hora">{e.horaEstimada || "—"}</span>
+                    </li>
+                  ))}
+                </ol>
+                <p className="itinerario-nota">
+                  Horas referenciales; pueden variar según el río y el clima.
+                </p>
+              </details>
+            )}
           </div>
           <div className="center">
             <div className="meta">Desde</div>

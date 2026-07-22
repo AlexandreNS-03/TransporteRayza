@@ -17,19 +17,47 @@ public class AsientoService {
     private final ViajeAsientoEstadoRepository asientoEstadoRepo;
     private final ViajeAsientoTramoOcupadoRepository tramoOcupadoRepo;
     private final EmbarcacionAsientoRepository embarcacionAsientoRepo;
+    private final VentaRepository ventaRepository;
 
     public AsientoService(ViajeAsientoEstadoRepository asientoEstadoRepo,
                           ViajeAsientoTramoOcupadoRepository tramoOcupadoRepo,
-                          EmbarcacionAsientoRepository embarcacionAsientoRepo) {
+                          EmbarcacionAsientoRepository embarcacionAsientoRepo,
+                          VentaRepository ventaRepository) {
         this.asientoEstadoRepo    = asientoEstadoRepo;
         this.tramoOcupadoRepo     = tramoOcupadoRepo;
         this.embarcacionAsientoRepo = embarcacionAsientoRepo;
+        this.ventaRepository      = ventaRepository;
     }
 
-    // Ver todos los asientos de un viaje
+    // Ver todos los asientos de un viaje, con todos sus ocupantes por tramo
     public List<AsientoDTO> listarPorViaje(String viajeId) {
-        return asientoEstadoRepo.findByViajeIdOrderByNumeroAsc(viajeId)
-                .stream().map(this::toDTO).collect(Collectors.toList());
+        List<Venta> ventas = ventaRepository.findByViajeId(viajeId).stream()
+                .filter(v -> v.getEstado() == Venta.EstadoVenta.PAGADO
+                          || v.getEstado() == Venta.EstadoVenta.RESERVADO)
+                .collect(Collectors.toList());
+
+        return asientoEstadoRepo.findByViajeIdOrderByNumeroAsc(viajeId).stream()
+                .map(a -> {
+                    AsientoDTO dto = toDTO(a);
+                    dto.setOcupaciones(ventas.stream()
+                            .filter(v -> a.getNumero().equals(v.getAsientoNumero()))
+                            .map(this::toOcupacion)
+                            .collect(Collectors.toList()));
+                    return dto;
+                })
+                .collect(Collectors.toList());
+    }
+
+    private AsientoDTO.OcupacionDTO toOcupacion(Venta v) {
+        AsientoDTO.OcupacionDTO o = new AsientoDTO.OcupacionDTO();
+        o.setVentaId(v.getId());
+        o.setPasajeroNombre(v.getPasajeroNombre());
+        o.setParadaOrigen(v.getParadaOrigen());
+        o.setParadaDestino(v.getParadaDestino());
+        o.setOrdenOrigen(v.getOrdenOrigen());
+        o.setOrdenDestino(v.getOrdenDestino());
+        o.setEstado(v.getEstado() != null ? v.getEstado().name() : null);
+        return o;
     }
 
     // Ver asientos libres para un tramo específico
@@ -140,15 +168,20 @@ public class AsientoService {
     }
 
     // Confirmar la venta: pasar el asiento de RESERVADO a VENDIDO (los tramos ya existen).
+    // Se ubica por viaje + número porque con el asiento compartido la fila puede estar
+    // apuntando al otro pasajero.
     @Transactional
     public void confirmarAsiento(String ventaId) {
-        asientoEstadoRepo.findByVentaId(ventaId).ifPresent(asiento -> {
-            asiento.setEstado(ViajeAsientoEstado.EstadoAsiento.VENDIDO);
-            asientoEstadoRepo.save(asiento);
-        });
+        ventaRepository.findById(ventaId).ifPresent(venta ->
+            asientoEstadoRepo.findByViajeIdAndNumero(venta.getViajeId(), venta.getAsientoNumero())
+                .ifPresent(asiento -> {
+                    asiento.setEstado(ViajeAsientoEstado.EstadoAsiento.VENDIDO);
+                    asientoEstadoRepo.save(asiento);
+                }));
     }
 
-    // Sincronizar datos del pasajero en el asiento al editar una venta
+    // Sincronizar datos del pasajero en el asiento al editar una venta.
+    // Solo si la fila representa a ESTE pasajero; si muestra al otro ocupante, no se pisa.
     @Transactional
     public void actualizarDatosPasajero(String ventaId, String nombre, String doc, String tel) {
         asientoEstadoRepo.findByVentaId(ventaId).ifPresent(asiento -> {
@@ -159,21 +192,78 @@ public class AsientoService {
         });
     }
 
-    // Liberar asiento al anular una venta
+    /**
+     * Libera SOLO los tramos de esta venta. Un asiento puede llevar a varios pasajeros
+     * en tramos distintos, así que anular a uno no debe soltar el tramo del otro:
+     * el asiento vuelve a LIBRE únicamente cuando ya no le queda ningún tramo ocupado.
+     */
     @Transactional
     public void liberarAsiento(String ventaId) {
+        Venta venta = ventaRepository.findById(ventaId)
+                .orElseThrow(() -> new RuntimeException("Venta no encontrada"));
+
+        // Se busca por viaje + número, no por ventaId: con el asiento compartido, la
+        // fila apunta a uno solo de los pasajeros.
         ViajeAsientoEstado asiento = asientoEstadoRepo
-                .findByVentaId(ventaId)
+                .findByViajeIdAndNumero(venta.getViajeId(), venta.getAsientoNumero())
                 .orElseThrow(() -> new RuntimeException("Asiento no encontrado"));
 
-        tramoOcupadoRepo.deleteByViajeAsientoEstadoId(asiento.getId());
+        List<String> tramosDeLaVenta = tramosDe(venta.getOrdenOrigen(), venta.getOrdenDestino());
+        if (!tramosDeLaVenta.isEmpty())
+            tramoOcupadoRepo.deleteByViajeAsientoEstadoIdAndTramoIn(asiento.getId(), tramosDeLaVenta);
+        else
+            tramoOcupadoRepo.deleteByViajeAsientoEstadoId(asiento.getId());
 
-        asiento.setEstado(ViajeAsientoEstado.EstadoAsiento.LIBRE);
-        asiento.setVentaId(null);
-        asiento.setPasajeroNombre(null);
-        asiento.setPasajeroDoc(null);
-        asiento.setPasajeroTel(null);
+        reasignarOcupante(asiento, ventaId);
+    }
+
+    /**
+     * Deja el asiento apuntando a alguno de los pasajeros que le quedan; si no queda
+     * ninguno, lo devuelve a LIBRE.
+     */
+    private void reasignarOcupante(ViajeAsientoEstado asiento, String ventaLiberada) {
+        boolean quedanTramos = !tramoOcupadoRepo.findByViajeAsientoEstadoId(asiento.getId()).isEmpty();
+
+        if (!quedanTramos) {
+            asiento.setEstado(ViajeAsientoEstado.EstadoAsiento.LIBRE);
+            asiento.setVentaId(null);
+            asiento.setPasajeroNombre(null);
+            asiento.setPasajeroDoc(null);
+            asiento.setPasajeroTel(null);
+            asientoEstadoRepo.save(asiento);
+            return;
+        }
+
+        // Si la fila apuntaba a la venta anulada, se repunta a otro pasajero vigente
+        if (ventaLiberada.equals(asiento.getVentaId())) {
+            ventasVigentesDelAsiento(asiento).stream()
+                    .filter(v -> !v.getId().equals(ventaLiberada))
+                    .findFirst()
+                    .ifPresent(v -> {
+                        asiento.setVentaId(v.getId());
+                        asiento.setPasajeroNombre(v.getPasajeroNombre());
+                        asiento.setPasajeroDoc(v.getPasajeroDocumento());
+                        asiento.setPasajeroTel(v.getPasajeroTelefono());
+                    });
+        }
         asientoEstadoRepo.save(asiento);
+    }
+
+    /** Ventas vivas (pagadas o reservadas) que ocupan este asiento. */
+    private List<Venta> ventasVigentesDelAsiento(ViajeAsientoEstado asiento) {
+        return ventaRepository.findByViajeId(asiento.getViajeId()).stream()
+                .filter(v -> asiento.getNumero().equals(v.getAsientoNumero()))
+                .filter(v -> v.getEstado() == Venta.EstadoVenta.PAGADO
+                          || v.getEstado() == Venta.EstadoVenta.RESERVADO)
+                .collect(Collectors.toList());
+    }
+
+    /** Tramos que cubre un recorrido: de [origen, destino) uno por cada salto. */
+    private List<String> tramosDe(Integer ordenOrigen, Integer ordenDestino) {
+        List<String> tramos = new ArrayList<>();
+        if (ordenOrigen == null || ordenDestino == null) return tramos;
+        for (int i = ordenOrigen; i < ordenDestino; i++) tramos.add(String.valueOf(i));
+        return tramos;
     }
 
     private AsientoDTO toDTO(ViajeAsientoEstado a) {

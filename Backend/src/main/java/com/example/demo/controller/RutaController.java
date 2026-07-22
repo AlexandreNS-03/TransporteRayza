@@ -58,4 +58,5 @@ public class RutaController {
             @RequestParam int ordenDestino) {
         return ResponseEntity.ok(rutaService.obtenerTarifa(id, ordenOrigen, ordenDestino));
     }
+
 }

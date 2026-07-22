@@ -10,6 +10,24 @@ import java.math.BigDecimal;
  */
 public class PublicViajeDTO {
 
+    /** Paradas del tramo comprado con su hora estimada de paso. */
+    public static class Escala {
+        private String nombre;
+        private Integer orden;
+        private String horaEstimada;   // HH:mm, calculada desde la salida
+        public Escala(String nombre, Integer orden, String horaEstimada) {
+            this.nombre = nombre; this.orden = orden; this.horaEstimada = horaEstimada;
+        }
+        public String getNombre() { return nombre; }
+        public Integer getOrden() { return orden; }
+        public String getHoraEstimada() { return horaEstimada; }
+    }
+
+    private java.util.List<Escala> itinerario;
+    public java.util.List<Escala> getItinerario() { return itinerario; }
+    public void setItinerario(java.util.List<Escala> itinerario) { this.itinerario = itinerario; }
+
+
     private String id;
     private String codigoViaje;
     private String rutaNombre;

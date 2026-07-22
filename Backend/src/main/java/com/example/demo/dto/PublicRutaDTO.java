@@ -19,9 +19,14 @@ public class PublicRutaDTO {
     public static class Parada {
         private String nombre;
         private Integer orden;
+        private Integer minutosDesdeSalida;
         public Parada(String nombre, Integer orden) { this.nombre = nombre; this.orden = orden; }
+        public Parada(String nombre, Integer orden, Integer minutosDesdeSalida) {
+            this.nombre = nombre; this.orden = orden; this.minutosDesdeSalida = minutosDesdeSalida;
+        }
         public String getNombre() { return nombre; }
         public Integer getOrden() { return orden; }
+        public Integer getMinutosDesdeSalida() { return minutosDesdeSalida; }
     }
 
     public static class Tramo {

@@ -30,17 +30,24 @@ export default function Buscador({ onBuscar, valorInicial = {} }) {
       if (!set.has(k)) { set.add(k); lista.push({ origen: o, destino: d }); }
     };
     for (const r of rutas) {
-      agregar(r.origen, r.destino);
       const paradas = (r.paradas || []).slice().sort((a, b) => (a.orden ?? 0) - (b.orden ?? 0));
       for (let i = 0; i < paradas.length; i++)
         for (let j = i + 1; j < paradas.length; j++) agregar(paradas[i].nombre, paradas[j].nombre);
+
+      // El par suelto origen→destino solo hace falta si la ruta no tiene paradas
+      // cargadas; con paradas, los puertos terminales ya están en la lista y
+      // agregarlo antes descolocaría el orden del recorrido.
+      if (paradas.length < 2) agregar(r.origen, r.destino);
     }
     return lista;
   }, [rutas]);
 
-  const origenes = useMemo(() => [...new Set(pares.map((p) => p.origen))].sort((a, b) => a.localeCompare(b)), [pares]);
+  // En orden de recorrido, no alfabético: el pasajero busca su puerto como lo pasa
+  // el bote (Requena, Yanallpa, Herrera…), no ordenado por nombre. `pares` ya viene
+  // recorrido por orden de parada, así que basta con no reordenar.
+  const origenes = useMemo(() => [...new Set(pares.map((p) => p.origen))], [pares]);
   const destinos = useMemo(
-    () => [...new Set(pares.filter((p) => p.origen === origen).map((p) => p.destino))].sort((a, b) => a.localeCompare(b)),
+    () => [...new Set(pares.filter((p) => p.origen === origen).map((p) => p.destino))],
     [pares, origen]);
   const hayCombos = origenes.length > 0;
 
