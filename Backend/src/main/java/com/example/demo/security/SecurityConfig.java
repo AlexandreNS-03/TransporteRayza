@@ -1,5 +1,6 @@
 package com.example.demo.security;
 
+import jakarta.servlet.DispatcherType;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -40,6 +41,12 @@ public class SecurityConfig {
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authorizeHttpRequests(auth -> auth
+                        // Sin esto, cuando Spring reenvía internamente a /error (p. ej. falta
+                        // un parámetro) la seguridad lo bloquea y el cliente recibe un 403
+                        // vacío en vez del 400 con el mensaje real.
+                        .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
+                        .requestMatchers("/error").permitAll()
+
                         .requestMatchers("/auth/**").permitAll()
 
                         /*API PÚBLICA (web del cliente, sin login): lectura + reserva/pago*/

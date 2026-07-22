@@ -390,6 +390,8 @@ public class VentaService {
         dto.setCodigoQr(v.getCodigoQr());
         dto.setEmbarqueEstado(v.getEmbarqueEstado() != null ? v.getEmbarqueEstado().name() : null);
         dto.setEstado(v.getEstado() != null ? v.getEstado().name() : null);
+        // Las ventas antiguas no tienen canal; se asumen de mostrador
+        dto.setCanal(v.getCanal() != null && !v.getCanal().isBlank() ? v.getCanal() : "MOSTRADOR");
         dto.setFechaVenta(v.getFechaVenta() != null ? v.getFechaVenta().toString() : null);
         dto.setUsuarioNombre(v.getUsuarioNombre());
 

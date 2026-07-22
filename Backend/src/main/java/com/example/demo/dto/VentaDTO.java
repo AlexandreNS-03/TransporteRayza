@@ -37,6 +37,7 @@ public class VentaDTO {
     private String codigoQr;
     private String embarqueEstado;
     private String estado;
+    private String canal;              // MOSTRADOR | WEB
     private String fechaVenta;
     private String usuarioNombre;
     private String createdAt;
@@ -140,6 +141,9 @@ public class VentaDTO {
 
     public String getEstado() { return estado; }
     public void setEstado(String estado) { this.estado = estado; }
+
+    public String getCanal() { return canal; }
+    public void setCanal(String canal) { this.canal = canal; }
 
     public String getFechaVenta() { return fechaVenta; }
     public void setFechaVenta(String fechaVenta) { this.fechaVenta = fechaVenta; }

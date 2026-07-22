@@ -7,4 +7,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface RutaParadaRepository extends JpaRepository<RutaParada, String> {
     void deleteByRutaId(String rutaId);
+    java.util.List<RutaParada> findByRutaIdOrderByOrdenAsc(String rutaId);
 }

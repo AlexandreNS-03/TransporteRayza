@@ -1,5 +1,7 @@
 package com.example.demo.service;
 
+import com.example.demo.dto.ComprobanteDTO;
+import com.example.demo.dto.ComprobanteRequest;
 import com.example.demo.dto.ConfirmacionDTO;
 import com.example.demo.dto.ReservaRequest;
 import com.example.demo.dto.ReservaResponse;
@@ -40,6 +42,7 @@ public class ReservaService {
     private final AsientoService asientoService;
     private final CulqiService culqiService;
     private final VentaService ventaService;
+    private final ComprobanteService comprobanteService;
 
     public ReservaService(ViajeRepository viajeRepository,
                           VentaRepository ventaRepository,
@@ -48,7 +51,9 @@ public class ReservaService {
                           ClienteRepository clienteRepository,
                           AsientoService asientoService,
                           CulqiService culqiService,
-                          VentaService ventaService) {
+                          VentaService ventaService,
+                          ComprobanteService comprobanteService) {
+        this.comprobanteService = comprobanteService;
         this.viajeRepository = viajeRepository;
         this.ventaRepository = ventaRepository;
         this.tramoUsadoRepository = tramoUsadoRepository;
@@ -75,6 +80,10 @@ public class ReservaService {
             throw new RuntimeException("Ingresa el nombre y documento del pasajero");
         if (vacio(req.getClienteEmail()) || !req.getClienteEmail().contains("@"))
             throw new RuntimeException("Ingresa un correo válido");
+
+        // Se valida acá y no al pagar: si faltan datos, el cliente lo corrige antes
+        // de que se le cobre, no después.
+        validarDatosDelComprobante(req);
 
         boolean vip = "VIP".equalsIgnoreCase(req.getAsientoTipo());
         BigDecimal precio = calcularPrecio(viaje, req.getOrdenOrigen(), req.getOrdenDestino(), vip);
@@ -171,6 +180,11 @@ public class ReservaService {
 
         asientoService.confirmarAsiento(reservaId);
 
+        // El cobro ya se hizo: si la emisión o el correo fallan, la compra sigue siendo
+        // válida y se informa en la respuesta. El comprobante se puede reintentar
+        // después desde el sistema, sin volver a cobrar.
+        ComprobanteDTO comprobante = emitirComprobanteElectronico(v);
+
         boolean enviado = false;
         try {
             ventaService.enviarComprobante(reservaId);
@@ -179,7 +193,80 @@ public class ReservaService {
             System.err.println("[Reserva] No se pudo enviar el correo del boleto: " + e.getMessage());
         }
 
-        return confirmacion(v, enviado, "¡Pago realizado con éxito!");
+        ConfirmacionDTO dto = confirmacion(v, enviado, "¡Pago realizado con éxito!");
+        if (comprobante != null) {
+            dto.setComprobanteElectronico(comprobante.getSerie() + "-" + comprobante.getNumero());
+            dto.setEnlacePdf(comprobante.getEnlacePdf());
+        } else if (esElectronico(v.getTipoComprobante())) {
+            dto.setMensaje("¡Pago realizado con éxito! Tu " + v.getTipoComprobante().name().toLowerCase()
+                    + " se emitirá en breve y te llegará por correo.");
+        }
+        return dto;
+    }
+
+    /**
+     * Emite la boleta o factura en Nubefact usando el mismo camino que el mostrador.
+     * Devuelve null si la venta es solo ticket o si la emisión falló.
+     */
+    private ComprobanteDTO emitirComprobanteElectronico(Venta v) {
+        if (!esElectronico(v.getTipoComprobante())) return null;
+
+        boolean factura = v.getTipoComprobante() == Venta.TipoComprobante.FACTURA;
+
+        ComprobanteRequest req = new ComprobanteRequest();
+        req.setVentaId(v.getId());
+        req.setTipoDeComprobante(factura ? "FACTURA" : "BOLETA");
+        req.setClienteEmail(v.getClienteEmail());
+
+        if (factura) {
+            req.setClienteTipoDeDocumento("6");                 // 6 = RUC
+            req.setClienteNumeroDeDocumento(v.getClienteDocumento());
+            req.setClienteDenominacion(v.getClienteNombre());
+        } else {
+            req.setClienteTipoDeDocumento(codigoSunat(v.getTipoDocumento()));
+            req.setClienteNumeroDeDocumento(v.getPasajeroDocumento());
+            req.setClienteDenominacion(v.getPasajeroNombre());
+        }
+
+        try {
+            return comprobanteService.generar(req, "Venta web");
+        } catch (Exception e) {
+            System.err.println("[Reserva] No se pudo emitir el comprobante de la venta "
+                    + v.getId() + ": " + e.getMessage());
+            return null;
+        }
+    }
+
+    /** Mismas reglas que aplica SUNAT al emitir, comprobadas antes de cobrar. */
+    private void validarDatosDelComprobante(ReservaRequest req) {
+        Venta.TipoComprobante tipo = parseComprobante(req.getTipoComprobante());
+
+        if (tipo == Venta.TipoComprobante.FACTURA) {
+            String ruc = req.getClienteDocumento() != null ? req.getClienteDocumento().trim() : "";
+            if (!ruc.matches("\\d{11}"))
+                throw new RuntimeException("Para una factura necesitas un RUC de 11 dígitos");
+            if (vacio(req.getClienteNombre()))
+                throw new RuntimeException("Para una factura necesitas la razón social de la empresa");
+        } else if (tipo == Venta.TipoComprobante.BOLETA) {
+            String doc = req.getPasajeroDocumento() != null ? req.getPasajeroDocumento().trim() : "";
+            if ("DNI".equalsIgnoreCase(req.getTipoDocumento()) && !doc.matches("\\d{8}"))
+                throw new RuntimeException("Para una boleta el DNI debe tener 8 dígitos");
+        }
+    }
+
+    private boolean esElectronico(Venta.TipoComprobante t) {
+        return t == Venta.TipoComprobante.BOLETA || t == Venta.TipoComprobante.FACTURA;
+    }
+
+    /** Código de documento según SUNAT: 1=DNI, 4=CE, 6=RUC, 7=Pasaporte. */
+    private String codigoSunat(Venta.TipoDocumento t) {
+        if (t == null) return "1";
+        switch (t) {
+            case CE:         return "4";
+            case RUC:        return "6";
+            case PASAPORTE:  return "7";
+            default:         return "1";
+        }
     }
 
     private ConfirmacionDTO confirmacion(Venta v, boolean correoEnviado, String mensaje) {
