@@ -26,7 +26,8 @@ function Embarcaciones() {
     const [errorModal, setErrorModal]             = useState(null);
 
     const [form, setForm] = useState({
-        nombre: "", codigo: "", cantidadVip: "", cantidadNormal: "", activo: true
+        nombre: "", codigo: "", cantidadVip: "", cantidadNormal: "",
+        vipPosicion: "POPA", capitan: "", tripulantes: [], activo: true
     });
 
     useEffect(() => { fetchEmbarcaciones(); }, []);
@@ -65,7 +66,8 @@ function Embarcaciones() {
     };
 
     const abrirModalCrear = () => {
-        setForm({ nombre: "", codigo: "", cantidadVip: "", cantidadNormal: "", activo: true });
+        setForm({ nombre: "", codigo: "", cantidadVip: "", cantidadNormal: "",
+        vipPosicion: "POPA", capitan: "", tripulantes: [], activo: true });
         setModoEditar(false);
         setEmbSeleccionada(null);
         setErrorModal(null);
@@ -78,6 +80,9 @@ function Embarcaciones() {
             codigo: emb.codigo,
             cantidadVip: emb.cantidadVip,
             cantidadNormal: emb.cantidadNormal,
+            vipPosicion: emb.vipPosicion || "POPA",
+            capitan: emb.capitan || "",
+            tripulantes: emb.tripulantes || [],
             activo: emb.activo
         });
         setModoEditar(true);
@@ -92,6 +97,19 @@ function Embarcaciones() {
         const { name, value, type, checked } = e.target;
         setForm(prev => ({ ...prev, [name]: type === "checkbox" ? checked : value }));
     };
+
+    // ── Tripulación ──
+    const agregarTripulante = () =>
+        setForm(prev => ({ ...prev, tripulantes: [...(prev.tripulantes || []), { nombre: "", cargo: "" }] }));
+
+    const cambiarTripulante = (i, campo, valor) =>
+        setForm(prev => ({
+            ...prev,
+            tripulantes: prev.tripulantes.map((t, idx) => idx === i ? { ...t, [campo]: valor } : t)
+        }));
+
+    const quitarTripulante = (i) =>
+        setForm(prev => ({ ...prev, tripulantes: prev.tripulantes.filter((_, idx) => idx !== i) }));
 
     const guardar = async () => {
         if (!form.nombre || !form.codigo || !form.cantidadVip || !form.cantidadNormal) {
@@ -116,7 +134,8 @@ function Embarcaciones() {
                 body: JSON.stringify({
                     ...form,
                     cantidadVip:    parseInt(form.cantidadVip),
-                    cantidadNormal: parseInt(form.cantidadNormal)
+                    cantidadNormal: parseInt(form.cantidadNormal),
+                    tripulantes:    (form.tripulantes || []).filter(t => t.nombre && t.nombre.trim())
                 })
             });
 
@@ -161,6 +180,13 @@ function Embarcaciones() {
 
     // Calcular capacidad total al vuelo
     const capacidadTotal = parseInt(form.cantidadVip || 0) + parseInt(form.cantidadNormal || 0);
+
+    // El backend renumera los asientos si cambian las cantidades o la posición del VIP
+    const cambioDistribucion = embSeleccionada
+        ? parseInt(form.cantidadVip || 0)    !== parseInt(embSeleccionada.cantidadVip || 0) ||
+          parseInt(form.cantidadNormal || 0) !== parseInt(embSeleccionada.cantidadNormal || 0) ||
+          form.vipPosicion !== (embSeleccionada.vipPosicion || "POPA")
+        : false;
 
     return (
         <div className="emb-page">
@@ -396,13 +422,59 @@ function Embarcaciones() {
                                 <div className="capacidad-total">
                                     <i className="ti ti-armchair"></i>
                                     Capacidad total: <strong>{capacidadTotal} asientos</strong>
-                                    {modoEditar && (
+                                    {modoEditar && cambioDistribucion && (
                                         <span className="form-hint" style={{ marginLeft: "8px" }}>
                                             (los asientos se regenerarán)
                                         </span>
                                     )}
                                 </div>
                             )}
+
+                            {/* Posición física de la zona VIP */}
+                            <div className="form-grupo">
+                                <label>¿Dónde está la zona VIP en este bote? *</label>
+                                <div className="comp-selector">
+                                    <button type="button"
+                                            className={`comp-btn ${form.vipPosicion === "POPA" ? "activo" : ""}`}
+                                            onClick={() => setForm(p => ({ ...p, vipPosicion: "POPA" }))}>
+                                        ⬇ Atrás (popa)
+                                    </button>
+                                    <button type="button"
+                                            className={`comp-btn ${form.vipPosicion === "PROA" ? "activo" : ""}`}
+                                            onClick={() => setForm(p => ({ ...p, vipPosicion: "PROA" }))}>
+                                        ⬆ Adelante (proa)
+                                    </button>
+                                </div>
+                                <span className="form-hint">Así se dibuja el mapa de asientos al vender.</span>
+                            </div>
+
+                            {/* Capitán y tripulación */}
+                            <div className="form-grupo">
+                                <label>Capitán</label>
+                                <input type="text" name="capitan" value={form.capitan}
+                                       onChange={handleChange} placeholder="Nombre del capitán" />
+                            </div>
+
+                            <div className="form-grupo">
+                                <label>Tripulantes</label>
+                                {(form.tripulantes || []).map((t, i) => (
+                                    <div key={i} className="tripulante-fila">
+                                        <input type="text" placeholder="Nombre"
+                                               value={t.nombre}
+                                               onChange={e => cambiarTripulante(i, "nombre", e.target.value)} />
+                                        <input type="text" placeholder="Cargo (motorista, marinero...)"
+                                               value={t.cargo || ""}
+                                               onChange={e => cambiarTripulante(i, "cargo", e.target.value)} />
+                                        <button type="button" className="btn-quitar-tripulante"
+                                                onClick={() => quitarTripulante(i)} title="Quitar">
+                                            <i className="ti ti-trash"></i>
+                                        </button>
+                                    </div>
+                                ))}
+                                <button type="button" className="btn-agregar-tripulante" onClick={agregarTripulante}>
+                                    <i className="ti ti-plus"></i> Agregar tripulante
+                                </button>
+                            </div>
 
                             <div className="form-grupo-check">
                                 <input type="checkbox" name="activo" id="activo"

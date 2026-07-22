@@ -462,3 +462,39 @@
 
 .btn-guardar:hover    { background: #1440a0; }
 .btn-guardar:disabled { background: #93c5fd; cursor: not-allowed; }
+/* ── Tripulación de la embarcación ── */
+.tripulante-fila {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+    align-items: center;
+}
+.tripulante-fila input { flex: 1; min-width: 0; }
+
+.btn-quitar-tripulante {
+    background: var(--color-peligro-bg);
+    color: var(--color-peligro);
+    border: none;
+    border-radius: var(--radio);
+    width: 34px; height: 34px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 15px; flex-shrink: 0;
+}
+.btn-quitar-tripulante:hover { background: #fee2e2; }
+
+.btn-agregar-tripulante {
+    display: flex; align-items: center; gap: 6px;
+    background: var(--color-azul-bg);
+    color: var(--color-primario);
+    border: 1px dashed var(--color-azul-borde);
+    border-radius: var(--radio);
+    padding: 8px 14px;
+    font-size: 13px; font-weight: 600;
+    cursor: pointer; width: fit-content;
+}
+.btn-agregar-tripulante:hover { background: #dbeafe; }
+
+@media (max-width: 600px) {
+    .tripulante-fila { flex-wrap: wrap; }
+    .tripulante-fila input { flex: 1 1 100%; }
+}

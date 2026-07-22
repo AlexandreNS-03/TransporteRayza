@@ -693,3 +693,33 @@
     /* Info apilada (pasajero, cliente) se alinea a la derecha */
     .pasajes-tabla td .pasajero-info { align-items: flex-end; }
 }
+
+/* ── Cabina (proa) y motor (popa) del mapa de asientos ── */
+.barco-cabina,
+.barco-motor {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    padding: 8px 12px;
+    border-radius: var(--radio);
+}
+
+.barco-cabina {
+    background: #e0e7ff;
+    color: #3730a3;
+    border: 1px dashed #a5b4fc;
+}
+
+.barco-motor {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px dashed #fca5a5;
+}
+
+.barco-cabina i,
+.barco-motor i { font-size: 15px; }

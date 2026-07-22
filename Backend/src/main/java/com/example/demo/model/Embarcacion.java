@@ -27,6 +27,14 @@ public class Embarcacion {
     @Column(name = "capacidad_total")
     private Integer capacidadTotal;
 
+    // Posición física de la zona VIP en el bote: PROA (adelante) o POPA (atrás)
+    @Enumerated(EnumType.STRING)
+    @Column(name = "vip_posicion", length = 10)
+    private VipPosicion vipPosicion;
+
+    @Column(name = "capitan", length = 150)
+    private String capitan;
+
     @Column(name = "activo")
     private Boolean activo;
 
@@ -36,6 +44,11 @@ public class Embarcacion {
     @OneToMany(mappedBy = "embarcacion", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @OrderBy("numero ASC")
     private List<EmbarcacionAsiento> asientos;
+
+    // La tripulación se administra por su propio repositorio (sin cascade),
+    // para poder reemplazarla al editar sin conflictos de Hibernate.
+
+    public enum VipPosicion { PROA, POPA }
 
     // Getters y Setters
     public String getId() { return id; }
@@ -55,6 +68,12 @@ public class Embarcacion {
 
     public Integer getCapacidadTotal() { return capacidadTotal; }
     public void setCapacidadTotal(Integer capacidadTotal) { this.capacidadTotal = capacidadTotal; }
+
+    public VipPosicion getVipPosicion() { return vipPosicion; }
+    public void setVipPosicion(VipPosicion vipPosicion) { this.vipPosicion = vipPosicion; }
+
+    public String getCapitan() { return capitan; }
+    public void setCapitan(String capitan) { this.capitan = capitan; }
 
     public Boolean getActivo() { return activo; }
     public void setActivo(Boolean activo) { this.activo = activo; }

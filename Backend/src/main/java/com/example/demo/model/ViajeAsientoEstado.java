@@ -41,7 +41,7 @@ public class ViajeAsientoEstado {
     private List<ViajeAsientoTramoOcupado> tramosOcupados;
 
     public enum TipoAsiento { NORMAL, VIP }
-    public enum EstadoAsiento { LIBRE, VENDIDO }
+    public enum EstadoAsiento { LIBRE, VENDIDO, RESERVADO }
 
     // Getters y Setters
     public String getId() { return id; }

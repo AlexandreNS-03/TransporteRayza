@@ -20,6 +20,10 @@ public interface VentaRepository extends JpaRepository<Venta, String> {
     Optional<Venta> findByCodigoQr(String codigoQr);
     List<Venta> findByPasajeroDocumento(String documento);
 
+    // ── Compra en línea (Fase 2) ──
+    List<Venta> findByClienteIdOrderByCreatedAtDesc(String clienteId);
+    List<Venta> findByEstadoAndReservaExpiraBefore(Venta.EstadoVenta estado, java.time.LocalDateTime limite);
+
     @Query("""
         SELECT v.fechaVenta AS dia, COUNT(v) AS ventas, SUM(v.precio) AS ingresos
         FROM Venta v
