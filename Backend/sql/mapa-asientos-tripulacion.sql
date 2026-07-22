@@ -1,9 +1,25 @@
 -- Mapa de asientos configurable + tripulación por embarcación
+--
+--   mysql -h <host> -P <port> -u <user> -p <db> < Backend/sql/mapa-asientos-tripulacion.sql
+--
+-- Se puede ejecutar las veces que haga falta: cada paso comprueba primero si
+-- ya está aplicado, así que volver a correrlo no da error ni pierde datos.
 
--- Posición del VIP (PROA/POPA) y capitán
-ALTER TABLE embarcaciones
-    ADD COLUMN vip_posicion VARCHAR(10) NULL DEFAULT 'POPA',
-    ADD COLUMN capitan VARCHAR(150) NULL;
+-- Posición del VIP (PROA/POPA) y capitán.
+-- MySQL no tiene ADD COLUMN IF NOT EXISTS, así que se consulta primero.
+SET @s = IF((SELECT COUNT(*) FROM information_schema.columns
+             WHERE table_schema = DATABASE() AND table_name = 'embarcaciones'
+               AND column_name = 'vip_posicion') = 0,
+            'ALTER TABLE embarcaciones ADD COLUMN vip_posicion VARCHAR(10) NULL DEFAULT ''POPA''',
+            'DO 0');
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
+
+SET @s = IF((SELECT COUNT(*) FROM information_schema.columns
+             WHERE table_schema = DATABASE() AND table_name = 'embarcaciones'
+               AND column_name = 'capitan') = 0,
+            'ALTER TABLE embarcaciones ADD COLUMN capitan VARCHAR(150) NULL',
+            'DO 0');
+PREPARE st FROM @s; EXECUTE st; DEALLOCATE PREPARE st;
 
 -- Tripulantes de cada embarcación (nombre + cargo)
 CREATE TABLE IF NOT EXISTS embarcacion_tripulantes (
