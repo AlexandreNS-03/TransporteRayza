@@ -1,0 +1,16 @@
+# Configuración de Netlify para la web del cliente (dominio principal).
+# En Netlify, este sitio debe tener "Base directory" = Web
+
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+# React Router (SPA): cualquier ruta cae en index.html.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Variables de entorno (Site settings → Environment variables):
+#   VITE_API_URL          = https://transporterayza-production.up.railway.app
+#   VITE_CULQI_PUBLIC_KEY = pk_test_...  (opcional)

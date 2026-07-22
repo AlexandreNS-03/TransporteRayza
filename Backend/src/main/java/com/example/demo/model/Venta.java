@@ -128,6 +128,19 @@ public class Venta {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
+    // ── Compra en línea (Fase 2) ──
+    @Column(name = "cliente_id", length = 36)
+    private String clienteId;
+
+    @Column(name = "canal", length = 15)
+    private String canal;                 // MOSTRADOR (personal) | WEB (cliente en línea)
+
+    @Column(name = "reserva_expira")
+    private LocalDateTime reservaExpira;   // hasta cuándo se sostiene el asiento sin pagar
+
+    @Column(name = "culqi_charge_id", length = 100)
+    private String culqiChargeId;          // id del cargo en Culqi tras el pago
+
     @OneToMany(mappedBy = "venta", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<VentaTramoUsado> tramosUsados;
 
@@ -136,7 +149,7 @@ public class Venta {
     public enum TipoComprobante { TICKET, BOLETA, FACTURA, NOTA_VENTA }
     public enum AsientoTipo { NORMAL, VIP }
     public enum EmbarqueEstado { PENDIENTE, EMBARCADO }
-    public enum EstadoVenta { PAGADO, ANULADO }
+    public enum EstadoVenta { PAGADO, ANULADO, RESERVADO }
 
     // Getters y Setters
     public String getId() { return id; }
@@ -252,4 +265,16 @@ public class Venta {
 
     public List<VentaTramoUsado> getTramosUsados() { return tramosUsados; }
     public void setTramosUsados(List<VentaTramoUsado> tramosUsados) { this.tramosUsados = tramosUsados; }
+
+    public String getClienteId() { return clienteId; }
+    public void setClienteId(String clienteId) { this.clienteId = clienteId; }
+
+    public String getCanal() { return canal; }
+    public void setCanal(String canal) { this.canal = canal; }
+
+    public LocalDateTime getReservaExpira() { return reservaExpira; }
+    public void setReservaExpira(LocalDateTime reservaExpira) { this.reservaExpira = reservaExpira; }
+
+    public String getCulqiChargeId() { return culqiChargeId; }
+    public void setCulqiChargeId(String culqiChargeId) { this.culqiChargeId = culqiChargeId; }
 }

@@ -100,6 +100,54 @@ public class AsientoService {
         tramoOcupadoRepo.saveAll(tramos);
     }
 
+    // Reservar (retener) un asiento mientras el cliente paga en línea.
+    // Igual que marcarVendido pero deja el estado en RESERVADO; los tramos ocupados
+    // (con su índice único) ya bloquean a otros compradores desde este momento.
+    @Transactional
+    public void reservarAsiento(String viajeId, Integer numeroAsiento,
+                                String ventaId, String pasajeroNombre,
+                                String pasajeroDoc, String pasajeroTel,
+                                int ordenOrigen, int ordenDestino) {
+
+        ViajeAsientoEstado asiento = asientoEstadoRepo
+                .findByViajeIdAndNumero(viajeId, numeroAsiento)
+                .orElseThrow(() -> new RuntimeException("Asiento no encontrado"));
+
+        List<String> tramosSolicitados = new ArrayList<>();
+        for (int i = ordenOrigen; i < ordenDestino; i++) {
+            tramosSolicitados.add(String.valueOf(i));
+        }
+        if (tramoOcupadoRepo.existsByViajeAsientoEstadoIdAndTramoIn(asiento.getId(), tramosSolicitados)) {
+            throw new RuntimeException("El asiento #" + numeroAsiento + " ya no está disponible para ese tramo");
+        }
+
+        asiento.setEstado(ViajeAsientoEstado.EstadoAsiento.RESERVADO);
+        asiento.setVentaId(ventaId);
+        asiento.setPasajeroNombre(pasajeroNombre);
+        asiento.setPasajeroDoc(pasajeroDoc);
+        asiento.setPasajeroTel(pasajeroTel);
+        asientoEstadoRepo.save(asiento);
+
+        List<ViajeAsientoTramoOcupado> tramos = new ArrayList<>();
+        for (String tramo : tramosSolicitados) {
+            ViajeAsientoTramoOcupado t = new ViajeAsientoTramoOcupado();
+            t.setId(UUID.randomUUID().toString());
+            t.setViajeAsientoEstado(asiento);
+            t.setTramo(tramo);
+            tramos.add(t);
+        }
+        tramoOcupadoRepo.saveAll(tramos);
+    }
+
+    // Confirmar la venta: pasar el asiento de RESERVADO a VENDIDO (los tramos ya existen).
+    @Transactional
+    public void confirmarAsiento(String ventaId) {
+        asientoEstadoRepo.findByVentaId(ventaId).ifPresent(asiento -> {
+            asiento.setEstado(ViajeAsientoEstado.EstadoAsiento.VENDIDO);
+            asientoEstadoRepo.save(asiento);
+        });
+    }
+
     // Sincronizar datos del pasajero en el asiento al editar una venta
     @Transactional
     public void actualizarDatosPasajero(String ventaId, String nombre, String doc, String tel) {

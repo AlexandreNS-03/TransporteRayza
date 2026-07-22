@@ -42,6 +42,13 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**").permitAll()
 
+                        /*API PÚBLICA (web del cliente, sin login): lectura + reserva/pago*/
+                        .requestMatchers(HttpMethod.GET,  "/api/public/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/public/**").permitAll()
+
+                        /*CUENTA DEL CLIENTE (rol CLIENTE)*/
+                        .requestMatchers("/api/cliente/**").hasRole("CLIENTE")
+
                         /*USUARIOS*/
                         .requestMatchers(HttpMethod.GET,    "/api/usuarios/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST,   "/api/usuarios").hasRole("ADMIN")
@@ -142,9 +149,18 @@ public class SecurityConfig {
         
         configuration.setAllowCredentials(true);
 
+        // La API pública (web del cliente) es de solo lectura/compra sin credenciales,
+        // así que puede aceptar cualquier origen (dominio principal, staging, etc.).
+        CorsConfiguration publica = new CorsConfiguration();
+        publica.setAllowedOriginPatterns(List.of("*"));
+        publica.setAllowedMethods(List.of("GET", "POST", "OPTIONS"));
+        publica.setAllowedHeaders(List.of("*"));
+        publica.setAllowCredentials(false);
+
         UrlBasedCorsConfigurationSource source =
                 new UrlBasedCorsConfigurationSource();
 
+        source.registerCorsConfiguration("/api/public/**", publica);
         source.registerCorsConfiguration("/**", configuration);
 
         return source;
