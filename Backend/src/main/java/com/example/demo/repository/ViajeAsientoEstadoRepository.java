@@ -16,11 +16,15 @@ public interface ViajeAsientoEstadoRepository extends JpaRepository<ViajeAsiento
 
     Optional<ViajeAsientoEstado> findByViajeIdAndNumero(String viajeId, Integer numero);
 
-    // Asientos libres para un tramo específico
+    /**
+     * Asientos libres para un tramo. Manda el solapamiento de tramos, no el estado
+     * del asiento: un asiento vendido de Requena a Herrera queda disponible de
+     * Herrera en adelante, porque el pasajero ya bajó. Una venta directa hasta el
+     * final ocupa todos los tramos y por lo tanto bloquea el asiento entero.
+     */
     @Query("""
         SELECT a FROM ViajeAsientoEstado a
         WHERE a.viajeId = :viajeId
-        AND a.estado = 'LIBRE'
         AND NOT EXISTS (
             SELECT t FROM ViajeAsientoTramoOcupado t
             WHERE t.viajeAsientoEstado = a

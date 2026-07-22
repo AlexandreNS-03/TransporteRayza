@@ -160,17 +160,32 @@ public class RutaService {
         return idBase + "_" + contador;
     }
 
+    /**
+     * Tarifa de un tramo. Si no hay una cargada, cae al precio base de la ruta en vez
+     * de fallar: con la venta por tramos hay muchas combinaciones posibles y exigir
+     * una tarifa para cada una dejaría al mostrador sin poder vender. Es el mismo
+     * criterio que ya usaba la web del cliente.
+     */
     public Map<String, Object> obtenerTarifa(String rutaId, int ordenOrigen, int ordenDestino) {
         return tarifaRepository.findByRutaId(rutaId).stream()
                 .filter(t -> t.getOrdenOrigen() == ordenOrigen && t.getOrdenDestino() == ordenDestino)
                 .findFirst()
-                .map(t -> {
-                    Map<String, Object> result = new HashMap<>();
-                    result.put("precioNormal", t.getPrecioNormal());
-                    result.put("precioVip", t.getPrecioVip());
-                    return result;
-                })
-                .orElseThrow(() -> new RuntimeException("Tarifa no encontrada para ese tramo"));
+                .map(t -> tarifa(t.getPrecioNormal(), t.getPrecioVip(), false))
+                .orElseGet(() -> {
+                    Ruta ruta = rutaRepository.findById(rutaId)
+                            .orElseThrow(() -> new RuntimeException("Ruta no encontrada"));
+                    return tarifa(ruta.getPrecioNormal(), ruta.getPrecioVip(), true);
+                });
+    }
+
+    private Map<String, Object> tarifa(java.math.BigDecimal normal, java.math.BigDecimal vip,
+                                       boolean esPrecioBase) {
+        Map<String, Object> result = new HashMap<>();
+        result.put("precioNormal", normal);
+        result.put("precioVip", vip);
+        // Permite avisar en pantalla que ese tramo todavía no tiene su tarifa propia
+        result.put("esPrecioBase", esPrecioBase);
+        return result;
     }
 
     private RutaDTO toDTO(Ruta r, boolean conDetalle) {
