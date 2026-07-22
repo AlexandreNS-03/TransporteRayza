@@ -523,3 +523,32 @@
 
 .btn-guardar:hover { background: #1440a0; }
 .btn-guardar:disabled { background: #93c5fd; cursor: not-allowed; }
+/* Carga masiva de tarifas por Excel: con 7 paradas son 21 tramos, una por una es inviable */
+.tarifas-excel {
+    background: #f8fafc;
+    border: 1px dashed #cbd5e1;
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-bottom: 14px;
+}
+.tarifas-excel-ayuda { margin: 0 0 10px; font-size: 13px; color: #475569; }
+.tarifas-excel-acciones { display: flex; gap: 10px; flex-wrap: wrap; }
+
+.btn-plantilla, .btn-importar {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 14px; border-radius: 6px; font-size: 13px; font-weight: 600;
+    cursor: pointer; border: 1px solid #cbd5e1; background: #fff; color: #334155;
+    transition: background 0.15s, border-color 0.15s;
+}
+.btn-plantilla:hover, .btn-importar:hover { background: #f1f5f9; border-color: #94a3b8; }
+.btn-importar { background: #1d4ed8; border-color: #1d4ed8; color: #fff; }
+.btn-importar:hover { background: #1e40af; border-color: #1e40af; }
+.btn-plantilla:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.tarifas-excel-msg { margin: 10px 0 0; font-size: 13px; color: #15803d; font-weight: 500; }
+.tarifas-excel-msg.es-error { color: #b91c1c; }
+
+@media (max-width: 640px) {
+    .tarifas-excel-acciones { flex-direction: column; }
+    .btn-plantilla, .btn-importar { justify-content: center; }
+}

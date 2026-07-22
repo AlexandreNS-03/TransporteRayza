@@ -95,8 +95,13 @@ public class RutaService {
         if (req.getActivo() != null) r.setActivo(req.getActivo());
         rutaRepository.save(r);
 
+        // El flush es obligatorio: sin él el borrado queda pendiente y al reinsertar
+        // choca con uq_ruta_parada_orden ("Duplicate entry 'rut_x-1'").
         paradaRepository.deleteByRutaId(id);
         tarifaRepository.deleteByRutaId(id);
+        paradaRepository.flush();
+        tarifaRepository.flush();
+
         guardarParadas(r, req);
         guardarTarifas(r, req);
 
@@ -118,6 +123,7 @@ public class RutaService {
             rp.setRuta(r);
             rp.setNombre(p.getNombre());
             rp.setOrden(p.getOrden());
+            rp.setMinutosDesdeSalida(p.getMinutosDesdeSalida());
             return rp;
         }).collect(Collectors.toList());
         paradaRepository.saveAll(paradas);
@@ -204,7 +210,11 @@ public class RutaService {
         if (conDetalle) {
             if (r.getParadas() != null) {
                 dto.setParadas(r.getParadas().stream()
-                        .map(p -> new RutaDTO.ParadaDTO(p.getId(), p.getNombre(), p.getOrden()))
+                        .map(p -> {
+                            RutaDTO.ParadaDTO pd = new RutaDTO.ParadaDTO(p.getId(), p.getNombre(), p.getOrden());
+                            pd.setMinutosDesdeSalida(p.getMinutosDesdeSalida());
+                            return pd;
+                        })
                         .collect(Collectors.toList()));
             }
             if (r.getTarifas() != null) {

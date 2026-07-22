@@ -22,6 +22,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashSet;
@@ -75,7 +76,7 @@ public class PublicService {
             if (r.getParadas() != null) {
                 dto.setParadas(r.getParadas().stream()
                         .sorted(Comparator.comparing(p -> p.getOrden() == null ? 0 : p.getOrden()))
-                        .map(p -> new PublicRutaDTO.Parada(p.getNombre(), p.getOrden()))
+                        .map(p -> new PublicRutaDTO.Parada(p.getNombre(), p.getOrden(), p.getMinutosDesdeSalida()))
                         .collect(Collectors.toList()));
             }
 
@@ -93,20 +94,26 @@ public class PublicService {
         return resultado;
     }
 
-    /** Paradas/ciudades disponibles (respaldo para autocompletar). */
+    /**
+     * Paradas disponibles, EN ORDEN DE RECORRIDO (río abajo primero), no alfabético:
+     * al elegir el origen el pasajero espera ver los puertos como los va pasando el
+     * bote, no ordenados por su nombre.
+     */
     @Transactional(readOnly = true)
     public List<String> listarUbicaciones() {
         Set<String> ubicaciones = new LinkedHashSet<>();
         for (Ruta r : rutaRepository.findByActivoTrue()) {
-            if (r.getOrigen() != null) ubicaciones.add(r.getOrigen().trim());
-            if (r.getDestino() != null) ubicaciones.add(r.getDestino().trim());
-            if (r.getParadas() != null) {
+            if (r.getParadas() != null && !r.getParadas().isEmpty()) {
                 r.getParadas().stream()
                         .sorted(Comparator.comparing(p -> p.getOrden() == null ? 0 : p.getOrden()))
                         .forEach(p -> { if (p.getNombre() != null) ubicaciones.add(p.getNombre().trim()); });
+            } else {
+                // Ruta sin paradas cargadas: al menos sus dos puertos
+                if (r.getOrigen() != null) ubicaciones.add(r.getOrigen().trim());
+                if (r.getDestino() != null) ubicaciones.add(r.getDestino().trim());
             }
         }
-        return ubicaciones.stream().sorted(String.CASE_INSENSITIVE_ORDER).collect(Collectors.toList());
+        return new ArrayList<>(ubicaciones);
     }
 
     /**
@@ -176,6 +183,8 @@ public class PublicService {
             dto.setAsientosLibres(
                     asientoService.listarLibresPorTramo(v.getId(), ordenOrigen, ordenDestino).size());
 
+            dto.setItinerario(itinerarioDelTramo(v, paradas, ordenOrigen, ordenDestino));
+
             resultado.add(dto);
         }
 
@@ -184,6 +193,31 @@ public class PublicService {
                 .thenComparing(PublicViajeDTO::getHoraSalida,
                         Comparator.nullsLast(Comparator.naturalOrder())));
         return resultado;
+    }
+
+    /**
+     * Paradas del tramo con su hora estimada de paso: la hora de salida del viaje más
+     * los minutos configurados en cada parada (Yanallpa 30' → 08:30 si zarpa 08:00).
+     * Si la ruta no tiene esos minutos cargados, se devuelven las paradas sin hora.
+     */
+    private List<PublicViajeDTO.Escala> itinerarioDelTramo(Viaje v, List<ViajeParada> paradas,
+                                                           int ordenOrigen, int ordenDestino) {
+        if (paradas == null || paradas.isEmpty()) return List.of();
+
+        LocalTime salida = v.getHoraSalida();
+        DateTimeFormatter hhmm = DateTimeFormatter.ofPattern("HH:mm");
+
+        return paradas.stream()
+                .filter(p -> p.getOrden() != null
+                          && p.getOrden() >= ordenOrigen && p.getOrden() <= ordenDestino)
+                .sorted(Comparator.comparing(ViajeParada::getOrden))
+                .map(p -> {
+                    String hora = null;
+                    if (salida != null && p.getMinutosDesdeSalida() != null)
+                        hora = salida.plusMinutes(p.getMinutosDesdeSalida()).format(hhmm);
+                    return new PublicViajeDTO.Escala(p.getNombre(), p.getOrden(), hora);
+                })
+                .collect(Collectors.toList());
     }
 
     /**

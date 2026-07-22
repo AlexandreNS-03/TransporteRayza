@@ -20,6 +20,10 @@ public class RutaParada {
     @Column(name = "orden")
     private Integer orden;
 
+    /** Minutos estimados desde la salida del puerto de origen (Yanallpa 30, Herrera 60…). */
+    @Column(name = "minutos_desde_salida")
+    private Integer minutosDesdeSalida;
+
     // Getters y Setters
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
@@ -32,4 +36,7 @@ public class RutaParada {
 
     public Integer getOrden() { return orden; }
     public void setOrden(Integer orden) { this.orden = orden; }
+
+    public Integer getMinutosDesdeSalida() { return minutosDesdeSalida; }
+    public void setMinutosDesdeSalida(Integer m) { this.minutosDesdeSalida = m; }
 }

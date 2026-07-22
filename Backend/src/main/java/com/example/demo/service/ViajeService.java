@@ -112,6 +112,7 @@ public class ViajeService {
                     p.setViaje(v);
                     p.setNombre(rp.getNombre());
                     p.setOrden(rp.getOrden());
+                    p.setMinutosDesdeSalida(rp.getMinutosDesdeSalida());
                     return p;
                 })
                 .collect(Collectors.toList());

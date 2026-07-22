@@ -16,6 +16,10 @@ public class RutaRequest {
     private List<TarifaTramoRequest> tarifas;
 
     public static class ParadaRequest {
+        private Integer minutosDesdeSalida;   // minutos estimados desde la salida
+        public Integer getMinutosDesdeSalida() { return minutosDesdeSalida; }
+        public void setMinutosDesdeSalida(Integer m) { this.minutosDesdeSalida = m; }
+
         private String nombre;
         private Integer orden;
 

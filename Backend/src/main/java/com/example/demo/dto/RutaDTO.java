@@ -22,6 +22,7 @@ public class RutaDTO {
         private String id;
         private String nombre;
         private Integer orden;
+        private Integer minutosDesdeSalida;
 
         public ParadaDTO(String id, String nombre, Integer orden) {
             this.id = id;
@@ -32,6 +33,9 @@ public class RutaDTO {
         public String getId() { return id; }
         public String getNombre() { return nombre; }
         public Integer getOrden() { return orden; }
+
+        public Integer getMinutosDesdeSalida() { return minutosDesdeSalida; }
+        public void setMinutosDesdeSalida(Integer m) { this.minutosDesdeSalida = m; }
     }
 
     public static class TarifaTramoDTO {

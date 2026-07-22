@@ -22,6 +22,8 @@ function Rutas() {
     const [modalAbierto, setModalAbierto]     = useState(false);
     const [modoEditar, setModoEditar]         = useState(false);
     const [rutaSeleccionada, setRutaSeleccionada] = useState(null);
+    const [importando, setImportando]     = useState(false);
+    const [mensajeImport, setMensajeImport] = useState(null);
     const [guardando, setGuardando]           = useState(false);
     const [errorModal, setErrorModal]         = useState(null);
     const [sucursales, setSucursales]         = useState([]);
@@ -34,7 +36,7 @@ function Rutas() {
 
     // Paradas dinámicas
     const [paradas, setParadas] = useState([
-        { nombre: "", orden: 1 }
+        { nombre: "", orden: 1, minutosDesdeSalida: 0 }
     ]);
 
     // Tarifas dinámicas
@@ -85,7 +87,7 @@ function Rutas() {
             origen: "", destino: "", sucursalAdministradoraId: "",
             precioNormal: "", precioVip: "", duracionAproximada: "", activo: true
         });
-        setParadas([{ nombre: "", orden: 1 }]);
+        setParadas([{ nombre: "", orden: 1, minutosDesdeSalida: 0 }]);
         setTarifas([{ origenTramo: "", destinoTramo: "", ordenOrigen: "", ordenDestino: "", precioNormal: "", precioVip: "" }]);
         setModoEditar(false);
         setRutaSeleccionada(null);
@@ -113,8 +115,8 @@ function Rutas() {
         const detalle = await res.json();
 
         setParadas(detalle.paradas?.length > 0
-            ? detalle.paradas.map(p => ({ nombre: p.nombre, orden: p.orden }))
-            : [{ nombre: "", orden: 1 }]
+            ? detalle.paradas.map(p => ({ nombre: p.nombre, orden: p.orden, minutosDesdeSalida: p.minutosDesdeSalida ?? "" }))
+            : [{ nombre: "", orden: 1, minutosDesdeSalida: 0 }]
         );
         setTarifas(detalle.tarifas?.length > 0
             ? detalle.tarifas.map(t => ({
@@ -150,12 +152,14 @@ function Rutas() {
     // Paradas
     const handleParada = (i, field, value) => {
         const nuevas = [...paradas];
-        nuevas[i][field] = field === "orden" ? parseInt(value) : value;
+        nuevas[i][field] = (field === "orden" || field === "minutosDesdeSalida")
+            ? (value === "" ? "" : parseInt(value))
+            : value;
         setParadas(nuevas);
     };
 
     const agregarParada = () => {
-        setParadas(prev => [...prev, { nombre: "", orden: prev.length + 1 }]);
+        setParadas(prev => [...prev, { nombre: "", orden: prev.length + 1, minutosDesdeSalida: "" }]);
     };
 
     const eliminarParada = (i) => {
@@ -181,6 +185,70 @@ function Rutas() {
         setTarifas(prev => prev.filter((_, idx) => idx !== i));
     };
 
+    // Descarga la plantilla con TODOS los pares origen→destino de esta ruta
+    const descargarPlantilla = async () => {
+        setMensajeImport(null);
+        try {
+            const token = localStorage.getItem("token");
+            const res = await fetch(
+                `${API_BASE}/api/rutas/${rutaSeleccionada.id}/tarifas/plantilla`,
+                { headers: { "Authorization": `Bearer ${token}` } }
+            );
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                throw new Error(err.message || "No se pudo generar la plantilla");
+            }
+            const blob = await res.blob();
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `tarifas-${rutaSeleccionada.id}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+        } catch (e) {
+            setMensajeImport({ error: true, texto: e.message });
+        }
+    };
+
+    const importarTarifas = async (archivo, input) => {
+        if (!archivo) return;
+        setImportando(true);
+        setMensajeImport(null);
+        try {
+            const token = localStorage.getItem("token");
+            const datos = new FormData();
+            datos.append("archivo", archivo);
+            const res = await fetch(
+                `${API_BASE}/api/rutas/${rutaSeleccionada.id}/tarifas/importar`,
+                { method: "POST", headers: { "Authorization": `Bearer ${token}` }, body: datos }
+            );
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) throw new Error(data.message || "No se pudo importar");
+
+            setMensajeImport({
+                error: false,
+                texto: `Se cargaron ${data.guardadas} tarifas` +
+                       (data.ignoradas ? ` (${data.ignoradas} filas sin precio se dejaron sin tarifa)` : "")
+            });
+            // Recargar la ruta para ver las tarifas nuevas en el formulario
+            const detalle = await (await fetch(`${API_BASE}/api/rutas/${rutaSeleccionada.id}`,
+                { headers: { "Authorization": `Bearer ${token}` } })).json();
+            setTarifas(detalle.tarifas?.length > 0
+                ? detalle.tarifas.map(t => ({
+                    origenTramo: t.origenTramo, destinoTramo: t.destinoTramo,
+                    ordenOrigen: t.ordenOrigen, ordenDestino: t.ordenDestino,
+                    precioNormal: t.precioNormal, precioVip: t.precioVip
+                }))
+                : [{ origenTramo: "", destinoTramo: "", ordenOrigen: "", ordenDestino: "", precioNormal: "", precioVip: "" }]
+            );
+        } catch (e) {
+            setMensajeImport({ error: true, texto: e.message });
+        } finally {
+            setImportando(false);
+            if (input) input.value = "";   // permite volver a subir el mismo archivo
+        }
+    };
+
     const guardar = async () => {
         if (!form.origen || !form.destino || !form.sucursalAdministradoraId) {
             setErrorModal("Origen, destino y sucursal son obligatorios");
@@ -199,7 +267,10 @@ function Rutas() {
                 ...form,
                 precioNormal: parseFloat(form.precioNormal),
                 precioVip: parseFloat(form.precioVip),
-                paradas: paradas.filter(p => p.nombre),
+                paradas: paradas.filter(p => p.nombre).map(p => ({
+                    ...p,
+                    minutosDesdeSalida: p.minutosDesdeSalida === "" ? null : p.minutosDesdeSalida
+                })),
                 tarifas: tarifas.filter(t => t.origenTramo && t.destinoTramo).map(t => ({
                     ...t,
                     ordenOrigen: parseInt(t.ordenOrigen),
@@ -529,6 +600,15 @@ function Rutas() {
                                         <input type="text" value={p.nombre} placeholder="Ej: Herrera"
                                                onChange={e => handleParada(i, "nombre", e.target.value)} />
                                     </div>
+                                    <div className="form-grupo" style={{ width: "130px" }}>
+                                        <label title="Minutos desde la salida del puerto de origen">
+                                            Llega en (min)
+                                        </label>
+                                        <input type="number" min="0" step="5"
+                                               value={p.minutosDesdeSalida ?? ""}
+                                               placeholder={i === 0 ? "0" : "Ej: 30"}
+                                               onChange={e => handleParada(i, "minutosDesdeSalida", e.target.value)} />
+                                    </div>
                                     {paradas.length > 1 && (
                                         <button className="btn-eliminar-fila" onClick={() => eliminarParada(i)}>
                                             <i className="ti ti-trash"></i>
@@ -546,6 +626,35 @@ function Rutas() {
                             <p className="modal-seccion-titulo">
                                 <i className="ti ti-receipt"></i> Tarifas por Tramo
                             </p>
+
+                            {/* Con muchas paradas las combinaciones se disparan (7 paradas = 21
+                                tramos), así que se cargan en Excel en vez de una por una */}
+                            {modoEditar && (
+                                <div className="tarifas-excel">
+                                    <p className="tarifas-excel-ayuda">
+                                        ¿Muchos tramos? Descarga la plantilla con todas las combinaciones
+                                        ya listadas, llena los precios en Excel y súbela.
+                                    </p>
+                                    <div className="tarifas-excel-acciones">
+                                        <button type="button" className="btn-plantilla"
+                                                onClick={descargarPlantilla} disabled={importando}>
+                                            <i className="ti ti-download"></i> Descargar plantilla
+                                        </button>
+                                        <label className="btn-importar">
+                                            <i className="ti ti-upload"></i>
+                                            {importando ? " Importando…" : " Subir archivo lleno"}
+                                            <input type="file" accept=".csv,text/csv" hidden
+                                                   disabled={importando}
+                                                   onChange={e => importarTarifas(e.target.files[0], e.target)} />
+                                        </label>
+                                    </div>
+                                    {mensajeImport && (
+                                        <p className={`tarifas-excel-msg ${mensajeImport.error ? "es-error" : ""}`}>
+                                            {mensajeImport.texto}
+                                        </p>
+                                    )}
+                                </div>
+                            )}
 
                             {tarifas.map((t, i) => (
                                 <div key={i} className="tarifa-fila">
