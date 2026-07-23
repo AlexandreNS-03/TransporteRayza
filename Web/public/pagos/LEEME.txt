@@ -1,0 +1,13 @@
+Logos oficiales de las pasarelas de pago.
+
+Sube aquí los archivos con estos nombres exactos:
+
+  yape.png     — logo de Yape (fondo transparente, mínimo 200 px de ancho)
+  izipay.png   — logo de Izipay (fondo transparente)
+
+Descárgalos de las marcas oficiales:
+  Yape   → material de marca del BCP / Yape
+  Izipay → Back Office de Izipay, sección de recursos de marca
+
+Si un archivo no está, el botón muestra un ícono de respaldo y el nombre en
+texto: no se rompe nada.

@@ -16,7 +16,23 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 @Service
-public class EmailService {
+public class EmailService implements org.springframework.beans.factory.InitializingBean {
+
+    @org.springframework.beans.factory.annotation.Value("${spring.mail.password:}")
+    private String clave;
+
+    /** Sin contraseña de aplicación, Gmail rechaza con "Authentication failed". */
+    public boolean estaConfigurado() { return clave != null && !clave.isBlank(); }
+
+    // Se avisa al arrancar con InitializingBean y no con @PostConstruct: la anotación
+    // vive en jakarta.annotation, que no está en el classpath de este proyecto, así que
+    // el método nunca llegaba a ejecutarse.
+    @Override
+    public void afterPropertiesSet() {
+        if (!estaConfigurado())
+            System.err.println("[Email] MAIL_PASSWORD no está configurada: NO se enviará "
+                    + "ningún boleto por correo. Configúrala para activar el envío.");
+    }
 
     private final JavaMailSender mailSender;
 

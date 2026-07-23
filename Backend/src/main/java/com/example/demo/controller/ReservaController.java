@@ -38,7 +38,17 @@ public class ReservaController {
         return ResponseEntity.ok(reservaService.crearReserva(req, email));
     }
 
-    /** Paso previo: pide a Izipay el formulario de pago de esta reserva. */
+    /**
+     * Medios de pago disponibles y las claves públicas que necesita el navegador.
+     * Se consulta antes de elegir: así no se pide un formulario a Izipay cuando el
+     * cliente va a pagar con Yape, y no quedan órdenes abandonadas en la pasarela.
+     */
+    @GetMapping("/metodos-de-pago")
+    public ResponseEntity<?> metodosDePago() {
+        return ResponseEntity.ok(reservaService.metodosDePago());
+    }
+
+    /** Paso previo del pago con tarjeta: pide a Izipay el formulario de esta reserva. */
     @PostMapping("/{id}/pago/formulario")
     public ResponseEntity<?> formularioDePago(@PathVariable String id) {
         return ResponseEntity.ok(reservaService.prepararPago(id));
@@ -49,6 +59,13 @@ public class ReservaController {
      * tarjeta: solo la respuesta firmada, que el servidor verifica antes de dar la
      * venta por pagada.
      */
+    /** Pago con Yape: el navegador manda el token que generó el SDK de Mercado Pago. */
+    @PostMapping("/{id}/pagar/yape")
+    public ResponseEntity<ConfirmacionDTO> pagarYape(@PathVariable String id,
+                                                     @RequestBody Map<String, String> body) {
+        return ResponseEntity.ok(reservaService.pagarConYape(id, body.get("token")));
+    }
+
     @PostMapping("/{id}/pagar")
     public ResponseEntity<ConfirmacionDTO> pagar(@PathVariable String id,
                                                  @RequestBody Map<String, String> body) {

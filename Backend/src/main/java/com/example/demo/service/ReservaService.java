@@ -41,6 +41,7 @@ public class ReservaService {
     private final ClienteRepository clienteRepository;
     private final AsientoService asientoService;
     private final IzipayService izipayService;
+    private final MercadoPagoService mercadoPagoService;
     private final VentaService ventaService;
     private final ComprobanteService comprobanteService;
     private final PublicService publicService;
@@ -52,6 +53,7 @@ public class ReservaService {
                           ClienteRepository clienteRepository,
                           AsientoService asientoService,
                           IzipayService izipayService,
+                          MercadoPagoService mercadoPagoService,
                           VentaService ventaService,
                           ComprobanteService comprobanteService,
                           PublicService publicService) {
@@ -64,6 +66,7 @@ public class ReservaService {
         this.clienteRepository = clienteRepository;
         this.asientoService = asientoService;
         this.izipayService = izipayService;
+        this.mercadoPagoService = mercadoPagoService;
         this.ventaService = ventaService;
     }
 
@@ -157,6 +160,26 @@ public class ReservaService {
         return resp;
     }
 
+    /** Qué medios de pago están configurados, con las claves públicas del navegador. */
+    public java.util.Map<String, Object> metodosDePago() {
+        java.util.Map<String, Object> tarjeta = new java.util.LinkedHashMap<>();
+        tarjeta.put("habilitado", true);
+        tarjeta.put("simulado", !izipayService.estaActiva());
+
+        java.util.Map<String, Object> yape = new java.util.LinkedHashMap<>();
+        yape.put("habilitado", true);
+        yape.put("simulado", !mercadoPagoService.estaActiva());
+        yape.put("publicKey", mercadoPagoService.getPublicKey());
+        // Con credenciales de prueba el código real de la app de Yape no sirve: hay
+        // que usar los celulares de prueba de Mercado Pago, y conviene decirlo en pantalla
+        yape.put("prueba", mercadoPagoService.esDePrueba());
+
+        java.util.Map<String, Object> r = new java.util.LinkedHashMap<>();
+        r.put("tarjeta", tarjeta);
+        r.put("yape", yape);
+        return r;
+    }
+
     /**
      * Paso previo al pago: pide a Izipay el formulario para esta reserva. Se hace acá
      * y no en el navegador porque requiere las credenciales de la tienda.
@@ -182,11 +205,52 @@ public class ReservaService {
 
     @Transactional
     public ConfirmacionDTO pagarReserva(String reservaId, String krAnswer, String krHash) {
+        Venta v = reservaLista(reservaId);
+        if (v == null) return confirmacion(ventaRepository.findById(reservaId).orElseThrow(),
+                                           false, "Esta compra ya estaba pagada");
+
+        // Izipay cobra en el navegador; acá solo se comprueba que la confirmación sea
+        // auténtica y diga que el pedido quedó pagado.
+        IzipayService.Resultado pago = izipayService.verificarPago(krAnswer, krHash);
+        if (!pago.pagado)
+            throw new RuntimeException(pago.motivo != null ? pago.motivo : "El pago no se pudo confirmar");
+
+        return confirmarPago(v, pago.referencia);
+    }
+
+    /**
+     * Pago con Yape por Mercado Pago. A diferencia de Izipay, acá el cobro lo hace
+     * este servidor con el token que generó el navegador a partir del celular y el
+     * código de aprobación.
+     */
+    @Transactional
+    public ConfirmacionDTO pagarConYape(String reservaId, String token) {
+        Venta v = reservaLista(reservaId);
+        if (v == null) return confirmacion(ventaRepository.findById(reservaId).orElseThrow(),
+                                           false, "Esta compra ya estaba pagada");
+
+        String descripcion = "Pasaje Rayza " + safe(v.getParadaOrigen()) + " → " + safe(v.getParadaDestino());
+
+        // El id de la reserva como clave de idempotencia: si el cliente reintenta,
+        // Mercado Pago devuelve el mismo pago en vez de cobrar dos veces.
+        MercadoPagoService.Resultado pago = mercadoPagoService.pagar(
+                token, v.getPrecio(), descripcion, v.getClienteEmail(), reservaId);
+
+        if (!pago.pagado)
+            throw new RuntimeException(pago.motivo != null ? pago.motivo : "El pago con Yape no se pudo confirmar");
+
+        return confirmarPago(v, pago.referencia);
+    }
+
+    /**
+     * Comprueba que la reserva siga en pie y la devuelve. Null significa que ya estaba
+     * pagada, y libera el asiento si el plazo se venció.
+     */
+    private Venta reservaLista(String reservaId) {
         Venta v = ventaRepository.findById(reservaId)
                 .orElseThrow(() -> new RuntimeException("Reserva no encontrada"));
 
-        if (v.getEstado() == Venta.EstadoVenta.PAGADO)
-            return confirmacion(v, false, "Esta compra ya estaba pagada");
+        if (v.getEstado() == Venta.EstadoVenta.PAGADO) return null;
 
         if (v.getEstado() != Venta.EstadoVenta.RESERVADO)
             throw new RuntimeException("La reserva no está disponible para pago");
@@ -198,28 +262,30 @@ public class ReservaService {
             asientoService.liberarAsiento(reservaId);
             throw new RuntimeException("La reserva expiró. Vuelve a elegir tu asiento.");
         }
+        return v;
+    }
 
-        // La pasarela cobra en el navegador; acá solo se comprueba que la confirmación
-        // sea auténtica y diga que el pedido quedó pagado.
-        IzipayService.Resultado pago = izipayService.verificarPago(krAnswer, krHash);
-        if (!pago.pagado)
-            throw new RuntimeException(pago.motivo != null ? pago.motivo : "El pago no se pudo confirmar");
-
+    /**
+     * Cierra la compra: marca la venta pagada, confirma el asiento, emite el
+     * comprobante y manda el boleto. Es común a todos los medios de pago.
+     *
+     * El cobro ya ocurrió, así que si la emisión o el correo fallan la compra sigue
+     * siendo válida: se avisa en la respuesta y el comprobante se puede reintentar
+     * desde el sistema, sin volver a cobrar.
+     */
+    private ConfirmacionDTO confirmarPago(Venta v, String referenciaPasarela) {
         v.setEstado(Venta.EstadoVenta.PAGADO);
-        v.setPasarelaReferencia(pago.referencia);
+        v.setPasarelaReferencia(referenciaPasarela);
         v.setReservaExpira(null);
         ventaRepository.save(v);
 
-        asientoService.confirmarAsiento(reservaId);
+        asientoService.confirmarAsiento(v.getId());
 
-        // El cobro ya se hizo: si la emisión o el correo fallan, la compra sigue siendo
-        // válida y se informa en la respuesta. El comprobante se puede reintentar
-        // después desde el sistema, sin volver a cobrar.
         ComprobanteDTO comprobante = emitirComprobanteElectronico(v);
 
         boolean enviado = false;
         try {
-            ventaService.enviarComprobante(reservaId);
+            ventaService.enviarComprobante(v.getId());
             enviado = true;
         } catch (Exception e) {
             System.err.println("[Reserva] No se pudo enviar el correo del boleto: " + e.getMessage());

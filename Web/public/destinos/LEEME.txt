@@ -1,0 +1,14 @@
+Fotos de los destinos que se muestran en la portada.
+
+Sube aquí tus fotos con estos nombres exactos:
+
+  iquitos.jpg
+  requena.jpg
+  nauta.jpg
+  comunidades.jpg
+
+Recomendado: horizontales, mínimo 1200x800 px, menos de 400 KB cada una
+(puedes comprimirlas en squoosh.app).
+
+Si una foto todavía no está, la tarjeta se ve igual de bien con su color de
+fondo: no se rompe nada.

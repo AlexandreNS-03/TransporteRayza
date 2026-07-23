@@ -39,6 +39,22 @@ export async function crearReserva(reserva, token) {
 }
 
 
+/** Medios de pago configurados y sus claves públicas. Se consulta antes de elegir. */
+export async function metodosDePago() {
+  try {
+    const { data } = await http.get("/reservas/metodos-de-pago");
+    return data;
+  } catch (e) { throw desempaquetarError(e); }
+}
+
+/** Confirma el pago con Yape enviando el token que generó el SDK de Mercado Pago. */
+export async function pagarConYape(reservaId, token) {
+  try {
+    const { data } = await http.post(`/reservas/${reservaId}/pagar/yape`, { token });
+    return data;
+  } catch (e) { throw desempaquetarError(e); }
+}
+
 /** Pide a Izipay el formulario de pago de esta reserva (lo arma el backend). */
 export async function formularioDePago(reservaId) {
   try {
