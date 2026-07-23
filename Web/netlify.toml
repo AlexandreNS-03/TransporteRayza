@@ -12,5 +12,7 @@
   status = 200
 
 # Variables de entorno (Site settings → Environment variables):
-#   VITE_API_URL          = https://transporterayza-production.up.railway.app
-#   VITE_CULQI_PUBLIC_KEY = pk_test_...  (opcional)
+#   VITE_API_URL = https://transporterayza-production.up.railway.app
+#
+# Izipay no necesita variables acá: su clave pública la envía el backend con cada
+# compra, y las credenciales viven solo en el servidor (IZIPAY_* en Railway).
