@@ -411,3 +411,71 @@ footer.site .foot-bottom { border-top: 1px solid rgba(255,255,255,.12); padding-
 .yape-form input:focus { outline: none; border-color: var(--rojo, #dc2626); }
 
 @media (max-width: 480px) { .metodos-pago { grid-template-columns: 1fr; } }
+
+/* ---- Sobre nosotros: el logo real, sin deformar ---- */
+.logo-nosotros {
+  width: min(300px, 70vw); height: min(300px, 70vw);
+  margin: 0 auto; display: block;
+  object-fit: contain; padding: 26px;
+  background: #fff; border-radius: 50%;
+  box-shadow: var(--sh-lg);
+  animation: floaty 6s ease-in-out infinite;
+}
+
+/* ---- Destinos: foto de fondo + detalle desplegable ---- */
+.destino .bg {
+  background-size: cover;
+  background-position: center;
+  transition: transform .6s cubic-bezier(.2,.7,.3,1);
+}
+.destino:hover .bg { transform: scale(1.07); }
+
+.destino .info { position: relative; }
+
+/* Se abre con una transición de altura para que no salte de golpe */
+.destino-mas {
+  display: grid; grid-template-rows: 0fr;
+  transition: grid-template-rows .35s ease, opacity .25s ease, margin .35s ease;
+  opacity: 0; overflow: hidden;
+}
+.destino-mas > * { min-height: 0; }
+.destino.abierto .destino-mas {
+  grid-template-rows: 1fr; opacity: 1; margin-top: 10px;
+}
+.destino-mas p { font-size: 13.5px; line-height: 1.55; margin: 0 0 10px; }
+.destino-cta { font-weight: 700; font-size: 13.5px; }
+
+.destino-toggle {
+  margin-top: 10px; padding: 0;
+  background: none; border: none; cursor: pointer;
+  font: inherit; font-size: 13px; font-weight: 700;
+  color: inherit; opacity: .85; text-decoration: underline;
+}
+.destino-toggle:hover { opacity: 1; }
+
+/* ---- Contacto: oficinas ---- */
+.contacto-dato { font-size: 16px; font-weight: 600; margin: 4px 0 6px; }
+.oficina { margin-top: 12px; }
+.oficina:first-of-type { margin-top: 6px; }
+.oficina-ciudad {
+  display: flex; align-items: center; gap: 8px;
+  font-weight: 700; color: #0f172a; font-size: 14.5px;
+}
+.badge-central {
+  padding: 1px 8px; border-radius: 20px; font-size: 10.5px; font-weight: 700;
+  background: #fef2f2; color: var(--rojo, #dc2626); letter-spacing: .03em;
+}
+.oficina-punto { margin: 3px 0 0; font-size: 13.5px; }
+.oficina-tipo {
+  display: inline-block; min-width: 58px;
+  font-weight: 700; color: #64748b; font-size: 11.5px;
+  text-transform: uppercase; letter-spacing: .04em;
+}
+
+/* ---- Datos de contacto en el pie ---- */
+.footer-contacto { list-style: none; margin: 14px 0 0; padding: 0; }
+.footer-contacto li { font-size: 13.5px; line-height: 1.65; margin-bottom: 5px; }
+.footer-contacto b { color: #dbe6f5; }
+
+/* Logo oficial de la pasarela; si falta el archivo se usa el ícono de respaldo */
+.metodo-logo { height: 26px; width: auto; max-width: 90px; object-fit: contain; }

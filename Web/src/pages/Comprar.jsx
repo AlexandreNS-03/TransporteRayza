@@ -22,6 +22,19 @@ const DATOS_INICIALES = {
   tipoComprobante: "BOLETA", clienteDocumento: "", clienteNombre: "",
 };
 
+/**
+ * Logo de la pasarela. Si el archivo oficial todavía no se subió a /public/pagos,
+ * cae a un ícono: así la pantalla nunca queda con una imagen rota.
+ */
+function LogoPasarela({ archivo, alt, respaldo }) {
+  const [falla, setFalla] = useState(false);
+  if (falla) return <span className="metodo-icono">{respaldo}</span>;
+  return (
+    <img className="metodo-logo" src={`/pagos/${archivo}`} alt={alt}
+         onError={() => setFalla(true)} />
+  );
+}
+
 export default function Comprar() {
   const [sp] = useSearchParams();
   const [paso, setPaso] = useState(0);
@@ -236,7 +249,7 @@ export default function Comprar() {
                                 className={`metodo ${metodo === "tarjeta" ? "activo" : ""}`}
                                 onClick={() => { setMetodo("tarjeta"); setErrorPago(null); }}
                                 disabled={pagando}>
-                          <span className="metodo-icono">💳</span>
+                          <LogoPasarela archivo="izipay.png" alt="Izipay" respaldo="💳" />
                           <span className="metodo-nombre">Tarjeta</span>
                           <span className="metodo-detalle">Débito o crédito</span>
                         </button>
@@ -244,7 +257,7 @@ export default function Comprar() {
                                 className={`metodo ${metodo === "yape" ? "activo" : ""}`}
                                 onClick={() => { setMetodo("yape"); setErrorPago(null); }}
                                 disabled={pagando}>
-                          <span className="metodo-icono">📱</span>
+                          <LogoPasarela archivo="yape.png" alt="Yape" respaldo="📱" />
                           <span className="metodo-nombre">Yape</span>
                           <span className="metodo-detalle">Con tu celular</span>
                         </button>

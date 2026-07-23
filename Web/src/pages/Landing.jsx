@@ -1,9 +1,42 @@
+import { useState } from "react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import Buscador from "../components/Buscador";
 import Reveal from "../components/Reveal";
+import { EMPRESA, telefonoBonito, telefonoInternacional,
+         aniosDeAniversario, esMesDeAniversario } from "../datos";
+
+/** Destinos que se muestran en la portada. La imagen se busca en /public/destinos. */
+const DESTINOS = [
+  {
+    nombre: "Iquitos", tono: "g1", imagen: "iquitos.jpg",
+    resumen: "La capital de la Amazonía",
+    detalle: "La ciudad más grande del mundo sin acceso por carretera. Puerto de llegada " +
+             "de nuestra ruta desde Requena, con oficina de ventas en Jr. Fitzcarrald 377.",
+  },
+  {
+    nombre: "Requena", tono: "g2", imagen: "requena.jpg",
+    resumen: "Sobre el río Ucayali",
+    detalle: "Nuestra central. Capital de la provincia del mismo nombre, a orillas del " +
+             "Ucayali. Desde acá salen los deslizadores rumbo a Iquitos cada mañana.",
+  },
+  {
+    nombre: "Nauta", tono: "g3", imagen: "nauta.jpg",
+    resumen: "Puerto de conexión",
+    detalle: "Donde el Marañón y el Ucayali forman el Amazonas. Punto de enlace por " +
+             "carretera con Iquitos y parada obligada de la ruta.",
+  },
+  {
+    nombre: "Comunidades", tono: "g4", imagen: "comunidades.jpg",
+    resumen: "Puertos ribereños",
+    detalle: "Yanallpa, Jenaro Herrera, Flor de Castaña, Puerto Miguel y más pueblos del " +
+             "río. Puedes comprar tu pasaje a cualquier tramo intermedio, no solo al final.",
+  },
+];
 
 export default function Landing() {
+  const anios = aniosDeAniversario();
+  const [abierto, setAbierto] = useState(null);
   return (
     <>
       <Header />
@@ -38,7 +71,11 @@ export default function Landing() {
       <section className="section" style={{ paddingTop: 56 }}>
         <div className="wrap">
           <div className="promos">
-            <Reveal className="promo p2"><span className="tagline">Fiestas Patrias</span><h3>Viaja este julio</h3><p>Asegura tu asiento a los principales puertos del río.</p></Reveal>
+            <Reveal className="promo p2">
+              <span className="tagline">{esMesDeAniversario() ? `${anios + 1}° aniversario` : "Fiestas Patrias"}</span>
+              <h3>{esMesDeAniversario() ? `Este 28 de julio cumplimos ${anios + 1} años` : "Viaja este julio"}</h3>
+              <p>Gracias por navegar el río con nosotros. Asegura tu asiento a los principales puertos.</p>
+            </Reveal>
             <Reveal className="promo p1" delay={1}><span className="tagline">Nuevo</span><h3>Compra en línea</h3><p>Sin colas: reserva y paga desde tu celular.</p></Reveal>
             <Reveal className="promo p3" delay={2}><span className="tagline">Encomiendas</span><h3>Envía tu carga</h3><p>Puerta a puerto, con comprobante electrónico.</p></Reveal>
           </div>
@@ -54,20 +91,29 @@ export default function Landing() {
             <p>Conectamos Iquitos, Requena y los pueblos del río en la Amazonía peruana.</p>
           </div>
           <div className="destinos">
-            {[
-              ["Iquitos", "g1", "La capital de la Amazonía"],
-              ["Requena", "g2", "Sobre el río Ucayali"],
-              ["Nauta", "g3", "Puerto de conexión"],
-              ["Comunidades", "g4", "Puertos ribereños"],
-            ].map(([n, g, d], i) => (
-              <Reveal key={n} delay={(i % 3) + 1}>
-                <a className="destino" href="/comprar">
-                  <div className={"bg dest-" + g} />
+            {DESTINOS.map((d, i) => (
+              <Reveal key={d.nombre} delay={(i % 3) + 1}>
+                <article className={`destino ${abierto === d.nombre ? "abierto" : ""}`}>
+                  {/* La foto va sobre el degradado: si todavía no se subió la imagen,
+                      la tarjeta se ve igual de bien con el color de fondo */}
+                  <div className={"bg dest-" + d.tono}
+                       style={{ backgroundImage: `url(/destinos/${d.imagen})` }} />
                   <div className="info">
-                    <div className="n">{n}</div>
-                    <div className="p">{d} · <b>Ver viajes →</b></div>
+                    <div className="n">{d.nombre}</div>
+                    <div className="p">{d.resumen}</div>
+
+                    <div className="destino-mas">
+                      <p>{d.detalle}</p>
+                      <a className="destino-cta" href="/comprar">Ver viajes →</a>
+                    </div>
+
+                    <button type="button" className="destino-toggle"
+                            aria-expanded={abierto === d.nombre}
+                            onClick={() => setAbierto(abierto === d.nombre ? null : d.nombre)}>
+                      {abierto === d.nombre ? "Ver menos" : "Ver más"}
+                    </button>
                   </div>
-                </a>
+                </article>
               </Reveal>
             ))}
           </div>
@@ -111,11 +157,14 @@ export default function Landing() {
             <p className="muted" style={{ marginBottom: 14 }}>
               Empresa amazónica dedicada al transporte fluvial de pasajeros y encomiendas en la región
               Loreto. Nacimos para acortar distancias entre las comunidades del río, con un servicio
-              cercano, puntual y seguro.
+              cercano, puntual y seguro. Nuestra central está en <strong>Requena</strong>, con oficina
+              de ventas en <strong>Iquitos</strong>.
             </p>
             <p className="muted" style={{ marginBottom: 24 }}>Conocemos el río porque es nuestra casa.</p>
             <div style={{ display: "flex", gap: 30, flexWrap: "wrap" }}>
-              {[["+10", "años de experiencia"], ["Loreto", "Iquitos · Requena"], ["100%", "servicio fluvial"]].map(([b, s]) => (
+              {[[`${anios}`, anios === 1 ? "año navegando el río" : "años navegando el río"],
+                ["Loreto", "Requena · Iquitos"],
+                ["100%", "servicio fluvial"]].map(([b, s]) => (
                 <div key={s}>
                   <div style={{ fontFamily: "var(--font-head)", fontSize: 30, fontWeight: 800, color: "var(--accent)" }}>{b}</div>
                   <div className="muted" style={{ fontSize: 13.5 }}>{s}</div>
@@ -124,8 +173,8 @@ export default function Landing() {
             </div>
           </Reveal>
           <Reveal delay={2} className="center">
-            <img src="/logo-rayza.png" alt="Multiservicios Rayza"
-                 style={{ width: 300, height: 300, borderRadius: "50%", margin: "0 auto", background: "#fff", boxShadow: "var(--sh-lg)", animation: "floaty 6s ease-in-out infinite" }} />
+            <img src="/logo-rayza-marca.png" alt="Multiservicios Rayza"
+                 className="logo-nosotros" />
           </Reveal>
         </div>
       </section>
@@ -136,25 +185,52 @@ export default function Landing() {
           <div className="section-head">
             <div className="kicker">Contacto</div>
             <h2>Estamos para ayudarte</h2>
-            <p>Escríbenos por cualquiera de estos medios. <span style={{ color: "var(--accent)" }}>[Completar datos reales]</span></p>
+            <p>Escríbenos por cualquiera de estos medios o acércate a nuestras oficinas.</p>
           </div>
           <div className="cards">
             <Reveal className="card" delay={1}>
               <div className="icon"><svg className="svg-ic" viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3.1 19.5 19.5 0 01-6-6A19.8 19.8 0 012 4.2 2 2 0 014 2h3a2 2 0 012 1.7c.1 1 .4 1.9.7 2.8a2 2 0 01-.5 2.1L8 9.9a16 16 0 006 6l1.3-1.3a2 2 0 012.1-.4c.9.3 1.8.6 2.8.7A2 2 0 0122 16.9z"/></svg></div>
-              <h3 style={{ fontSize: 18 }}>Teléfono / WhatsApp</h3>
-              <p className="muted">[completar número real]</p>
+              <h3 style={{ fontSize: 18 }}>Teléfono y WhatsApp</h3>
+              <p className="muted contacto-dato">
+                <a href={`tel:+${telefonoInternacional}`}>{telefonoBonito}</a>
+              </p>
+              <p className="muted" style={{ fontSize: 13 }}>
+                <a href={`https://wa.me/${telefonoInternacional}`} target="_blank" rel="noopener">
+                  Escribir por WhatsApp →
+                </a>
+              </p>
             </Reveal>
+
             <Reveal className="card" delay={2}>
               <div className="icon"><svg className="svg-ic" viewBox="0 0 24 24"><path d="M12 21s-6-5.7-6-10a6 6 0 1112 0c0 4.3-6 10-6 10z"/><circle cx="12" cy="11" r="2.2"/></svg></div>
-              <h3 style={{ fontSize: 18 }}>Dirección</h3>
-              <p className="muted">[completar — Iquitos / Requena, Loreto]</p>
+              <h3 style={{ fontSize: 18 }}>Dónde estamos</h3>
+              {EMPRESA.oficinas.map((o) => (
+                <div key={o.ciudad} className="oficina">
+                  <div className="oficina-ciudad">
+                    {o.ciudad}
+                    {o.central && <span className="badge-central">Central</span>}
+                  </div>
+                  {o.puntos.map((pt) => (
+                    <p key={pt.tipo} className="muted oficina-punto">
+                      <span className="oficina-tipo">{pt.tipo}</span> {pt.direccion}
+                    </p>
+                  ))}
+                </div>
+              ))}
             </Reveal>
+
             <Reveal className="card" delay={3}>
               <div className="icon"><svg className="svg-ic" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 6l-10 7L2 6"/></svg></div>
-              <h3 style={{ fontSize: 18 }}>Redes</h3>
-              <p className="muted">
-                <a href="https://www.facebook.com/multitrayza/" target="_blank" rel="noopener">Facebook</a> ·{" "}
-                <a href="https://www.instagram.com/transportes_rayza/" target="_blank" rel="noopener">Instagram</a>
+              <h3 style={{ fontSize: 18 }}>Correo y redes</h3>
+              <p className="muted contacto-dato">
+                <a href={`mailto:${EMPRESA.correo}`}>{EMPRESA.correo}</a>
+              </p>
+              <p className="muted" style={{ fontSize: 13.5 }}>
+                <a href={EMPRESA.redes.facebook} target="_blank" rel="noopener">Facebook</a>
+                {" · "}
+                <a href={EMPRESA.redes.instagram} target="_blank" rel="noopener">
+                  @{EMPRESA.redes.instagramUsuario}
+                </a>
               </p>
             </Reveal>
           </div>
