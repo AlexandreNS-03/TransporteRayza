@@ -26,7 +26,7 @@ import java.util.UUID;
 
 /**
  * Compra en línea del cliente: crea una reserva que RETIENE el asiento y luego
- * procesa el pago con Culqi. Independiente de la venta del personal (no usa caja).
+ * procesa el pago con Izipay. Independiente de la venta del personal (no usa caja).
  */
 @Service
 public class ReservaService {
@@ -40,7 +40,7 @@ public class ReservaService {
     private final RutaTarifaTramoRepository tarifaRepository;
     private final ClienteRepository clienteRepository;
     private final AsientoService asientoService;
-    private final CulqiService culqiService;
+    private final IzipayService izipayService;
     private final VentaService ventaService;
     private final ComprobanteService comprobanteService;
     private final PublicService publicService;
@@ -51,7 +51,7 @@ public class ReservaService {
                           RutaTarifaTramoRepository tarifaRepository,
                           ClienteRepository clienteRepository,
                           AsientoService asientoService,
-                          CulqiService culqiService,
+                          IzipayService izipayService,
                           VentaService ventaService,
                           ComprobanteService comprobanteService,
                           PublicService publicService) {
@@ -63,7 +63,7 @@ public class ReservaService {
         this.tarifaRepository = tarifaRepository;
         this.clienteRepository = clienteRepository;
         this.asientoService = asientoService;
-        this.culqiService = culqiService;
+        this.izipayService = izipayService;
         this.ventaService = ventaService;
     }
 
@@ -157,8 +157,31 @@ public class ReservaService {
         return resp;
     }
 
+    /**
+     * Paso previo al pago: pide a Izipay el formulario para esta reserva. Se hace acá
+     * y no en el navegador porque requiere las credenciales de la tienda.
+     */
+    @Transactional(readOnly = true)
+    public IzipayService.Formulario prepararPago(String reservaId) {
+        Venta v = ventaRepository.findById(reservaId)
+                .orElseThrow(() -> new RuntimeException("Reserva no encontrada"));
+
+        if (v.getEstado() == Venta.EstadoVenta.PAGADO)
+            throw new RuntimeException("Esta compra ya estaba pagada");
+        if (v.getEstado() != Venta.EstadoVenta.RESERVADO)
+            throw new RuntimeException("La reserva no está disponible para pago");
+        if (v.getReservaExpira() != null && LocalDateTime.now().isAfter(v.getReservaExpira()))
+            throw new RuntimeException("La reserva expiró. Vuelve a elegir tu asiento.");
+
+        int cents = v.getPrecio().multiply(BigDecimal.valueOf(100)).intValueExact();
+        return izipayService.crearFormulario(
+                v.getSerieComprobante() + "-" + v.getNumeroComprobante(),
+                cents, v.getClienteEmail(), v.getPasajeroNombre(),
+                v.getPasajeroDocumento(), v.getPasajeroTelefono());
+    }
+
     @Transactional
-    public ConfirmacionDTO pagarReserva(String reservaId, String token, String email) {
+    public ConfirmacionDTO pagarReserva(String reservaId, String krAnswer, String krHash) {
         Venta v = ventaRepository.findById(reservaId)
                 .orElseThrow(() -> new RuntimeException("Reserva no encontrada"));
 
@@ -176,14 +199,14 @@ public class ReservaService {
             throw new RuntimeException("La reserva expiró. Vuelve a elegir tu asiento.");
         }
 
-        int cents = v.getPrecio().multiply(BigDecimal.valueOf(100)).intValueExact();
-        String correo = (email != null && !email.isBlank()) ? email : v.getClienteEmail();
-        String descripcion = "Pasaje Rayza " + safe(v.getParadaOrigen()) + " → " + safe(v.getParadaDestino());
-
-        String chargeId = culqiService.crearCargo(token, cents, correo, descripcion);
+        // La pasarela cobra en el navegador; acá solo se comprueba que la confirmación
+        // sea auténtica y diga que el pedido quedó pagado.
+        IzipayService.Resultado pago = izipayService.verificarPago(krAnswer, krHash);
+        if (!pago.pagado)
+            throw new RuntimeException(pago.motivo != null ? pago.motivo : "El pago no se pudo confirmar");
 
         v.setEstado(Venta.EstadoVenta.PAGADO);
-        v.setCulqiChargeId(chargeId);
+        v.setPasarelaReferencia(pago.referencia);
         v.setReservaExpira(null);
         ventaRepository.save(v);
 

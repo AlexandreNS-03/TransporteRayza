@@ -38,10 +38,21 @@ public class ReservaController {
         return ResponseEntity.ok(reservaService.crearReserva(req, email));
     }
 
+    /** Paso previo: pide a Izipay el formulario de pago de esta reserva. */
+    @PostMapping("/{id}/pago/formulario")
+    public ResponseEntity<?> formularioDePago(@PathVariable String id) {
+        return ResponseEntity.ok(reservaService.prepararPago(id));
+    }
+
+    /**
+     * Confirma el pago con lo que devolvió el formulario de Izipay. No recibe datos de
+     * tarjeta: solo la respuesta firmada, que el servidor verifica antes de dar la
+     * venta por pagada.
+     */
     @PostMapping("/{id}/pagar")
     public ResponseEntity<ConfirmacionDTO> pagar(@PathVariable String id,
                                                  @RequestBody Map<String, String> body) {
         return ResponseEntity.ok(
-                reservaService.pagarReserva(id, body.get("token"), body.get("email")));
+                reservaService.pagarReserva(id, body.get("krAnswer"), body.get("krHash")));
     }
 }
