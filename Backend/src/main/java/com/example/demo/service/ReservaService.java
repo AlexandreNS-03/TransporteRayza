@@ -170,6 +170,9 @@ public class ReservaService {
         yape.put("habilitado", true);
         yape.put("simulado", !mercadoPagoService.estaActiva());
         yape.put("publicKey", mercadoPagoService.getPublicKey());
+        // Con credenciales de prueba el código real de la app de Yape no sirve: hay
+        // que usar los celulares de prueba de Mercado Pago, y conviene decirlo en pantalla
+        yape.put("prueba", mercadoPagoService.esDePrueba());
 
         java.util.Map<String, Object> r = new java.util.LinkedHashMap<>();
         r.put("tarjeta", tarjeta);

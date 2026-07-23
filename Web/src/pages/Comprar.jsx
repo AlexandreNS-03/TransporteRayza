@@ -257,6 +257,13 @@ export default function Comprar() {
                           En tu app de Yape entra a <strong>Aprobar compra por internet</strong> y
                           genera el código de 6 dígitos.
                         </p>
+                        {metodos?.yape?.prueba && (
+                          <div className="alert alert-warn" style={{ fontSize: 13 }}>
+                            Modo de prueba: el código real de tu app <strong>no funciona acá</strong>.
+                            Usa el celular <strong>111111111</strong> con el código <strong>123456</strong>
+                            para simular un pago aprobado.
+                          </div>
+                        )}
                         <label>
                           CELULAR
                           <input type="tel" inputMode="numeric" maxLength={9}

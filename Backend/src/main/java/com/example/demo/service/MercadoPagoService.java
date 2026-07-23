@@ -53,6 +53,11 @@ public class MercadoPagoService {
 
     public String getPublicKey() { return publicKey; }
 
+    /** Las credenciales de prueba de Mercado Pago empiezan con TEST-. */
+    public boolean esDePrueba() {
+        return estaActiva() && accessToken.startsWith("TEST-");
+    }
+
     /** Resultado del cobro, con el mismo formato que usa la pasarela de tarjeta. */
     public static class Resultado {
         public boolean pagado;
@@ -111,8 +116,13 @@ public class MercadoPagoService {
                 r.referencia = String.valueOf(data.get("id"));
                 return r;
             }
-            // Yape se procesa como débito: o sale aprobado o sale rechazado
-            r.motivo = motivoLegible(data != null ? String.valueOf(data.get("status_detail")) : null);
+            // Yape se procesa como débito: o sale aprobado o sale rechazado.
+            // Se registra el motivo crudo porque los códigos que no están mapeados
+            // llegan al cliente como un genérico y sin esto no hay cómo saber cuál fue.
+            String detalle = data != null ? String.valueOf(data.get("status_detail")) : null;
+            System.out.println("[MercadoPago] pago no aprobado — status: " + estado
+                    + " · status_detail: " + detalle);
+            r.motivo = motivoLegible(detalle);
             return r;
 
         } catch (HttpStatusCodeException e) {
