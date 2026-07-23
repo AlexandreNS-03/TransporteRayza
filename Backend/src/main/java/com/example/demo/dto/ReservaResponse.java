@@ -6,7 +6,7 @@ import java.math.BigDecimal;
 public class ReservaResponse {
     private String reservaId;
     private BigDecimal monto;
-    private int montoCents;      // para Culqi (céntimos)
+    private int montoCents;      // en céntimos, que es como cobra la pasarela
     private String moneda;       // PEN
     private String expiraEn;     // ISO-8601; después de esa hora se libera el asiento
     private String descripcion;

@@ -138,8 +138,9 @@ public class Venta {
     @Column(name = "reserva_expira")
     private LocalDateTime reservaExpira;   // hasta cuándo se sostiene el asiento sin pagar
 
-    @Column(name = "culqi_charge_id", length = 100)
-    private String culqiChargeId;          // id del cargo en Culqi tras el pago
+    /** Referencia de la transacción en la pasarela (Izipay). */
+    @Column(name = "pasarela_referencia", length = 100)
+    private String pasarelaReferencia;
 
     @OneToMany(mappedBy = "venta", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<VentaTramoUsado> tramosUsados;
@@ -275,6 +276,6 @@ public class Venta {
     public LocalDateTime getReservaExpira() { return reservaExpira; }
     public void setReservaExpira(LocalDateTime reservaExpira) { this.reservaExpira = reservaExpira; }
 
-    public String getCulqiChargeId() { return culqiChargeId; }
-    public void setCulqiChargeId(String culqiChargeId) { this.culqiChargeId = culqiChargeId; }
+    public String getPasarelaReferencia() { return pasarelaReferencia; }
+    public void setPasarelaReferencia(String r) { this.pasarelaReferencia = r; }
 }

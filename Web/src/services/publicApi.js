@@ -38,10 +38,19 @@ export async function crearReserva(reserva, token) {
   } catch (e) { throw desempaquetarError(e); }
 }
 
-// Procesa el pago de una reserva con el token de Culqi.
-export async function pagarReserva(reservaId, culqiToken, email) {
+
+/** Pide a Izipay el formulario de pago de esta reserva (lo arma el backend). */
+export async function formularioDePago(reservaId) {
   try {
-    const { data } = await http.post(`/reservas/${reservaId}/pagar`, { token: culqiToken, email });
+    const { data } = await http.post(`/reservas/${reservaId}/pago/formulario`);
+    return data;
+  } catch (e) { throw desempaquetarError(e); }
+}
+
+/** Confirma el pago enviando la respuesta firmada de Izipay para que el servidor la verifique. */
+export async function pagarReserva(reservaId, { krAnswer, krHash } = {}) {
+  try {
+    const { data } = await http.post(`/reservas/${reservaId}/pagar`, { krAnswer, krHash });
     return data;
   } catch (e) { throw desempaquetarError(e); }
 }

@@ -8,8 +8,8 @@ import MapaAsientos from "../components/MapaAsientos";
 import FormularioPasajero from "../components/FormularioPasajero";
 import Resumen from "../components/Resumen";
 import Confirmacion from "../components/Confirmacion";
-import { buscarViajes, crearReserva, pagarReserva } from "../services/publicApi";
-import { pagarConCulqi, culqiSimulado } from "../services/culqi";
+import { buscarViajes, crearReserva, pagarReserva, formularioDePago } from "../services/publicApi";
+import { pagarConIzipay, limpiarIzipay } from "../services/izipay";
 import { tokenCliente } from "../services/authCliente";
 
 const PASOS = ["Buscar", "Asiento", "Datos", "Pago", "Listo"];
@@ -35,6 +35,7 @@ export default function Comprar() {
   const [pagando, setPagando] = useState(false);
   const [errorPago, setErrorPago] = useState(null);
   const [confirmacion, setConfirmacion] = useState(null);
+  const [simulado, setSimulado] = useState(false);
 
   const buscar = async (params) => {
     setCargando(true); setError(null); setViajes(null);
@@ -90,12 +91,14 @@ export default function Comprar() {
         clienteDocumento: datos.clienteDocumento,
       };
       const reserva = await crearReserva(reservaBody, tokenCliente());
-      const culqiToken = await pagarConCulqi({
-        amountCents: reserva.montoCents,
-        description: reserva.descripcion,
-        email: datos.clienteEmail,
-      });
-      const conf = await pagarReserva(reserva.reservaId, culqiToken, datos.clienteEmail);
+
+      // El backend pide el formulario a Izipay; el cliente escribe su tarjeta dentro
+      // de ese formulario y nos devuelve la respuesta firmada, que el servidor verifica.
+      const form = await formularioDePago(reserva.reservaId);
+      setSimulado(!!form.simulado);
+      const respuesta = await pagarConIzipay({ ...form, contenedor: "#izipay-form" });
+      const conf = await pagarReserva(reserva.reservaId, respuesta);
+      limpiarIzipay("#izipay-form");
       setConfirmacion(conf);
       setPaso(4);
       scrollTop();
@@ -162,15 +165,17 @@ export default function Comprar() {
                   <div className="card">
                     <h3>Pago en línea</h3>
                     <p className="muted" style={{ marginTop: 6 }}>
-                      Pago seguro con <strong>Culqi</strong> (tarjeta o Yape). Al confirmar retenemos tu
+                      Pago seguro con <strong>Izipay</strong>. Al confirmar retenemos tu
                       asiento por 15 minutos mientras completas el pago.
                     </p>
-                    {culqiSimulado() && (
+                    {simulado && (
                       <div className="alert alert-warn" style={{ marginTop: 12 }}>
-                        Modo prueba: falta configurar la llave de Culqi, así que el pago se
+                        Modo prueba: faltan las credenciales de Izipay, así que el pago se
                         <strong> simula</strong> (no se cobra). Igual se genera tu boleto con QR.
                       </div>
                     )}
+                    {/* Izipay dibuja acá su formulario de tarjeta */}
+                    <div id="izipay-form" style={{ marginTop: 16 }} />
                     {errorPago && <div className="alert alert-warn" style={{ marginTop: 12 }}>{errorPago}</div>}
                     <div style={{ display: "flex", justifyContent: "space-between", marginTop: 22 }}>
                       <button className="btn btn-ghost" onClick={() => setPaso(2)} disabled={pagando}>Volver</button>
