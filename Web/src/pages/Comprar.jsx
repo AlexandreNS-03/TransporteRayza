@@ -36,6 +36,7 @@ export default function Comprar() {
   const [errorPago, setErrorPago] = useState(null);
   const [confirmacion, setConfirmacion] = useState(null);
   const [simulado, setSimulado] = useState(false);
+  const [formularioVisible, setFormularioVisible] = useState(false);
 
   const buscar = async (params) => {
     setCargando(true); setError(null); setViajes(null);
@@ -96,7 +97,12 @@ export default function Comprar() {
       // de ese formulario y nos devuelve la respuesta firmada, que el servidor verifica.
       const form = await formularioDePago(reserva.reservaId);
       setSimulado(!!form.simulado);
-      const respuesta = await pagarConIzipay({ ...form, contenedor: "#izipay-form" });
+      const respuesta = await pagarConIzipay({
+        ...form,
+        contenedor: "#izipay-form",
+        alMostrarFormulario: () => setFormularioVisible(true),
+      });
+      setFormularioVisible(false);
       const conf = await pagarReserva(reserva.reservaId, respuesta);
       limpiarIzipay("#izipay-form");
       setConfirmacion(conf);
@@ -104,6 +110,8 @@ export default function Comprar() {
       scrollTop();
     } catch (e) {
       setErrorPago(e.message);
+      setFormularioVisible(false);
+      limpiarIzipay("#izipay-form");
     } finally {
       setPagando(false);
     }
@@ -179,9 +187,11 @@ export default function Comprar() {
                     {errorPago && <div className="alert alert-warn" style={{ marginTop: 12 }}>{errorPago}</div>}
                     <div style={{ display: "flex", justifyContent: "space-between", marginTop: 22 }}>
                       <button className="btn btn-ghost" onClick={() => setPaso(2)} disabled={pagando}>Volver</button>
-                      <button className="btn btn-primary" onClick={pagar} disabled={pagando}>
-                        {pagando ? "Procesando…" : "Pagar ahora"}
-                      </button>
+                      {!formularioVisible && (
+                        <button className="btn btn-primary" onClick={pagar} disabled={pagando}>
+                          {pagando ? "Abriendo el pago…" : "Pagar ahora"}
+                        </button>
+                      )}
                     </div>
                   </div>
                 )}

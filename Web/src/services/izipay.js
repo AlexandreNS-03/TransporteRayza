@@ -42,7 +42,7 @@ function cargarKrypton(publicKey) {
  *
  * @returns {Promise<{krAnswer: string, krHash: string} | {simulado: true}>}
  */
-export async function pagarConIzipay({ formToken, publicKey, simulado, contenedor }) {
+export async function pagarConIzipay({ formToken, publicKey, simulado, contenedor, alMostrarFormulario }) {
   if (simulado) return { simulado: true };
 
   const KR = await cargarKrypton(publicKey);
@@ -75,6 +75,9 @@ export async function pagarConIzipay({ formToken, publicKey, simulado, contenedo
 
     kr.attachForm(contenedor)
       .then(({ KR: k, result }) => k.showForm(result.formId))
+      // Izipay ya tiene su propio botón de pagar: se avisa para que la página
+      // esconda el suyo y no queden dos botones a la vez.
+      .then(() => alMostrarFormulario?.())
       .catch(() => reject(new Error("No se pudo mostrar el formulario de pago")));
   });
 }
