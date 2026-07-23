@@ -3,6 +3,7 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import Buscador from "../components/Buscador";
 import Reveal from "../components/Reveal";
+import AnuncioAniversario from "../components/AnuncioAniversario";
 import { EMPRESA, telefonoBonito, telefonoInternacional,
          aniosDeAniversario, esMesDeAniversario } from "../datos";
 
@@ -82,6 +83,8 @@ export default function Landing() {
         </div>
       </section>
 
+      <AnuncioAniversario />
+
       {/* ===== DESTINOS ===== */}
       <section className="section section-alt" id="destinos">
         <div className="wrap">
@@ -94,10 +97,12 @@ export default function Landing() {
             {DESTINOS.map((d, i) => (
               <Reveal key={d.nombre} delay={(i % 3) + 1}>
                 <article className={`destino ${abierto === d.nombre ? "abierto" : ""}`}>
-                  {/* La foto va sobre el degradado: si todavía no se subió la imagen,
-                      la tarjeta se ve igual de bien con el color de fondo */}
-                  <div className={"bg dest-" + d.tono}
-                       style={{ backgroundImage: `url(/destinos/${d.imagen})` }} />
+                  {/* La ilustración SVG del fondo (.dest-*) siempre está; si hay foto
+                      real se carga encima y si el archivo falta, se oculta sola */}
+                  <div className={"bg dest-" + d.tono}>
+                    <img className="destino-foto" src={`/destinos/${d.imagen}`} alt="" loading="lazy"
+                         onError={(e) => { e.currentTarget.style.display = "none"; }} />
+                  </div>
                   <div className="info">
                     <div className="n">{d.nombre}</div>
                     <div className="p">{d.resumen}</div>

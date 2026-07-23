@@ -1,0 +1,13 @@
+Flyer del aniversario que se muestra en la portada.
+
+Guarda aquí la imagen del flyer con este nombre exacto:
+
+  aniversario.jpg
+
+(el que dice "3er Aniversario de Transporte Rayza e Inauguración del
+Hotel y Bar Karaoke Rayza — Precio del combo S/ 70").
+
+Recomendado: horizontal, mínimo 1200 px de ancho, menos de 500 KB.
+
+Si el archivo no está, la sección muestra una tarjeta con la misma
+información, así que nunca queda vacía.
