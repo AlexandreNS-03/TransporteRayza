@@ -211,6 +211,11 @@ public class VentaService {
                         + " a " + venta.getPasajeroNombre() + " (S/ " + venta.getPrecio()
                         + ", asiento " + venta.getAsientoTipo() + " #" + venta.getAsientoNumero() + ")");
 
+        // El boleto sale solo, sin que el vendedor tenga que acordarse de mandarlo.
+        // Si el correo falla, la venta ya está hecha y no debe caerse por eso: queda
+        // el botón de reenvío en la pantalla de pasajes.
+        enviarComprobanteSiSePuede(venta);
+
         return toDTO(venta);
     }
 
@@ -325,6 +330,22 @@ public class VentaService {
         this.emailService         = emailService;
         this.cajaService          = cajaService;
         this.auditoriaService     = auditoriaService;
+    }
+
+    /**
+     * Manda el boleto por correo sin dejar caer la operación si algo falla.
+     * Devuelve si se pudo enviar, para poder informarlo en pantalla.
+     */
+    public boolean enviarComprobanteSiSePuede(Venta v) {
+        if (v.getClienteEmail() == null || v.getClienteEmail().isBlank()) return false;
+        try {
+            enviarComprobante(v.getId());
+            return true;
+        } catch (Exception e) {
+            System.err.println("[Venta] No se pudo enviar el boleto de "
+                    + v.getSerieComprobante() + "-" + v.getNumeroComprobante() + ": " + e.getMessage());
+            return false;
+        }
     }
 
     public void enviarComprobante(String id) {

@@ -18,7 +18,11 @@ export default function Confirmacion({ data }) {
     <div className="card" style={{ maxWidth: 560, margin: "0 auto", textAlign: "center" }}>
       <div style={{ fontSize: 46 }}>✅</div>
       <h3 style={{ fontSize: 24, marginBottom: 6 }}>{data.mensaje || "¡Pago realizado!"}</h3>
-      <p className="muted">Tu boleto también fue enviado {data.correoEnviado ? "a tu correo" : "(revisa tu correo)"}.</p>
+      <p className="muted">
+        {data.correoEnviado
+          ? "Te enviamos el boleto a tu correo."
+          : "Guarda o descarga este boleto: no pudimos enviártelo por correo."}
+      </p>
 
       {qr && <img src={qr} alt="Código QR del boleto" style={{ width: 220, height: 220, margin: "18px auto" }} />}
 
