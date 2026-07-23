@@ -196,14 +196,17 @@ export function leerTarifas(texto, paradas) {
 
         const c = columnas(linea, sep);
 
-        // Coma como separador Y coma decimal a la vez: "30,50" se parte en dos y
-        // entraría 30 en vez de 30.50. Antes que importar un precio equivocado en
-        // silencio, se corta y se explica cómo guardarlo.
-        if (sep === "," && c.length > 6) {
-            errores.push(
-                `Línea ${i + 1}: el archivo usa coma para separar columnas y también en los ` +
-                `precios, así que no se puede saber cuál es cuál. Guárdalo desde Excel como ` +
-                `"CSV delimitado por punto y coma", o escribe los precios con punto (30.50).`
+        // Una fila con más columnas de las esperadas casi siempre son separadores de
+        // más (";;" en vez de ";") o coma decimal con coma de separador. En los dos
+        // casos las columnas se corren y entraría un precio que no es. Antes que
+        // importar mal en silencio, se corta y se explica.
+        if (c.length > 6) {
+            errores.push(sep === ","
+                ? `Línea ${i + 1}: el archivo usa coma para separar columnas y también en los ` +
+                  `precios, así que no se puede saber cuál es cuál. Guárdalo desde Excel como ` +
+                  `"CSV delimitado por punto y coma", o escribe los precios con punto (30.50).`
+                : `Línea ${i + 1}: tiene ${c.length} columnas y deben ser 6. ` +
+                  `Suele ser un separador de más: usa "1;Requena;2;Yanallpa;25;30", no "1;Requena;2;Yanallpa;;25;;30".`
             );
             return;
         }
