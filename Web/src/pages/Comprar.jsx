@@ -8,7 +8,9 @@ import MapaAsientos from "../components/MapaAsientos";
 import FormularioPasajero from "../components/FormularioPasajero";
 import Resumen from "../components/Resumen";
 import Confirmacion from "../components/Confirmacion";
-import { buscarViajes, crearReserva, pagarReserva, formularioDePago } from "../services/publicApi";
+import { buscarViajes, crearReserva, pagarReserva, formularioDePago,
+         metodosDePago, pagarConYape as cobrarYape } from "../services/publicApi";
+import { tokenizarYape } from "../services/yape";
 import { pagarConIzipay, limpiarIzipay } from "../services/izipay";
 import { tokenCliente } from "../services/authCliente";
 
@@ -37,6 +39,9 @@ export default function Comprar() {
   const [confirmacion, setConfirmacion] = useState(null);
   const [simulado, setSimulado] = useState(false);
   const [formularioVisible, setFormularioVisible] = useState(false);
+  const [metodo, setMetodo] = useState("tarjeta");        // tarjeta | yape
+  const [metodos, setMetodos] = useState(null);
+  const [yapeDatos, setYapeDatos] = useState({ phoneNumber: "", otp: "" });
 
   const buscar = async (params) => {
     setCargando(true); setError(null); setViajes(null);
@@ -69,29 +74,57 @@ export default function Comprar() {
     return true;
   };
 
+  // Se consultan al llegar al pago: así no se pide un formulario a Izipay si el
+  // cliente termina pagando con Yape.
+  useEffect(() => {
+    if (paso === 3 && !metodos) metodosDePago().then(setMetodos).catch(() => {});
+  }, [paso, metodos]);
+
+  const datosDeLaReserva = () => ({
+    viajeId: viaje.id,
+    ordenOrigen: viaje.ordenOrigen,
+    ordenDestino: viaje.ordenDestino,
+    paradaOrigen: viaje.origen,
+    paradaDestino: viaje.destino,
+    asientoNumero: asiento.numero,
+    asientoTipo: asiento.tipo,
+    tipoDocumento: datos.tipoDocumento,
+    pasajeroNombre: datos.pasajeroNombre,
+    pasajeroDocumento: datos.pasajeroDocumento,
+    pasajeroTelefono: datos.pasajeroTelefono,
+    clienteEmail: datos.clienteEmail,
+    edad: datos.edad ? Number(datos.edad) : null,
+    sexo: datos.sexo,
+    tipoComprobante: datos.tipoComprobante,
+    clienteNombre: datos.clienteNombre,
+    clienteDocumento: datos.clienteDocumento,
+  });
+
+  const terminar = (conf) => { setConfirmacion(conf); setPaso(4); scrollTop(); };
+
+  const pagarConYape = async () => {
+    setPagando(true); setErrorPago(null);
+    try {
+      // Se valida el código ANTES de reservar el asiento: si el código está mal, no
+      // se retiene un asiento que después habría que liberar.
+      const cfg = metodos?.yape || {};
+      const token = await tokenizarYape({
+        publicKey: cfg.publicKey, simulado: cfg.simulado,
+        otp: yapeDatos.otp.trim(), phoneNumber: yapeDatos.phoneNumber.trim(),
+      });
+      const reserva = await crearReserva(datosDeLaReserva(), tokenCliente());
+      terminar(await cobrarYape(reserva.reservaId, token));
+    } catch (e) {
+      setErrorPago(e.message);
+    } finally {
+      setPagando(false);
+    }
+  };
+
   const pagar = async () => {
     setPagando(true); setErrorPago(null);
     try {
-      const reservaBody = {
-        viajeId: viaje.id,
-        ordenOrigen: viaje.ordenOrigen,
-        ordenDestino: viaje.ordenDestino,
-        paradaOrigen: viaje.origen,
-        paradaDestino: viaje.destino,
-        asientoNumero: asiento.numero,
-        asientoTipo: asiento.tipo,
-        tipoDocumento: datos.tipoDocumento,
-        pasajeroNombre: datos.pasajeroNombre,
-        pasajeroDocumento: datos.pasajeroDocumento,
-        pasajeroTelefono: datos.pasajeroTelefono,
-        clienteEmail: datos.clienteEmail,
-        edad: datos.edad ? Number(datos.edad) : null,
-        sexo: datos.sexo,
-        tipoComprobante: datos.tipoComprobante,
-        clienteNombre: datos.clienteNombre,
-        clienteDocumento: datos.clienteDocumento,
-      };
-      const reserva = await crearReserva(reservaBody, tokenCliente());
+      const reserva = await crearReserva(datosDeLaReserva(), tokenCliente());
 
       // El backend pide el formulario a Izipay; el cliente escribe su tarjeta dentro
       // de ese formulario y nos devuelve la respuesta firmada, que el servidor verifica.
@@ -105,9 +138,7 @@ export default function Comprar() {
       setFormularioVisible(false);
       const conf = await pagarReserva(reserva.reservaId, respuesta);
       limpiarIzipay("#izipay-form");
-      setConfirmacion(conf);
-      setPaso(4);
-      scrollTop();
+      terminar(conf);
     } catch (e) {
       setErrorPago(e.message);
       setFormularioVisible(false);
@@ -173,23 +204,76 @@ export default function Comprar() {
                   <div className="card">
                     <h3>Pago en línea</h3>
                     <p className="muted" style={{ marginTop: 6 }}>
-                      Pago seguro con <strong>Izipay</strong>. Al confirmar retenemos tu
-                      asiento por 15 minutos mientras completas el pago.
+                      Elige cómo pagar. Retenemos tu asiento por 15 minutos mientras
+                      completas el pago.
                     </p>
-                    {simulado && (
+
+                    {/* Elegir el medio antes de arrancar: así no se abre un formulario
+                        de tarjeta si el cliente va a pagar con Yape */}
+                    {!formularioVisible && (
+                      <div className="metodos-pago">
+                        <button type="button"
+                                className={`metodo ${metodo === "tarjeta" ? "activo" : ""}`}
+                                onClick={() => { setMetodo("tarjeta"); setErrorPago(null); }}
+                                disabled={pagando}>
+                          <span className="metodo-icono">💳</span>
+                          <span className="metodo-nombre">Tarjeta</span>
+                          <span className="metodo-detalle">Débito o crédito</span>
+                        </button>
+                        <button type="button"
+                                className={`metodo ${metodo === "yape" ? "activo" : ""}`}
+                                onClick={() => { setMetodo("yape"); setErrorPago(null); }}
+                                disabled={pagando}>
+                          <span className="metodo-icono">📱</span>
+                          <span className="metodo-nombre">Yape</span>
+                          <span className="metodo-detalle">Con tu celular</span>
+                        </button>
+                      </div>
+                    )}
+
+                    {metodo === "yape" && (
+                      <div className="yape-form">
+                        <p className="muted" style={{ fontSize: 13 }}>
+                          En tu app de Yape entra a <strong>Aprobar compra por internet</strong> y
+                          genera el código de 6 dígitos.
+                        </p>
+                        <label>
+                          CELULAR
+                          <input type="tel" inputMode="numeric" maxLength={9}
+                                 placeholder="9XXXXXXXX"
+                                 value={yapeDatos.phoneNumber} disabled={pagando}
+                                 onChange={e => setYapeDatos(d => ({
+                                   ...d, phoneNumber: e.target.value.replace(/\D/g, "") }))} />
+                        </label>
+                        <label>
+                          CÓDIGO DE APROBACIÓN
+                          <input inputMode="numeric" maxLength={6} placeholder="6 dígitos"
+                                 value={yapeDatos.otp} disabled={pagando}
+                                 onChange={e => setYapeDatos(d => ({
+                                   ...d, otp: e.target.value.replace(/\D/g, "") }))} />
+                        </label>
+                      </div>
+                    )}
+
+                    {((metodo === "tarjeta" && metodos?.tarjeta?.simulado) ||
+                      (metodo === "yape" && metodos?.yape?.simulado)) && (
                       <div className="alert alert-warn" style={{ marginTop: 12 }}>
-                        Modo prueba: faltan las credenciales de Izipay, así que el pago se
+                        Modo prueba: faltan las credenciales de la pasarela, así que el pago se
                         <strong> simula</strong> (no se cobra). Igual se genera tu boleto con QR.
                       </div>
                     )}
+
                     {/* Izipay dibuja acá su formulario de tarjeta */}
                     <div id="izipay-form" style={{ marginTop: 16 }} />
                     {errorPago && <div className="alert alert-warn" style={{ marginTop: 12 }}>{errorPago}</div>}
                     <div style={{ display: "flex", justifyContent: "space-between", marginTop: 22 }}>
                       <button className="btn btn-ghost" onClick={() => setPaso(2)} disabled={pagando}>Volver</button>
                       {!formularioVisible && (
-                        <button className="btn btn-primary" onClick={pagar} disabled={pagando}>
-                          {pagando ? "Abriendo el pago…" : "Pagar ahora"}
+                        <button className="btn btn-primary" disabled={pagando}
+                                onClick={metodo === "yape" ? pagarConYape : pagar}>
+                          {pagando
+                            ? (metodo === "yape" ? "Cobrando…" : "Abriendo el pago…")
+                            : (metodo === "yape" ? "Pagar con Yape" : "Pagar con tarjeta")}
                         </button>
                       )}
                     </div>

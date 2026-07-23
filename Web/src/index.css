@@ -387,3 +387,27 @@ footer.site .foot-bottom { border-top: 1px solid rgba(255,255,255,.12); padding-
 .itinerario-nombre { flex: 1; color: #334155; }
 .itinerario-hora { font-variant-numeric: tabular-nums; font-weight: 600; color: #0f172a; }
 .itinerario-nota { margin: 8px 0 0; font-size: 12px; color: #64748b; }
+
+/* ---- Elegir medio de pago (tarjeta o Yape) ---- */
+.metodos-pago { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
+.metodos-pago .metodo {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 14px 10px; border: 2px solid #e2e8f0; border-radius: 12px;
+  background: #fff; cursor: pointer; transition: border-color .15s, background .15s;
+}
+.metodos-pago .metodo:hover:not(:disabled) { border-color: #94a3b8; }
+.metodos-pago .metodo.activo { border-color: var(--rojo, #dc2626); background: #fef2f2; }
+.metodos-pago .metodo:disabled { opacity: .6; cursor: not-allowed; }
+.metodo-icono { font-size: 22px; }
+.metodo-nombre { font-weight: 700; color: #0f172a; }
+.metodo-detalle { font-size: 12px; color: #64748b; }
+
+.yape-form { margin-top: 16px; display: grid; gap: 12px; }
+.yape-form label { display: grid; gap: 6px; font-size: 12px; font-weight: 700; color: #475569; letter-spacing: .03em; }
+.yape-form input {
+  padding: 11px 13px; border: 1px solid #cbd5e1; border-radius: 9px;
+  font-size: 15px; font-weight: 400; letter-spacing: .04em; color: #0f172a;
+}
+.yape-form input:focus { outline: none; border-color: var(--rojo, #dc2626); }
+
+@media (max-width: 480px) { .metodos-pago { grid-template-columns: 1fr; } }
