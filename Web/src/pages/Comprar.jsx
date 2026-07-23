@@ -42,6 +42,7 @@ export default function Comprar() {
   const [metodo, setMetodo] = useState("tarjeta");        // tarjeta | yape
   const [metodos, setMetodos] = useState(null);
   const [yapeDatos, setYapeDatos] = useState({ phoneNumber: "", otp: "" });
+  const [reserva, setReserva] = useState(null);
 
   const buscar = async (params) => {
     setCargando(true); setError(null); setViajes(null);
@@ -100,7 +101,26 @@ export default function Comprar() {
     clienteDocumento: datos.clienteDocumento,
   });
 
-  const terminar = (conf) => { setConfirmacion(conf); setPaso(4); scrollTop(); };
+  /**
+   * Devuelve la reserva de esta compra, creándola solo la primera vez.
+   *
+   * Si un pago falla, la reserva sigue reteniendo el asiento por 15 minutos. Antes se
+   * creaba una nueva en cada intento y el reintento chocaba contra su propia reserva
+   * anterior: "El asiento #1 ya no está disponible para ese tramo".
+   */
+  const obtenerReserva = async () => {
+    if (reserva && (!reserva.expiraEn || new Date(reserva.expiraEn) > new Date()))
+      return reserva;
+    const nueva = await crearReserva(datosDeLaReserva(), tokenCliente());
+    setReserva(nueva);
+    return nueva;
+  };
+
+  // Volver atrás a cambiar asiento o datos invalida la reserva: la siguiente vez se
+  // crea una nueva con los datos corregidos.
+  const volverA = (n) => { setReserva(null); setErrorPago(null); setPaso(n); };
+
+  const terminar = (conf) => { setReserva(null); setConfirmacion(conf); setPaso(4); scrollTop(); };
 
   const pagarConYape = async () => {
     setPagando(true); setErrorPago(null);
@@ -112,8 +132,8 @@ export default function Comprar() {
         publicKey: cfg.publicKey, simulado: cfg.simulado,
         otp: yapeDatos.otp.trim(), phoneNumber: yapeDatos.phoneNumber.trim(),
       });
-      const reserva = await crearReserva(datosDeLaReserva(), tokenCliente());
-      terminar(await cobrarYape(reserva.reservaId, token));
+      const r = await obtenerReserva();
+      terminar(await cobrarYape(r.reservaId, token));
     } catch (e) {
       setErrorPago(e.message);
     } finally {
@@ -124,11 +144,11 @@ export default function Comprar() {
   const pagar = async () => {
     setPagando(true); setErrorPago(null);
     try {
-      const reserva = await crearReserva(datosDeLaReserva(), tokenCliente());
+      const r = await obtenerReserva();
 
       // El backend pide el formulario a Izipay; el cliente escribe su tarjeta dentro
       // de ese formulario y nos devuelve la respuesta firmada, que el servidor verifica.
-      const form = await formularioDePago(reserva.reservaId);
+      const form = await formularioDePago(r.reservaId);
       setSimulado(!!form.simulado);
       const respuesta = await pagarConIzipay({
         ...form,
@@ -136,7 +156,7 @@ export default function Comprar() {
         alMostrarFormulario: () => setFormularioVisible(true),
       });
       setFormularioVisible(false);
-      const conf = await pagarReserva(reserva.reservaId, respuesta);
+      const conf = await pagarReserva(r.reservaId, respuesta);
       limpiarIzipay("#izipay-form");
       terminar(conf);
     } catch (e) {
@@ -267,7 +287,7 @@ export default function Comprar() {
                     <div id="izipay-form" style={{ marginTop: 16 }} />
                     {errorPago && <div className="alert alert-warn" style={{ marginTop: 12 }}>{errorPago}</div>}
                     <div style={{ display: "flex", justifyContent: "space-between", marginTop: 22 }}>
-                      <button className="btn btn-ghost" onClick={() => setPaso(2)} disabled={pagando}>Volver</button>
+                      <button className="btn btn-ghost" onClick={() => volverA(2)} disabled={pagando}>Volver</button>
                       {!formularioVisible && (
                         <button className="btn btn-primary" disabled={pagando}
                                 onClick={metodo === "yape" ? pagarConYape : pagar}>
