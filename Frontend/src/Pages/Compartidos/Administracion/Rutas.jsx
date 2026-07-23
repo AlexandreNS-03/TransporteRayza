@@ -3,8 +3,8 @@ import "./Rutas.css";
 import {
     descargarPlantillaParadas, leerParadas,
     descargarPlantillaTarifas, leerTarifas,
-    leerArchivo
-} from "../../../Utils/rutasCsv";
+    leerFilas
+} from "../../../Utils/rutasExcel";
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8080";
 
@@ -205,7 +205,7 @@ function Rutas() {
         if (!archivo) return;
         setMensajeImport(null);
         try {
-            const { paradas: leidas, errores } = leerParadas(await leerArchivo(archivo));
+            const { paradas: leidas, errores } = leerParadas(await leerFilas(archivo));
             if (errores.length) {
                 setMensajeImport({ error: true, texto: errores.join(" · ") });
             } else {
@@ -229,7 +229,7 @@ function Rutas() {
         setMensajeTarifas(null);
         try {
             const { tarifas: leidas, ignoradas, errores } =
-                leerTarifas(await leerArchivo(archivo), paradasValidas);
+                leerTarifas(await leerFilas(archivo), paradasValidas);
             if (errores.length) {
                 setMensajeTarifas({ error: true, texto: errores.slice(0, 3).join(" · ") });
             } else {
@@ -611,11 +611,11 @@ function Rutas() {
                                 <div className="carga-excel-acciones">
                                     <button type="button" className="btn-plantilla"
                                             onClick={() => descargarPlantillaParadas(form.origen, form.destino)}>
-                                        <i className="ti ti-download"></i> Descargar plantilla de paradas
+                                        <i className="ti ti-download"></i> Descargar plantilla de paradas (Excel)
                                     </button>
                                     <label className="btn-importar">
                                         <i className="ti ti-upload"></i> Subir paradas
-                                        <input type="file" accept=".csv,text/csv" hidden
+                                        <input type="file" accept=".xlsx,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv" hidden
                                                onChange={e => importarParadas(e.target.files[0], e.target)} />
                                     </label>
                                 </div>
@@ -689,11 +689,11 @@ function Rutas() {
                                     <div className="carga-excel-acciones">
                                         <button type="button" className="btn-plantilla"
                                                 onClick={() => descargarPlantillaTarifas(paradasValidas, tarifas)}>
-                                            <i className="ti ti-download"></i> Descargar plantilla de precios
+                                            <i className="ti ti-download"></i> Descargar plantilla de precios (Excel)
                                         </button>
                                         <label className="btn-importar">
                                             <i className="ti ti-upload"></i> Subir precios
-                                            <input type="file" accept=".csv,text/csv" hidden
+                                            <input type="file" accept=".xlsx,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv" hidden
                                                    onChange={e => importarTarifas(e.target.files[0], e.target)} />
                                         </label>
                                     </div>
