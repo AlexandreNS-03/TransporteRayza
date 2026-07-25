@@ -177,12 +177,19 @@ public class ComprobanteService {
         if (respuesta != null) {
             c.setEnlacePdf((String) respuesta.get("enlace_del_pdf"));
             c.setRespuestaNubefact(escribirJson(respuesta));
+            // Nubefact es el dueño del correlativo: se guarda el número que ÉL asignó,
+            // no el que adivinamos. Evita el choque cuando ambos se desincronizan.
+            Object nro = respuesta.get("numero");
+            if (nro != null) {
+                try { c.setNumero(Long.parseLong(String.valueOf(nro).trim())); }
+                catch (NumberFormatException ignored) { }
+            }
         }
 
         comprobanteRepository.save(c);
 
         auditoriaService.registrar("EMITIR", "COMPROBANTES", c.getId(),
-                tipo.name() + " " + serie + "-" + numero + " por S/ " + total
+                tipo.name() + " " + serie + "-" + c.getNumero() + " por S/ " + total
                         + " — " + c.getClienteDenominacion());
 
         return toDTO(c);
@@ -244,12 +251,17 @@ public class ComprobanteService {
         if (respuesta != null) {
             nc.setEnlacePdf((String) respuesta.get("enlace_del_pdf"));
             nc.setRespuestaNubefact(escribirJson(respuesta));
+            Object nro = respuesta.get("numero");
+            if (nro != null) {
+                try { nc.setNumero(Long.parseLong(String.valueOf(nro).trim())); }
+                catch (NumberFormatException ignored) { }
+            }
         }
         comprobanteRepository.save(nc);
 
         // El comprobante original queda anulado por la nota de crédito
         original.setEstado(Comprobante.EstadoComprobante.ANULADO);
-        original.setMotivoAnulacion("Anulado con Nota de Crédito " + serie + "-" + numero + ": " + motivo.trim());
+        original.setMotivoAnulacion("Anulado con Nota de Crédito " + serie + "-" + nc.getNumero() + ": " + motivo.trim());
         original.setAnuladoAt(LocalDateTime.now());
         comprobanteRepository.save(original);
 
