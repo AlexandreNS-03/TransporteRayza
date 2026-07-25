@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Landing from "./pages/Landing";
 import Comprar from "./pages/Comprar";
 import Ingresar from "./pages/Ingresar";
+import Historial from "./pages/Historial";
 import MiCuenta from "./pages/MiCuenta";
 
 export default function App() {
@@ -12,6 +13,7 @@ export default function App() {
         <Route path="/comprar" element={<Comprar />} />
         <Route path="/ingresar" element={<Ingresar />} />
         <Route path="/mi-cuenta" element={<MiCuenta />} />
+        <Route path="/historial" element={<Historial />} />
         <Route path="*" element={<Landing />} />
       </Routes>
     </BrowserRouter>

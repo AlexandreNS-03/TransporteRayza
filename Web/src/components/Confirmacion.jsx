@@ -50,7 +50,7 @@ export default function Confirmacion({ data }) {
           </a>
         )}
         <Link className="btn btn-ghost" to="/comprar">Comprar otro pasaje</Link>
-        <Link className="btn btn-primary" to="/mi-cuenta">Ver mis viajes</Link>
+        <Link className="btn btn-primary" to={`/historial${data.correo ? "?correo=" + encodeURIComponent(data.correo) : ""}`}>Ver mis boletos</Link>
       </div>
       <p className="muted" style={{ marginTop: 14, fontSize: 13 }}>Presenta este QR al momento de embarcar.</p>
     </div>

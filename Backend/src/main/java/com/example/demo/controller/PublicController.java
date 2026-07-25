@@ -3,6 +3,7 @@ package com.example.demo.controller;
 import com.example.demo.dto.PublicAsientoDTO;
 import com.example.demo.dto.PublicRutaDTO;
 import com.example.demo.dto.PublicViajeDTO;
+import com.example.demo.service.ClienteService;
 import com.example.demo.service.PublicService;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -20,9 +21,11 @@ import java.util.List;
 public class PublicController {
 
     private final PublicService publicService;
+    private final ClienteService clienteService;
 
-    public PublicController(PublicService publicService) {
+    public PublicController(PublicService publicService, ClienteService clienteService) {
         this.publicService = publicService;
+        this.clienteService = clienteService;
     }
 
     /** Rutas activas con paradas y tramos (para los combos Desde/Hacia). */
@@ -54,5 +57,12 @@ public class PublicController {
             @RequestParam int ordenOrigen,
             @RequestParam int ordenDestino) {
         return ResponseEntity.ok(publicService.mapaAsientos(viajeId, ordenOrigen, ordenDestino));
+    }
+
+    /** Historial de boletos por correo o DNI, sin necesidad de cuenta. */
+    @GetMapping("/boletos")
+    public ResponseEntity<?> boletos(@RequestParam(required = false) String correo,
+                                     @RequestParam(required = false) String documento) {
+        return ResponseEntity.ok(clienteService.buscarBoletos(correo, documento));
     }
 }
