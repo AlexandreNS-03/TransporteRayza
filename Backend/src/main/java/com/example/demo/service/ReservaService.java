@@ -327,7 +327,8 @@ public class ReservaService {
         }
 
         try {
-            return comprobanteService.generar(req, "Venta web");
+            // En transacción aparte: si falla, no revierte el pago ya cobrado.
+            return comprobanteService.generarAislado(req, "Venta web");
         } catch (Exception e) {
             System.err.println("[Reserva] No se pudo emitir el comprobante de la venta "
                     + v.getId() + ": " + e.getMessage());
