@@ -179,6 +179,7 @@ public class VentaService {
         venta.setCodigoQr(UUID.randomUUID().toString());
         venta.setEmbarqueEstado(Venta.EmbarqueEstado.PENDIENTE);
         venta.setEstado(Venta.EstadoVenta.PAGADO);
+        venta.setCanal("MOSTRADOR");   // la columna es NOT NULL; sin esto la venta falla
         venta.setFechaVenta(LocalDate.now());
         venta.setUsuarioNombre(usuarioNombre);
         venta.setCreatedAt(LocalDateTime.now());

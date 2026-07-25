@@ -11,6 +11,7 @@ import com.example.demo.repository.VentaRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -71,6 +72,16 @@ public class ComprobanteService {
         Comprobante c = comprobanteRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Comprobante no encontrado"));
         return nubefactService.construirJsonEmision(c);
+    }
+
+    /**
+     * Emite el comprobante en una transacción PROPIA (REQUIRES_NEW). Se usa desde la
+     * venta en línea: si Nubefact rechaza la emisión, solo se revierte esta transacción
+     * y NO la del pago, que ya cobró y debe quedar registrado igual.
+     */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public ComprobanteDTO generarAislado(ComprobanteRequest req, String usuarioNombre) {
+        return generar(req, usuarioNombre);
     }
 
     @Transactional
