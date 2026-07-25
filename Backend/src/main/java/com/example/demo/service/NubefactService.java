@@ -50,7 +50,9 @@ public class NubefactService {
         json.put("operacion", "generar_comprobante");
         json.put("tipo_de_comprobante", codigoTipo(c.getTipoDeComprobante()));
         json.put("serie", c.getSerie());
-        json.put("numero", c.getNumero());
+        // "#" = Nubefact asigna el correlativo que le corresponde a la serie. Así
+        // nuestro número nunca se desincroniza del suyo (p.ej. si se borran comprobantes).
+        json.put("numero", "#");
         json.put("sunat_transaction", 1);
         json.put("cliente_tipo_de_documento", c.getClienteTipoDeDocumento());
         json.put("cliente_numero_de_documento", c.getClienteNumeroDeDocumento());
