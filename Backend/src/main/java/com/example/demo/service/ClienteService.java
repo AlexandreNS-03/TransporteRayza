@@ -113,6 +113,27 @@ public class ClienteService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Busca boletos sin necesidad de tener cuenta: por correo o por DNI. Pensado para
+     * quien compró como invitado. Solo devuelve compras pagadas, ordenadas por fecha.
+     */
+    public List<ClienteViajeDTO> buscarBoletos(String correo, String documento) {
+        LocalDate hoy = LocalDate.now();
+        java.util.List<Venta> ventas;
+        if (correo != null && !correo.isBlank())
+            ventas = ventaRepository.findByClienteEmailIgnoreCaseOrderByCreatedAtDesc(correo.trim());
+        else if (documento != null && !documento.isBlank())
+            ventas = ventaRepository.findByPasajeroDocumento(documento.trim());
+        else
+            throw new RuntimeException("Ingresa tu correo o tu documento");
+
+        return ventas.stream()
+                .filter(v -> v.getEstado() == Venta.EstadoVenta.PAGADO)
+                .sorted((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()))
+                .map(v -> toViajeDTO(v, hoy))
+                .collect(Collectors.toList());
+    }
+
     private ClienteViajeDTO toViajeDTO(Venta v, LocalDate hoy) {
         ClienteViajeDTO dto = new ClienteViajeDTO();
         dto.setVentaId(v.getId());

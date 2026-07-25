@@ -71,6 +71,15 @@ export async function pagarReserva(reservaId, { krAnswer, krHash } = {}) {
   } catch (e) { throw desempaquetarError(e); }
 }
 
+/** Historial de boletos por correo o DNI, sin cuenta. */
+export async function buscarBoletos({ correo, documento } = {}) {
+  try {
+    const params = correo ? { correo } : { documento };
+    const { data } = await http.get("/boletos", { params });
+    return data;
+  } catch (e) { throw desempaquetarError(e); }
+}
+
 export function soles(n) {
   return "S/ " + Number(n || 0).toFixed(2);
 }

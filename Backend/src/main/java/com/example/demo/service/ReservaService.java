@@ -379,6 +379,7 @@ public class ReservaService {
         dto.setAsiento((v.getAsientoTipo() != null ? v.getAsientoTipo().name() : "") + " #" + v.getAsientoNumero());
         dto.setPrecio(v.getPrecio());
         dto.setCorreoEnviado(correoEnviado);
+        dto.setCorreo(v.getClienteEmail());
         dto.setMensaje(mensaje);
         if (v.getViajeId() != null) {
             viajeRepository.findById(v.getViajeId()).ifPresent(viaje -> {
