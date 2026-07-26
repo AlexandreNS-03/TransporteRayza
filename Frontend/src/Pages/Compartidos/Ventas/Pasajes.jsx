@@ -24,7 +24,8 @@ function Pasajes() {
     const usuario      = JSON.parse(localStorage.getItem("usuario"));
     const esAdmin      = usuario?.rol === "ADMIN";
     const esSupervisor = usuario?.rol === "SUPERVISOR";
-    const puedeVender  = esAdmin || esSupervisor;
+    const esEmpleado = usuario.rol === "EMPLEADO";
+    const puedeVender  = esAdmin || esSupervisor || esEmpleado;
     const { toasts, mostrarToast } = useToast();
 
     // Lista ventas
