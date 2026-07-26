@@ -107,6 +107,21 @@ public class EmailService implements InitializingBean {
             enviarPorSmtp(destinatario, "Embarque confirmado - Transportes Rayza", html, null);
     }
 
+    // ------------------------------------------------------- Correo de texto simple
+
+    /**
+     * Envía un correo de texto (avisos internos, soporte). Usa el mismo camino que el
+     * resto: Resend en producción, SMTP como respaldo local.
+     */
+    public void enviarTexto(String destinatario, String asunto, String texto) throws MessagingException {
+        String html = "<div style=\"font-family:Arial,sans-serif;font-size:15px;line-height:1.6\">"
+                + texto.replace("\n", "<br>") + "</div>";
+        if (usaResend())
+            enviarPorResend(destinatario, asunto, html, null);
+        else
+            enviarPorSmtp(destinatario, asunto, html, null);
+    }
+
     // ------------------------------------------------------------- Resend (HTTPS)
 
     /** El QR va como adjunto con content_id "qrcode", que el HTML referencia con cid:qrcode. */

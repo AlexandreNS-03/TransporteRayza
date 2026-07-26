@@ -5,8 +5,6 @@ import com.example.demo.model.Usuario;
 import com.example.demo.repository.NotificacionRepository;
 import com.example.demo.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,19 +21,20 @@ public class SoporteService {
 
     private final NotificacionRepository notificacionRepository;
     private final UsuarioRepository usuarioRepository;
-    private final JavaMailSender mailSender;
+    private final EmailService emailService;
     private final AuditoriaService auditoriaService;
 
-    @Value("${spring.mail.username:}")
+    // A dónde llegan los avisos de soporte. Por defecto al correo de la empresa.
+    @Value("${soporte.destino:${spring.mail.username:transprayza@gmail.com}}")
     private String correoEmpresa;
 
     public SoporteService(NotificacionRepository notificacionRepository,
                           UsuarioRepository usuarioRepository,
-                          JavaMailSender mailSender,
+                          EmailService emailService,
                           AuditoriaService auditoriaService) {
         this.notificacionRepository = notificacionRepository;
         this.usuarioRepository      = usuarioRepository;
-        this.mailSender             = mailSender;
+        this.emailService           = emailService;
         this.auditoriaService       = auditoriaService;
     }
 
@@ -75,11 +74,9 @@ public class SoporteService {
         // Aviso por correo al administrador (no bloquea si falla)
         try {
             if (correoEmpresa != null && !correoEmpresa.isBlank()) {
-                SimpleMailMessage msg = new SimpleMailMessage();
-                msg.setTo(correoEmpresa);
-                msg.setSubject("[SOPORTE " + tipo.name() + "] " + asunto.trim());
-                msg.setText(n.getMensaje() + "\n\n— Sistema Administrativo Transportes Rayza");
-                mailSender.send(msg);
+                emailService.enviarTexto(correoEmpresa,
+                        "[SOPORTE " + tipo.name() + "] " + asunto.trim(),
+                        n.getMensaje() + "\n\n— Sistema Administrativo Transportes Rayza");
             }
         } catch (Exception e) {
             System.err.println("No se pudo enviar el correo de soporte: " + e.getMessage());
