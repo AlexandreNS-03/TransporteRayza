@@ -2,15 +2,15 @@
    Transportes Rayza — sistema de diseño (estilo aerolínea)
    ============================================================ */
 :root {
-  /* Paleta celeste / blanco / rojo (marca en redes) */
-  --brand:        #1877f2;
-  --brand-600:    #1466d6;
-  --brand-700:    #0e56b8;
-  --brand-800:    #0a4699;
-  --accent:       #e4141f;
-  --accent-600:   #c00f19;
-  --sky:          #2f9be8;
-  --sky-soft:     #e7f2fd;
+  /* Paleta del RAYZA II: celeste turquesa (casco) + blanco + rojo */
+  --brand:        #1ea6dd;
+  --brand-600:    #178cbe;
+  --brand-700:    #10709c;
+  --brand-800:    #0b5578;
+  --accent:       #e01e2a;
+  --accent-600:   #bd1420;
+  --sky:          #2fb0e6;
+  --sky-soft:     #e6f5fc;
   --gold:         #e0a93b;
 
   --bg:           #ffffff;
@@ -508,6 +508,74 @@ footer.site .foot-bottom { border-top: 1px solid rgba(255,255,255,.12); padding-
 
 /* Foto real del destino sobre la ilustración; si el archivo no está, se oculta sola */
 .destino-foto { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; }
+
+/* ---- Catálogo y detalle de destinos ---- */
+.destinos-hero {
+  position: relative; overflow: hidden; color: #fff;
+  background:
+    radial-gradient(760px 360px at 86% 10%, rgba(47,176,230,.48), transparent 65%),
+    linear-gradient(120deg, var(--brand-800), var(--brand-600));
+}
+.destinos-hero::after {
+  content: ""; position: absolute; inset: 0; opacity: .22;
+  background: repeating-linear-gradient(-32deg, transparent 0 34px, rgba(255,255,255,.13) 35px 36px);
+}
+.destinos-hero-contenido { position: relative; z-index: 1; padding-top: 74px; padding-bottom: 132px; }
+.destinos-hero .kicker { color: #d4f3ff; }
+.destinos-hero h1 { color: #fff; max-width: 15ch; font-size: clamp(38px,5vw,62px); }
+.destinos-hero h1 em { color: #d5f6ff; font-style: normal; }
+.destinos-hero p { max-width: 54ch; margin: 18px 0 0; color: rgba(255,255,255,.9); font-size: 18px; }
+.destinos-buscador { position: relative; z-index: 2; margin-top: -76px; }
+.destinos-catalogo { padding-top: 74px; }
+.destinos-grid-grande { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+.destino-tarjeta { position: relative; min-height: 395px; overflow: hidden; border-radius: var(--r); background: var(--brand-800); box-shadow: var(--sh-lg); isolation: isolate; }
+.destino-tarjeta img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform .55s var(--ease); }
+.destino-tarjeta:hover img { transform: scale(1.06); }
+.destino-tarjeta-sombra { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(5,19,34,.05) 16%, rgba(5,19,34,.9) 100%); }
+.destino-tarjeta-contenido { position: absolute; z-index: 1; right: 32px; bottom: 30px; left: 32px; color: #fff; }
+.destino-tarjeta-contenido p { margin: 0 0 4px; color: rgba(255,255,255,.8); font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.destino-tarjeta-contenido h2 { margin: 0 0 18px; color: #fff; font-size: clamp(31px,4vw,44px); }
+.destino-detalle-btn { display: inline-flex; align-items: center; gap: 9px; padding: 9px 16px; border: 1.5px solid rgba(255,255,255,.9); border-radius: 999px; font-size: 14px; font-weight: 700; transition: background .2s, color .2s; }
+.destino-detalle-btn:hover { background: #fff; color: var(--brand-800); }
+.destino-detalle-btn span { font-size: 18px; line-height: .8; }
+.destinos-cta, .detalle-reserva { display: flex; align-items: center; justify-content: space-between; gap: 28px; }
+.destinos-cta h2, .detalle-reserva h2 { margin: 0 0 8px; font-size: clamp(25px,3.4vw,36px); }
+.destinos-cta p, .detalle-reserva p { max-width: 58ch; margin: 0; }
+
+.detalle-hero { position: relative; min-height: min(560px, 68vh); overflow: hidden; display: flex; align-items: end; color: #fff; }
+.detalle-hero > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.detalle-hero-sombra { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(4,22,35,.82), rgba(4,22,35,.24) 72%), linear-gradient(0deg, rgba(4,22,35,.55), transparent 50%); }
+.detalle-hero-contenido { position: relative; z-index: 1; width: 100%; padding-bottom: 66px; }
+.detalle-volver { display: inline-flex; margin-bottom: 46px; color: rgba(255,255,255,.9); font-size: 14px; font-weight: 700; }
+.detalle-volver:hover { color: #fff; text-decoration: underline; }
+.detalle-hero .kicker { color: #bdeeff; }
+.detalle-hero h1 { margin: 0; max-width: 13ch; color: #fff; font-size: clamp(48px,7vw,82px); }
+.detalle-hero p { margin: 6px 0 0; color: rgba(255,255,255,.92); font-family: var(--font-head); font-size: clamp(20px,2.5vw,28px); font-weight: 600; }
+.detalle-intro { display: grid; grid-template-columns: minmax(0, .9fr) minmax(300px, 1.1fr); gap: 60px; align-items: center; }
+.detalle-intro h2 { margin: 0 0 18px; font-size: clamp(27px,3.5vw,40px); }
+.detalle-texto { max-width: 55ch; color: var(--ink-soft); font-size: 17px; line-height: 1.75; }
+.detalle-ruta { display: flex; align-items: center; gap: 10px; margin-top: 24px; padding: 13px 16px; border-left: 3px solid var(--accent); background: var(--sky-soft); color: var(--brand-800); font-size: 14px; font-weight: 700; }
+.detalle-ruta span { font-size: 20px; }
+.detalle-foto { overflow: hidden; min-height: 360px; border-radius: var(--r); box-shadow: var(--sh-lg); }
+.detalle-foto img { width: 100%; height: 100%; min-height: 360px; object-fit: cover; }
+.detalle-destacados-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+.detalle-destacado { min-height: 170px; padding: 28px; border: 1px solid var(--line); border-radius: var(--r); background: var(--card); box-shadow: var(--sh-sm); }
+.detalle-destacado span { display: block; margin-bottom: 28px; color: var(--accent); font-family: var(--font-head); font-size: 13px; font-weight: 800; letter-spacing: .08em; }
+.detalle-destacado h3 { font-size: 20px; }
+
+@media (max-width: 760px) {
+  .destinos-hero-contenido { padding-top: 54px; padding-bottom: 112px; }
+  .destinos-buscador { margin-top: -60px; }
+  .destinos-grid-grande, .detalle-intro, .detalle-destacados-grid { grid-template-columns: 1fr; }
+  .destino-tarjeta { min-height: 330px; }
+  .destino-tarjeta-contenido { right: 24px; bottom: 24px; left: 24px; }
+  .destinos-cta, .detalle-reserva { align-items: flex-start; flex-direction: column; }
+  .detalle-hero { min-height: 470px; }
+  .detalle-hero-contenido { padding-bottom: 44px; }
+  .detalle-volver { margin-bottom: 32px; }
+  .detalle-intro { gap: 34px; }
+  .detalle-foto, .detalle-foto img { min-height: 260px; }
+}
 
 /* ============================================================
    Responsive móvil — pulido para celulares

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import Buscador from "../components/Buscador";
@@ -6,34 +7,7 @@ import Reveal from "../components/Reveal";
 import AnuncioAniversario from "../components/AnuncioAniversario";
 import { EMPRESA, telefonoBonito, telefonoInternacional,
          aniosDeAniversario, esMesDeAniversario } from "../datos";
-
-/** Destinos que se muestran en la portada. La imagen se busca en /public/destinos. */
-const DESTINOS = [
-  {
-    nombre: "Iquitos", tono: "g1", imagen: "iquits.jpg",
-    resumen: "La capital de la Amazonía",
-    detalle: "La ciudad más grande del mundo sin acceso por carretera. Puerto de llegada " +
-             "de nuestra ruta desde Requena, con oficina de ventas en Jr. Fitzcarrald 377.",
-  },
-  {
-    nombre: "Requena", tono: "g2", imagen: "Requena2025.jpg",
-    resumen: "Sobre el río Ucayali",
-    detalle: "Nuestra central. Capital de la provincia del mismo nombre, a orillas del " +
-             "Ucayali. Desde acá salen los deslizadores rumbo a Iquitos cada mañana.",
-  },
-  {
-    nombre: "Nauta", tono: "g3", imagen: "nauta.jpg",
-    resumen: "Puerto de conexión",
-    detalle: "Donde el Marañón y el Ucayali forman el Amazonas. Punto de enlace por " +
-             "carretera con Iquitos y parada obligada de la ruta.",
-  },
-  {
-    nombre: "Comunidades", tono: "g4", imagen: "jherrera.jpg",
-    resumen: "Puertos ribereños",
-    detalle: "Yanallpa, Jenaro Herrera, Flor de Castaña, Puerto Miguel y más pueblos del " +
-             "río. Puedes comprar tu pasaje a cualquier tramo intermedio, no solo al final.",
-  },
-];
+import { DESTINOS } from "../destinos";
 
 export default function Landing() {
   const anios = aniosDeAniversario();
@@ -99,17 +73,17 @@ export default function Landing() {
                 <article className={`destino ${abierto === d.nombre ? "abierto" : ""}`}>
                   {/* La ilustración SVG del fondo (.dest-*) siempre está; si hay foto
                       real se carga encima y si el archivo falta, se oculta sola */}
-                  <div className={"bg dest-" + d.tono}>
+                  <div className={"bg dest-g" + ((i % 4) + 1)}>
                     <img className="destino-foto" src={`/destinos/${d.imagen}`} alt="" loading="lazy"
                          onError={(e) => { e.currentTarget.style.display = "none"; }} />
                   </div>
                   <div className="info">
                     <div className="n">{d.nombre}</div>
-                    <div className="p">{d.resumen}</div>
+                    <div className="p">{d.etiqueta}</div>
 
                     <div className="destino-mas">
-                      <p>{d.detalle}</p>
-                      <a className="destino-cta" href="/comprar">Ver viajes →</a>
+                      <p>{d.intro}</p>
+                      <Link className="destino-cta" to={`/destinos/${d.slug}`}>Conocer destino →</Link>
                     </div>
 
                     <button type="button" className="destino-toggle"

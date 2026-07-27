@@ -18,7 +18,7 @@ export default function Header() {
             <Link to="/">Inicio</Link>
             <Link to="/comprar">Comprar pasaje</Link>
             <Link to="/servicios">Servicios</Link>
-            <a href="/#destinos">Destinos</a>
+            <Link to="/destinos">Destinos</Link>
             <a href="/#contacto">Contacto</a>
           </nav>
           <div className="nav-actions">
