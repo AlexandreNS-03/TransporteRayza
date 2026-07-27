@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import Logo from "./Logo";
 import AnnouncementBar from "./AnnouncementBar";
+import ThemeToggle from "./ThemeToggle";
 import { estaLogueado, clienteActual } from "../services/authCliente";
 
 export default function Header() {
@@ -16,11 +17,12 @@ export default function Header() {
           <nav className="nav-links">
             <Link to="/">Inicio</Link>
             <Link to="/comprar">Comprar pasaje</Link>
-            <a href="/#servicios">Servicios</a>
+            <Link to="/servicios">Servicios</Link>
             <a href="/#destinos">Destinos</a>
             <a href="/#contacto">Contacto</a>
           </nav>
           <div className="nav-actions">
+            <ThemeToggle />
             {logueado ? (
               <Link className="btn btn-ghost" to="/mi-cuenta">
                 {cliente?.nombres ? `Hola, ${cliente.nombres.split(" ")[0]}` : "Mi cuenta"}

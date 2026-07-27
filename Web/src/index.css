@@ -2,14 +2,15 @@
    Transportes Rayza — sistema de diseño (estilo aerolínea)
    ============================================================ */
 :root {
-  --brand:        #0b2c5e;
-  --brand-600:    #0f3a78;
-  --brand-700:    #08234a;
-  --brand-800:    #061a37;
-  --accent:       #e11d2a;
-  --accent-600:   #c0141f;
-  --sky:          #1a8fd1;
-  --sky-soft:     #e8f3fb;
+  /* Paleta celeste / blanco / rojo (marca en redes) */
+  --brand:        #1877f2;
+  --brand-600:    #1466d6;
+  --brand-700:    #0e56b8;
+  --brand-800:    #0a4699;
+  --accent:       #e4141f;
+  --accent-600:   #c00f19;
+  --sky:          #2f9be8;
+  --sky-soft:     #e7f2fd;
   --gold:         #e0a93b;
 
   --bg:           #ffffff;
@@ -52,6 +53,25 @@
     --sh-lg: 0 28px 56px -22px rgba(0,0,0,.7);
   }
 }
+
+/* El botón de tema fuerza claro u oscuro, ganando sobre la preferencia del sistema */
+:root[data-theme="dark"] {--bg:        #0a1120;
+    --bg-soft:   #0e1728;
+    --bg-softer: #101c31;
+    --card:      #111c30;
+    --ink:       #eaf1fb;
+    --ink-soft:  #9aa7bd;
+    --line:      #21304a;
+    --line-strong: #2b3d5c;
+    --sky-soft:  #10273d;
+    --sh-sm: 0 1px 2px rgba(0,0,0,.4);
+    --sh:    0 8px 20px -8px rgba(0,0,0,.5);
+    --sh-lg: 0 28px 56px -22px rgba(0,0,0,.7);}
+:root[data-theme="light"] {
+    --bg:#ffffff; --bg-soft:#f4f7fc; --bg-softer:#eef3fa; --card:#ffffff;
+    --ink:#0f172a; --ink-soft:#55617a; --line:#e6ecf4; --line-strong:#d3ddec; --sky-soft:#e7f2fd;
+}
+
 
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
@@ -593,3 +613,9 @@ footer.site .foot-bottom { border-top: 1px solid rgba(255,255,255,.12); padding-
 .tag-proximo { background: #eef2ff; color: #4338ca; }
 .tag-ok { background: #f0fdf4; color: #15803d; }
 .boleto-precio { font-family: var(--font-head); font-weight: 800; font-size: 20px; color: var(--accent); }
+
+/* Botón claro/oscuro */
+.tema-btn{width:40px;height:40px;border-radius:50%;border:1.5px solid var(--line-strong);
+  background:var(--card);cursor:pointer;font-size:17px;line-height:1;display:grid;place-items:center;
+  transition:border-color .2s,transform .15s}
+.tema-btn:hover{border-color:var(--sky);transform:translateY(-1px)}
