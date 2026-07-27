@@ -38,6 +38,39 @@ export async function crearReserva(reserva, token) {
   } catch (e) { throw desempaquetarError(e); }
 }
 
+// Reserva de varios pasajes (1 a 5) en una sola compra. Devuelve reservaIds + total.
+export async function crearReservaGrupo(grupo, token) {
+  try {
+    const cfg = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
+    const { data } = await http.post("/reservas/grupo", grupo, cfg);
+    return data;
+  } catch (e) { throw desempaquetarError(e); }
+}
+
+/** Formulario de Izipay para el total del grupo. */
+export async function formularioDePagoGrupo(reservaIds) {
+  try {
+    const { data } = await http.post("/reservas/grupo/pago/formulario", { reservaIds });
+    return data;
+  } catch (e) { throw desempaquetarError(e); }
+}
+
+/** Confirma el pago con tarjeta del grupo. */
+export async function pagarGrupo(reservaIds, { krAnswer, krHash } = {}) {
+  try {
+    const { data } = await http.post("/reservas/grupo/pagar", { reservaIds, krAnswer, krHash });
+    return data;
+  } catch (e) { throw desempaquetarError(e); }
+}
+
+/** Confirma el pago con Yape del grupo. */
+export async function pagarConYapeGrupo(reservaIds, token) {
+  try {
+    const { data } = await http.post("/reservas/grupo/pagar/yape", { reservaIds, token });
+    return data;
+  } catch (e) { throw desempaquetarError(e); }
+}
+
 
 /** Medios de pago configurados y sus claves públicas. Se consulta antes de elegir. */
 export async function metodosDePago() {

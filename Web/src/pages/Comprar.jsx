@@ -5,21 +5,24 @@ import Footer from "../components/Footer";
 import Buscador from "../components/Buscador";
 import Resultados from "../components/Resultados";
 import MapaAsientos from "../components/MapaAsientos";
-import FormularioPasajero from "../components/FormularioPasajero";
+import FormularioPasajero, { FormularioContacto } from "../components/FormularioPasajero";
 import Resumen from "../components/Resumen";
 import Confirmacion from "../components/Confirmacion";
-import { buscarViajes, crearReserva, pagarReserva, formularioDePago,
-         metodosDePago, pagarConYape as cobrarYape } from "../services/publicApi";
+import { buscarViajes, crearReservaGrupo, pagarGrupo, formularioDePagoGrupo,
+         metodosDePago, pagarConYapeGrupo } from "../services/publicApi";
 import { tokenizarYape } from "../services/yape";
 import { pagarConIzipay, limpiarIzipay } from "../services/izipay";
 import { tokenCliente } from "../services/authCliente";
 
-const PASOS = ["Buscar", "Asiento", "Datos", "Pago", "Listo"];
+const PASOS = ["Buscar", "Asientos", "Datos", "Pago", "Listo"];
+const MAX_PASAJES = 5;
 
-const DATOS_INICIALES = {
+const PASAJERO_INICIAL = {
   tipoDocumento: "DNI", pasajeroDocumento: "", pasajeroNombre: "",
-  pasajeroTelefono: "", clienteEmail: "", edad: "", sexo: "Masculino",
-  tipoComprobante: "BOLETA", clienteDocumento: "", clienteNombre: "",
+  pasajeroTelefono: "", edad: "", sexo: "Masculino",
+};
+const CONTACTO_INICIAL = {
+  clienteEmail: "", tipoComprobante: "BOLETA", clienteDocumento: "", clienteNombre: "",
 };
 
 /**
@@ -44,8 +47,10 @@ export default function Comprar() {
   const [error, setError] = useState(null);
 
   const [viaje, setViaje] = useState(null);
-  const [asiento, setAsiento] = useState(null);
-  const [datos, setDatos] = useState(DATOS_INICIALES);
+  const [cantidad, setCantidad] = useState(1);
+  const [seleccionados, setSeleccionados] = useState([]);   // asientos elegidos
+  const [pasajeros, setPasajeros] = useState([{ ...PASAJERO_INICIAL }]);
+  const [contacto, setContacto] = useState(CONTACTO_INICIAL);
 
   const [pagando, setPagando] = useState(false);
   const [errorPago, setErrorPago] = useState(null);
@@ -55,7 +60,7 @@ export default function Comprar() {
   const [metodo, setMetodo] = useState("tarjeta");        // tarjeta | yape
   const [metodos, setMetodos] = useState(null);
   const [yapeDatos, setYapeDatos] = useState({ phoneNumber: "", otp: "" });
-  const [reserva, setReserva] = useState(null);
+  const [reservaGrupo, setReservaGrupo] = useState(null);
 
   const buscar = async (params) => {
     setCargando(true); setError(null); setViajes(null);
@@ -70,19 +75,52 @@ export default function Comprar() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Al cambiar la cantidad, ajusta las listas de asientos y pasajeros y descarta la
+  // reserva previa (los asientos ya no coinciden).
+  useEffect(() => {
+    setPasajeros((prev) => {
+      const arr = prev.slice(0, cantidad);
+      while (arr.length < cantidad) arr.push({ ...PASAJERO_INICIAL });
+      return arr;
+    });
+    setSeleccionados((prev) => prev.slice(0, cantidad));
+    setReservaGrupo(null);
+  }, [cantidad]);
+
   const scrollTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
-  const elegirViaje = (v) => { setViaje(v); setAsiento(null); setPaso(1); scrollTop(); };
-  const continuarAsiento = () => { if (asiento) { setPaso(2); scrollTop(); } };
+
+  const elegirViaje = (v) => {
+    setViaje(v); setSeleccionados([]); setReservaGrupo(null); setPaso(1); scrollTop();
+  };
+
+  const toggleAsiento = (a) => {
+    setReservaGrupo(null);
+    setSeleccionados((prev) => {
+      const ya = prev.some((s) => s.numero === a.numero);
+      if (ya) return prev.filter((s) => s.numero !== a.numero);
+      if (prev.length >= cantidad) return prev;
+      return [...prev, a];
+    });
+  };
+
+  const setPasajeroEn = (i, p) => setPasajeros((prev) => prev.map((x, j) => (j === i ? p : x)));
+
+  const continuarAsiento = () => {
+    if (seleccionados.length === cantidad) { setPaso(2); scrollTop(); }
+  };
   const continuarDatos = () => { if (datosValidos()) { setPaso(3); scrollTop(); } };
 
   const datosValidos = () => {
-    if (!datos.pasajeroNombre.trim() || !datos.pasajeroDocumento.trim()) {
-      alert("Completa el nombre y el documento del pasajero."); return false;
+    for (let i = 0; i < cantidad; i++) {
+      const p = pasajeros[i] || {};
+      if (!p.pasajeroNombre?.trim() || !p.pasajeroDocumento?.trim()) {
+        alert(`Completa el nombre y el documento del pasajero ${i + 1}.`); return false;
+      }
     }
-    if (!datos.clienteEmail.trim() || !datos.clienteEmail.includes("@")) {
-      alert("Ingresa un correo válido para enviarte el boleto."); return false;
+    if (!contacto.clienteEmail.trim() || !contacto.clienteEmail.includes("@")) {
+      alert("Ingresa un correo válido para enviarte los boletos."); return false;
     }
-    if (datos.tipoComprobante === "FACTURA" && (!datos.clienteDocumento.trim() || !datos.clienteNombre.trim())) {
+    if (contacto.tipoComprobante === "FACTURA" && (!contacto.clienteDocumento.trim() || !contacto.clienteNombre.trim())) {
       alert("Para factura, ingresa el RUC y la razón social."); return false;
     }
     return true;
@@ -100,53 +138,49 @@ export default function Comprar() {
     ordenDestino: viaje.ordenDestino,
     paradaOrigen: viaje.origen,
     paradaDestino: viaje.destino,
-    asientoNumero: asiento.numero,
-    asientoTipo: asiento.tipo,
-    tipoDocumento: datos.tipoDocumento,
-    pasajeroNombre: datos.pasajeroNombre,
-    pasajeroDocumento: datos.pasajeroDocumento,
-    pasajeroTelefono: datos.pasajeroTelefono,
-    clienteEmail: datos.clienteEmail,
-    edad: datos.edad ? Number(datos.edad) : null,
-    sexo: datos.sexo,
-    tipoComprobante: datos.tipoComprobante,
-    clienteNombre: datos.clienteNombre,
-    clienteDocumento: datos.clienteDocumento,
+    clienteEmail: contacto.clienteEmail,
+    tipoComprobante: contacto.tipoComprobante,
+    clienteNombre: contacto.clienteNombre,
+    clienteDocumento: contacto.clienteDocumento,
+    pasajeros: seleccionados.map((a, i) => ({
+      asientoNumero: a.numero,
+      asientoTipo: a.tipo,
+      tipoDocumento: pasajeros[i]?.tipoDocumento || "DNI",
+      pasajeroNombre: pasajeros[i]?.pasajeroNombre || "",
+      pasajeroDocumento: pasajeros[i]?.pasajeroDocumento || "",
+      pasajeroTelefono: pasajeros[i]?.pasajeroTelefono || "",
+      edad: pasajeros[i]?.edad ? Number(pasajeros[i].edad) : null,
+      sexo: pasajeros[i]?.sexo || "Masculino",
+    })),
   });
 
   /**
-   * Devuelve la reserva de esta compra, creándola solo la primera vez.
-   *
-   * Si un pago falla, la reserva sigue reteniendo el asiento por 15 minutos. Antes se
-   * creaba una nueva en cada intento y el reintento chocaba contra su propia reserva
-   * anterior: "El asiento #1 ya no está disponible para ese tramo".
+   * Devuelve la reserva del grupo, creándola solo la primera vez. Si un pago falla,
+   * la reserva sigue reteniendo los asientos por 15 minutos: el reintento la reutiliza
+   * en vez de crear otra que chocaría contra sí misma.
    */
-  const obtenerReserva = async () => {
-    if (reserva && (!reserva.expiraEn || new Date(reserva.expiraEn) > new Date()))
-      return reserva;
-    const nueva = await crearReserva(datosDeLaReserva(), tokenCliente());
-    setReserva(nueva);
+  const obtenerReservaGrupo = async () => {
+    if (reservaGrupo && (!reservaGrupo.expiraEn || new Date(reservaGrupo.expiraEn) > new Date()))
+      return reservaGrupo;
+    const nueva = await crearReservaGrupo(datosDeLaReserva(), tokenCliente());
+    setReservaGrupo(nueva);
     return nueva;
   };
 
-  // Volver atrás a cambiar asiento o datos invalida la reserva: la siguiente vez se
-  // crea una nueva con los datos corregidos.
-  const volverA = (n) => { setReserva(null); setErrorPago(null); setPaso(n); };
-
-  const terminar = (conf) => { setReserva(null); setConfirmacion(conf); setPaso(4); scrollTop(); };
+  const volverA = (n) => { setReservaGrupo(null); setErrorPago(null); setPaso(n); };
+  const terminar = (conf) => { setReservaGrupo(null); setConfirmacion(conf); setPaso(4); scrollTop(); };
 
   const pagarConYape = async () => {
     setPagando(true); setErrorPago(null);
     try {
-      // Se valida el código ANTES de reservar el asiento: si el código está mal, no
-      // se retiene un asiento que después habría que liberar.
+      // Se valida el código ANTES de reservar: si está mal, no se retienen asientos.
       const cfg = metodos?.yape || {};
       const token = await tokenizarYape({
         publicKey: cfg.publicKey, simulado: cfg.simulado,
         otp: yapeDatos.otp.trim(), phoneNumber: yapeDatos.phoneNumber.trim(),
       });
-      const r = await obtenerReserva();
-      terminar(await cobrarYape(r.reservaId, token));
+      const r = await obtenerReservaGrupo();
+      terminar(await pagarConYapeGrupo(r.reservaIds, token));
     } catch (e) {
       setErrorPago(e.message);
     } finally {
@@ -157,11 +191,11 @@ export default function Comprar() {
   const pagar = async () => {
     setPagando(true); setErrorPago(null);
     try {
-      const r = await obtenerReserva();
+      const r = await obtenerReservaGrupo();
 
-      // El backend pide el formulario a Izipay; el cliente escribe su tarjeta dentro
-      // de ese formulario y nos devuelve la respuesta firmada, que el servidor verifica.
-      const form = await formularioDePago(r.reservaId);
+      // El backend pide un solo formulario a Izipay por el total; el cliente escribe
+      // su tarjeta dentro y nos devuelve la respuesta firmada que el servidor verifica.
+      const form = await formularioDePagoGrupo(r.reservaIds);
       setSimulado(!!form.simulado);
       const respuesta = await pagarConIzipay({
         ...form,
@@ -169,7 +203,7 @@ export default function Comprar() {
         alMostrarFormulario: () => setFormularioVisible(true),
       });
       setFormularioVisible(false);
-      const conf = await pagarReserva(r.reservaId, respuesta);
+      const conf = await pagarGrupo(r.reservaIds, respuesta);
       limpiarIzipay("#izipay-form");
       terminar(conf);
     } catch (e) {
@@ -180,6 +214,8 @@ export default function Comprar() {
       setPagando(false);
     }
   };
+
+  const faltan = cantidad - seleccionados.length;
 
   return (
     <>
@@ -217,16 +253,42 @@ export default function Comprar() {
               <div>
                 {paso === 1 && (
                   <div className="card">
-                    <MapaAsientos viaje={viaje} seleccionado={asiento} onSeleccionar={setAsiento} />
+                    <div className="cantidad-selector">
+                      <span>¿Cuántos pasajes?</span>
+                      <div className="cantidad-botones">
+                        {Array.from({ length: MAX_PASAJES }).map((_, i) => (
+                          <button key={i + 1} type="button"
+                                  className={`cantidad-btn ${cantidad === i + 1 ? "activo" : ""}`}
+                                  onClick={() => setCantidad(i + 1)}>
+                            {i + 1}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <p className="muted center" style={{ marginTop: 4 }}>
+                      {faltan > 0
+                        ? `Elige ${faltan} asiento${faltan > 1 ? "s" : ""} más (${seleccionados.length}/${cantidad}).`
+                        : `Listo: ${cantidad} asiento${cantidad > 1 ? "s" : ""} elegido${cantidad > 1 ? "s" : ""}.`}
+                    </p>
+                    <MapaAsientos viaje={viaje} seleccionados={seleccionados} onToggle={toggleAsiento} max={cantidad} />
                     <div style={{ display: "flex", justifyContent: "space-between", marginTop: 22 }}>
                       <button className="btn btn-ghost" onClick={() => setPaso(0)}>Volver</button>
-                      <button className="btn btn-primary" disabled={!asiento} onClick={continuarAsiento}>Continuar</button>
+                      <button className="btn btn-primary" disabled={seleccionados.length !== cantidad} onClick={continuarAsiento}>Continuar</button>
                     </div>
                   </div>
                 )}
                 {paso === 2 && (
                   <div className="card">
-                    <FormularioPasajero datos={datos} setDatos={setDatos} />
+                    {seleccionados.map((a, i) => (
+                      <div key={a.numero} style={{ marginBottom: 18 }}>
+                        <FormularioPasajero
+                          titulo={`Pasajero ${i + 1} · Asiento #${a.numero} (${a.tipo})`}
+                          pasajero={pasajeros[i] || PASAJERO_INICIAL}
+                          setPasajero={(p) => setPasajeroEn(i, p)}
+                        />
+                      </div>
+                    ))}
+                    <FormularioContacto contacto={contacto} setContacto={setContacto} />
                     <div style={{ display: "flex", justifyContent: "space-between", marginTop: 22 }}>
                       <button className="btn btn-ghost" onClick={() => setPaso(1)}>Volver</button>
                       <button className="btn btn-primary" onClick={continuarDatos}>Continuar al pago</button>
@@ -237,12 +299,10 @@ export default function Comprar() {
                   <div className="card">
                     <h3>Pago en línea</h3>
                     <p className="muted" style={{ marginTop: 6 }}>
-                      Elige cómo pagar. Retenemos tu asiento por 15 minutos mientras
-                      completas el pago.
+                      Elige cómo pagar. Retenemos {cantidad > 1 ? "tus asientos" : "tu asiento"} por 15 minutos
+                      mientras completas el pago.
                     </p>
 
-                    {/* Elegir el medio antes de arrancar: así no se abre un formulario
-                        de tarjeta si el cliente va a pagar con Yape */}
                     {!formularioVisible && (
                       <div className="metodos-pago">
                         <button type="button"
@@ -299,7 +359,7 @@ export default function Comprar() {
                       (metodo === "yape" && metodos?.yape?.simulado)) && (
                       <div className="alert alert-warn" style={{ marginTop: 12 }}>
                         Modo prueba: faltan las credenciales de la pasarela, así que el pago se
-                        <strong> simula</strong> (no se cobra). Igual se genera tu boleto con QR.
+                        <strong> simula</strong> (no se cobra). Igual se generan tus boletos con QR.
                       </div>
                     )}
 
@@ -320,7 +380,7 @@ export default function Comprar() {
                   </div>
                 )}
               </div>
-              <Resumen viaje={viaje} asiento={asiento} />
+              <Resumen viaje={viaje} asientos={seleccionados} />
             </div>
           )}
 

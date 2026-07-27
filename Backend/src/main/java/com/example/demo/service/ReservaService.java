@@ -3,6 +3,9 @@ package com.example.demo.service;
 import com.example.demo.dto.ComprobanteDTO;
 import com.example.demo.dto.ComprobanteRequest;
 import com.example.demo.dto.ConfirmacionDTO;
+import com.example.demo.dto.ConfirmacionGrupoDTO;
+import com.example.demo.dto.ReservaGrupoRequest;
+import com.example.demo.dto.ReservaGrupoResponse;
 import com.example.demo.dto.ReservaRequest;
 import com.example.demo.dto.ReservaResponse;
 import com.example.demo.model.RutaTarifaTramo;
@@ -14,6 +17,7 @@ import com.example.demo.repository.RutaTarifaTramoRepository;
 import com.example.demo.repository.VentaRepository;
 import com.example.demo.repository.VentaTramoUsadoRepository;
 import com.example.demo.repository.ViajeRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,7 +25,9 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -33,6 +39,16 @@ public class ReservaService {
 
     /** Minutos que se sostiene el asiento sin pagar antes de liberarlo. */
     private static final int MINUTOS_RESERVA = 15;
+
+    /** Tope de pasajes por compra en línea (una familia; no acapara medio bote). */
+    private static final int MAX_PASAJEROS = 5;
+
+    /**
+     * Si es false, la venta web no emite boleta/factura en Nubefact (solo ticket con QR).
+     * Útil en pruebas para no consumir correlativos reales. Se controla por entorno.
+     */
+    @Value("${app.venta-web.emitir-comprobante:true}")
+    private boolean emitirComprobanteWeb;
 
     private final ViajeRepository viajeRepository;
     private final VentaRepository ventaRepository;
@@ -74,22 +90,103 @@ public class ReservaService {
     public ReservaResponse crearReserva(ReservaRequest req, String clienteEmailAutenticado) {
         Viaje viaje = viajeRepository.findById(req.getViajeId())
                 .orElseThrow(() -> new RuntimeException("Viaje no encontrado"));
+        verificarViajeVendible(viaje);
+
+        Venta v = reservarUno(viaje, req, clienteEmailAutenticado);
+
+        ReservaResponse resp = new ReservaResponse();
+        resp.setReservaId(v.getId());
+        resp.setMonto(v.getPrecio());
+        resp.setMontoCents(v.getPrecio().multiply(BigDecimal.valueOf(100)).intValueExact());
+        resp.setMoneda("PEN");
+        resp.setExpiraEn(v.getReservaExpira().toString());
+        resp.setDescripcion("Pasaje " + safe(req.getParadaOrigen()) + " → " + safe(req.getParadaDestino())
+                + " · Asiento #" + req.getAsientoNumero());
+        return resp;
+    }
+
+    /**
+     * Reserva de varios pasajes en una sola compra (hasta {@value #MAX_PASAJEROS}).
+     * Cada pasajero ocupa su asiento y todos se pagan juntos; devuelve la lista de
+     * reservas y el total. Los datos de contacto y comprobante son comunes al grupo.
+     */
+    @Transactional
+    public ReservaGrupoResponse crearReservaGrupo(ReservaGrupoRequest req, String clienteEmailAutenticado) {
+        Viaje viaje = viajeRepository.findById(req.getViajeId())
+                .orElseThrow(() -> new RuntimeException("Viaje no encontrado"));
+        verificarViajeVendible(viaje);
+
+        List<ReservaRequest> pasajeros = req.getPasajeros();
+        if (pasajeros == null || pasajeros.isEmpty())
+            throw new RuntimeException("Agrega al menos un pasajero");
+        if (pasajeros.size() > MAX_PASAJEROS)
+            throw new RuntimeException("Puedes comprar hasta " + MAX_PASAJEROS + " pasajes por compra");
+
+        // Asientos distintos entre sí: si el mismo asiento va dos veces, el segundo
+        // choca contra el primero al retenerlo y da un error confuso.
+        Set<Integer> vistos = new HashSet<>();
+        for (ReservaRequest p : pasajeros) {
+            if (p.getAsientoNumero() == null)
+                throw new RuntimeException("Selecciona un asiento para cada pasajero");
+            if (!vistos.add(p.getAsientoNumero()))
+                throw new RuntimeException("El asiento #" + p.getAsientoNumero() + " está repetido");
+        }
+
+        List<String> ids = new ArrayList<>();
+        BigDecimal total = BigDecimal.ZERO;
+        LocalDateTime expira = null;
+        for (ReservaRequest p : pasajeros) {
+            // Los datos comunes (tramo, contacto, comprobante) se copian a cada pasajero.
+            p.setViajeId(req.getViajeId());
+            p.setOrdenOrigen(req.getOrdenOrigen());
+            p.setOrdenDestino(req.getOrdenDestino());
+            p.setParadaOrigen(req.getParadaOrigen());
+            p.setParadaDestino(req.getParadaDestino());
+            p.setClienteEmail(req.getClienteEmail());
+            p.setTipoComprobante(req.getTipoComprobante());
+            p.setClienteNombre(req.getClienteNombre());
+            p.setClienteDocumento(req.getClienteDocumento());
+
+            Venta v = reservarUno(viaje, p, clienteEmailAutenticado);
+            ids.add(v.getId());
+            total = total.add(v.getPrecio());
+            expira = v.getReservaExpira();
+        }
+
+        ReservaGrupoResponse resp = new ReservaGrupoResponse();
+        resp.setReservaIds(ids);
+        resp.setMontoTotal(total);
+        resp.setMontoCents(total.multiply(BigDecimal.valueOf(100)).intValueExact());
+        resp.setMoneda("PEN");
+        resp.setExpiraEn(expira != null ? expira.toString() : null);
+        resp.setCantidad(ids.size());
+        resp.setDescripcion(ids.size() + (ids.size() == 1 ? " pasaje " : " pasajes ")
+                + safe(req.getParadaOrigen()) + " → " + safe(req.getParadaDestino()));
+        return resp;
+    }
+
+    /** El viaje debe estar programado y no haber salido (mismo criterio del buscador). */
+    private void verificarViajeVendible(Viaje viaje) {
         if (viaje.getEstado() != Viaje.EstadoViaje.PROGRAMADO)
             throw new RuntimeException("Este viaje ya no está disponible para la venta");
-
-        // Mismo criterio que el buscador: si el filtro solo estuviera en la búsqueda,
-        // una página abierta hace rato (o una llamada directa a la API) podría
-        // vender un pasaje de un bote que ya zarpó.
+        // Si el filtro solo estuviera en la búsqueda, una página abierta hace rato
+        // (o una llamada directa a la API) podría vender un pasaje de un bote que ya zarpó.
         if (!publicService.seVendeTodavia(viaje))
             throw new RuntimeException("Este viaje ya salió o está por salir. Elige otra fecha.");
+    }
 
+    /**
+     * Crea y retiene UNA reserva (un asiento) sobre un viaje ya validado. Es el núcleo
+     * compartido por la compra de un pasaje y por la compra de varios.
+     */
+    private Venta reservarUno(Viaje viaje, ReservaRequest req, String clienteEmailAutenticado) {
         if (req.getAsientoNumero() == null)
             throw new RuntimeException("Selecciona un asiento");
         if (req.getOrdenOrigen() == null || req.getOrdenDestino() == null
                 || req.getOrdenOrigen() >= req.getOrdenDestino())
             throw new RuntimeException("Tramo (origen/destino) inválido");
         if (vacio(req.getPasajeroNombre()) || vacio(req.getPasajeroDocumento()))
-            throw new RuntimeException("Ingresa el nombre y documento del pasajero");
+            throw new RuntimeException("Ingresa el nombre y documento de cada pasajero");
         if (vacio(req.getClienteEmail()) || !req.getClienteEmail().contains("@"))
             throw new RuntimeException("Ingresa un correo válido");
 
@@ -148,16 +245,7 @@ public class ReservaService {
                 viaje.getId(), req.getAsientoNumero(), v.getId(),
                 v.getPasajeroNombre(), v.getPasajeroDocumento(), v.getPasajeroTelefono(),
                 req.getOrdenOrigen(), req.getOrdenDestino());
-
-        ReservaResponse resp = new ReservaResponse();
-        resp.setReservaId(v.getId());
-        resp.setMonto(precio);
-        resp.setMontoCents(precio.multiply(BigDecimal.valueOf(100)).intValueExact());
-        resp.setMoneda("PEN");
-        resp.setExpiraEn(v.getReservaExpira().toString());
-        resp.setDescripcion("Pasaje " + safe(req.getParadaOrigen()) + " → " + safe(req.getParadaDestino())
-                + " · Asiento #" + req.getAsientoNumero());
-        return resp;
+        return v;
     }
 
     /** Qué medios de pago están configurados, con las claves públicas del navegador. */
@@ -242,6 +330,146 @@ public class ReservaService {
         return confirmarPago(v, pago.referencia);
     }
 
+    // ----------------------------------------------------------------------------
+    // Pago de un grupo de reservas (varios pasajes en un solo cobro)
+    // ----------------------------------------------------------------------------
+
+    /** Paso previo del pago con tarjeta del grupo: un solo formulario por el total. */
+    @Transactional(readOnly = true)
+    public IzipayService.Formulario prepararPagoGrupo(List<String> reservaIds) {
+        List<Venta> ventas = cargarGrupo(reservaIds);
+        BigDecimal total = BigDecimal.ZERO;
+        for (Venta v : ventas) {
+            if (v.getEstado() == Venta.EstadoVenta.PAGADO)
+                throw new RuntimeException("Esta compra ya estaba pagada");
+            if (v.getEstado() != Venta.EstadoVenta.RESERVADO)
+                throw new RuntimeException("La reserva no está disponible para pago");
+            if (v.getReservaExpira() != null && LocalDateTime.now().isAfter(v.getReservaExpira()))
+                throw new RuntimeException("La reserva expiró. Vuelve a elegir tus asientos.");
+            total = total.add(v.getPrecio());
+        }
+        Venta primera = ventas.get(0);
+        int cents = total.multiply(BigDecimal.valueOf(100)).intValueExact();
+        // Un orderId de grupo: Izipay verifica firma + estado, no cruza el orderId,
+        // así que un solo formulario cobra el total de todo el grupo.
+        return izipayService.crearFormulario(
+                "GRP-" + reservaIds.get(0), cents, primera.getClienteEmail(),
+                primera.getPasajeroNombre(), primera.getPasajeroDocumento(), primera.getPasajeroTelefono());
+    }
+
+    /** Confirma el pago con tarjeta del grupo (Izipay) y cierra todas las reservas. */
+    @Transactional
+    public ConfirmacionGrupoDTO pagarGrupo(List<String> reservaIds, String krAnswer, String krHash) {
+        List<Venta> pendientes = grupoPendiente(reservaIds);
+        if (pendientes.isEmpty())
+            return confirmarPagoGrupo(reservaIds, pendientes, null);   // ya estaba pagado (reintento)
+
+        IzipayService.Resultado pago = izipayService.verificarPago(krAnswer, krHash);
+        if (!pago.pagado)
+            throw new RuntimeException(pago.motivo != null ? pago.motivo : "El pago no se pudo confirmar");
+
+        return confirmarPagoGrupo(reservaIds, pendientes, pago.referencia);
+    }
+
+    /** Pago del grupo con Yape: un solo cobro por el total, con idempotencia por grupo. */
+    @Transactional
+    public ConfirmacionGrupoDTO pagarGrupoYape(List<String> reservaIds, String token) {
+        List<Venta> pendientes = grupoPendiente(reservaIds);
+        if (pendientes.isEmpty())
+            return confirmarPagoGrupo(reservaIds, pendientes, null);
+
+        BigDecimal total = BigDecimal.ZERO;
+        for (Venta v : pendientes) total = total.add(v.getPrecio());
+
+        Venta primera = pendientes.get(0);
+        String descripcion = "Pasajes Rayza " + safe(primera.getParadaOrigen()) + " → "
+                + safe(primera.getParadaDestino()) + " (" + pendientes.size() + ")";
+
+        // El primer id como clave de idempotencia: si el cliente reintenta, Mercado
+        // Pago devuelve el mismo pago en vez de cobrar dos veces el total del grupo.
+        MercadoPagoService.Resultado pago = mercadoPagoService.pagar(
+                token, total, descripcion, primera.getClienteEmail(), "grp-" + reservaIds.get(0));
+        if (!pago.pagado)
+            throw new RuntimeException(pago.motivo != null ? pago.motivo : "El pago con Yape no se pudo confirmar");
+
+        return confirmarPagoGrupo(reservaIds, pendientes, pago.referencia);
+    }
+
+    private List<Venta> cargarGrupo(List<String> reservaIds) {
+        if (reservaIds == null || reservaIds.isEmpty())
+            throw new RuntimeException("No hay reservas para pagar");
+        List<Venta> ventas = new ArrayList<>();
+        for (String id : reservaIds)
+            ventas.add(ventaRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Reserva no encontrada")));
+        return ventas;
+    }
+
+    /** Las reservas del grupo que aún faltan pagar (las ya pagadas se devuelven fuera). */
+    private List<Venta> grupoPendiente(List<String> reservaIds) {
+        List<Venta> pendientes = new ArrayList<>();
+        for (String id : cargarGrupo(reservaIds).stream().map(Venta::getId).toList()) {
+            Venta v = reservaLista(id);   // null si ya estaba pagada; lanza si expiró
+            if (v != null) pendientes.add(v);
+        }
+        return pendientes;
+    }
+
+    /**
+     * Cierra el pago de todo el grupo: marca pagadas las pendientes, confirma sus
+     * asientos, emite comprobante (si está activado) y envía un boleto por pasajero.
+     * Devuelve un boleto por cada reserva del grupo (todas, ya pagadas o recién pagadas).
+     */
+    private ConfirmacionGrupoDTO confirmarPagoGrupo(List<String> reservaIds,
+                                                    List<Venta> pendientes, String referencia) {
+        Set<String> pendIds = new HashSet<>();
+        for (Venta v : pendientes) pendIds.add(v.getId());
+
+        java.util.Map<String, ComprobanteDTO> comprobantes = new java.util.HashMap<>();
+        boolean correoOk = true;
+        for (Venta v : pendientes) {
+            v.setEstado(Venta.EstadoVenta.PAGADO);
+            v.setPasarelaReferencia(referencia);
+            v.setReservaExpira(null);
+            ventaRepository.save(v);
+            asientoService.confirmarAsiento(v.getId());
+
+            ComprobanteDTO c = emitirComprobanteElectronico(v);
+            if (c != null) comprobantes.put(v.getId(), c);
+
+            try {
+                ventaService.enviarComprobante(v.getId());
+            } catch (Exception e) {
+                correoOk = false;
+                System.err.println("[ReservaGrupo] No se pudo enviar el boleto de "
+                        + v.getId() + ": " + e.getMessage());
+            }
+        }
+
+        List<ConfirmacionDTO> boletos = new ArrayList<>();
+        BigDecimal total = BigDecimal.ZERO;
+        for (String id : reservaIds) {
+            Venta v = ventaRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Reserva no encontrada"));
+            ConfirmacionDTO dto = confirmacion(v, pendIds.contains(id) && correoOk, null);
+            ComprobanteDTO c = comprobantes.get(id);
+            if (c != null) {
+                dto.setComprobanteElectronico(c.getSerie() + "-" + c.getNumero());
+                dto.setEnlacePdf(c.getEnlacePdf());
+            }
+            boletos.add(dto);
+            total = total.add(v.getPrecio());
+        }
+
+        ConfirmacionGrupoDTO g = new ConfirmacionGrupoDTO();
+        g.setPasajeros(boletos);
+        g.setMontoTotal(total);
+        g.setCorreoEnviado(correoOk);
+        g.setCorreo(boletos.isEmpty() ? null : boletos.get(0).getCorreo());
+        g.setMensaje(pendientes.isEmpty() ? "Esta compra ya estaba pagada" : "¡Pago realizado con éxito!");
+        return g;
+    }
+
     /**
      * Comprueba que la reserva siga en pie y la devuelve. Null significa que ya estaba
      * pagada, y libera el asiento si el plazo se venció.
@@ -307,6 +535,7 @@ public class ReservaService {
      * Devuelve null si la venta es solo ticket o si la emisión falló.
      */
     private ComprobanteDTO emitirComprobanteElectronico(Venta v) {
+        if (!emitirComprobanteWeb) return null;   // apagado en pruebas: solo ticket con QR
         if (!esElectronico(v.getTipoComprobante())) return null;
 
         boolean factura = v.getTipoComprobante() == Venta.TipoComprobante.FACTURA;
