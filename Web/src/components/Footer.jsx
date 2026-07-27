@@ -52,7 +52,7 @@ export default function Footer() {
               <li><a href="/#servicios">Servicios</a></li>
               <li><a href="/#nosotros">Nosotros</a></li>
               <li><a href="/#contacto">Contacto</a></li>
-              <li><a href="https://sistema.tudominio.com">Acceso del personal</a></li>
+              <li><a href="https://sistema.transporterayza.com">Acceso del personal</a></li>
             </ul>
           </div>
           <div>
@@ -60,7 +60,7 @@ export default function Footer() {
             <ul>
               <li><a href="/#contacto">Centro de ayuda</a></li>
               <li><a href="/#contacto">Encomiendas</a></li>
-              <li><a href="/#contacto">Términos y condiciones</a></li>
+              <li><Link to="/clausulas">Términos y condiciones</Link></li>
             </ul>
           </div>
         </div>

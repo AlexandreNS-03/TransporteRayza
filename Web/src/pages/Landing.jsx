@@ -10,13 +10,13 @@ import { EMPRESA, telefonoBonito, telefonoInternacional,
 /** Destinos que se muestran en la portada. La imagen se busca en /public/destinos. */
 const DESTINOS = [
   {
-    nombre: "Iquitos", tono: "g1", imagen: "iquitos.jpg",
+    nombre: "Iquitos", tono: "g1", imagen: "iquits.jpg",
     resumen: "La capital de la Amazonía",
     detalle: "La ciudad más grande del mundo sin acceso por carretera. Puerto de llegada " +
              "de nuestra ruta desde Requena, con oficina de ventas en Jr. Fitzcarrald 377.",
   },
   {
-    nombre: "Requena", tono: "g2", imagen: "requena.jpg",
+    nombre: "Requena", tono: "g2", imagen: "Requena2025.jpg",
     resumen: "Sobre el río Ucayali",
     detalle: "Nuestra central. Capital de la provincia del mismo nombre, a orillas del " +
              "Ucayali. Desde acá salen los deslizadores rumbo a Iquitos cada mañana.",
@@ -28,7 +28,7 @@ const DESTINOS = [
              "carretera con Iquitos y parada obligada de la ruta.",
   },
   {
-    nombre: "Comunidades", tono: "g4", imagen: "comunidades.jpg",
+    nombre: "Comunidades", tono: "g4", imagen: "jherrera.jpg",
     resumen: "Puertos ribereños",
     detalle: "Yanallpa, Jenaro Herrera, Flor de Castaña, Puerto Miguel y más pueblos del " +
              "río. Puedes comprar tu pasaje a cualquier tramo intermedio, no solo al final.",
@@ -45,7 +45,7 @@ export default function Landing() {
       {/* ===== HERO ===== */}
       <section className="hero" id="inicio">
         <div className="wrap">
-          <span className="eyebrow">🚤 Transporte fluvial · Loreto, Perú</span>
+          <span className="eyebrow">Transporte fluvial · Requena, Loreto, Perú</span>
           <h1>Tu viaje por la Amazonía, <em>a un clic de distancia</em></h1>
           <p className="lead">
             Compra tus pasajes con Transportes Rayza: elige tu ruta, tu asiento y paga en
