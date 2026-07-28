@@ -1,6 +1,9 @@
 package com.example.demo.controller;
 
 import com.example.demo.dto.ConfirmacionDTO;
+import com.example.demo.dto.ConfirmacionGrupoDTO;
+import com.example.demo.dto.ReservaGrupoRequest;
+import com.example.demo.dto.ReservaGrupoResponse;
 import com.example.demo.dto.ReservaRequest;
 import com.example.demo.dto.ReservaResponse;
 import com.example.demo.service.ReservaService;
@@ -9,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -36,6 +40,42 @@ public class ReservaController {
                                                     Authentication auth) {
         String email = (auth != null) ? auth.getName() : null;
         return ResponseEntity.ok(reservaService.crearReserva(req, email));
+    }
+
+    /** Reserva de varios pasajes (1 a 5) en una sola compra. */
+    @PostMapping("/grupo")
+    public ResponseEntity<ReservaGrupoResponse> reservarGrupo(@RequestBody ReservaGrupoRequest req,
+                                                              Authentication auth) {
+        String email = (auth != null) ? auth.getName() : null;
+        return ResponseEntity.ok(reservaService.crearReservaGrupo(req, email));
+    }
+
+    /** Formulario de Izipay para el total del grupo. */
+    @PostMapping("/grupo/pago/formulario")
+    public ResponseEntity<?> formularioDePagoGrupo(@RequestBody Map<String, Object> body) {
+        return ResponseEntity.ok(reservaService.prepararPagoGrupo(reservaIds(body)));
+    }
+
+    /** Confirma el pago con tarjeta del grupo. */
+    @PostMapping("/grupo/pagar")
+    public ResponseEntity<ConfirmacionGrupoDTO> pagarGrupo(@RequestBody Map<String, Object> body) {
+        return ResponseEntity.ok(reservaService.pagarGrupo(
+                reservaIds(body), (String) body.get("krAnswer"), (String) body.get("krHash")));
+    }
+
+    /** Confirma el pago con Yape del grupo. */
+    @PostMapping("/grupo/pagar/yape")
+    public ResponseEntity<ConfirmacionGrupoDTO> pagarGrupoYape(@RequestBody Map<String, Object> body) {
+        return ResponseEntity.ok(reservaService.pagarGrupoYape(
+                reservaIds(body), (String) body.get("token")));
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<String> reservaIds(Map<String, Object> body) {
+        Object ids = body.get("reservaIds");
+        if (!(ids instanceof List))
+            throw new RuntimeException("Faltan las reservas del grupo");
+        return (List<String>) ids;
     }
 
     /**

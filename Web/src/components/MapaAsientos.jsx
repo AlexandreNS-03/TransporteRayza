@@ -7,7 +7,7 @@ import { getAsientos } from "../services/publicApi";
  * `vipPosicion` de la embarcación, filas de 2 + pasillo + 2, y motor en la popa.
  * Muestra todos los asientos: los ocupados salen en gris y no son seleccionables.
  */
-export default function MapaAsientos({ viaje, seleccionado, onSeleccionar }) {
+export default function MapaAsientos({ viaje, seleccionados = [], onToggle, max = 1 }) {
   const [asientos, setAsientos] = useState(null);
   const [error, setError] = useState(null);
 
@@ -54,14 +54,17 @@ export default function MapaAsientos({ viaje, seleccionado, onSeleccionar }) {
 
   const Boton = (a) => {
     const esVip = a.tipo === "VIP";
-    const sel = seleccionado && seleccionado.numero === a.numero;
+    const sel = seleccionados.some((s) => s.numero === a.numero);
+    // Al llegar al tope, los demás asientos libres quedan bloqueados: así no se eligen
+    // más asientos que pasajes se van a comprar.
+    const topeAlcanzado = !sel && seleccionados.length >= max;
     return (
       <button
         key={a.numero}
         type="button"
         className={`asiento ${esVip ? "vip" : ""} ${!a.libre ? "ocupado" : ""} ${sel ? "sel" : ""}`}
-        onClick={() => a.libre && onSeleccionar(a)}
-        disabled={!a.libre}
+        onClick={() => a.libre && !topeAlcanzado && onToggle(a)}
+        disabled={!a.libre || topeAlcanzado}
         title={!a.libre ? "Ocupado" : `${esVip ? "VIP" : "Normal"} #${a.numero}`}
       >
         {a.numero}<small>{esVip ? "VIP" : ""}</small>
