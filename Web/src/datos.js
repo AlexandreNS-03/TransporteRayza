@@ -27,19 +27,42 @@ export const EMPRESA = {
       ciudad: "Requena",
       central: true,
       puntos: [
-        { tipo: "Ventas",   direccion: "Calle Manaos S/N" },
-        { tipo: "Oficinas", direccion: "Calle San Antonio 270" },
+        { tipo: "Ventas",   direccion: "Calle Manaos S/N",       coord: [-5.057562, -73.853404] },
+        { tipo: "Oficinas", direccion: "Calle San Antonio 270",  coord: [-5.069156, -73.857471] },
       ],
     },
     {
       ciudad: "Iquitos",
       central: false,
       puntos: [
-        { tipo: "Ventas", direccion: "Jr. Fitzcarrald 377" },
+        { tipo: "Ventas", direccion: "Jr. Fitzcarrald 377", coord: [-3.746568, -73.242909] },
       ],
     },
   ],
 };
+
+/** Lista plana de agencias (con coordenadas) para el mapa de la página de contacto. */
+export const AGENCIAS = EMPRESA.oficinas.flatMap((o) =>
+  o.puntos.map((p) => ({
+    ciudad: o.ciudad,
+    central: o.central,
+    tipo: p.tipo,
+    direccion: p.direccion,
+    coord: p.coord,
+    titulo: `${o.ciudad} · ${p.tipo}${o.central ? "" : ""}`,
+  }))
+);
+
+/** Enlace a Google Maps con la ubicación marcada (para "Cómo llegar"). */
+export function enlaceMapa([lat, lon]) {
+  return `https://www.google.com/maps/search/?api=1&query=${lat},${lon}`;
+}
+
+/** Iframe de OpenStreetMap centrado en el punto, con marcador. */
+export function embedMapa([lat, lon], radio = 0.004) {
+  const bbox = [lon - radio, lat - radio, lon + radio, lat + radio].join(",");
+  return `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat},${lon}`;
+}
 
 /** Teléfono en formato internacional, para los enlaces de llamada y WhatsApp. */
 export const telefonoInternacional = `51${EMPRESA.telefono}`;

@@ -49,17 +49,17 @@ export default function Footer() {
           <div>
             <h4>Empresa</h4>
             <ul>
-              <li><a href="/#servicios">Servicios</a></li>
+              <li><Link to="/servicios">Servicios</Link></li>
               <li><a href="/#nosotros">Nosotros</a></li>
-              <li><a href="/#contacto">Contacto</a></li>
+              <li><Link to="/contacto">Contacto</Link></li>
               <li><a href="https://sistema.transporterayza.com">Acceso del personal</a></li>
             </ul>
           </div>
           <div>
             <h4>Ayuda</h4>
             <ul>
-              <li><a href="/#contacto">Centro de ayuda</a></li>
-              <li><a href="/#contacto">Encomiendas</a></li>
+              <li><Link to="/contacto">Centro de ayuda</Link></li>
+              <li><Link to="/contacto">Encomiendas</Link></li>
               <li><Link to="/clausulas">Términos y condiciones</Link></li>
             </ul>
           </div>

@@ -4,7 +4,7 @@ import { soles } from "../services/publicApi";
  * Resumen del viaje y de los asientos elegidos. `asientos` es la lista de asientos
  * seleccionados (1 a 5); el total suma el precio de cada uno según su tipo.
  */
-export default function Resumen({ viaje, asientos = [], children }) {
+export default function Resumen({ viaje, asientos = [], bebes = 0, children }) {
   if (!viaje) return null;
 
   const precioDe = (a) => (a && a.tipo === "VIP" ? viaje.precioVip : viaje.precioNormal) ?? viaje.precioNormal;
@@ -28,6 +28,9 @@ export default function Resumen({ viaje, asientos = [], children }) {
           <span>{soles(precioDe(a))}</span>
         </div>
       ))}
+      {bebes > 0 && (
+        <div className="linea"><span>Bebés (en brazos)</span><span>{bebes} · gratis</span></div>
+      )}
 
       <div className="total"><span>Total</span><span>{soles(asientos.length ? total : (viaje.precioNormal ?? 0))}</span></div>
       {children}

@@ -5,6 +5,7 @@ import Footer from "../components/Footer";
 import Buscador from "../components/Buscador";
 import Resultados from "../components/Resultados";
 import MapaAsientos from "../components/MapaAsientos";
+import SelectorPasajeros from "../components/SelectorPasajeros";
 import FormularioPasajero, { FormularioContacto } from "../components/FormularioPasajero";
 import Resumen from "../components/Resumen";
 import Confirmacion from "../components/Confirmacion";
@@ -47,7 +48,8 @@ export default function Comprar() {
   const [error, setError] = useState(null);
 
   const [viaje, setViaje] = useState(null);
-  const [cantidad, setCantidad] = useState(1);
+  const [pax, setPax] = useState({ adultos: 1, ninos: 0, bebes: 0 });
+  const asientos = pax.adultos + pax.ninos;                 // adultos+niños ocupan asiento
   const [seleccionados, setSeleccionados] = useState([]);   // asientos elegidos
   const [pasajeros, setPasajeros] = useState([{ ...PASAJERO_INICIAL }]);
   const [contacto, setContacto] = useState(CONTACTO_INICIAL);
@@ -75,17 +77,17 @@ export default function Comprar() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Al cambiar la cantidad, ajusta las listas de asientos y pasajeros y descarta la
-  // reserva previa (los asientos ya no coinciden).
+  // Al cambiar la cantidad de asientos (adultos+niños), ajusta las listas de asientos
+  // y pasajeros y descarta la reserva previa (los asientos ya no coinciden).
   useEffect(() => {
     setPasajeros((prev) => {
-      const arr = prev.slice(0, cantidad);
-      while (arr.length < cantidad) arr.push({ ...PASAJERO_INICIAL });
+      const arr = prev.slice(0, asientos);
+      while (arr.length < asientos) arr.push({ ...PASAJERO_INICIAL });
       return arr;
     });
-    setSeleccionados((prev) => prev.slice(0, cantidad));
+    setSeleccionados((prev) => prev.slice(0, asientos));
     setReservaGrupo(null);
-  }, [cantidad]);
+  }, [asientos]);
 
   const scrollTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
 
@@ -98,20 +100,23 @@ export default function Comprar() {
     setSeleccionados((prev) => {
       const ya = prev.some((s) => s.numero === a.numero);
       if (ya) return prev.filter((s) => s.numero !== a.numero);
-      if (prev.length >= cantidad) return prev;
+      if (prev.length >= asientos) return prev;
       return [...prev, a];
     });
   };
 
   const setPasajeroEn = (i, p) => setPasajeros((prev) => prev.map((x, j) => (j === i ? p : x)));
 
+  // El asiento i corresponde a un adulto mientras haya adultos; luego, a un niño.
+  const tipoPasajero = (i) => (i < pax.adultos ? "Adulto" : "Niño");
+
   const continuarAsiento = () => {
-    if (seleccionados.length === cantidad) { setPaso(2); scrollTop(); }
+    if (seleccionados.length === asientos) { setPaso(2); scrollTop(); }
   };
   const continuarDatos = () => { if (datosValidos()) { setPaso(3); scrollTop(); } };
 
   const datosValidos = () => {
-    for (let i = 0; i < cantidad; i++) {
+    for (let i = 0; i < asientos; i++) {
       const p = pasajeros[i] || {};
       if (!p.pasajeroNombre?.trim() || !p.pasajeroDocumento?.trim()) {
         alert(`Completa el nombre y el documento del pasajero ${i + 1}.`); return false;
@@ -215,7 +220,7 @@ export default function Comprar() {
     }
   };
 
-  const faltan = cantidad - seleccionados.length;
+  const faltan = asientos - seleccionados.length;
 
   return (
     <>
@@ -253,27 +258,19 @@ export default function Comprar() {
               <div>
                 {paso === 1 && (
                   <div className="card">
-                    <div className="cantidad-selector">
-                      <span>¿Cuántos pasajes?</span>
-                      <div className="cantidad-botones">
-                        {Array.from({ length: MAX_PASAJES }).map((_, i) => (
-                          <button key={i + 1} type="button"
-                                  className={`cantidad-btn ${cantidad === i + 1 ? "activo" : ""}`}
-                                  onClick={() => setCantidad(i + 1)}>
-                            {i + 1}
-                          </button>
-                        ))}
-                      </div>
+                    <div style={{ maxWidth: 360, margin: "0 auto 6px" }}>
+                      <SelectorPasajeros valor={pax} onChange={(v) => { setPax(v); setReservaGrupo(null); }} maxAsientos={MAX_PASAJES} />
                     </div>
                     <p className="muted center" style={{ marginTop: 4 }}>
                       {faltan > 0
-                        ? `Elige ${faltan} asiento${faltan > 1 ? "s" : ""} más (${seleccionados.length}/${cantidad}).`
-                        : `Listo: ${cantidad} asiento${cantidad > 1 ? "s" : ""} elegido${cantidad > 1 ? "s" : ""}.`}
+                        ? `Elige ${faltan} asiento${faltan > 1 ? "s" : ""} más (${seleccionados.length}/${asientos}).`
+                        : `Listo: ${asientos} asiento${asientos > 1 ? "s" : ""} elegido${asientos > 1 ? "s" : ""}.`}
+                      {pax.bebes > 0 && ` + ${pax.bebes} bebé${pax.bebes > 1 ? "s" : ""} en brazos.`}
                     </p>
-                    <MapaAsientos viaje={viaje} seleccionados={seleccionados} onToggle={toggleAsiento} max={cantidad} />
+                    <MapaAsientos viaje={viaje} seleccionados={seleccionados} onToggle={toggleAsiento} max={asientos} />
                     <div style={{ display: "flex", justifyContent: "space-between", marginTop: 22 }}>
                       <button className="btn btn-ghost" onClick={() => setPaso(0)}>Volver</button>
-                      <button className="btn btn-primary" disabled={seleccionados.length !== cantidad} onClick={continuarAsiento}>Continuar</button>
+                      <button className="btn btn-primary" disabled={seleccionados.length !== asientos} onClick={continuarAsiento}>Continuar</button>
                     </div>
                   </div>
                 )}
@@ -282,7 +279,7 @@ export default function Comprar() {
                     {seleccionados.map((a, i) => (
                       <div key={a.numero} style={{ marginBottom: 18 }}>
                         <FormularioPasajero
-                          titulo={`Pasajero ${i + 1} · Asiento #${a.numero} (${a.tipo})`}
+                          titulo={`${tipoPasajero(i)} ${i + 1} · Asiento #${a.numero} (${a.tipo})`}
                           pasajero={pasajeros[i] || PASAJERO_INICIAL}
                           setPasajero={(p) => setPasajeroEn(i, p)}
                         />
@@ -299,7 +296,7 @@ export default function Comprar() {
                   <div className="card">
                     <h3>Pago en línea</h3>
                     <p className="muted" style={{ marginTop: 6 }}>
-                      Elige cómo pagar. Retenemos {cantidad > 1 ? "tus asientos" : "tu asiento"} por 15 minutos
+                      Elige cómo pagar. Retenemos {asientos > 1 ? "tus asientos" : "tu asiento"} por 15 minutos
                       mientras completas el pago.
                     </p>
 
@@ -380,7 +377,7 @@ export default function Comprar() {
                   </div>
                 )}
               </div>
-              <Resumen viaje={viaje} asientos={seleccionados} />
+              <Resumen viaje={viaje} asientos={seleccionados} bebes={pax.bebes} />
             </div>
           )}
 

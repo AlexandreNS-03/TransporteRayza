@@ -5,6 +5,7 @@ import Ingresar from "./pages/Ingresar";
 import Historial from "./pages/Historial";
 import Servicios from "./pages/Servicios";
 import Clausulas from "./pages/Clausulas";
+import Contacto from "./pages/Contacto";
 import MiCuenta from "./pages/MiCuenta";
 import Destinos from "./pages/Destinos";
 import DestinoDetalle from "./pages/DestinoDetalle";
@@ -20,6 +21,7 @@ export default function App() {
         <Route path="/historial" element={<Historial />} />
         <Route path="/servicios" element={<Servicios />} />
         <Route path="/clausulas" element={<Clausulas />} />
+        <Route path="/contacto" element={<Contacto />} />
         <Route path="/destinos" element={<Destinos />} />
         <Route path="/destinos/:slug" element={<DestinoDetalle />} />
         <Route path="*" element={<Landing />} />

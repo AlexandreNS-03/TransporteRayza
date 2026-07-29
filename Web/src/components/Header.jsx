@@ -19,7 +19,7 @@ export default function Header() {
             <Link to="/comprar">Comprar pasaje</Link>
             <Link to="/servicios">Servicios</Link>
             <Link to="/destinos">Destinos</Link>
-            <a href="/#contacto">Contacto</a>
+            <Link to="/contacto">Contacto</Link>
           </nav>
           <div className="nav-actions">
             <ThemeToggle />
