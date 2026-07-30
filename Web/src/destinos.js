@@ -9,6 +9,11 @@ export const DESTINOS = [
     ruta: "Conexión fluvial desde Requena y los puertos intermedios.",
     destacados: ["Malecón y paseo ribereño", "Mercados y sabores amazónicos", "Punto de partida para conocer la selva"],
     viaje: "Desde Iquitos puedes conectar con Requena, Nauta y comunidades del río.",
+    festividades: [
+      { nombre: "Carnaval Amazónico", fecha: "Febrero", mes: "FEB" },
+      { nombre: "Fiesta de San Juan", fecha: "24 de junio", dia: "24", mes: "JUN" },
+      { nombre: "Virgen de la Natividad", fecha: "8 de septiembre", dia: "08", mes: "SEP" },
+    ],
   },
   {
     slug: "requena",
@@ -20,6 +25,11 @@ export const DESTINOS = [
     ruta: "Central de Transportes Rayza y salida de rutas fluviales.",
     destacados: ["Plaza y vida urbana ribereña", "Puerto y movimiento fluvial", "Hotel, restaurante y servicios Rayza"],
     viaje: "Compra tu pasaje desde Requena y elige el tramo que necesitas recorrer.",
+    festividades: [
+      { nombre: "Fiesta de San Juan", fecha: "24 de junio", dia: "24", mes: "JUN" },
+      { nombre: "Aniversario de Requena", fecha: "18 – 23 de agosto", dia: "23", mes: "AGO" },
+      { nombre: "Fiesta patronal", fecha: "Octubre", mes: "OCT" },
+    ],
   },
   {
     slug: "nauta",
@@ -31,6 +41,11 @@ export const DESTINOS = [
     ruta: "Parada de conexión en la ruta fluvial de la región.",
     destacados: ["Laguna Sapi Sapi", "Puerto y malecón", "Acceso por carretera desde Iquitos"],
     viaje: "Consulta las salidas disponibles y reserva con anticipación para tu tramo hacia o desde Nauta.",
+    festividades: [
+      { nombre: "Aniversario de Nauta", fecha: "30 de abril", dia: "30", mes: "ABR" },
+      { nombre: "Fiesta patronal San Felipe y Santiago", fecha: "Mayo", mes: "MAY" },
+      { nombre: "Fiesta de San Juan", fecha: "24 de junio", dia: "24", mes: "JUN" },
+    ],
   },
   {
     slug: "jenaro-herrera",
@@ -42,6 +57,10 @@ export const DESTINOS = [
     ruta: "Parada intermedia de las rutas que recorren el Ucayali.",
     destacados: ["Paisaje ribereño", "Vida de comunidad", "Conexión con puertos cercanos"],
     viaje: "Selecciona tu origen y destino al comprar: puedes viajar por tramos, no solo hasta el puerto final.",
+    festividades: [
+      { nombre: "Fiesta de San Juan", fecha: "24 de junio", dia: "24", mes: "JUN" },
+      { nombre: "Feria Agropecuaria y Artesanal", fecha: "27 – 29 de julio", dia: "27", mes: "JUL" },
+    ],
   },
 ];
 

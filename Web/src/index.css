@@ -648,6 +648,32 @@ footer.site .foot-bottom { border-top: 1px solid rgba(255,255,255,.12); padding-
 .detalle-destacado span { display: block; margin-bottom: 28px; color: var(--accent); font-family: var(--font-head); font-size: 13px; font-weight: 800; letter-spacing: .08em; }
 .detalle-destacado h3 { font-size: 20px; }
 
+/* ---- Calendario festivo del destino ---- */
+.calendario {
+  display: grid; grid-template-columns: 1.05fr .95fr;
+  border-radius: 22px; overflow: hidden; border: 1px solid var(--line);
+}
+.calendario-panel { background: var(--brand-700, #10709c); color: #fff; padding: 44px clamp(28px, 4vw, 52px); }
+.calendario-panel h2 { margin: 6px 0 8px; color: #fff; font-size: clamp(26px, 3.2vw, 36px); }
+.calendario-sub { margin: 0 0 26px; color: rgba(255,255,255,.85); max-width: 42ch; line-height: 1.6; }
+.calendario-lista { list-style: none; margin: 0; padding: 0; display: grid; gap: 18px; }
+.calendario-lista li { display: flex; align-items: center; gap: 16px; }
+.cal-chip {
+  flex: 0 0 auto; width: 58px; height: 58px; border-radius: 14px;
+  background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.25);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1;
+}
+.cal-chip small { font-size: 11px; font-weight: 700; letter-spacing: .06em; color: rgba(255,255,255,.8); }
+.cal-chip b { font-size: 22px; font-weight: 800; margin-top: 2px; }
+.cal-chip svg { width: 22px; height: 22px; margin-top: 3px; fill: none; stroke: #fff; stroke-width: 1.8; }
+.calendario-lista h3 { font-size: 18px; margin: 0 0 2px; color: #fff; }
+.calendario-lista p { margin: 0; font-size: 14px; color: rgba(255,255,255,.82); }
+.calendario-foto { min-height: 340px; background-size: cover; background-position: center; }
+@media (max-width: 780px) {
+  .calendario { grid-template-columns: 1fr; }
+  .calendario-foto { min-height: 220px; order: -1; }
+}
+
 @media (max-width: 760px) {
   .destinos-hero-contenido { padding-top: 54px; padding-bottom: 112px; }
   .destinos-buscador { margin-top: -60px; }

@@ -55,6 +55,40 @@ export default function DestinoDetalle() {
         </div>
       </section>
 
+      {destino.festividades?.length > 0 && (
+        <section className="section">
+          <div className="wrap">
+            <div className="calendario">
+              <div className="calendario-panel">
+                <div className="kicker" style={{ color: "rgba(255,255,255,.85)" }}>Calendario festivo</div>
+                <h2>Vive {destino.nombre} en sus fechas</h2>
+                <p className="calendario-sub">Planifica tu viaje para coincidir con las celebraciones más importantes.</p>
+                <ul className="calendario-lista">
+                  {destino.festividades.map((f) => (
+                    <li key={f.nombre}>
+                      <span className="cal-chip">
+                        <small>{f.mes}</small>
+                        {f.dia ? <b>{f.dia}</b> : <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>}
+                      </span>
+                      <div>
+                        <h3>{f.nombre}</h3>
+                        <p>{f.fecha}</p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div
+                className="calendario-foto"
+                style={{ backgroundImage: `url(/destinos/${destino.imagen})` }}
+                role="img"
+                aria-label={`Fiestas en ${destino.nombre}`}
+              />
+            </div>
+          </div>
+        </section>
+      )}
+
       <section className="section">
         <div className="wrap detalle-reserva">
           <div>
