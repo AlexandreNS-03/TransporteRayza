@@ -3,10 +3,11 @@ import { Link } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import Buscador from "../components/Buscador";
+import Carrusel from "../components/Carrusel";
 import Reveal from "../components/Reveal";
 import AnuncioAniversario from "../components/AnuncioAniversario";
 import { EMPRESA, telefonoBonito, telefonoInternacional,
-         aniosDeAniversario, esMesDeAniversario } from "../datos";
+         aniosDeAniversario } from "../datos";
 import { DESTINOS } from "../destinos";
 
 export default function Landing() {
@@ -16,40 +17,31 @@ export default function Landing() {
     <>
       <Header />
 
-      {/* ===== HERO ===== */}
-      <section className="hero" id="inicio">
-        <div className="wrap">
-          <span className="eyebrow">Transporte fluvial · Requena, Loreto, Perú</span>
-          <h1>Tu viaje por la Amazonía, <em>a un clic de distancia</em></h1>
-          <p className="lead">
-            Compra tus pasajes con Transportes Rayza: elige tu ruta, tu asiento y paga en
-            línea de forma segura. Boleto con QR al instante.
-          </p>
-          <div className="trust">
-            <span><svg viewBox="0 0 24 24"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z"/><path d="M9 12l2 2 4-4"/></svg> Pago 100% seguro</span>
-            <span><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/></svg> Tarjeta y Yape</span>
-            <span><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> Reserva en minutos</span>
+      {/* ===== HERO (carrusel a todo el ancho + buscador flotante) ===== */}
+      <section className="hero-mb" id="inicio">
+        <Carrusel
+          flechas
+          slides={DESTINOS.map((d) => ({ src: `/destinos/${d.imagen}`, alt: `${d.nombre} · ${d.etiqueta}` }))}
+        >
+          <div className="hero-mb-overlay">
+            <div className="wrap">
+              <span className="hero-mb-eyebrow">Transporte fluvial · Loreto, Perú</span>
+              <h1>Así se siente viajar en <span className="acento">Rayza</span></h1>
+              <p>Elige tu ruta y tu asiento, paga en línea y recibe tu boleto con QR al instante.</p>
+            </div>
           </div>
-        </div>
-        <div className="waves" aria-hidden="true">
-          <svg viewBox="0 0 1440 130" preserveAspectRatio="none">
-            <path d="M0,70 C240,120 480,20 720,54 C960,88 1200,26 1440,64 L1440,130 L0,130 Z" fill="var(--bg)" opacity="0.55"/>
-            <path d="M0,88 C260,120 520,44 760,72 C1000,100 1220,48 1440,82 L1440,130 L0,130 Z" fill="var(--bg)"/>
-          </svg>
-        </div>
+        </Carrusel>
+        <div className="wrap hero-mb-buscador"><Buscador /></div>
       </section>
-
-      {/* ===== BUSCADOR FLOTANTE ===== */}
-      <div className="wrap search-wrap"><Buscador /></div>
 
       {/* ===== PROMOS ===== */}
       <section className="section" style={{ paddingTop: 56 }}>
         <div className="wrap">
           <div className="promos">
             <Reveal className="promo p2">
-              <span className="tagline">{esMesDeAniversario() ? `${anios + 1}° aniversario` : "Fiestas Patrias"}</span>
-              <h3>{esMesDeAniversario() ? `Este 28 de julio cumplimos ${anios + 1} años` : "Viaja este julio"}</h3>
-              <p>Gracias por navegar el río con nosotros. Asegura tu asiento a los principales puertos.</p>
+              <span className="tagline">Aniversario de Requena</span>
+              <h3>Del 18 al 23 de agosto</h3>
+              <p>Acompáñanos a celebrar el aniversario de Requena. Asegura tu asiento a los principales puertos.</p>
             </Reveal>
             <Reveal className="promo p1" delay={1}><span className="tagline">Nuevo</span><h3>Compra en línea</h3><p>Sin colas: reserva y paga desde tu celular.</p></Reveal>
             <Reveal className="promo p3" delay={2}><span className="tagline">Encomiendas</span><h3>Envía tu carga</h3><p>Puerta a puerto, con comprobante electrónico.</p></Reveal>
