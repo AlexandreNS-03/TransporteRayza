@@ -17,36 +17,22 @@ export default function Landing() {
     <>
       <Header />
 
-      {/* ===== HERO (minimalista) ===== */}
-      <section className="hero-lite" id="inicio">
-        <div className="wrap hero-lite-grid">
-          <div className="hero-lite-texto">
-            <span className="eyebrow-lite">Transporte fluvial · Requena, Loreto</span>
-            <h1>Tu viaje por la Amazonía, <span className="acento">a un clic de distancia</span></h1>
-            <p className="lead">
-              Elige tu ruta y tu asiento, y paga en línea de forma segura.
-              Recibe tu boleto con QR al instante.
-            </p>
-            <div className="hero-lite-cta">
-              <Link className="btn btn-primary btn-lg" to="/comprar">Comprar pasaje</Link>
-              <a className="btn btn-ghost btn-lg" href="#destinos">Ver destinos</a>
+      {/* ===== HERO (carrusel a todo el ancho + buscador flotante) ===== */}
+      <section className="hero-mb" id="inicio">
+        <Carrusel
+          flechas
+          slides={DESTINOS.map((d) => ({ src: `/destinos/${d.imagen}`, alt: `${d.nombre} · ${d.etiqueta}` }))}
+        >
+          <div className="hero-mb-overlay">
+            <div className="wrap">
+              <span className="hero-mb-eyebrow">Transporte fluvial · Loreto, Perú</span>
+              <h1>Así se siente viajar en <span className="acento">Rayza</span></h1>
+              <p>Elige tu ruta y tu asiento, paga en línea y recibe tu boleto con QR al instante.</p>
             </div>
-            <ul className="hero-lite-trust">
-              <li><svg viewBox="0 0 24 24"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z"/><path d="M9 12l2 2 4-4"/></svg> Pago 100% seguro</li>
-              <li><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/></svg> Tarjeta y Yape</li>
-              <li><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> Reserva en minutos</li>
-            </ul>
           </div>
-          <div className="hero-lite-foto">
-            <Carrusel
-              slides={DESTINOS.map((d) => ({ src: `/destinos/${d.imagen}`, alt: `${d.nombre} · ${d.etiqueta}` }))}
-            />
-          </div>
-        </div>
+        </Carrusel>
+        <div className="wrap hero-mb-buscador"><Buscador /></div>
       </section>
-
-      {/* ===== BUSCADOR ===== */}
-      <div className="wrap search-wrap"><Buscador /></div>
 
       {/* ===== PROMOS ===== */}
       <section className="section" style={{ paddingTop: 56 }}>

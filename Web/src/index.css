@@ -203,6 +203,39 @@ header.site {
   .hero-lite-foto img, .carrusel { height: 220px; border-radius: 18px; }
 }
 
+/* Flechas del carrusel (solo cuando flechas=true, p. ej. el hero) */
+.carrusel-flecha { position: absolute; top: 50%; transform: translateY(-50%); z-index: 3;
+  width: 44px; height: 44px; border-radius: 50%; cursor: pointer; display: grid; place-items: center;
+  border: 1px solid rgba(255,255,255,.6); background: rgba(0,0,0,.28); transition: background .2s; }
+.carrusel-flecha:hover { background: rgba(0,0,0,.55); }
+.carrusel-flecha svg { width: 22px; height: 22px; fill: none; stroke: #fff; stroke-width: 2; }
+.carrusel-flecha.izq { left: 18px; }
+.carrusel-flecha.der { right: 18px; }
+
+/* ---------- Hero estilo movilbus (carrusel full-bleed + buscador flotante) ---------- */
+.hero-mb { position: relative; }
+.hero-mb .carrusel { height: clamp(440px, 62vh, 620px); border-radius: 0; }
+.hero-mb-overlay { position: absolute; inset: 0; z-index: 2; display: flex; align-items: center;
+  background: linear-gradient(180deg, rgba(4,22,35,.5), rgba(4,22,35,.12) 42%, rgba(4,22,35,.66)); }
+.hero-mb-overlay .wrap { width: 100%; padding-bottom: 40px; }
+.hero-mb-eyebrow { display: inline-block; color: #fff; font-size: 13px; font-weight: 700; letter-spacing: .03em;
+  background: rgba(255,255,255,.16); padding: 6px 13px; border-radius: 999px; }
+.hero-mb-overlay h1 { color: #fff; font-size: clamp(30px, 5.2vw, 56px); font-weight: 800; line-height: 1.06;
+  margin: 16px 0 0; max-width: 18ch; text-shadow: 0 2px 20px rgba(0,0,0,.4); }
+.hero-mb-overlay h1 .acento { color: #8fd6ff; }
+.hero-mb-overlay p { color: rgba(255,255,255,.92); font-size: clamp(15px, 1.6vw, 18px); line-height: 1.6;
+  margin: 14px 0 0; max-width: 46ch; text-shadow: 0 1px 12px rgba(0,0,0,.45); }
+.hero-mb .carrusel-puntos { bottom: 92px; }
+.hero-mb-buscador { position: relative; z-index: 5; margin-top: -58px; }
+.hero-mb-buscador .search-tabs { display: none; }
+.hero-mb-buscador .buscador { border-radius: var(--r-lg); box-shadow: var(--sh-lg); }
+@media (max-width: 860px) {
+  .hero-mb .carrusel { height: 360px; }
+  .hero-mb .carrusel-puntos { bottom: 12px; }
+  .hero-mb .carrusel-flecha { display: none; }
+  .hero-mb-buscador { margin-top: 14px; }
+}
+
 /* ---------- Buscador ---------- */
 .search-wrap { position: relative; z-index: 3; margin-top: 4px; }
 .search-tabs { display: flex; gap: 6px; padding-left: 8px; margin-bottom: -1px; }
