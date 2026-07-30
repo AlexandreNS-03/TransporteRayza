@@ -190,10 +190,17 @@ header.site {
 .hero-lite-trust li { display: inline-flex; align-items: center; gap: 8px; font-size: 13.5px; color: var(--ink-soft); }
 .hero-lite-trust svg { width: 18px; height: 18px; stroke: var(--brand); stroke-width: 1.7; fill: none; }
 .hero-lite-foto img { width: 100%; height: clamp(300px, 40vw, 460px); object-fit: cover; border-radius: 24px; display: block; }
+.carrusel { position: relative; width: 100%; height: clamp(300px, 40vw, 460px); border-radius: 24px; overflow: hidden; }
+.carrusel-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .9s var(--ease); }
+.carrusel-img.on { opacity: 1; }
+.carrusel-puntos { position: absolute; left: 0; right: 0; bottom: 14px; z-index: 2; display: flex; gap: 8px; justify-content: center; }
+.carrusel-puntos button { width: 8px; height: 8px; padding: 0; border: 0; border-radius: 999px; cursor: pointer;
+  background: rgba(255,255,255,.55); box-shadow: 0 1px 3px rgba(0,0,0,.35); transition: width .25s var(--ease), background .25s; }
+.carrusel-puntos button.on { width: 22px; background: #fff; }
 @media (max-width: 860px) {
   .hero-lite-grid { grid-template-columns: 1fr; }
   .hero-lite-foto { order: -1; }
-  .hero-lite-foto img { height: 220px; border-radius: 18px; }
+  .hero-lite-foto img, .carrusel { height: 220px; border-radius: 18px; }
 }
 
 /* ---------- Buscador ---------- */
@@ -693,6 +700,28 @@ footer.site .foot-bottom { border-top: 1px solid rgba(255,255,255,.12); padding-
   .calendario { grid-template-columns: 1fr; }
   .calendario-foto { min-height: 220px; order: -1; }
 }
+
+/* ---- Detalle: info práctica, sabores y mapa ---- */
+.detalle-info-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+@media (max-width: 820px) { .detalle-info-grid { grid-template-columns: 1fr; } }
+.info-card { padding: 26px; border: 1px solid var(--line); border-radius: 16px; background: var(--card); }
+.info-ic { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center;
+  background: var(--sky-soft); margin-bottom: 14px; }
+.info-ic svg { width: 22px; height: 22px; fill: none; stroke: var(--brand-700); stroke-width: 1.7; }
+.info-card h3 { font-size: 18px; margin: 0 0 8px; }
+.info-card p { margin: 0; }
+.info-lista { margin: 0; padding-left: 18px; display: grid; gap: 6px; color: var(--ink-soft); font-size: 15px; }
+
+.detalle-sabores { margin-top: 26px; }
+.detalle-sabores h3 { font-size: 18px; margin: 0 0 12px; }
+.chips-food { display: flex; flex-wrap: wrap; gap: 10px; }
+.chip-food { padding: 8px 14px; border-radius: 999px; background: var(--card); border: 1px solid var(--line);
+  font-size: 14px; font-weight: 600; color: var(--ink); }
+
+.detalle-mapa { display: grid; grid-template-columns: .9fr 1.1fr; gap: 28px; align-items: center; }
+.detalle-mapa-info h2 { margin: 6px 0 10px; }
+.detalle-mapa-frame { width: 100%; height: 320px; border: 1px solid var(--line); border-radius: 16px; }
+@media (max-width: 820px) { .detalle-mapa { grid-template-columns: 1fr; } }
 
 @media (max-width: 760px) {
   .destinos-hero-contenido { padding-top: 54px; padding-bottom: 112px; }

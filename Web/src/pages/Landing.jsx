@@ -3,10 +3,11 @@ import { Link } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import Buscador from "../components/Buscador";
+import Carrusel from "../components/Carrusel";
 import Reveal from "../components/Reveal";
 import AnuncioAniversario from "../components/AnuncioAniversario";
 import { EMPRESA, telefonoBonito, telefonoInternacional,
-         aniosDeAniversario, esMesDeAniversario } from "../datos";
+         aniosDeAniversario } from "../datos";
 import { DESTINOS } from "../destinos";
 
 export default function Landing() {
@@ -37,7 +38,9 @@ export default function Landing() {
             </ul>
           </div>
           <div className="hero-lite-foto">
-            <img src="/destinos/iquits.jpg" alt="Amazonía peruana · Loreto" />
+            <Carrusel
+              slides={DESTINOS.map((d) => ({ src: `/destinos/${d.imagen}`, alt: `${d.nombre} · ${d.etiqueta}` }))}
+            />
           </div>
         </div>
       </section>
@@ -50,9 +53,9 @@ export default function Landing() {
         <div className="wrap">
           <div className="promos">
             <Reveal className="promo p2">
-              <span className="tagline">{esMesDeAniversario() ? `${anios + 1}° aniversario` : "Fiestas Patrias"}</span>
-              <h3>{esMesDeAniversario() ? `Este 28 de julio cumplimos ${anios + 1} años` : "Viaja este julio"}</h3>
-              <p>Gracias por navegar el río con nosotros. Asegura tu asiento a los principales puertos.</p>
+              <span className="tagline">Aniversario de Requena</span>
+              <h3>Del 18 al 23 de agosto</h3>
+              <p>Acompáñanos a celebrar el aniversario de Requena. Asegura tu asiento a los principales puertos.</p>
             </Reveal>
             <Reveal className="promo p1" delay={1}><span className="tagline">Nuevo</span><h3>Compra en línea</h3><p>Sin colas: reserva y paga desde tu celular.</p></Reveal>
             <Reveal className="promo p3" delay={2}><span className="tagline">Encomiendas</span><h3>Envía tu carga</h3><p>Puerta a puerto, con comprobante electrónico.</p></Reveal>
