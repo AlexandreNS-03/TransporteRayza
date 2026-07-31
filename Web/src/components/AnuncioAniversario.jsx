@@ -3,11 +3,11 @@ import { Link } from "react-router-dom";
 import { EMPRESA } from "../datos";
 
 /**
- * Anuncio del 3er aniversario + inauguración del Hotel y Bar Karaoke Rayza.
+ * Anuncio grande: Aniversario de Requena (18–23 de agosto).
  *
- * Muestra el flyer oficial (una imagen que ya trae todo el diseño). Si el archivo
- * todavía no se subió a /public/anuncios, cae a una tarjeta con la misma información,
- * para que la sección nunca quede vacía.
+ * Si más adelante se sube un flyer diseñado a /public/anuncios/aniversario-requena.jpg,
+ * se muestra esa imagen; mientras tanto, cae a una tarjeta con la invitación, para que
+ * la sección nunca quede vacía.
  */
 export default function AnuncioAniversario() {
   const [sinFlyer, setSinFlyer] = useState(false);
@@ -16,50 +16,48 @@ export default function AnuncioAniversario() {
     <section className="section aniversario-sec" id="aniversario">
       <div className="wrap">
         <div className="section-head">
-          <div className="kicker">Celebra con nosotros</div>
-          <h2>3.º Aniversario e inauguración del Hotel y Bar Karaoke Rayza</h2>
-          <p>¡Ven, canta, brinda y celebra con nosotros! Te esperamos en la terraza.</p>
+          <div className="kicker">Del 18 al 23 de agosto</div>
+          <h2>¡Requena está de fiesta!</h2>
+          <p>
+            La <strong>Atenas del Ucayali</strong> celebra su aniversario y te esperamos
+            para vivirlo a orillas del río. Viaja con Transportes Rayza y sé parte de la fiesta.
+          </p>
         </div>
 
         {!sinFlyer ? (
           <img
             className="aniversario-flyer"
-            src="/anuncios/aniversario.jpg"
-            alt="Invitación al 3.º aniversario de Transporte Rayza e inauguración del Hotel y Bar Karaoke Rayza"
+            src="/anuncios/aniversario-requena.jpg"
+            alt="Aniversario de Requena, del 18 al 23 de agosto"
             loading="lazy"
             onError={() => setSinFlyer(true)}
           />
         ) : (
           <div className="aniversario-card">
             <div className="aniversario-borde">
-              <span className="aniversario-kicker">Te invitamos al</span>
-              <div className="aniversario-numero">3<sup>er</sup></div>
-              <h3 className="aniversario-titulo">Aniversario de Transporte Rayza</h3>
+              <span className="aniversario-kicker">Te esperamos en el</span>
+              <div className="aniversario-numero">23<sup>ago</sup></div>
+              <h3 className="aniversario-titulo">Aniversario de Requena</h3>
               <p className="aniversario-sub">
-                e inauguración del<br /><b>Hotel y Bar Karaoke Rayza</b>
+                Una semana de fiesta<br />del <b>18 al 23 de agosto</b>
               </p>
 
               <div className="aniversario-iconos">
-                <span>🎤 Karaoke</span>
-                <span>🍹 Bebidas</span>
-                <span>🎶 Buen ambiente</span>
-                <span>🍢 Riquísimo piqueo</span>
-              </div>
-
-              <div className="aniversario-combo">
-                <span>Precio del combo</span>
-                <strong>S/ 70</strong>
+                <span>🎉 Desfiles cívicos</span>
+                <span>🎶 Música y danzas</span>
+                <span>🛶 Fiesta en el río</span>
+                <span>🍲 Feria y gastronomía</span>
               </div>
 
               <p className="aniversario-lugar">
-                📍 Terraza del Hotel Rayza · Calle San Antonio, Requena
+                📍 Requena, Loreto · a orillas del río Ucayali
               </p>
             </div>
           </div>
         )}
 
         <div className="aniversario-acciones">
-          <Link className="btn btn-primary" to="/comprar">Comprar pasaje</Link>
+          <Link className="btn btn-primary" to="/comprar?destino=Requena">Viaja a Requena</Link>
           <a className="btn btn-ghost" href={EMPRESA.redes.facebook} target="_blank" rel="noopener">
             Ver en Facebook
           </a>
