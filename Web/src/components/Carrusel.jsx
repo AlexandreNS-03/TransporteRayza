@@ -30,7 +30,7 @@ export default function Carrusel({ slides = [], intervalo = 5000, flechas = fals
     <div className="carrusel">
       {slides.map((s, i) => (
         <img
-          key={s.src}
+          key={`${i}-${s.src}`}
           src={s.src}
           alt={s.alt || ""}
           className={`carrusel-img ${i === activo ? "on" : ""}`}
@@ -56,7 +56,7 @@ export default function Carrusel({ slides = [], intervalo = 5000, flechas = fals
         <div className="carrusel-puntos">
           {slides.map((s, i) => (
             <button
-              key={s.src}
+              key={`${i}-${s.src}`}
               type="button"
               className={i === activo ? "on" : ""}
               aria-label={`Ver imagen ${i + 1}`}

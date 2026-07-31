@@ -21,7 +21,11 @@ export default function Landing() {
       <section className="hero-mb" id="inicio">
         <Carrusel
           flechas
-          slides={DESTINOS.map((d) => ({ src: `/destinos/${d.imagen}`, alt: `${d.nombre} · ${d.etiqueta}` }))}
+          slides={DESTINOS.flatMap((d) =>
+            [...new Set([d.imagen, d.imagen2, d.imagen3].filter(Boolean))].map((img) => ({
+              src: `/destinos/${img}`, alt: `${d.nombre} · ${d.etiqueta}`,
+            }))
+          )}
         >
           <div className="hero-mb-overlay">
             <div className="wrap">

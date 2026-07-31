@@ -34,7 +34,7 @@ export default function DestinoDetalle() {
             <div className="detalle-ruta"><span>🛥️</span>{destino.ruta}</div>
           </Reveal>
           <Reveal delay={1} className="detalle-foto">
-            <img src={`/destinos/${destino.imagen}`} alt={`Paisaje de ${destino.nombre}`} />
+            <img src={`/destinos/${destino.imagen2}`} alt={`Paisaje de ${destino.nombre}`} />
           </Reveal>
         </div>
       </section>
@@ -81,7 +81,7 @@ export default function DestinoDetalle() {
               </div>
               <div
                 className="calendario-foto"
-                style={{ backgroundImage: `url(/destinos/${destino.imagen})` }}
+                style={{ backgroundImage: `url(/destinos/${destino.imagen3})` }}
                 role="img"
                 aria-label={`Fiestas en ${destino.nombre}`}
               />
