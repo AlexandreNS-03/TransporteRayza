@@ -1,0 +1,15 @@
+Galería de "Nuestro servicio" de la web.
+
+Sube aquí tus fotos del transporte/servicio con EXACTAMENTE estos nombres:
+
+  galeria-1.jpg   → Nuestra flota
+  galeria-2.jpg   → Embarque en el puerto
+  galeria-3.jpg   → A bordo
+  galeria-4.jpg   → Asientos cómodos
+  galeria-5.jpg   → Encomiendas
+  galeria-6.jpg   → Río Ucayali
+
+- Formato: .jpg (o cambia la extensión en Web/src/galeria.js).
+- Tamaño recomendado: ~1200 px de ancho y menos de 500 KB cada una.
+- Mientras no exista un archivo, su casillero muestra un marcador con el nombre a usar.
+- Puedes agregar o quitar casilleros editando Web/src/galeria.js.

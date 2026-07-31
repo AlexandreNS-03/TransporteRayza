@@ -4,6 +4,7 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import Buscador from "../components/Buscador";
 import Carrusel from "../components/Carrusel";
+import Galeria from "../components/Galeria";
 import Reveal from "../components/Reveal";
 import AnuncioAniversario from "../components/AnuncioAniversario";
 import { EMPRESA, telefonoBonito, telefonoInternacional,
@@ -120,6 +121,18 @@ export default function Landing() {
               <p className="muted">Hospedaje, terraza y restaurante para que tu estadía y tu viaje sean una sola experiencia.</p>
             </Reveal>
           </div>
+        </div>
+      </section>
+
+      {/* ===== GALERÍA ===== */}
+      <section className="section section-alt" id="galeria">
+        <div className="wrap">
+          <div className="section-head">
+            <div className="kicker">Galería</div>
+            <h2>Nuestro servicio en imágenes</h2>
+            <p>Conoce nuestras embarcaciones y el día a día navegando el río.</p>
+          </div>
+          <Galeria />
         </div>
       </section>
 
