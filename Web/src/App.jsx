@@ -9,6 +9,7 @@ import Contacto from "./pages/Contacto";
 import MiCuenta from "./pages/MiCuenta";
 import Destinos from "./pages/Destinos";
 import DestinoDetalle from "./pages/DestinoDetalle";
+import CookieBanner from "./components/CookieBanner";
 
 export default function App() {
   return (
@@ -26,6 +27,7 @@ export default function App() {
         <Route path="/destinos/:slug" element={<DestinoDetalle />} />
         <Route path="*" element={<Landing />} />
       </Routes>
+      <CookieBanner />
     </BrowserRouter>
   );
 }

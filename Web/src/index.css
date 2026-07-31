@@ -782,6 +782,22 @@ footer.site .foot-bottom { border-top: 1px solid rgba(255,255,255,.12); padding-
   border: 1px solid rgba(255,255,255,.5); background: rgba(0,0,0,.3); color: #fff; font-size: 26px; line-height: 1; cursor: pointer; }
 .galeria-cerrar:hover { background: rgba(0,0,0,.6); }
 
+/* ---- Aviso de cookies ---- */
+.cookie-banner {
+  position: fixed; left: 16px; right: 16px; bottom: 16px; z-index: 90;
+  max-width: 720px; margin: 0 auto;
+  display: flex; align-items: center; gap: 16px; flex-wrap: wrap; justify-content: space-between;
+  background: var(--card); border: 1px solid var(--line); border-radius: 16px;
+  box-shadow: 0 18px 44px rgba(0,0,0,.20); padding: 15px 20px;
+}
+.cookie-banner p { margin: 0; font-size: 14px; line-height: 1.55; color: var(--ink-soft); flex: 1 1 280px; }
+.cookie-banner a { color: var(--brand-700, #10709c); font-weight: 600; }
+.cookie-acciones { display: flex; gap: 10px; flex: 0 0 auto; }
+@media (max-width: 520px) {
+  .cookie-banner { flex-direction: column; align-items: stretch; text-align: left; }
+  .cookie-acciones { justify-content: flex-end; }
+}
+
 @media (max-width: 760px) {
   .destinos-hero-contenido { padding-top: 54px; padding-bottom: 112px; }
   .destinos-buscador { margin-top: -60px; }

@@ -6,10 +6,11 @@
  * página); por defecto usa el de la cuenta, y se puede sobreescribir con VITE_GA_ID.
  */
 const GA_ID = import.meta.env.VITE_GA_ID || "G-SS3HS2BKCP";
+let cargado = false;
 
 export function iniciarGA() {
-  if (!import.meta.env.PROD) return;   // nada en desarrollo
-  if (!GA_ID) return;
+  if (cargado || !import.meta.env.PROD || !GA_ID) return;   // una vez, y nada en desarrollo
+  cargado = true;
 
   const s = document.createElement("script");
   s.async = true;
