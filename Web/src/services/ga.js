@@ -5,7 +5,7 @@
  * métricas con el tráfico de desarrollo. El Measurement ID es público (va en la
  * página); por defecto usa el de la cuenta, y se puede sobreescribir con VITE_GA_ID.
  */
-const GA_ID = import.meta.env.VITE_GA_ID || "G-SS3HS2BKCP";
+const GA_ID = import.meta.env.VITE_GA_ID || "G-D17E3F93QB";
 let cargado = false;
 
 export function iniciarGA() {
