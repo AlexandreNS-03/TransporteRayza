@@ -7,10 +7,9 @@ import Resultados from "../components/Resultados";
 import MapaAsientos from "../components/MapaAsientos";
 import SelectorPasajeros from "../components/SelectorPasajeros";
 import FormularioPasajero, { FormularioContacto } from "../components/FormularioPasajero";
-import Resumen from "../components/Resumen";
 import Confirmacion from "../components/Confirmacion";
 import { buscarViajes, crearReservaGrupo, pagarGrupo, formularioDePagoGrupo,
-         metodosDePago, pagarConYapeGrupo } from "../services/publicApi";
+         metodosDePago, pagarConYapeGrupo, soles } from "../services/publicApi";
 import { tokenizarYape } from "../services/yape";
 import { pagarConIzipay, limpiarIzipay } from "../services/izipay";
 import { tokenCliente } from "../services/authCliente";
@@ -26,93 +25,158 @@ const CONTACTO_INICIAL = {
   clienteEmail: "", tipoComprobante: "BOLETA", clienteDocumento: "", clienteNombre: "",
 };
 
-/**
- * Logo de la pasarela. Si el archivo oficial todavía no se subió a /public/pagos,
- * cae a un ícono: así la pantalla nunca queda con una imagen rota.
- */
 function LogoPasarela({ archivo, alt, respaldo }) {
   const [falla, setFalla] = useState(false);
   if (falla) return <span className="metodo-icono">{respaldo}</span>;
+  return <img className="metodo-logo" src={`/pagos/${archivo}`} alt={alt} onError={() => setFalla(true)} />;
+}
+
+const precioAsiento = (viaje, a) => Number(((a?.tipo === "VIP" ? viaje?.precioVip : viaje?.precioNormal) ?? viaje?.precioNormal) || 0);
+const totalLeg = (viaje, asientos) => asientos.reduce((s, a) => s + precioAsiento(viaje, a), 0);
+
+/** Resumen lateral: muestra la ida y, si es ida y vuelta, también la vuelta. */
+function ResumenCompra({ ida, vuelta, esRedondo, bebes }) {
+  const viaje = ida.viaje;
+  if (!viaje) return null;
+  const totalIda = totalLeg(ida.viaje, ida.asientos);
+  const totalVuelta = esRedondo && vuelta.viaje ? totalLeg(vuelta.viaje, vuelta.asientos) : 0;
+
+  const Bloque = ({ tag, leg }) => leg.viaje && (
+    <div className="resumen-leg">
+      <div className="resumen-leg-tit"><span className="leg-tag">{tag}</span> {leg.viaje.origen} → {leg.viaje.destino}</div>
+      <div className="linea"><span>Fecha</span><span>{leg.viaje.fechaSalida} · {leg.viaje.horaSalida ? leg.viaje.horaSalida.slice(0,5) : "—"} h</span></div>
+      {leg.asientos.map((a) => (
+        <div className="linea" key={a.numero}><span>Asiento #{a.numero} · {a.tipo}</span><span>{soles(precioAsiento(leg.viaje, a))}</span></div>
+      ))}
+    </div>
+  );
+
   return (
-    <img className="metodo-logo" src={`/pagos/${archivo}`} alt={alt}
-         onError={() => setFalla(true)} />
+    <aside className="resumen">
+      <h3>Resumen</h3>
+      <Bloque tag="Ida" leg={ida} />
+      {esRedondo && <Bloque tag="Vuelta" leg={vuelta} />}
+      {bebes > 0 && <div className="linea"><span>Bebés (en brazos)</span><span>{bebes} · gratis</span></div>}
+      <div className="total"><span>Total</span><span>{soles(totalIda + totalVuelta)}</span></div>
+    </aside>
   );
 }
 
 export default function Comprar() {
   const [sp] = useSearchParams();
   const [paso, setPaso] = useState(0);
+  const [leg, setLeg] = useState("ida");                 // "ida" | "vuelta"
+
+  const [criterio, setCriterio] = useState({ origen: "", destino: "", fecha: "", fechaRetorno: "" });
+  const esRedondo = !!criterio.fechaRetorno;
 
   const [viajes, setViajes] = useState(null);
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState(null);
 
-  const [viaje, setViaje] = useState(null);
   const [pax, setPax] = useState({ adultos: 1, ninos: 0, bebes: 0 });
-  const asientos = pax.adultos + pax.ninos;                 // adultos+niños ocupan asiento
-  const [seleccionados, setSeleccionados] = useState([]);   // asientos elegidos
+  const asientos = pax.adultos + pax.ninos;
+
+  const [ida, setIda] = useState({ viaje: null, asientos: [] });
+  const [vuelta, setVuelta] = useState({ viaje: null, asientos: [] });
   const [pasajeros, setPasajeros] = useState([{ ...PASAJERO_INICIAL }]);
   const [contacto, setContacto] = useState(CONTACTO_INICIAL);
 
   const [pagando, setPagando] = useState(false);
   const [errorPago, setErrorPago] = useState(null);
   const [confirmacion, setConfirmacion] = useState(null);
-  const [simulado, setSimulado] = useState(false);
   const [formularioVisible, setFormularioVisible] = useState(false);
-  const [metodo, setMetodo] = useState("tarjeta");        // tarjeta | yape
+  const [metodo, setMetodo] = useState("tarjeta");
   const [metodos, setMetodos] = useState(null);
   const [yapeDatos, setYapeDatos] = useState({ phoneNumber: "", otp: "" });
-  const [reservaGrupo, setReservaGrupo] = useState(null);
+  const [reservaIda, setReservaIda] = useState(null);
+  const [reservaVuelta, setReservaVuelta] = useState(null);
 
-  const buscar = async (params) => {
+  const scrollTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
+  const invalidarReservas = () => { setReservaIda(null); setReservaVuelta(null); };
+
+  const legSel = leg === "ida" ? ida : vuelta;
+  const setLegSel = leg === "ida" ? setIda : setVuelta;
+
+  const buscarLeg = async (origen, destino, fecha) => {
     setCargando(true); setError(null); setViajes(null);
-    try { setViajes(await buscarViajes(params)); }
+    try { setViajes(await buscarViajes({ origen, destino, fecha })); }
     catch (e) { setError(e.message); }
     finally { setCargando(false); }
   };
 
+  const iniciarBusqueda = (params) => {
+    const crit = {
+      origen: params.origen || "", destino: params.destino || "",
+      fecha: params.fecha || "", fechaRetorno: params.fechaRetorno || "",
+    };
+    setCriterio(crit);
+    setLeg("ida");
+    setIda({ viaje: null, asientos: [] });
+    setVuelta({ viaje: null, asientos: [] });
+    invalidarReservas();
+    setPaso(0);
+    buscarLeg(crit.origen, crit.destino, crit.fecha);
+  };
+
+  // Al entrar con parámetros en la URL (desde el buscador del inicio).
   useEffect(() => {
-    const p = { origen: sp.get("origen") || "", destino: sp.get("destino") || "", fecha: sp.get("fecha") || "" };
-    if (p.origen || p.destino || p.fecha) buscar(p);
+    const p = {
+      origen: sp.get("origen") || "", destino: sp.get("destino") || "",
+      fecha: sp.get("fecha") || "", fechaRetorno: sp.get("fechaRetorno") || "",
+    };
+    if (p.origen || p.destino || p.fecha) iniciarBusqueda(p);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Al cambiar la cantidad de asientos (adultos+niños), ajusta las listas de asientos
-  // y pasajeros y descarta la reserva previa (los asientos ya no coinciden).
+  // Cambiar la cantidad de asientos ajusta pasajeros y limpia lo elegido en ambos viajes.
   useEffect(() => {
     setPasajeros((prev) => {
       const arr = prev.slice(0, asientos);
       while (arr.length < asientos) arr.push({ ...PASAJERO_INICIAL });
       return arr;
     });
-    setSeleccionados((prev) => prev.slice(0, asientos));
-    setReservaGrupo(null);
+    setIda((p) => ({ ...p, asientos: [] }));
+    setVuelta((p) => ({ ...p, asientos: [] }));
+    invalidarReservas();
   }, [asientos]);
 
-  const scrollTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
-
   const elegirViaje = (v) => {
-    setViaje(v); setSeleccionados([]); setReservaGrupo(null); setPaso(1); scrollTop();
+    setLegSel({ viaje: v, asientos: [] });
+    invalidarReservas();
+    setPaso(1); scrollTop();
   };
 
   const toggleAsiento = (a) => {
-    setReservaGrupo(null);
-    setSeleccionados((prev) => {
-      const ya = prev.some((s) => s.numero === a.numero);
-      if (ya) return prev.filter((s) => s.numero !== a.numero);
-      if (prev.length >= asientos) return prev;
-      return [...prev, a];
+    invalidarReservas();
+    setLegSel((prev) => {
+      const ya = prev.asientos.some((s) => s.numero === a.numero);
+      let arr;
+      if (ya) arr = prev.asientos.filter((s) => s.numero !== a.numero);
+      else if (prev.asientos.length >= asientos) arr = prev.asientos;
+      else arr = [...prev.asientos, a];
+      return { ...prev, asientos: arr };
     });
   };
 
   const setPasajeroEn = (i, p) => setPasajeros((prev) => prev.map((x, j) => (j === i ? p : x)));
-
-  // El asiento i corresponde a un adulto mientras haya adultos; luego, a un niño.
   const tipoPasajero = (i) => (i < pax.adultos ? "Adulto" : "Niño");
 
+  const vueltaCompleta = esRedondo && vuelta.viaje && vuelta.asientos.length === asientos;
+
   const continuarAsiento = () => {
-    if (seleccionados.length === asientos) { setPaso(2); scrollTop(); }
+    if (legSel.asientos.length !== asientos) return;
+    if (leg === "ida" && esRedondo && !vueltaCompleta) {
+      setLeg("vuelta"); setPaso(0);
+      buscarLeg(criterio.destino, criterio.origen, criterio.fechaRetorno);
+    } else {
+      setPaso(2);
+    }
+    scrollTop();
   };
+
+  const volverAIda = () => { setLeg("ida"); setPaso(1); scrollTop(); };
+
   const continuarDatos = () => { if (datosValidos()) { setPaso(3); scrollTop(); } };
 
   const datosValidos = () => {
@@ -131,13 +195,20 @@ export default function Comprar() {
     return true;
   };
 
-  // Se consultan al llegar al pago: así no se pide un formulario a Izipay si el
-  // cliente termina pagando con Yape.
   useEffect(() => {
     if (paso === 3 && !metodos) metodosDePago().then(setMetodos).catch(() => {});
   }, [paso, metodos]);
 
-  const datosDeLaReserva = () => ({
+  const pasajeroData = (i) => ({
+    tipoDocumento: pasajeros[i]?.tipoDocumento || "DNI",
+    pasajeroNombre: pasajeros[i]?.pasajeroNombre || "",
+    pasajeroDocumento: pasajeros[i]?.pasajeroDocumento || "",
+    pasajeroTelefono: pasajeros[i]?.pasajeroTelefono || "",
+    edad: pasajeros[i]?.edad ? Number(pasajeros[i].edad) : null,
+    sexo: pasajeros[i]?.sexo || "Masculino",
+  });
+
+  const datosLeg = (viaje, asientosLeg) => ({
     viajeId: viaje.id,
     ordenOrigen: viaje.ordenOrigen,
     ordenDestino: viaje.ordenDestino,
@@ -147,80 +218,67 @@ export default function Comprar() {
     tipoComprobante: contacto.tipoComprobante,
     clienteNombre: contacto.clienteNombre,
     clienteDocumento: contacto.clienteDocumento,
-    pasajeros: seleccionados.map((a, i) => ({
-      asientoNumero: a.numero,
-      asientoTipo: a.tipo,
-      tipoDocumento: pasajeros[i]?.tipoDocumento || "DNI",
-      pasajeroNombre: pasajeros[i]?.pasajeroNombre || "",
-      pasajeroDocumento: pasajeros[i]?.pasajeroDocumento || "",
-      pasajeroTelefono: pasajeros[i]?.pasajeroTelefono || "",
-      edad: pasajeros[i]?.edad ? Number(pasajeros[i].edad) : null,
-      sexo: pasajeros[i]?.sexo || "Masculino",
+    pasajeros: asientosLeg.map((a, i) => ({
+      asientoNumero: a.numero, asientoTipo: a.tipo, ...pasajeroData(i),
     })),
   });
 
+  const vigente = (r) => r && (!r.expiraEn || new Date(r.expiraEn) > new Date());
+
   /**
-   * Devuelve la reserva del grupo, creándola solo la primera vez. Si un pago falla,
-   * la reserva sigue reteniendo los asientos por 15 minutos: el reintento la reutiliza
-   * en vez de crear otra que chocaría contra sí misma.
+   * Crea (si hace falta) las reservas de ida y de vuelta y devuelve TODAS las reservas
+   * juntas. El pago de grupo cobra el total de la lista en una sola operación, aunque
+   * las reservas sean de viajes distintos.
    */
-  const obtenerReservaGrupo = async () => {
-    if (reservaGrupo && (!reservaGrupo.expiraEn || new Date(reservaGrupo.expiraEn) > new Date()))
-      return reservaGrupo;
-    const nueva = await crearReservaGrupo(datosDeLaReserva(), tokenCliente());
-    setReservaGrupo(nueva);
-    return nueva;
+  const obtenerReservas = async () => {
+    let ri = reservaIda;
+    if (!vigente(ri)) { ri = await crearReservaGrupo(datosLeg(ida.viaje, ida.asientos), tokenCliente()); setReservaIda(ri); }
+    const ids = [...ri.reservaIds];
+    if (esRedondo) {
+      let rv = reservaVuelta;
+      if (!vigente(rv)) { rv = await crearReservaGrupo(datosLeg(vuelta.viaje, vuelta.asientos), tokenCliente()); setReservaVuelta(rv); }
+      ids.push(...rv.reservaIds);
+    }
+    return ids;
   };
 
-  const volverA = (n) => { setReservaGrupo(null); setErrorPago(null); setPaso(n); };
-  const terminar = (conf) => { setReservaGrupo(null); setConfirmacion(conf); setPaso(4); scrollTop(); };
+  const volverAlPagoDesde = (n) => { invalidarReservas(); setErrorPago(null); setPaso(n); };
+  const terminar = (conf) => { invalidarReservas(); setConfirmacion(conf); setPaso(4); scrollTop(); };
 
   const pagarConYape = async () => {
     setPagando(true); setErrorPago(null);
     try {
-      // Se valida el código ANTES de reservar: si está mal, no se retienen asientos.
       const cfg = metodos?.yape || {};
       const token = await tokenizarYape({
         publicKey: cfg.publicKey, simulado: cfg.simulado,
         otp: yapeDatos.otp.trim(), phoneNumber: yapeDatos.phoneNumber.trim(),
       });
-      const r = await obtenerReservaGrupo();
-      terminar(await pagarConYapeGrupo(r.reservaIds, token));
-    } catch (e) {
-      setErrorPago(e.message);
-    } finally {
-      setPagando(false);
-    }
+      const ids = await obtenerReservas();
+      terminar(await pagarConYapeGrupo(ids, token));
+    } catch (e) { setErrorPago(e.message); }
+    finally { setPagando(false); }
   };
 
   const pagar = async () => {
     setPagando(true); setErrorPago(null);
     try {
-      const r = await obtenerReservaGrupo();
-
-      // El backend pide un solo formulario a Izipay por el total; el cliente escribe
-      // su tarjeta dentro y nos devuelve la respuesta firmada que el servidor verifica.
-      const form = await formularioDePagoGrupo(r.reservaIds);
-      setSimulado(!!form.simulado);
+      const ids = await obtenerReservas();
+      const form = await formularioDePagoGrupo(ids);
       const respuesta = await pagarConIzipay({
-        ...form,
-        contenedor: "#izipay-form",
+        ...form, contenedor: "#izipay-form",
         alMostrarFormulario: () => setFormularioVisible(true),
       });
       setFormularioVisible(false);
-      const conf = await pagarGrupo(r.reservaIds, respuesta);
+      const conf = await pagarGrupo(ids, respuesta);
       limpiarIzipay("#izipay-form");
       terminar(conf);
     } catch (e) {
-      setErrorPago(e.message);
-      setFormularioVisible(false);
-      limpiarIzipay("#izipay-form");
-    } finally {
-      setPagando(false);
-    }
+      setErrorPago(e.message); setFormularioVisible(false); limpiarIzipay("#izipay-form");
+    } finally { setPagando(false); }
   };
 
-  const faltan = asientos - seleccionados.length;
+  const faltan = asientos - legSel.asientos.length;
+  const legActivoViaje = legSel.viaje;
 
   return (
     <>
@@ -229,7 +287,7 @@ export default function Comprar() {
         <div className="wrap">
           <div className="section-head" style={{ marginBottom: 8 }}>
             <div className="kicker">Compra de pasajes</div>
-            <h2>Reserva tu viaje</h2>
+            <h2>Reserva tu viaje{esRedondo ? " (ida y vuelta)" : ""}</h2>
           </div>
 
           <div className="steps">
@@ -243,43 +301,70 @@ export default function Comprar() {
 
           {paso === 0 && (
             <>
-              <Buscador
-                onBuscar={buscar}
-                valorInicial={{ origen: sp.get("origen") || "", destino: sp.get("destino") || "", fecha: sp.get("fecha") || "" }}
-              />
+              {leg === "ida" ? (
+                <Buscador onBuscar={iniciarBusqueda} valorInicial={criterio} />
+              ) : (
+                <div className="leg-banner">
+                  <div>
+                    <span className="leg-tag">Vuelta</span> Elige tu viaje de regreso:{" "}
+                    <strong>{criterio.destino} → {criterio.origen}</strong>
+                    {criterio.fechaRetorno ? ` · ${criterio.fechaRetorno}` : ""}
+                  </div>
+                  <button className="btn btn-ghost btn-sm" onClick={volverAIda}>Volver a la ida</button>
+                </div>
+              )}
               <div style={{ marginTop: 28 }}>
                 <Resultados viajes={viajes} cargando={cargando} error={error} onElegir={elegirViaje} />
               </div>
             </>
           )}
 
-          {paso >= 1 && paso <= 3 && viaje && (
+          {paso >= 1 && paso <= 3 && legActivoViaje && (
             <div className="compra-layout">
               <div>
-                {paso === 1 && (
-                  <div className="card">
-                    <div style={{ maxWidth: 360, margin: "0 auto 6px" }}>
-                      <SelectorPasajeros valor={pax} onChange={(v) => { setPax(v); setReservaGrupo(null); }} maxAsientos={MAX_PASAJES} />
-                    </div>
-                    <p className="muted center" style={{ marginTop: 4 }}>
-                      {faltan > 0
-                        ? `Elige ${faltan} asiento${faltan > 1 ? "s" : ""} más (${seleccionados.length}/${asientos}).`
-                        : `Listo: ${asientos} asiento${asientos > 1 ? "s" : ""} elegido${asientos > 1 ? "s" : ""}.`}
-                      {pax.bebes > 0 && ` + ${pax.bebes} bebé${pax.bebes > 1 ? "s" : ""} en brazos.`}
-                    </p>
-                    <MapaAsientos viaje={viaje} seleccionados={seleccionados} onToggle={toggleAsiento} max={asientos} />
-                    <div style={{ display: "flex", justifyContent: "space-between", marginTop: 22 }}>
-                      <button className="btn btn-ghost" onClick={() => setPaso(0)}>Volver</button>
-                      <button className="btn btn-primary" disabled={seleccionados.length !== asientos} onClick={continuarAsiento}>Continuar</button>
+                {(paso === 1 || (paso >= 2)) && esRedondo && (
+                  <div className="leg-banner" style={{ marginBottom: 16 }}>
+                    <div>
+                      <span className="leg-tag">Ida</span> {ida.viaje?.origen} → {ida.viaje?.destino}
+                      {vuelta.viaje && <> &nbsp;·&nbsp; <span className="leg-tag">Vuelta</span> {vuelta.viaje.origen} → {vuelta.viaje.destino}</>}
                     </div>
                   </div>
                 )}
+
+                {paso === 1 && (
+                  <div className="card">
+                    <h3 style={{ marginTop: 0 }}>
+                      Asientos · {leg === "ida" ? "Ida" : "Vuelta"}: {legActivoViaje.origen} → {legActivoViaje.destino}
+                    </h3>
+                    {leg === "ida" && (
+                      <div style={{ maxWidth: 360, margin: "0 auto 6px" }}>
+                        <SelectorPasajeros valor={pax} onChange={(v) => { setPax(v); invalidarReservas(); }} maxAsientos={MAX_PASAJES} />
+                      </div>
+                    )}
+                    <p className="muted center" style={{ marginTop: 4 }}>
+                      {faltan > 0
+                        ? `Elige ${faltan} asiento${faltan > 1 ? "s" : ""} más (${legSel.asientos.length}/${asientos}).`
+                        : `Listo: ${asientos} asiento${asientos > 1 ? "s" : ""}.`}
+                      {leg === "ida" && pax.bebes > 0 && ` + ${pax.bebes} bebé${pax.bebes > 1 ? "s" : ""} en brazos.`}
+                    </p>
+                    <MapaAsientos viaje={legActivoViaje} seleccionados={legSel.asientos} onToggle={toggleAsiento} max={asientos} />
+                    <div style={{ display: "flex", justifyContent: "space-between", marginTop: 22 }}>
+                      <button className="btn btn-ghost" onClick={() => { setPaso(0); }}>Volver</button>
+                      <button className="btn btn-primary" disabled={legSel.asientos.length !== asientos} onClick={continuarAsiento}>
+                        {leg === "ida" && esRedondo && !vueltaCompleta ? "Elegir vuelta" : "Continuar"}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
                 {paso === 2 && (
                   <div className="card">
-                    {seleccionados.map((a, i) => (
-                      <div key={a.numero} style={{ marginBottom: 18 }}>
+                    {pasajeros.map((_, i) => (
+                      <div key={i} style={{ marginBottom: 18 }}>
                         <FormularioPasajero
-                          titulo={`${tipoPasajero(i)} ${i + 1} · Asiento #${a.numero} (${a.tipo})`}
+                          titulo={`${tipoPasajero(i)} ${i + 1}`
+                            + ` · Ida #${ida.asientos[i]?.numero ?? "?"}`
+                            + (esRedondo ? ` · Vuelta #${vuelta.asientos[i]?.numero ?? "?"}` : "")}
                           pasajero={pasajeros[i] || PASAJERO_INICIAL}
                           setPasajero={(p) => setPasajeroEn(i, p)}
                         />
@@ -287,33 +372,29 @@ export default function Comprar() {
                     ))}
                     <FormularioContacto contacto={contacto} setContacto={setContacto} />
                     <div style={{ display: "flex", justifyContent: "space-between", marginTop: 22 }}>
-                      <button className="btn btn-ghost" onClick={() => setPaso(1)}>Volver</button>
+                      <button className="btn btn-ghost" onClick={() => { setLeg(esRedondo ? "vuelta" : "ida"); setPaso(1); }}>Volver</button>
                       <button className="btn btn-primary" onClick={continuarDatos}>Continuar al pago</button>
                     </div>
                   </div>
                 )}
+
                 {paso === 3 && (
                   <div className="card">
                     <h3>Pago en línea</h3>
                     <p className="muted" style={{ marginTop: 6 }}>
-                      Elige cómo pagar. Retenemos {asientos > 1 ? "tus asientos" : "tu asiento"} por 15 minutos
-                      mientras completas el pago.
+                      Elige cómo pagar. Retenemos tus asientos por 15 minutos mientras completas el pago.
                     </p>
 
                     {!formularioVisible && (
                       <div className="metodos-pago">
-                        <button type="button"
-                                className={`metodo ${metodo === "tarjeta" ? "activo" : ""}`}
-                                onClick={() => { setMetodo("tarjeta"); setErrorPago(null); }}
-                                disabled={pagando}>
+                        <button type="button" className={`metodo ${metodo === "tarjeta" ? "activo" : ""}`}
+                                onClick={() => { setMetodo("tarjeta"); setErrorPago(null); }} disabled={pagando}>
                           <LogoPasarela archivo="izipay.png" alt="Izipay" respaldo="💳" />
                           <span className="metodo-nombre">Tarjeta</span>
                           <span className="metodo-detalle">Débito o crédito</span>
                         </button>
-                        <button type="button"
-                                className={`metodo ${metodo === "yape" ? "activo" : ""}`}
-                                onClick={() => { setMetodo("yape"); setErrorPago(null); }}
-                                disabled={pagando}>
+                        <button type="button" className={`metodo ${metodo === "yape" ? "activo" : ""}`}
+                                onClick={() => { setMetodo("yape"); setErrorPago(null); }} disabled={pagando}>
                           <LogoPasarela archivo="yape.png" alt="Yape" respaldo="📱" />
                           <span className="metodo-nombre">Yape</span>
                           <span className="metodo-detalle">Con tu celular</span>
@@ -324,30 +405,22 @@ export default function Comprar() {
                     {metodo === "yape" && (
                       <div className="yape-form">
                         <p className="muted" style={{ fontSize: 13 }}>
-                          En tu app de Yape entra a <strong>Aprobar compra por internet</strong> y
-                          genera el código de 6 dígitos.
+                          En tu app de Yape entra a <strong>Aprobar compra por internet</strong> y genera el código de 6 dígitos.
                         </p>
                         {metodos?.yape?.prueba && (
                           <div className="alert alert-warn" style={{ fontSize: 13 }}>
-                            Modo de prueba: el código real de tu app <strong>no funciona acá</strong>.
-                            Usa el celular <strong>111111111</strong> con el código <strong>123456</strong>
-                            para simular un pago aprobado.
+                            Modo de prueba: usa el celular <strong>111111111</strong> con el código <strong>123456</strong>.
                           </div>
                         )}
-                        <label>
-                          CELULAR
-                          <input type="tel" inputMode="numeric" maxLength={9}
-                                 placeholder="9XXXXXXXX"
+                        <label>CELULAR
+                          <input type="tel" inputMode="numeric" maxLength={9} placeholder="9XXXXXXXX"
                                  value={yapeDatos.phoneNumber} disabled={pagando}
-                                 onChange={e => setYapeDatos(d => ({
-                                   ...d, phoneNumber: e.target.value.replace(/\D/g, "") }))} />
+                                 onChange={e => setYapeDatos(d => ({ ...d, phoneNumber: e.target.value.replace(/\D/g, "") }))} />
                         </label>
-                        <label>
-                          CÓDIGO DE APROBACIÓN
+                        <label>CÓDIGO DE APROBACIÓN
                           <input inputMode="numeric" maxLength={6} placeholder="6 dígitos"
                                  value={yapeDatos.otp} disabled={pagando}
-                                 onChange={e => setYapeDatos(d => ({
-                                   ...d, otp: e.target.value.replace(/\D/g, "") }))} />
+                                 onChange={e => setYapeDatos(d => ({ ...d, otp: e.target.value.replace(/\D/g, "") }))} />
                         </label>
                       </div>
                     )}
@@ -355,29 +428,26 @@ export default function Comprar() {
                     {((metodo === "tarjeta" && metodos?.tarjeta?.simulado) ||
                       (metodo === "yape" && metodos?.yape?.simulado)) && (
                       <div className="alert alert-warn" style={{ marginTop: 12 }}>
-                        Modo prueba: faltan las credenciales de la pasarela, así que el pago se
-                        <strong> simula</strong> (no se cobra). Igual se generan tus boletos con QR.
+                        Modo prueba: el pago se <strong>simula</strong> (no se cobra). Igual se generan tus boletos con QR.
                       </div>
                     )}
 
-                    {/* Izipay dibuja acá su formulario de tarjeta */}
                     <div id="izipay-form" style={{ marginTop: 16 }} />
                     {errorPago && <div className="alert alert-warn" style={{ marginTop: 12 }}>{errorPago}</div>}
                     <div style={{ display: "flex", justifyContent: "space-between", marginTop: 22 }}>
-                      <button className="btn btn-ghost" onClick={() => volverA(2)} disabled={pagando}>Volver</button>
+                      <button className="btn btn-ghost" onClick={() => volverAlPagoDesde(2)} disabled={pagando}>Volver</button>
                       {!formularioVisible && (
                         <button className="btn btn-primary" disabled={pagando}
                                 onClick={metodo === "yape" ? pagarConYape : pagar}>
-                          {pagando
-                            ? (metodo === "yape" ? "Cobrando…" : "Abriendo el pago…")
-                            : (metodo === "yape" ? "Pagar con Yape" : "Pagar con tarjeta")}
+                          {pagando ? (metodo === "yape" ? "Cobrando…" : "Abriendo el pago…")
+                                   : (metodo === "yape" ? "Pagar con Yape" : "Pagar con tarjeta")}
                         </button>
                       )}
                     </div>
                   </div>
                 )}
               </div>
-              <Resumen viaje={viaje} asientos={seleccionados} bebes={pax.bebes} />
+              <ResumenCompra ida={ida} vuelta={vuelta} esRedondo={esRedondo} bebes={pax.bebes} />
             </div>
           )}
 
