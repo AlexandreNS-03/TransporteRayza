@@ -15,6 +15,13 @@ export async function getRutas() {
   catch (e) { throw desempaquetarError(e); }
 }
 
+// Tramos que no se venden (orden de gerencia), para ocultarlos del buscador.
+// Si falla, se devuelve vacío: el backend igual bloquea la venta.
+export async function getReglasVenta() {
+  try { const { data } = await http.get("/reglas-venta"); return data?.paresBloqueados || []; }
+  catch (e) { return []; }
+}
+
 // Busca viajes. origen/destino/fecha son opcionales.
 export async function buscarViajes({ origen, destino, fecha } = {}) {
   try { const { data } = await http.get("/viajes", { params: { origen, destino, fecha } }); return data; }

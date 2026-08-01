@@ -18,6 +18,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import org.springframework.beans.factory.annotation.Value;
 
+import jakarta.annotation.PostConstruct;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -25,6 +27,7 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -47,6 +50,46 @@ public class PublicService {
     /** Minutos mínimos de anticipación para comprar por internet. */
     @Value("${app.venta-web.anticipacion-minutos:30}")
     private int anticipacionMinutos;
+
+    /**
+     * Tramos que NO se venden (orden de gerencia). Formato: pares "Origen-Destino"
+     * separados por coma; cada par bloquea AMBOS sentidos. Ej: "Nauta-Iquitos".
+     */
+    @Value("${app.venta.pares-bloqueados:Nauta-Iquitos}")
+    private String paresBloqueadosConfig;
+
+    private final Set<String> clavesBloqueadas = new HashSet<>();
+    private final List<String[]> paresBloqueadosLista = new ArrayList<>();
+
+    @PostConstruct
+    void cargarBloqueos() {
+        if (paresBloqueadosConfig == null) return;
+        for (String par : paresBloqueadosConfig.split(",")) {
+            String[] ab = par.split("-");
+            if (ab.length == 2 && !ab[0].isBlank() && !ab[1].isBlank()) {
+                String a = ab[0].trim(), b = ab[1].trim();
+                clavesBloqueadas.add(clave(a, b));
+                paresBloqueadosLista.add(new String[]{a, b});
+            }
+        }
+    }
+
+    /** ¿Está prohibido vender el tramo exacto origen↔destino (en cualquier sentido)? */
+    public boolean tramoBloqueado(String origen, String destino) {
+        return origen != null && destino != null && clavesBloqueadas.contains(clave(origen, destino));
+    }
+
+    /** Pares bloqueados, para que la web los oculte del buscador. */
+    public List<String[]> paresBloqueados() {
+        return paresBloqueadosLista;
+    }
+
+    /** Clave sin orden: {Nauta,Iquitos} y {Iquitos,Nauta} dan la misma. */
+    private String clave(String a, String b) {
+        a = a.trim().toLowerCase();
+        b = b.trim().toLowerCase();
+        return a.compareTo(b) <= 0 ? a + "|" + b : b + "|" + a;
+    }
 
     public PublicService(ViajeRepository viajeRepository,
                          RutaRepository rutaRepository,
@@ -152,6 +195,9 @@ public class PublicService {
             }
 
             if (ordenOrigen >= ordenDestino) continue;
+
+            // Tramos que no se venden (orden de gerencia), p. ej. Nauta↔Iquitos.
+            if (tramoBloqueado(nombreOrigen, nombreDestino)) continue;
 
             PublicViajeDTO dto = new PublicViajeDTO();
             dto.setId(v.getId());

@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * API pública (sin autenticación) para la web del cliente: rutas, búsqueda de viajes
@@ -57,6 +59,15 @@ public class PublicController {
             @RequestParam int ordenOrigen,
             @RequestParam int ordenDestino) {
         return ResponseEntity.ok(publicService.mapaAsientos(viajeId, ordenOrigen, ordenDestino));
+    }
+
+    /** Tramos que no se venden (orden de gerencia), para ocultarlos en el buscador. */
+    @GetMapping("/reglas-venta")
+    public ResponseEntity<?> reglasVenta() {
+        List<List<String>> pares = publicService.paresBloqueados().stream()
+                .map(p -> List.of(p[0], p[1]))
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(Map.of("paresBloqueados", pares));
     }
 
     /** Historial de boletos por correo o DNI, sin necesidad de cuenta. */

@@ -185,6 +185,8 @@ public class ReservaService {
         if (req.getOrdenOrigen() == null || req.getOrdenDestino() == null
                 || req.getOrdenOrigen() >= req.getOrdenDestino())
             throw new RuntimeException("Tramo (origen/destino) inválido");
+        if (publicService.tramoBloqueado(req.getParadaOrigen(), req.getParadaDestino()))
+            throw new RuntimeException("Ese tramo no está disponible para la venta.");
         if (vacio(req.getPasajeroNombre()) || vacio(req.getPasajeroDocumento()))
             throw new RuntimeException("Ingresa el nombre y documento de cada pasajero");
         if (vacio(req.getClienteEmail()) || !req.getClienteEmail().contains("@"))
