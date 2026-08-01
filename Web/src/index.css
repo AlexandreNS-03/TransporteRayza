@@ -258,9 +258,11 @@ header.site {
 .bus-field label { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--muted, #94a3b8); }
 .bus-field label .op { font-weight: 400; text-transform: none; letter-spacing: 0; }
 .bus-field .control { position: relative; }
-.bus-field .control svg { left: 0; width: 16px; height: 16px; }
+/* Mayor especificidad que la base .field .control svg (que lo dejaba en left:14px y
+   lo montaba sobre el texto). Icono visible, pegado a la izquierda del campo. */
+.buscador-barra .bus-field .control svg { left: 2px; width: 17px; height: 17px; stroke: var(--brand-700, #10709c); }
 .buscador-barra .field input, .buscador-barra .field select {
-  border: 0; background: transparent; padding: 0 16px 0 24px; height: 26px;
+  border: 0; background: transparent; padding: 0 18px 0 27px; height: 26px;
   font-size: 15px; font-weight: 600; border-radius: 0; box-shadow: none; text-overflow: ellipsis; }
 .buscador-barra .field input:focus, .buscador-barra .field select:focus { box-shadow: none; }
 .buscador-barra .field select {
@@ -269,7 +271,7 @@ header.site {
 .buscador-barra .dp-trigger { border: 0; background: transparent; padding: 0; height: 26px;
   font-size: 15px; font-weight: 600; color: var(--ink); gap: 8px; }
 .buscador-barra .dp-trigger:hover { border-color: transparent; }
-.buscador-barra .dp-trigger > svg:first-child { width: 16px; height: 16px; }
+.buscador-barra .dp-trigger > svg:first-child { width: 17px; height: 17px; stroke: var(--brand-700, #10709c); }
 .buscador-barra .dp-trigger .chev { display: none; }
 
 .bus-swap { flex: none; align-self: center; width: 34px; height: 34px; border-radius: 50%;
@@ -844,9 +846,15 @@ footer.site .foot-bottom { border-top: 1px solid rgba(255,255,255,.12); padding-
 .cookie-banner p { margin: 0; font-size: 14px; line-height: 1.55; color: var(--ink-soft); flex: 1 1 280px; }
 .cookie-banner a { color: var(--brand-700, #10709c); font-weight: 600; }
 .cookie-acciones { display: flex; gap: 10px; flex: 0 0 auto; }
-@media (max-width: 520px) {
-  .cookie-banner { flex-direction: column; align-items: stretch; text-align: left; }
-  .cookie-acciones { justify-content: flex-end; }
+@media (max-width: 560px) {
+  .cookie-banner {
+    left: 10px; right: 10px; bottom: 10px; gap: 12px; padding: 14px 16px;
+    flex-direction: column; align-items: stretch; text-align: left;
+  }
+  /* En columna, un flex-basis de 280px se toma como ALTO e infla el banner. */
+  .cookie-banner p { flex: 0 0 auto; font-size: 13.5px; }
+  .cookie-acciones { justify-content: stretch; }
+  .cookie-acciones .btn { flex: 1; }
 }
 
 @media (max-width: 760px) {

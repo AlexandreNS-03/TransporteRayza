@@ -40,7 +40,7 @@ export default function Historial() {
     <>
       <Header />
       <section className="section">
-        <div className="wrap" style={{ maxWidth: 720 }}>
+        <div className="wrap" style={{ maxWidth: "min(720px, 100%)" }}>
           <div className="section-head" style={{ marginBottom: 28 }}>
             <div className="kicker">Mis boletos</div>
             <h2>Consulta tus pasajes</h2>

@@ -38,7 +38,7 @@ export default function Ingresar() {
     <>
       <Header />
       <section className="section">
-        <div className="wrap" style={{ maxWidth: 620 }}>
+        <div className="wrap" style={{ maxWidth: "min(620px, 100%)" }}>
           <div className="section-head" style={{ marginBottom: 20 }}>
             <div className="kicker">Mi cuenta</div>
             <h2>{modo === "login" ? "Iniciar sesión" : "Crear cuenta"}</h2>

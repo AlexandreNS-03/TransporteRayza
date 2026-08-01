@@ -61,6 +61,7 @@ export default function Footer() {
               <li><Link to="/contacto">Centro de ayuda</Link></li>
               <li><Link to="/contacto">Encomiendas</Link></li>
               <li><Link to="/clausulas">Términos y condiciones</Link></li>
+              <li><Link to="/privacidad">Política de privacidad</Link></li>
             </ul>
           </div>
         </div>
