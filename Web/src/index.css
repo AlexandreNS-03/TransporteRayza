@@ -248,8 +248,24 @@ header.site {
 .search-tabs .tab svg { width: 18px; height: 18px; stroke: var(--ink-soft); stroke-width: 1.7; fill: none; }
 .buscador { background: var(--card); border-radius: 0 var(--r-lg) var(--r-lg) var(--r-lg);
   box-shadow: var(--sh-lg); padding: 20px; border: 1px solid var(--line); }
-.buscador-grid { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 12px; align-items: end; }
-@media (max-width: 860px) { .buscador-grid { grid-template-columns: 1fr; } }
+.buscador-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)) auto; gap: 12px; align-items: end; }
+.buscador-grid .field label .op { font-weight: 400; color: var(--muted, #94a3b8); text-transform: none; letter-spacing: 0; }
+@media (max-width: 980px) { .buscador-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 560px) { .buscador-grid { grid-template-columns: 1fr; } }
+
+/* ---- Ida y vuelta ---- */
+.leg-banner {
+  display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;
+  padding: 12px 16px; border: 1px solid var(--line); border-radius: 12px;
+  background: var(--sky-soft); color: var(--ink); font-size: 14.5px;
+}
+.leg-tag {
+  display: inline-block; font-size: 11px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase;
+  background: var(--brand, #1ea6dd); color: #fff; padding: 2px 9px; border-radius: 999px; vertical-align: middle;
+}
+.resumen-leg { padding: 10px 0; border-bottom: 1px dashed var(--line); }
+.resumen-leg:last-of-type { border-bottom: 0; }
+.resumen-leg-tit { font-weight: 700; margin-bottom: 6px; font-size: 14px; }
 .field { display: flex; flex-direction: column; gap: 7px; text-align: left; }
 .field label { font-size: 11.5px; font-weight: 700; color: var(--ink-soft); text-transform: uppercase; letter-spacing: .06em; }
 .field .control { position: relative; }

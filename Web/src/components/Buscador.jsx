@@ -20,6 +20,7 @@ export default function Buscador({ onBuscar, valorInicial = {} }) {
   const [origen, setOrigen] = useState(valorInicial.origen || "");
   const [destino, setDestino] = useState(valorInicial.destino || "");
   const [fecha, setFecha] = useState(valorInicial.fecha || "");
+  const [fechaRetorno, setFechaRetorno] = useState(valorInicial.fechaRetorno || "");
   const [rutas, setRutas] = useState([]);
   const [bloqueados, setBloqueados] = useState([]);   // pares que no se venden
 
@@ -60,7 +61,7 @@ export default function Buscador({ onBuscar, valorInicial = {} }) {
 
   const submit = (e) => {
     e.preventDefault();
-    const params = { origen, destino, fecha };
+    const params = { origen, destino, fecha, fechaRetorno };
     if (onBuscar) return onBuscar(params);
     const qs = new URLSearchParams(Object.fromEntries(Object.entries(params).filter(([, v]) => v))).toString();
     window.location.href = "/comprar" + (qs ? "?" + qs : "");
@@ -105,8 +106,12 @@ export default function Buscador({ onBuscar, valorInicial = {} }) {
             </div>
           </div>
           <div className="field">
-            <label>Fecha de viaje</label>
+            <label>Fecha de ida</label>
             <DatePicker value={fecha} onChange={setFecha} min={hoy} />
+          </div>
+          <div className="field">
+            <label>Retorno <span className="op">(opcional)</span></label>
+            <DatePicker value={fechaRetorno} onChange={setFechaRetorno} min={fecha || hoy} placeholder="Ida y vuelta" />
           </div>
           <button className="btn btn-primary btn-lg" type="submit" style={{ height: 52 }}>Buscar viajes</button>
         </div>
