@@ -21,8 +21,8 @@ export default function CookieBanner() {
     <div className="cookie-banner" role="dialog" aria-label="Aviso de cookies">
       <p>
         Usamos cookies para analizar el uso del sitio y mejorar tu experiencia.
-        Puedes aceptarlas o seguir sin ellas. Más info en nuestras{" "}
-        <Link to="/clausulas">condiciones</Link>.
+        Puedes aceptarlas o seguir sin ellas. Más info en nuestra{" "}
+        <Link to="/privacidad">política de privacidad</Link>.
       </p>
       <div className="cookie-acciones">
         <button type="button" className="btn btn-ghost btn-sm" onClick={() => decidir("rejected")}>

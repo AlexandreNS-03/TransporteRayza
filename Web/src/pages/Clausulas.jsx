@@ -42,7 +42,7 @@ export default function Clausulas() {
     <>
       <Header />
       <section className="section">
-        <div className="wrap" style={{ maxWidth: 820 }}>
+        <div className="wrap" style={{ maxWidth: "min(820px, 100%)" }}>
           <div className="kicker">Condiciones del viaje</div>
           <h1 style={{ fontSize: "clamp(28px,5vw,40px)", margin: "8px 0 10px" }}>Cláusulas del viaje</h1>
           <p className="muted" style={{ marginBottom: 30 }}>

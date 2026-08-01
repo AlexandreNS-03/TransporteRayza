@@ -47,7 +47,7 @@ export default function Servicios() {
       </section>
 
       <section className="section section-alt">
-        <div className="wrap center" style={{ maxWidth: 720 }}>
+        <div className="wrap center" style={{ maxWidth: "min(720px, 100%)" }}>
           <div className="kicker">Antes de viajar</div>
           <h2 style={{ fontSize: "clamp(24px,4vw,34px)", margin: "10px 0 14px" }}>Conoce las condiciones del viaje</h2>
           <p className="muted">Equipaje, horarios de embarque, cambios y devoluciones: todo está en nuestras cláusulas.</p>

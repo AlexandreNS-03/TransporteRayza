@@ -146,6 +146,23 @@ header.site {
 .nav-actions { display: flex; gap: 12px; align-items: center; }
 @media (max-width: 860px) { .nav-links { display: none; } .nav-actions .hide-sm { display: none; } }
 
+/* ---- Menú hamburguesa (móvil) ---- */
+.nav-burger { display: none; width: 42px; height: 42px; padding: 0; cursor: pointer;
+  border: 1px solid var(--line); border-radius: 12px; background: var(--card);
+  flex-direction: column; align-items: center; justify-content: center; gap: 5px; }
+.nav-burger span { width: 20px; height: 2px; border-radius: 2px; background: var(--ink);
+  transition: transform .25s var(--ease), opacity .2s; }
+.nav-burger.abierto span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.nav-burger.abierto span:nth-child(2) { opacity: 0; }
+.nav-burger.abierto span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+.nav-mobile { display: flex; flex-direction: column; background: var(--card);
+  border-top: 1px solid var(--line); padding: 4px 24px 14px; }
+.nav-mobile a { padding: 14px 4px; color: var(--ink); font-weight: 600; font-size: 16px;
+  border-bottom: 1px solid var(--line); }
+.nav-mobile a:last-child { border-bottom: 0; }
+@media (max-width: 860px) { .nav-burger { display: inline-flex; } }
+@media (min-width: 861px) { .nav-mobile { display: none; } }
+
 /* ---------- Logo ---------- */
 .logo { display: inline-flex; align-items: center; gap: 11px; }
 .logo .mark { flex: none; filter: drop-shadow(0 4px 8px rgba(11,44,94,.25)); }
@@ -258,9 +275,11 @@ header.site {
 .bus-field label { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--muted, #94a3b8); }
 .bus-field label .op { font-weight: 400; text-transform: none; letter-spacing: 0; }
 .bus-field .control { position: relative; }
-.bus-field .control svg { left: 0; width: 16px; height: 16px; }
+/* Mayor especificidad que la base .field .control svg (que lo dejaba en left:14px y
+   lo montaba sobre el texto). Icono visible, pegado a la izquierda del campo. */
+.buscador-barra .bus-field .control svg { left: 2px; width: 17px; height: 17px; stroke: var(--brand-700, #10709c); }
 .buscador-barra .field input, .buscador-barra .field select {
-  border: 0; background: transparent; padding: 0 16px 0 24px; height: 26px;
+  border: 0; background: transparent; padding: 0 18px 0 27px; height: 26px;
   font-size: 15px; font-weight: 600; border-radius: 0; box-shadow: none; text-overflow: ellipsis; }
 .buscador-barra .field input:focus, .buscador-barra .field select:focus { box-shadow: none; }
 .buscador-barra .field select {
@@ -269,7 +288,7 @@ header.site {
 .buscador-barra .dp-trigger { border: 0; background: transparent; padding: 0; height: 26px;
   font-size: 15px; font-weight: 600; color: var(--ink); gap: 8px; }
 .buscador-barra .dp-trigger:hover { border-color: transparent; }
-.buscador-barra .dp-trigger > svg:first-child { width: 16px; height: 16px; }
+.buscador-barra .dp-trigger > svg:first-child { width: 17px; height: 17px; stroke: var(--brand-700, #10709c); }
 .buscador-barra .dp-trigger .chev { display: none; }
 
 .bus-swap { flex: none; align-self: center; width: 34px; height: 34px; border-radius: 50%;
@@ -351,6 +370,23 @@ header.site {
   display: flex; flex-direction: column; justify-content: flex-end; padding: 20px; box-shadow: var(--sh); transition: transform .3s var(--ease); }
 .destino:hover { transform: translateY(-5px); }
 .destino:hover .bg { transform: scale(1.08); }
+
+/* ---- Giro 3D sutil de las tarjetas (solo escritorio con mouse) ----
+   Las impares se inclinan hacia un lado y las pares hacia el otro. En móvil/táctil
+   no aplica (no hay hover) para no estorbar la lectura. */
+@media (hover: hover) and (min-width: 900px) {
+  .cards .card, .destinos .destino, .promos .promo, .galeria-grid .galeria-item {
+    transition: transform .35s var(--ease), box-shadow .35s var(--ease);
+  }
+  .cards .card.hoverable:hover { transform: translateY(-6px) perspective(900px) rotateX(3deg) rotateY(-5deg); box-shadow: var(--sh-lg); }
+  .cards .card.hoverable:nth-child(even):hover { transform: translateY(-6px) perspective(900px) rotateX(3deg) rotateY(5deg); }
+  .destinos .destino:hover { transform: translateY(-6px) perspective(900px) rotateY(-5deg); }
+  .destinos .destino:nth-child(even):hover { transform: translateY(-6px) perspective(900px) rotateY(5deg); }
+  .promos .promo:hover { transform: translateY(-5px) perspective(900px) rotateY(-4deg); }
+  .promos .promo:nth-child(even):hover { transform: translateY(-5px) perspective(900px) rotateY(4deg); }
+  .galeria-grid .galeria-item:hover { transform: perspective(900px) rotateY(-4deg) scale(1.02); }
+  .galeria-grid .galeria-item:nth-child(even):hover { transform: perspective(900px) rotateY(4deg) scale(1.02); }
+}
 .destino .bg { position: absolute; inset: 0; z-index: 0; transition: transform .5s var(--ease); }
 .destino .bg::after { content:""; position:absolute; inset:0; background: linear-gradient(180deg, transparent 30%, rgba(6,26,55,.85)); }
 .destino .info { position: relative; z-index: 1; }
@@ -844,9 +880,15 @@ footer.site .foot-bottom { border-top: 1px solid rgba(255,255,255,.12); padding-
 .cookie-banner p { margin: 0; font-size: 14px; line-height: 1.55; color: var(--ink-soft); flex: 1 1 280px; }
 .cookie-banner a { color: var(--brand-700, #10709c); font-weight: 600; }
 .cookie-acciones { display: flex; gap: 10px; flex: 0 0 auto; }
-@media (max-width: 520px) {
-  .cookie-banner { flex-direction: column; align-items: stretch; text-align: left; }
-  .cookie-acciones { justify-content: flex-end; }
+@media (max-width: 560px) {
+  .cookie-banner {
+    left: 10px; right: 10px; bottom: 10px; gap: 12px; padding: 14px 16px;
+    flex-direction: column; align-items: stretch; text-align: left;
+  }
+  /* En columna, un flex-basis de 280px se toma como ALTO e infla el banner. */
+  .cookie-banner p { flex: 0 0 auto; font-size: 13.5px; }
+  .cookie-acciones { justify-content: stretch; }
+  .cookie-acciones .btn { flex: 1; }
 }
 
 @media (max-width: 760px) {
