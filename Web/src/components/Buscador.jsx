@@ -8,12 +8,6 @@ const clavePar = (a, b) => [a.trim().toLowerCase(), b.trim().toLowerCase()].sort
 const IconPin = () => (
   <svg viewBox="0 0 24 24"><path d="M12 21s-6-5.7-6-10a6 6 0 1112 0c0 4.3-6 10-6 10z"/><circle cx="12" cy="11" r="2.2"/></svg>
 );
-const IconTicket = () => (
-  <svg viewBox="0 0 24 24"><path d="M4 8a2 2 0 012-2h12a2 2 0 012 2 2 2 0 000 4 2 2 0 010 4H6a2 2 0 01-2-2 2 2 0 000-4z"/><path d="M15 6v12"/></svg>
-);
-const IconBox = () => (
-  <svg viewBox="0 0 24 24"><path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 7v10l9 4 9-4V7"/></svg>
-);
 
 // Buscador de viajes con combos (Origen → Destino) poblados desde la BD.
 export default function Buscador({ onBuscar, valorInicial = {} }) {
@@ -68,54 +62,58 @@ export default function Buscador({ onBuscar, valorInicial = {} }) {
   };
 
   const hoy = new Date().toISOString().slice(0, 10);
+  const intercambiar = () => { setOrigen(destino); setDestino(origen); };
 
   return (
-    <div>
-      <div className="search-tabs">
-        <span className="tab active"><IconTicket /> Pasajes</span>
-        <span className="tab" title="Próximamente"><IconBox /> Encomiendas</span>
-      </div>
-      <form className="buscador" onSubmit={submit}>
-        <div className="buscador-grid">
-          <div className="field">
-            <label>Desde</label>
-            <div className="control">
-              <IconPin />
-              {hayCombos ? (
-                <select value={origen} onChange={(e) => { setOrigen(e.target.value); setDestino(""); }}>
-                  <option value="">Elige origen</option>
-                  {origenes.map((o) => <option key={o} value={o}>{o}</option>)}
-                </select>
-              ) : (
-                <input placeholder="Origen" value={origen} onChange={(e) => setOrigen(e.target.value)} />
-              )}
-            </div>
+    <form className="buscador buscador-barra" onSubmit={submit}>
+      <div className="bus-fields">
+        <div className="field bus-field">
+          <label>Desde</label>
+          <div className="control">
+            <IconPin />
+            {hayCombos ? (
+              <select value={origen} onChange={(e) => { setOrigen(e.target.value); setDestino(""); }}>
+                <option value="">Elige origen</option>
+                {origenes.map((o) => <option key={o} value={o}>{o}</option>)}
+              </select>
+            ) : (
+              <input placeholder="Origen" value={origen} onChange={(e) => setOrigen(e.target.value)} />
+            )}
           </div>
-          <div className="field">
-            <label>Hacia</label>
-            <div className="control">
-              <IconPin />
-              {hayCombos ? (
-                <select value={destino} onChange={(e) => setDestino(e.target.value)} disabled={!origen}>
-                  <option value="">{origen ? "Elige destino" : "Primero el origen"}</option>
-                  {destinos.map((d) => <option key={d} value={d}>{d}</option>)}
-                </select>
-              ) : (
-                <input placeholder="Destino" value={destino} onChange={(e) => setDestino(e.target.value)} />
-              )}
-            </div>
-          </div>
-          <div className="field">
-            <label>Fecha de ida</label>
-            <DatePicker value={fecha} onChange={setFecha} min={hoy} />
-          </div>
-          <div className="field">
-            <label>Retorno <span className="op">(opcional)</span></label>
-            <DatePicker value={fechaRetorno} onChange={setFechaRetorno} min={fecha || hoy} placeholder="Ida y vuelta" />
-          </div>
-          <button className="btn btn-primary btn-lg" type="submit" style={{ height: 52 }}>Buscar viajes</button>
         </div>
-      </form>
-    </div>
+
+        <button type="button" className="bus-swap" onClick={intercambiar}
+                title="Intercambiar" aria-label="Intercambiar origen y destino">
+          <svg viewBox="0 0 24 24"><path d="M7 4L4 7l3 3M4 7h13M17 20l3-3-3-3M20 17H7"/></svg>
+        </button>
+
+        <div className="field bus-field">
+          <label>Hacia</label>
+          <div className="control">
+            <IconPin />
+            {hayCombos ? (
+              <select value={destino} onChange={(e) => setDestino(e.target.value)} disabled={!origen}>
+                <option value="">{origen ? "Elige destino" : "Primero el origen"}</option>
+                {destinos.map((d) => <option key={d} value={d}>{d}</option>)}
+              </select>
+            ) : (
+              <input placeholder="Destino" value={destino} onChange={(e) => setDestino(e.target.value)} />
+            )}
+          </div>
+        </div>
+
+        <div className="field bus-field">
+          <label>Ida</label>
+          <DatePicker value={fecha} onChange={setFecha} min={hoy} />
+        </div>
+
+        <div className="field bus-field">
+          <label>Vuelta <span className="op">(opcional)</span></label>
+          <DatePicker value={fechaRetorno} onChange={setFechaRetorno} min={fecha || hoy} placeholder="Ida y vuelta" />
+        </div>
+      </div>
+
+      <button className="btn btn-primary bus-btn" type="submit">Buscar</button>
+    </form>
   );
 }
