@@ -146,6 +146,23 @@ header.site {
 .nav-actions { display: flex; gap: 12px; align-items: center; }
 @media (max-width: 860px) { .nav-links { display: none; } .nav-actions .hide-sm { display: none; } }
 
+/* ---- Menú hamburguesa (móvil) ---- */
+.nav-burger { display: none; width: 42px; height: 42px; padding: 0; cursor: pointer;
+  border: 1px solid var(--line); border-radius: 12px; background: var(--card);
+  flex-direction: column; align-items: center; justify-content: center; gap: 5px; }
+.nav-burger span { width: 20px; height: 2px; border-radius: 2px; background: var(--ink);
+  transition: transform .25s var(--ease), opacity .2s; }
+.nav-burger.abierto span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.nav-burger.abierto span:nth-child(2) { opacity: 0; }
+.nav-burger.abierto span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+.nav-mobile { display: flex; flex-direction: column; background: var(--card);
+  border-top: 1px solid var(--line); padding: 4px 24px 14px; }
+.nav-mobile a { padding: 14px 4px; color: var(--ink); font-weight: 600; font-size: 16px;
+  border-bottom: 1px solid var(--line); }
+.nav-mobile a:last-child { border-bottom: 0; }
+@media (max-width: 860px) { .nav-burger { display: inline-flex; } }
+@media (min-width: 861px) { .nav-mobile { display: none; } }
+
 /* ---------- Logo ---------- */
 .logo { display: inline-flex; align-items: center; gap: 11px; }
 .logo .mark { flex: none; filter: drop-shadow(0 4px 8px rgba(11,44,94,.25)); }
@@ -353,6 +370,23 @@ header.site {
   display: flex; flex-direction: column; justify-content: flex-end; padding: 20px; box-shadow: var(--sh); transition: transform .3s var(--ease); }
 .destino:hover { transform: translateY(-5px); }
 .destino:hover .bg { transform: scale(1.08); }
+
+/* ---- Giro 3D sutil de las tarjetas (solo escritorio con mouse) ----
+   Las impares se inclinan hacia un lado y las pares hacia el otro. En móvil/táctil
+   no aplica (no hay hover) para no estorbar la lectura. */
+@media (hover: hover) and (min-width: 900px) {
+  .cards .card, .destinos .destino, .promos .promo, .galeria-grid .galeria-item {
+    transition: transform .35s var(--ease), box-shadow .35s var(--ease);
+  }
+  .cards .card.hoverable:hover { transform: translateY(-6px) perspective(900px) rotateX(3deg) rotateY(-5deg); box-shadow: var(--sh-lg); }
+  .cards .card.hoverable:nth-child(even):hover { transform: translateY(-6px) perspective(900px) rotateX(3deg) rotateY(5deg); }
+  .destinos .destino:hover { transform: translateY(-6px) perspective(900px) rotateY(-5deg); }
+  .destinos .destino:nth-child(even):hover { transform: translateY(-6px) perspective(900px) rotateY(5deg); }
+  .promos .promo:hover { transform: translateY(-5px) perspective(900px) rotateY(-4deg); }
+  .promos .promo:nth-child(even):hover { transform: translateY(-5px) perspective(900px) rotateY(4deg); }
+  .galeria-grid .galeria-item:hover { transform: perspective(900px) rotateY(-4deg) scale(1.02); }
+  .galeria-grid .galeria-item:nth-child(even):hover { transform: perspective(900px) rotateY(4deg) scale(1.02); }
+}
 .destino .bg { position: absolute; inset: 0; z-index: 0; transition: transform .5s var(--ease); }
 .destino .bg::after { content:""; position:absolute; inset:0; background: linear-gradient(180deg, transparent 30%, rgba(6,26,55,.85)); }
 .destino .info { position: relative; z-index: 1; }
