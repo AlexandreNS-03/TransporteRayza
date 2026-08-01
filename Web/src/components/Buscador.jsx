@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
-import { getRutas } from "../services/publicApi";
+import { getRutas, getReglasVenta } from "../services/publicApi";
 import DatePicker from "./DatePicker";
+
+// Clave sin orden para comparar pares: {Nauta,Iquitos} == {Iquitos,Nauta}.
+const clavePar = (a, b) => [a.trim().toLowerCase(), b.trim().toLowerCase()].sort().join("|");
 
 const IconPin = () => (
   <svg viewBox="0 0 24 24"><path d="M12 21s-6-5.7-6-10a6 6 0 1112 0c0 4.3-6 10-6 10z"/><circle cx="12" cy="11" r="2.2"/></svg>
@@ -18,14 +21,18 @@ export default function Buscador({ onBuscar, valorInicial = {} }) {
   const [destino, setDestino] = useState(valorInicial.destino || "");
   const [fecha, setFecha] = useState(valorInicial.fecha || "");
   const [rutas, setRutas] = useState([]);
+  const [bloqueados, setBloqueados] = useState([]);   // pares que no se venden
 
   useEffect(() => { getRutas().then(setRutas).catch(() => setRutas([])); }, []);
+  useEffect(() => { getReglasVenta().then(setBloqueados).catch(() => setBloqueados([])); }, []);
 
   const pares = useMemo(() => {
+    const claves = new Set(bloqueados.map(([a, b]) => clavePar(a, b)));
     const set = new Set(); const lista = [];
     const agregar = (o, d) => {
       o = (o || "").trim(); d = (d || "").trim();
       if (!o || !d) return;
+      if (claves.has(clavePar(o, d))) return;   // tramo bloqueado (orden de gerencia)
       const k = o + "→" + d;
       if (!set.has(k)) { set.add(k); lista.push({ origen: o, destino: d }); }
     };
@@ -40,7 +47,7 @@ export default function Buscador({ onBuscar, valorInicial = {} }) {
       if (paradas.length < 2) agregar(r.origen, r.destino);
     }
     return lista;
-  }, [rutas]);
+  }, [rutas, bloqueados]);
 
   // En orden de recorrido, no alfabético: el pasajero busca su puerto como lo pasa
   // el bote (Requena, Yanallpa, Herrera…), no ordenado por nombre. `pares` ya viene
