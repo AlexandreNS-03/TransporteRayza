@@ -629,7 +629,8 @@ footer.site .foot-bottom { border-top: 1px solid rgba(255,255,255,.12); padding-
 }
 .boleto-qr { width: 140px; height: 140px; border-radius: 10px; flex: 0 0 auto; }
 .btn-sm { padding: 8px 14px; font-size: 13px; }
-@media (max-width: 520px) { .boleto { justify-content: center; } }
+.boleto-acciones { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+@media (max-width: 520px) { .boleto { justify-content: center; } .boleto-acciones { justify-content: center; } }
 
 /* ---- Página de contacto ---- */
 .contacto-datos {
