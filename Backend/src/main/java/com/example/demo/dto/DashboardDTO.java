@@ -13,6 +13,10 @@ public class DashboardDTO {
     private BigDecimal ingresosSemana;
     private int totalVentasMes;
     private BigDecimal ingresosMes;
+    // Efectivo cobrado HOY separado por oficina (para cuadrar caja)
+    private BigDecimal efectivoIquitosHoy;
+    private BigDecimal efectivoRequenaHoy;
+    private BigDecimal descuentosHoy;
     private List<ViajeProximoDTO> viajesProximos;
     private List<UltimaVentaDTO> ultimasVentas;
     private List<VentaPorDiaDTO> ventasPorDia;
@@ -143,6 +147,15 @@ public class DashboardDTO {
 
     public BigDecimal getIngresosMes() { return ingresosMes; }
     public void setIngresosMes(BigDecimal i) { this.ingresosMes = i; }
+
+    public BigDecimal getEfectivoIquitosHoy() { return efectivoIquitosHoy; }
+    public void setEfectivoIquitosHoy(BigDecimal i) { this.efectivoIquitosHoy = i; }
+
+    public BigDecimal getEfectivoRequenaHoy() { return efectivoRequenaHoy; }
+    public void setEfectivoRequenaHoy(BigDecimal i) { this.efectivoRequenaHoy = i; }
+
+    public BigDecimal getDescuentosHoy() { return descuentosHoy; }
+    public void setDescuentosHoy(BigDecimal d) { this.descuentosHoy = d; }
 
     public List<ViajeProximoDTO> getViajesProximos() { return viajesProximos; }
     public void setViajesProximos(List<ViajeProximoDTO> v) { this.viajesProximos = v; }

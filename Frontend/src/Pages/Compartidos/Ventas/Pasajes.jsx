@@ -28,6 +28,14 @@ function Pasajes() {
     const puedeVender  = esAdmin || esSupervisor || esEmpleado;
     const { toasts, mostrarToast } = useToast();
 
+    // Lugar de pago por defecto: según la oficina (sucursal) del usuario
+    const lugarPagoDefault = (() => {
+        const s = (usuario?.sucursalNombre || "").toUpperCase();
+        if (s.includes("IQUITOS")) return "IQUITOS";
+        if (s.includes("REQUENA")) return "REQUENA";
+        return "";
+    })();
+
     // Lista ventas
     const [ventas, setVentas]         = useState([]);
     const [cargando, setCargando]     = useState(true);
@@ -73,7 +81,7 @@ function Pasajes() {
         tipoComprobante: "TICKET",
         clienteNombre: "", clienteTipoDoc: "DNI",
         clienteDocumento: "", detalleComprobante: "",
-        precio: ""
+        precio: "", precioOriginal: "", lugarPago: lugarPagoDefault
     });
 
     useEffect(() => { fetchVentas(); fetchComprobantes(); }, []);
@@ -128,7 +136,8 @@ function Pasajes() {
             paradaOrigen: "", paradaDestino: "", ordenOrigen: "", ordenDestino: "",
             asientoNumero: "", asientoTipo: "",
             tipoComprobante: "TICKET", clienteNombre: "", clienteTipoDoc: "DNI",
-            clienteDocumento: "", detalleComprobante: "", precio: ""
+            clienteDocumento: "", detalleComprobante: "", precio: "",
+            precioOriginal: "", lugarPago: lugarPagoDefault
         });
     };
 
@@ -220,11 +229,13 @@ function Pasajes() {
 
     // ── PASO 4: seleccionar asiento ──
     const seleccionarAsiento = (asiento) => {
+        const tarifaAsiento = asiento.tipo === "VIP" ? tarifa?.precioVip : tarifa?.precioNormal;
         setForm(prev => ({
             ...prev,
             asientoNumero: asiento.numero,
             asientoTipo: asiento.tipo,
-            precio: asiento.tipo === "VIP" ? tarifa?.precioVip : tarifa?.precioNormal
+            precio: tarifaAsiento,
+            precioOriginal: tarifaAsiento
         }));
     };
 
@@ -238,6 +249,15 @@ function Pasajes() {
     const confirmarVenta = async () => {
         if (!form.clienteNombre || !form.clienteDocumento) {
             setErrorModal("Datos del comprobante son obligatorios");
+            return;
+        }
+        if (!form.lugarPago) {
+            setErrorModal("Indica el lugar de pago (Iquitos u oficina de Requena)");
+            return;
+        }
+        const precioFinal = parseFloat(form.precio);
+        if (isNaN(precioFinal) || precioFinal < 0) {
+            setErrorModal("El precio no es válido");
             return;
         }
         setGuardando(true);
@@ -266,7 +286,9 @@ function Pasajes() {
                     paradaDestino:     form.paradaDestino,
                     ordenOrigen:       parseInt(form.ordenOrigen),
                     ordenDestino:      parseInt(form.ordenDestino),
-                    precio:            parseFloat(form.precio)
+                    precio:            precioFinal,
+                    precioOriginal:    form.precioOriginal !== "" ? parseFloat(form.precioOriginal) : precioFinal,
+                    lugarPago:         form.lugarPago
                 })
             });
             cerrarModal();
@@ -511,7 +533,19 @@ function Pasajes() {
                                             </span>
                                         <strong> #{v.asientoNumero}</strong>
                                     </td>
-                                    <td data-label="Precio"><strong>S/ {v.precio}</strong></td>
+                                    <td data-label="Precio">
+                                        <strong>S/ {v.precio}</strong>
+                                        {v.lugarPago && (
+                                            <><br /><span style={{ fontSize: "10px", color: "#6b7280" }}>
+                                                <i className="ti ti-map-pin"></i> {v.lugarPago === "IQUITOS" ? "Iquitos" : "Requena"}
+                                            </span></>
+                                        )}
+                                        {Number(v.descuento) > 0 && (
+                                            <><br /><span style={{ fontSize: "10px", color: "#b45309" }}>
+                                                rebaja S/ {v.descuento}
+                                            </span></>
+                                        )}
+                                    </td>
                                     <td data-label="Fecha">{v.fechaVenta}</td>
                                     <td data-label="Estado">
                                             <span className={badgeEstado(v.estado)}>
@@ -891,6 +925,39 @@ function Pasajes() {
                                                placeholder="Servicio de transporte fluvial" />
                                     </div>
 
+                                    {/* Precio a cobrar (editable para rebajas) */}
+                                    <div className="form-fila">
+                                        <div className="form-grupo">
+                                            <label>Precio a cobrar (S/) *</label>
+                                            <input type="number" name="precio" min="0" step="0.10"
+                                                   value={form.precio} onChange={handleChange}
+                                                   placeholder="0.00" />
+                                            {form.precioOriginal !== "" &&
+                                             parseFloat(form.precio) < parseFloat(form.precioOriginal) && (
+                                                <span className="precio-hint">
+                                                    Tarifa S/ {form.precioOriginal} · rebaja S/ {
+                                                        (parseFloat(form.precioOriginal) - (parseFloat(form.precio) || 0)).toFixed(2)
+                                                    }
+                                                </span>
+                                            )}
+                                        </div>
+                                        <div className="form-grupo">
+                                            <label>Lugar de pago *</label>
+                                            <div className="comp-selector">
+                                                {["IQUITOS", "REQUENA"].map(l => (
+                                                    <button
+                                                        key={l}
+                                                        type="button"
+                                                        className={`comp-btn ${form.lugarPago === l ? "activo" : ""}`}
+                                                        onClick={() => setForm(prev => ({ ...prev, lugarPago: l }))}
+                                                    >
+                                                        {l === "IQUITOS" ? "Iquitos" : "Oficina Requena"}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+
                                     {/* Resumen final */}
                                     <div className="resumen-venta">
                                         <p className="resumen-titulo"><i className="ti ti-receipt"></i> Resumen de la venta</p>
@@ -898,6 +965,13 @@ function Pasajes() {
                                         <div className="resumen-fila"><span>Viaje</span><strong>{viajeSeleccionado?.codigoViaje}</strong></div>
                                         <div className="resumen-fila"><span>Tramo</span><strong>{form.paradaOrigen} → {form.paradaDestino}</strong></div>
                                         <div className="resumen-fila"><span>Asiento</span><strong>{form.asientoTipo} #{form.asientoNumero}</strong></div>
+                                        {form.lugarPago && (
+                                            <div className="resumen-fila"><span>Lugar de pago</span><strong>{form.lugarPago === "IQUITOS" ? "Iquitos" : "Oficina Requena"}</strong></div>
+                                        )}
+                                        {form.precioOriginal !== "" &&
+                                         parseFloat(form.precio) < parseFloat(form.precioOriginal) && (
+                                            <div className="resumen-fila"><span>Rebaja</span><strong>− S/ {(parseFloat(form.precioOriginal) - (parseFloat(form.precio) || 0)).toFixed(2)}</strong></div>
+                                        )}
                                         <div className="resumen-fila resumen-total"><span>Total</span><strong>S/ {form.precio}</strong></div>
                                     </div>
                                 </div>

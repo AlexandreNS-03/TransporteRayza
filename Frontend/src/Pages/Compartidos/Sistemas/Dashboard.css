@@ -358,6 +358,16 @@
 
 .badge-programado { background: #eff6ff; color: #1d4ed8; }
 .badge-encurso    { background: #fefce8; color: #a16207; }
+
+/* Efectivo por oficina (hoy) */
+.dash-efectivo { margin: 6px 0 22px; }
+.dash-efectivo-titulo {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 13px; font-weight: 700; color: #374151; margin-bottom: 10px;
+}
+.dash-efectivo-cards {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;
+}
 /* Sección de encomiendas y caja */
 .dash-extras { display: flex; flex-direction: column; gap: 16px; margin-bottom: 22px; }
 .dash-extras-cards {

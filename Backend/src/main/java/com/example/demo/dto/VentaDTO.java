@@ -34,6 +34,9 @@ public class VentaDTO {
     private Integer ordenOrigen;
     private Integer ordenDestino;
     private BigDecimal precio;
+    private BigDecimal precioOriginal;   // tarifa antes de rebajar (interno)
+    private BigDecimal descuento;        // cuánto se rebajó
+    private String lugarPago;            // IQUITOS | REQUENA
     private String codigoQr;
     private String embarqueEstado;
     private String estado;
@@ -132,6 +135,15 @@ public class VentaDTO {
 
     public BigDecimal getPrecio() { return precio; }
     public void setPrecio(BigDecimal precio) { this.precio = precio; }
+
+    public BigDecimal getPrecioOriginal() { return precioOriginal; }
+    public void setPrecioOriginal(BigDecimal precioOriginal) { this.precioOriginal = precioOriginal; }
+
+    public BigDecimal getDescuento() { return descuento; }
+    public void setDescuento(BigDecimal descuento) { this.descuento = descuento; }
+
+    public String getLugarPago() { return lugarPago; }
+    public void setLugarPago(String lugarPago) { this.lugarPago = lugarPago; }
 
     public String getCodigoQr() { return codigoQr; }
     public void setCodigoQr(String codigoQr) { this.codigoQr = codigoQr; }

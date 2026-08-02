@@ -176,6 +176,17 @@ public class VentaService {
         venta.setOrdenOrigen(req.getOrdenOrigen());
         venta.setOrdenDestino(req.getOrdenDestino());
         venta.setPrecio(req.getPrecio());
+        // Descuento: si mandan el precio original y es mayor al cobrado, guardamos la
+        // rebaja (para reportes). El ticket sigue mostrando solo `precio`.
+        java.math.BigDecimal original = req.getPrecioOriginal() != null ? req.getPrecioOriginal() : req.getPrecio();
+        java.math.BigDecimal descuento = java.math.BigDecimal.ZERO;
+        if (original != null && req.getPrecio() != null) {
+            descuento = original.subtract(req.getPrecio());
+            if (descuento.signum() < 0) descuento = java.math.BigDecimal.ZERO;
+        }
+        venta.setPrecioOriginal(original);
+        venta.setDescuento(descuento);
+        venta.setLugarPago(normalizarLugarPago(req.getLugarPago()));
         venta.setCodigoQr(UUID.randomUUID().toString());
         venta.setEmbarqueEstado(Venta.EmbarqueEstado.PENDIENTE);
         venta.setEstado(Venta.EstadoVenta.PAGADO);
@@ -409,6 +420,9 @@ public class VentaService {
         dto.setOrdenOrigen(v.getOrdenOrigen());
         dto.setOrdenDestino(v.getOrdenDestino());
         dto.setPrecio(v.getPrecio());
+        dto.setPrecioOriginal(v.getPrecioOriginal());
+        dto.setDescuento(v.getDescuento());
+        dto.setLugarPago(v.getLugarPago());
         dto.setCodigoQr(v.getCodigoQr());
         dto.setEmbarqueEstado(v.getEmbarqueEstado() != null ? v.getEmbarqueEstado().name() : null);
         dto.setEstado(v.getEstado() != null ? v.getEstado().name() : null);
@@ -426,7 +440,19 @@ public class VentaService {
         dto.setCreatedAt(v.getCreatedAt() != null ? v.getCreatedAt().toString() : null);
         dto.setEmbarcadoPor(v.getEmbarcadoPor());
         dto.setEmbarcadoAt(v.getEmbarcadoAt() != null ? v.getEmbarcadoAt().toString() : null);
+        dto.setPrecioOriginal(v.getPrecioOriginal());
+        dto.setDescuento(v.getDescuento());
+        dto.setLugarPago(v.getLugarPago());
 
         return dto;
+    }
+
+    /** Normaliza el lugar de pago a IQUITOS / REQUENA; null si no se indicó. */
+    private String normalizarLugarPago(String lugar) {
+        if (lugar == null || lugar.isBlank()) return null;
+        String s = lugar.trim().toUpperCase();
+        if (s.startsWith("IQ")) return "IQUITOS";
+        if (s.startsWith("RE")) return "REQUENA";
+        return s;
     }
 }
