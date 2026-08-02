@@ -435,6 +435,7 @@ CREATE TABLE `ventas` (
   `precio_original` decimal(10,2) DEFAULT NULL,
   `descuento` decimal(10,2) DEFAULT '0.00',
   `lugar_pago` varchar(30) DEFAULT NULL,
+  `metodo_pago` varchar(20) DEFAULT NULL,
   `codigo_qr` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `embarque_estado` enum('PENDIENTE','EMBARCADO') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'PENDIENTE',
   `embarcado_at` timestamp NULL DEFAULT NULL,

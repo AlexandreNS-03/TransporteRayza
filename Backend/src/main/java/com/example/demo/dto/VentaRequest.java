@@ -28,6 +28,7 @@ public class VentaRequest {
     private BigDecimal precio;              // precio final (rebajado si hubo descuento)
     private BigDecimal precioOriginal;      // tarifa antes de rebajar (para el registro)
     private String lugarPago;               // IQUITOS | REQUENA
+    private String metodoPago;              // EFECTIVO | YAPE | PLIN | TARJETA | TRANSFERENCIA
 
     // Getters y Setters
     public BigDecimal getPrecioOriginal() { return precioOriginal; }
@@ -35,6 +36,9 @@ public class VentaRequest {
 
     public String getLugarPago() { return lugarPago; }
     public void setLugarPago(String lugarPago) { this.lugarPago = lugarPago; }
+
+    public String getMetodoPago() { return metodoPago; }
+    public void setMetodoPago(String metodoPago) { this.metodoPago = metodoPago; }
 
     public String getViajeId() { return viajeId; }
     public void setViajeId(String viajeId) { this.viajeId = viajeId; }

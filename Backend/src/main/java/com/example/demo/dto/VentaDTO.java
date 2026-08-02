@@ -37,6 +37,7 @@ public class VentaDTO {
     private BigDecimal precioOriginal;   // tarifa antes de rebajar (interno)
     private BigDecimal descuento;        // cuánto se rebajó
     private String lugarPago;            // IQUITOS | REQUENA
+    private String metodoPago;           // EFECTIVO | YAPE | PLIN | TARJETA | TRANSFERENCIA
     private String codigoQr;
     private String embarqueEstado;
     private String estado;
@@ -144,6 +145,9 @@ public class VentaDTO {
 
     public String getLugarPago() { return lugarPago; }
     public void setLugarPago(String lugarPago) { this.lugarPago = lugarPago; }
+
+    public String getMetodoPago() { return metodoPago; }
+    public void setMetodoPago(String metodoPago) { this.metodoPago = metodoPago; }
 
     public String getCodigoQr() { return codigoQr; }
     public void setCodigoQr(String codigoQr) { this.codigoQr = codigoQr; }
