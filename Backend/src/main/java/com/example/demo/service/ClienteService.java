@@ -108,7 +108,22 @@ public class ClienteService {
     public List<ClienteViajeDTO> misViajes(String email) {
         Cliente c = obtenerPorEmail(email);
         LocalDate hoy = LocalDate.now();
-        return ventaRepository.findByClienteIdOrderByCreatedAtDesc(c.getId()).stream()
+
+        // Reúne las compras del cliente por CUENTA, por CORREO y por DOCUMENTO: así
+        // también aparecen las que hizo como invitado antes de crear su cuenta.
+        java.util.LinkedHashMap<String, Venta> unicas = new java.util.LinkedHashMap<>();
+        ventaRepository.findByClienteIdOrderByCreatedAtDesc(c.getId())
+                .forEach(v -> unicas.putIfAbsent(v.getId(), v));
+        if (c.getEmail() != null && !c.getEmail().isBlank())
+            ventaRepository.findByClienteEmailIgnoreCaseOrderByCreatedAtDesc(c.getEmail().trim())
+                    .forEach(v -> unicas.putIfAbsent(v.getId(), v));
+        if (c.getNumeroDocumento() != null && !c.getNumeroDocumento().isBlank())
+            ventaRepository.findByPasajeroDocumento(c.getNumeroDocumento().trim())
+                    .forEach(v -> unicas.putIfAbsent(v.getId(), v));
+
+        return unicas.values().stream()
+                .filter(v -> v.getEstado() == Venta.EstadoVenta.PAGADO)
+                .sorted((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()))
                 .map(v -> toViajeDTO(v, hoy))
                 .collect(Collectors.toList());
     }
