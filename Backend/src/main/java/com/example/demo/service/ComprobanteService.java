@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -158,7 +159,7 @@ public class ComprobanteService {
         c.setClienteDenominacion(req.getClienteDenominacion().trim());
         c.setClienteDireccion(req.getClienteDireccion());
         c.setClienteEmail(req.getClienteEmail());
-        c.setFechaDeEmision(LocalDate.now());
+        c.setFechaDeEmision(LocalDate.now(ZoneId.of("America/Lima"))); // hora de Perú (Nubefact valida en horario local)
         c.setMoneda(1); // PEN
         c.setPorcentajeDeIgv(new BigDecimal("18.00")); // tasa legal vigente (Nubefact la exige aunque la operación esté exonerada)
         c.setTotalExonerada(total);
@@ -232,7 +233,7 @@ public class ComprobanteService {
         nc.setClienteDenominacion(original.getClienteDenominacion());
         nc.setClienteDireccion(original.getClienteDireccion());
         nc.setClienteEmail(original.getClienteEmail());
-        nc.setFechaDeEmision(LocalDate.now());
+        nc.setFechaDeEmision(LocalDate.now(ZoneId.of("America/Lima"))); // hora de Perú (Nubefact valida en horario local)
         nc.setMoneda(1);
         nc.setPorcentajeDeIgv(original.getPorcentajeDeIgv());
         nc.setTotalExonerada(original.getTotalExonerada());
