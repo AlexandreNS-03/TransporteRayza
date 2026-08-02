@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
+import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -64,7 +65,10 @@ public class NubefactService {
         json.put("cliente_denominacion", c.getClienteDenominacion());
         json.put("cliente_direccion", c.getClienteDireccion() != null ? c.getClienteDireccion() : "");
         json.put("cliente_email", c.getClienteEmail() != null ? c.getClienteEmail() : "");
-        json.put("fecha_de_emision", c.getFechaDeEmision().toString());
+        // Nubefact espera dd-mm-yyyy; en ISO (yyyy-mm-dd) lo interpreta mal y la
+        // rechaza como fecha futura ("no puede ser mayor a HOY").
+        json.put("fecha_de_emision",
+                c.getFechaDeEmision().format(DateTimeFormatter.ofPattern("dd-MM-yyyy")));
         json.put("moneda", c.getMoneda());
         json.put("porcentaje_de_igv", c.getPorcentajeDeIgv());
         // Operación exonerada de IGV — Ley 27037 (Amazonía): todo el monto va en total_exonerada
