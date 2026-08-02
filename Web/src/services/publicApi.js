@@ -111,6 +111,12 @@ export async function pagarReserva(reservaId, { krAnswer, krHash } = {}) {
   } catch (e) { throw desempaquetarError(e); }
 }
 
+/** Datos completos de un boleto para imprimir el ticket de embarque (80mm / A4). */
+export async function getTicket(ventaId) {
+  try { const { data } = await http.get(`/reservas/${ventaId}/ticket`); return data; }
+  catch (e) { throw desempaquetarError(e); }
+}
+
 /** Historial de boletos por correo o DNI, sin cuenta. */
 export async function buscarBoletos({ correo, documento } = {}) {
   try {

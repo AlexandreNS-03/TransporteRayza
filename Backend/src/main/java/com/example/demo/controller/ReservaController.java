@@ -42,6 +42,12 @@ public class ReservaController {
         return ResponseEntity.ok(reservaService.crearReserva(req, email));
     }
 
+    /** Datos completos de un boleto para imprimir el ticket de embarque (80mm/A4). */
+    @GetMapping("/{id}/ticket")
+    public ResponseEntity<?> ticket(@PathVariable String id) {
+        return ResponseEntity.ok(reservaService.datosTicket(id));
+    }
+
     /** Reserva de varios pasajes (1 a 5) en una sola compra. */
     @PostMapping("/grupo")
     public ResponseEntity<ReservaGrupoResponse> reservarGrupo(@RequestBody ReservaGrupoRequest req,

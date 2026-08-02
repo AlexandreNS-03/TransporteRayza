@@ -53,6 +53,11 @@ public class NubefactService {
         // "#" = Nubefact asigna el correlativo que le corresponde a la serie. Así
         // nuestro número nunca se desincroniza del suyo (p.ej. si se borran comprobantes).
         json.put("numero", "#");
+        // Con numero "#" (auto-correlativo), Nubefact EXIGE codigo_unico (error 21).
+        // Usamos el id de la venta: estable, así un reintento devuelve el mismo
+        // documento en vez de duplicarlo.
+        json.put("codigo_unico", (c.getVentaId() != null && !c.getVentaId().isBlank())
+                ? c.getVentaId() : c.getId());
         json.put("sunat_transaction", 1);
         json.put("cliente_tipo_de_documento", c.getClienteTipoDeDocumento());
         json.put("cliente_numero_de_documento", c.getClienteNumeroDeDocumento());
