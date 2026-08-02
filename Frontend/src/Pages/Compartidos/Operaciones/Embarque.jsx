@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import "./Embarque.css";
+import EscanerQR from "./EscanerQR.jsx";
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8080";
 
@@ -19,6 +20,7 @@ function Embarque() {
     const [busqueda, setBusqueda]       = useState("");
     const [filtroEstado, setFiltroEstado] = useState("todos");
     const [procesando, setProcesando]   = useState(null);
+    const [escanerAbierto, setEscanerAbierto] = useState(false);
 
     // --- NUEVO: toast de confirmación ---
     const [toast, setToast] = useState(null); // { tipo: "success" | "error", mensaje: string }
@@ -133,6 +135,43 @@ function Embarque() {
         }
     };
 
+    // --- NUEVO: procesar el QR escaneado (busca la venta por su codigoQr) ---
+    const procesarQrEscaneado = async (codigo) => {
+        setEscanerAbierto(false);
+        if (!codigo) return;
+        // El QR del ticket contiene el codigoQr (UUID). Por si viene como URL, toma el último segmento.
+        const cod = codigo.includes("/") ? codigo.split("/").filter(Boolean).pop() : codigo;
+        setCargando(true);
+        setError(null);
+        try {
+            const token = localStorage.getItem("token");
+            const res = await fetch(`${API_BASE}/api/ventas/qr/${encodeURIComponent(cod)}`, {
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+            if (!res.ok) throw new Error("Ese QR no corresponde a ningún pasaje registrado");
+            const venta = await res.json();
+            if (venta.estado === "ANULADO") {
+                setToast({ tipo: "error", mensaje: "Ese pasaje está anulado, no se puede embarcar." });
+                setPasajeros([]);
+                return;
+            }
+            setViajeId("");
+            setBusqueda("");
+            setFiltroEstado("todos");
+            setPasajeros([venta]);
+            if (venta.embarqueEstado === "EMBARCADO") {
+                setToast({ tipo: "error", mensaje: `${venta.pasajeroNombre} ya estaba embarcado.` });
+            } else {
+                setToast({ tipo: "success", mensaje: `Pasaje de ${venta.pasajeroNombre} encontrado. Pulsa Embarcar para confirmar.` });
+            }
+        } catch (err) {
+            setError(err.message);
+            setPasajeros([]);
+        } finally {
+            setCargando(false);
+        }
+    };
+
     // --- NUEVO: cargar "mis embarques de hoy" ---
     const abrirModalTurno = async () => {
         setModalTurnoAbierto(true);
@@ -227,9 +266,20 @@ function Embarque() {
                         <button className="btn-buscar" onClick={buscarPorQrODoc}>
                             <i className="ti ti-search"></i> Buscar
                         </button>
+                        <button className="btn-escanear" onClick={() => setEscanerAbierto(true)}>
+                            <i className="ti ti-qrcode"></i> Escanear QR
+                        </button>
                     </div>
                 </div>
             </div>
+
+            {/* ESCÁNER QR */}
+            {escanerAbierto && (
+                <EscanerQR
+                    onDetectar={procesarQrEscaneado}
+                    onCerrar={() => setEscanerAbierto(false)}
+                />
+            )}
 
             {/* RESUMEN DEL VIAJE */}
             {viajeSeleccionado && (

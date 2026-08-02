@@ -104,6 +104,23 @@
 
 .btn-buscar:hover { background: #1440a0; }
 
+.btn-escanear {
+    height: 36px;
+    padding: 0 14px;
+    background: #0891b2;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+}
+
+.btn-escanear:hover { background: #0e7490; }
+
 /* RESUMEN */
 .embarque-resumen {
     display: flex;

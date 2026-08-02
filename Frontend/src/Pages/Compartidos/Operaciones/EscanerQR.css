@@ -1,0 +1,85 @@
+.qr-overlay {
+    position: fixed; inset: 0; z-index: 1000;
+    background: rgba(15, 23, 42, 0.72);
+    display: flex; align-items: center; justify-content: center;
+    padding: 16px;
+}
+
+.qr-modal {
+    background: #fff; border-radius: 16px; width: 100%; max-width: 420px;
+    overflow: hidden; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+}
+
+.qr-modal-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 18px; border-bottom: 1px solid #eef2f7;
+}
+.qr-modal-header h3 {
+    margin: 0; font-size: 16px; color: #111827;
+    display: flex; align-items: center; gap: 8px;
+}
+.qr-cerrar {
+    border: none; background: #f3f4f6; width: 32px; height: 32px;
+    border-radius: 8px; cursor: pointer; color: #374151; font-size: 16px;
+    display: flex; align-items: center; justify-content: center;
+}
+.qr-cerrar:hover { background: #e5e7eb; }
+
+/* Zona del video (cuadrada) */
+.qr-video-wrap {
+    position: relative; width: 100%; aspect-ratio: 1 / 1;
+    background: #0f172a; overflow: hidden;
+}
+.qr-video {
+    width: 100%; height: 100%; object-fit: cover; display: block;
+}
+
+/* Recuadro de guía */
+.qr-marco {
+    position: absolute; top: 50%; left: 50%;
+    width: 62%; height: 62%; transform: translate(-50%, -50%);
+    box-shadow: 0 0 0 2000px rgba(15, 23, 42, 0.35); /* oscurece fuera del recuadro */
+    border-radius: 14px;
+}
+.qr-esq {
+    position: absolute; width: 26px; height: 26px;
+    border: 4px solid #22d3ee; /* celeste Rayza */
+}
+.qr-esq-tl { top: -2px; left: -2px;  border-right: none; border-bottom: none; border-top-left-radius: 12px; }
+.qr-esq-tr { top: -2px; right: -2px; border-left: none;  border-bottom: none; border-top-right-radius: 12px; }
+.qr-esq-bl { bottom: -2px; left: -2px;  border-right: none; border-top: none; border-bottom-left-radius: 12px; }
+.qr-esq-br { bottom: -2px; right: -2px; border-left: none;  border-top: none; border-bottom-right-radius: 12px; }
+
+/* Línea que barre el recuadro */
+.qr-linea {
+    position: absolute; left: 6%; right: 6%; height: 3px; top: 8%;
+    background: linear-gradient(90deg, transparent, #22d3ee, transparent);
+    border-radius: 3px;
+    animation: qr-scan 2s ease-in-out infinite;
+}
+@keyframes qr-scan {
+    0%   { top: 8%;  opacity: 0.4; }
+    50%  { top: 88%; opacity: 1; }
+    100% { top: 8%;  opacity: 0.4; }
+}
+
+/* Estados (cargando / error) sobre el video */
+.qr-estado {
+    position: absolute; inset: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 10px;
+    color: #e5e7eb; text-align: center; padding: 24px; font-size: 14px;
+}
+.qr-estado i { font-size: 34px; }
+.qr-estado.qr-error { color: #fca5a5; }
+
+.qr-ayuda {
+    margin: 0; padding: 12px 18px 16px; text-align: center;
+    font-size: 13px; color: #6b7280;
+}
+
+.qr-video-wrap .spin { animation: spin 0.9s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@media (max-width: 480px) {
+    .qr-modal { max-width: 100%; }
+}
