@@ -88,8 +88,8 @@ public class SecurityConfig {
                         /*VENTAS*/
                         .requestMatchers(HttpMethod.GET,   "/api/ventas/**").hasAnyRole("ADMIN", "SUPERVISOR", "EMPLEADO")
                         .requestMatchers(HttpMethod.POST,  "/api/ventas").hasAnyRole("ADMIN", "SUPERVISOR", "EMPLEADO")
-                        .requestMatchers(HttpMethod.PUT,   "/api/ventas/*").hasAnyRole("ADMIN", "SUPERVISOR")
-                        .requestMatchers(HttpMethod.PATCH, "/api/ventas/*/anular").hasAnyRole("ADMIN", "SUPERVISOR")
+                        .requestMatchers(HttpMethod.PUT,   "/api/ventas/*").hasAnyRole("ADMIN", "SUPERVISOR", "EMPLEADO")
+                        .requestMatchers(HttpMethod.PATCH, "/api/ventas/*/anular").hasAnyRole("ADMIN", "SUPERVISOR", "EMPLEADO")
 
                         /*DASHBOARD*/
                         .requestMatchers(HttpMethod.GET, "/api/dashboard/**").hasAnyRole("ADMIN", "SUPERVISOR", "EMPLEADO")
