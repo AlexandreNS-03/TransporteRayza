@@ -13,11 +13,17 @@ const haceDias = (n) => {
 
 const TIPOS = [
     { key: "ventas",     label: "Ventas e Ingresos", icon: "ti-cash" },
+    { key: "pagos",      label: "Formas de Pago", icon: "ti-wallet" },
     { key: "ocupacion",  label: "Ocupación de Viajes", icon: "ti-armchair" },
     { key: "rutas",      label: "Rutas más Vendidas", icon: "ti-route" },
     { key: "sucursales", label: "Sucursales", icon: "ti-building-store" },
     { key: "viajes",     label: "Estado de Viajes", icon: "ti-ship" },
 ];
+
+// Métodos y oficinas para el reporte de formas de pago
+const METODOS_PAGO = ["EFECTIVO", "YAPE", "PLIN", "TARJETA", "TRANSFERENCIA"];
+const METODO_LABEL = { EFECTIVO: "Efectivo", YAPE: "Yape", PLIN: "Plin", TARJETA: "Tarjeta", TRANSFERENCIA: "Transferencia", SIN: "Sin registrar" };
+const LUGARES_PAGO = [["IQUITOS", "Iquitos"], ["REQUENA", "Requena"], ["OTRO", "Otro / Web"]];
 
 function Reportes() {
     const [tipo, setTipo] = useState("ventas");
@@ -103,6 +109,35 @@ function Reportes() {
         return [...m.entries()];
     }, [ventasFiltradas]);
 
+    // ---------- Reporte: FORMAS DE PAGO ----------
+    const norm = (s) => (s || "").toUpperCase();
+    const reportePagos = useMemo(() => {
+        const filas = [...METODOS_PAGO, "SIN"];
+        const m = {};
+        filas.forEach(f => {
+            m[f] = { IQUITOS: { i: 0, c: 0 }, REQUENA: { i: 0, c: 0 }, OTRO: { i: 0, c: 0 }, total: { i: 0, c: 0 } };
+        });
+        ventasFiltradas.forEach(v => {
+            let met = norm(v.metodoPago);
+            if (!METODOS_PAGO.includes(met)) met = "SIN";
+            let lug = norm(v.lugarPago);
+            if (lug !== "IQUITOS" && lug !== "REQUENA") lug = "OTRO";
+            const val = Number(v.precio) || 0;
+            m[met][lug].i += val; m[met][lug].c += 1;
+            m[met].total.i += val; m[met].total.c += 1;
+        });
+        // Totales por oficina
+        const totalCol = { IQUITOS: { i: 0, c: 0 }, REQUENA: { i: 0, c: 0 }, OTRO: { i: 0, c: 0 }, total: { i: 0, c: 0 } };
+        filas.forEach(f => {
+            ["IQUITOS", "REQUENA", "OTRO", "total"].forEach(l => {
+                totalCol[l].i += m[f][l].i; totalCol[l].c += m[f][l].c;
+            });
+        });
+        // Solo mostramos filas con algún movimiento
+        const filasVisibles = filas.filter(f => m[f].total.c > 0);
+        return { m, totalCol, filasVisibles };
+    }, [ventasFiltradas]);
+
     // ---------- Reporte: OCUPACIÓN ----------
     const ocupacionViajes = useMemo(() => {
         return viajes
@@ -166,6 +201,17 @@ function Reportes() {
                 const viaje = viajesPorId.get(v.viajeId);
                 filas.push([v.fechaVenta, `${v.serieComprobante}-${v.numeroComprobante}`, v.pasajeroNombre, viaje?.rutaNombre || "", v.precio]);
             });
+        } else if (tipo === "pagos") {
+            filas = [["Método", "Iquitos (S/)", "Requena (S/)", "Otro/Web (S/)", "Total (S/)", "N° pasajes"]];
+            reportePagos.filasVisibles.forEach(f => {
+                const r = reportePagos.m[f];
+                filas.push([
+                    METODO_LABEL[f], r.IQUITOS.i.toFixed(2), r.REQUENA.i.toFixed(2),
+                    r.OTRO.i.toFixed(2), r.total.i.toFixed(2), r.total.c
+                ]);
+            });
+            const t = reportePagos.totalCol;
+            filas.push(["TOTAL", t.IQUITOS.i.toFixed(2), t.REQUENA.i.toFixed(2), t.OTRO.i.toFixed(2), t.total.i.toFixed(2), t.total.c]);
         } else if (tipo === "ocupacion") {
             filas = [["Código Viaje", "Ruta", "Fecha", "Hora", "Vendidos", "Capacidad", "% Ocupación"]];
             ocupacionViajes.forEach(v => {
@@ -330,6 +376,82 @@ function Reportes() {
                                                 <span className="chip-stat-valor">{cant}</span>
                                             </div>
                                         ))}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* ================= FORMAS DE PAGO ================= */}
+                    {tipo === "pagos" && (
+                        <div className="reporte-bloque">
+                            <div className="kpi-grid">
+                                <div className="kpi-card">
+                                    <i className="ti ti-cash kpi-icon"></i>
+                                    <div>
+                                        <span className="kpi-label">Efectivo</span>
+                                        <span className="kpi-valor">{moneda(reportePagos.m.EFECTIVO.total.i)}</span>
+                                    </div>
+                                </div>
+                                <div className="kpi-card">
+                                    <i className="ti ti-device-mobile kpi-icon"></i>
+                                    <div>
+                                        <span className="kpi-label">Digital (Yape/Plin/Transf.)</span>
+                                        <span className="kpi-valor">{moneda(reportePagos.m.YAPE.total.i + reportePagos.m.PLIN.total.i + reportePagos.m.TRANSFERENCIA.total.i)}</span>
+                                    </div>
+                                </div>
+                                <div className="kpi-card">
+                                    <i className="ti ti-credit-card kpi-icon"></i>
+                                    <div>
+                                        <span className="kpi-label">Tarjeta</span>
+                                        <span className="kpi-valor">{moneda(reportePagos.m.TARJETA.total.i)}</span>
+                                    </div>
+                                </div>
+                                <div className="kpi-card">
+                                    <i className="ti ti-wallet kpi-icon"></i>
+                                    <div>
+                                        <span className="kpi-label">Total Cobrado</span>
+                                        <span className="kpi-valor">{moneda(reportePagos.totalCol.total.i)}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="reporte-panel">
+                                <h3>Cobros por Método y Oficina</h3>
+                                {reportePagos.filasVisibles.length === 0 ? (
+                                    <div className="sin-datos">Sin ventas en el rango seleccionado</div>
+                                ) : (
+                                    <div className="tabla-wrapper">
+                                        <table className="reportes-tabla">
+                                            <thead>
+                                            <tr>
+                                                <th>Método</th>
+                                                {LUGARES_PAGO.map(([, label]) => <th key={label}>{label}</th>)}
+                                                <th>Total</th>
+                                                <th>N° pasajes</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            {reportePagos.filasVisibles.map(f => (
+                                                <tr key={f}>
+                                                    <td><strong>{METODO_LABEL[f]}</strong></td>
+                                                    {LUGARES_PAGO.map(([lug]) => (
+                                                        <td key={lug}>{moneda(reportePagos.m[f][lug].i)}</td>
+                                                    ))}
+                                                    <td><strong>{moneda(reportePagos.m[f].total.i)}</strong></td>
+                                                    <td>{reportePagos.m[f].total.c}</td>
+                                                </tr>
+                                            ))}
+                                            <tr className="fila-total">
+                                                <td><strong>TOTAL</strong></td>
+                                                {LUGARES_PAGO.map(([lug]) => (
+                                                    <td key={lug}><strong>{moneda(reportePagos.totalCol[lug].i)}</strong></td>
+                                                ))}
+                                                <td><strong>{moneda(reportePagos.totalCol.total.i)}</strong></td>
+                                                <td><strong>{reportePagos.totalCol.total.c}</strong></td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
                                     </div>
                                 )}
                             </div>

@@ -384,6 +384,10 @@
 .reportes-tabla tbody tr:last-child td { border-bottom: none; }
 .reportes-tabla tbody tr:hover { background: #f8fafc; }
 
+.reportes-tabla tbody tr.fila-total { background: #f1f5f9; }
+.reportes-tabla tbody tr.fila-total:hover { background: #f1f5f9; }
+.reportes-tabla tbody tr.fila-total td { border-top: 2px solid #e2e8f0; }
+
 .codigo { font-size: 11px; color: #6b7280; font-family: monospace; }
 
 /* OCUPACIÓN */

@@ -187,6 +187,7 @@ public class VentaService {
         venta.setPrecioOriginal(original);
         venta.setDescuento(descuento);
         venta.setLugarPago(normalizarLugarPago(req.getLugarPago()));
+        venta.setMetodoPago(normalizarMetodoPago(req.getMetodoPago()));
         venta.setCodigoQr(UUID.randomUUID().toString());
         venta.setEmbarqueEstado(Venta.EmbarqueEstado.PENDIENTE);
         venta.setEstado(Venta.EstadoVenta.PAGADO);
@@ -423,6 +424,7 @@ public class VentaService {
         dto.setPrecioOriginal(v.getPrecioOriginal());
         dto.setDescuento(v.getDescuento());
         dto.setLugarPago(v.getLugarPago());
+        dto.setMetodoPago(v.getMetodoPago());
         dto.setCodigoQr(v.getCodigoQr());
         dto.setEmbarqueEstado(v.getEmbarqueEstado() != null ? v.getEmbarqueEstado().name() : null);
         dto.setEstado(v.getEstado() != null ? v.getEstado().name() : null);
@@ -454,5 +456,11 @@ public class VentaService {
         if (s.startsWith("IQ")) return "IQUITOS";
         if (s.startsWith("RE")) return "REQUENA";
         return s;
+    }
+
+    /** Normaliza el método de pago a EFECTIVO / YAPE / PLIN / TARJETA / TRANSFERENCIA. */
+    private String normalizarMetodoPago(String metodo) {
+        if (metodo == null || metodo.isBlank()) return null;
+        return metodo.trim().toUpperCase();
     }
 }

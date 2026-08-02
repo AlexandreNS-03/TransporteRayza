@@ -26,3 +26,12 @@ SET @sql := IF(
   'ALTER TABLE ventas ADD COLUMN lugar_pago varchar(30) DEFAULT NULL AFTER descuento',
   'SELECT 1');
 PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;
+
+-- metodo_pago: cómo pagó (EFECTIVO / YAPE / PLIN / TARJETA / TRANSFERENCIA),
+-- para separar en reportes el efectivo del digital por oficina.
+SET @sql := IF(
+  NOT EXISTS(SELECT 1 FROM information_schema.COLUMNS
+             WHERE TABLE_SCHEMA=@db AND TABLE_NAME='ventas' AND COLUMN_NAME='metodo_pago'),
+  'ALTER TABLE ventas ADD COLUMN metodo_pago varchar(20) DEFAULT NULL AFTER lugar_pago',
+  'SELECT 1');
+PREPARE s FROM @sql; EXECUTE s; DEALLOCATE PREPARE s;

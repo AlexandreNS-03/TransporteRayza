@@ -108,6 +108,10 @@ public class Venta {
     @Column(name = "lugar_pago", length = 30)
     private String lugarPago;
 
+    /** Cómo se pagó: EFECTIVO / YAPE / PLIN / TARJETA / TRANSFERENCIA. */
+    @Column(name = "metodo_pago", length = 20)
+    private String metodoPago;
+
     @Column(name = "codigo_qr", length = 100)
     private String codigoQr;
 
@@ -254,6 +258,9 @@ public class Venta {
 
     public String getLugarPago() { return lugarPago; }
     public void setLugarPago(String lugarPago) { this.lugarPago = lugarPago; }
+
+    public String getMetodoPago() { return metodoPago; }
+    public void setMetodoPago(String metodoPago) { this.metodoPago = metodoPago; }
 
     public String getCodigoQr() { return codigoQr; }
     public void setCodigoQr(String codigoQr) { this.codigoQr = codigoQr; }

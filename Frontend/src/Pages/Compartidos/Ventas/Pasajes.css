@@ -419,6 +419,9 @@
     font-size: 12px; color: #b45309; font-weight: 600;
 }
 
+.metodo-selector { flex-wrap: wrap; }
+.metodo-selector .comp-btn { flex: 1 1 90px; }
+
 /* RESUMEN */
 .resumen-venta {
     background: #f8fafc; border: 1px solid #e5e7eb;

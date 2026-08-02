@@ -12,6 +12,13 @@ import { usePaginacion, Paginacion } from "../../../Components/Paginacion.jsx";
 const TIPO_DOC     = ["DNI", "CE", "PASAPORTE", "RUC"];
 const SEXO         = ["Masculino", "Femenino", "Otro"];
 const COMPROBANTES = ["TICKET", "BOLETA", "FACTURA"];
+const METODOS_PAGO = [
+    { key: "EFECTIVO",      label: "Efectivo" },
+    { key: "YAPE",          label: "Yape" },
+    { key: "PLIN",          label: "Plin" },
+    { key: "TARJETA",       label: "Tarjeta" },
+    { key: "TRANSFERENCIA", label: "Transferencia" },
+];
 const COMP_LABEL   = { TICKET: "Ticket", BOLETA: "Boleta", FACTURA: "Factura" };
 
 const ESTADO_LABEL = { PAGADO: "Pagado", ANULADO: "Anulado" };
@@ -81,7 +88,8 @@ function Pasajes() {
         tipoComprobante: "TICKET",
         clienteNombre: "", clienteTipoDoc: "DNI",
         clienteDocumento: "", detalleComprobante: "",
-        precio: "", precioOriginal: "", lugarPago: lugarPagoDefault
+        precio: "", precioOriginal: "", lugarPago: lugarPagoDefault,
+        metodoPago: "EFECTIVO", observacion: ""
     });
 
     useEffect(() => { fetchVentas(); fetchComprobantes(); }, []);
@@ -137,7 +145,8 @@ function Pasajes() {
             asientoNumero: "", asientoTipo: "",
             tipoComprobante: "TICKET", clienteNombre: "", clienteTipoDoc: "DNI",
             clienteDocumento: "", detalleComprobante: "", precio: "",
-            precioOriginal: "", lugarPago: lugarPagoDefault
+            precioOriginal: "", lugarPago: lugarPagoDefault,
+            metodoPago: "EFECTIVO", observacion: ""
         });
     };
 
@@ -255,6 +264,10 @@ function Pasajes() {
             setErrorModal("Indica el lugar de pago (Iquitos u oficina de Requena)");
             return;
         }
+        if (!form.metodoPago) {
+            setErrorModal("Indica el método de pago (Efectivo, Yape, etc.)");
+            return;
+        }
         const precioFinal = parseFloat(form.precio);
         if (isNaN(precioFinal) || precioFinal < 0) {
             setErrorModal("El precio no es válido");
@@ -288,7 +301,9 @@ function Pasajes() {
                     ordenDestino:      parseInt(form.ordenDestino),
                     precio:            precioFinal,
                     precioOriginal:    form.precioOriginal !== "" ? parseFloat(form.precioOriginal) : precioFinal,
-                    lugarPago:         form.lugarPago
+                    lugarPago:         form.lugarPago,
+                    metodoPago:        form.metodoPago,
+                    observacion:       form.observacion
                 })
             });
             cerrarModal();
@@ -958,6 +973,31 @@ function Pasajes() {
                                         </div>
                                     </div>
 
+                                    {/* Método de pago */}
+                                    <div className="form-grupo">
+                                        <label>Método de pago *</label>
+                                        <div className="comp-selector metodo-selector">
+                                            {METODOS_PAGO.map(m => (
+                                                <button
+                                                    key={m.key}
+                                                    type="button"
+                                                    className={`comp-btn ${form.metodoPago === m.key ? "activo" : ""}`}
+                                                    onClick={() => setForm(prev => ({ ...prev, metodoPago: m.key }))}
+                                                >
+                                                    {m.label}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Observación */}
+                                    <div className="form-grupo">
+                                        <label>Observación (opcional)</label>
+                                        <input type="text" name="observacion"
+                                               value={form.observacion} onChange={handleChange}
+                                               placeholder="Nota interna: pagó a medias, adelanto, etc." />
+                                    </div>
+
                                     {/* Resumen final */}
                                     <div className="resumen-venta">
                                         <p className="resumen-titulo"><i className="ti ti-receipt"></i> Resumen de la venta</p>
@@ -967,6 +1007,9 @@ function Pasajes() {
                                         <div className="resumen-fila"><span>Asiento</span><strong>{form.asientoTipo} #{form.asientoNumero}</strong></div>
                                         {form.lugarPago && (
                                             <div className="resumen-fila"><span>Lugar de pago</span><strong>{form.lugarPago === "IQUITOS" ? "Iquitos" : "Oficina Requena"}</strong></div>
+                                        )}
+                                        {form.metodoPago && (
+                                            <div className="resumen-fila"><span>Método de pago</span><strong>{METODOS_PAGO.find(m => m.key === form.metodoPago)?.label}</strong></div>
                                         )}
                                         {form.precioOriginal !== "" &&
                                          parseFloat(form.precio) < parseFloat(form.precioOriginal) && (

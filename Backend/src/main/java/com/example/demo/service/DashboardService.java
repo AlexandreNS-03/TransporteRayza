@@ -59,14 +59,15 @@ public class DashboardService {
                 .filter(v -> v.getEmbarqueEstado() == Venta.EmbarqueEstado.EMBARCADO)
                 .count();
 
-        // Efectivo cobrado HOY separado por oficina (para cuadrar caja)
+        // Efectivo cobrado HOY separado por oficina (para cuadrar caja).
+        // Solo cuenta el efectivo físico: método EFECTIVO (o sin método, ventas antiguas).
         BigDecimal efectivoIquitosHoy = ventasHoy.stream()
-                .filter(v -> "IQUITOS".equalsIgnoreCase(v.getLugarPago()))
+                .filter(v -> "IQUITOS".equalsIgnoreCase(v.getLugarPago()) && esEfectivo(v))
                 .map(v -> v.getPrecio() != null ? v.getPrecio() : BigDecimal.ZERO)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         BigDecimal efectivoRequenaHoy = ventasHoy.stream()
-                .filter(v -> "REQUENA".equalsIgnoreCase(v.getLugarPago()))
+                .filter(v -> "REQUENA".equalsIgnoreCase(v.getLugarPago()) && esEfectivo(v))
                 .map(v -> v.getPrecio() != null ? v.getPrecio() : BigDecimal.ZERO)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
@@ -205,5 +206,11 @@ public class DashboardService {
         dto.setOcupacionPorTipo(ocupacionPorTipo);
 
         return dto;
+    }
+
+    /** Es efectivo físico si el método es EFECTIVO o si no se registró (ventas antiguas). */
+    private boolean esEfectivo(Venta v) {
+        String m = v.getMetodoPago();
+        return m == null || m.isBlank() || "EFECTIVO".equalsIgnoreCase(m);
     }
 }
