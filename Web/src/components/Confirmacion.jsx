@@ -1,64 +1,30 @@
 import { useEffect, useState } from "react";
 import QRCode from "qrcode";
 import { Link } from "react-router-dom";
-import { soles } from "../services/publicApi";
-import { EMPRESA } from "../datos";
+import { soles, getTicket } from "../services/publicApi";
+import { generarTicket80mm } from "../Utils/generarTicket80mm";
 
-/**
- * Dibuja el boleto (QR + datos) en un canvas y lo descarga como PNG. No depende de
- * Nubefact: sirve aunque la venta sea solo ticket. `qr` es el data URL del QR.
- */
-function descargarBoleto(b, qr) {
-  const W = 560, H = 780;
-  const canvas = document.createElement("canvas");
-  canvas.width = W; canvas.height = H;
-  const ctx = canvas.getContext("2d");
-
-  const pintar = (qrImg) => {
-    ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, W, H);
-    ctx.fillStyle = "#1ea6dd"; ctx.fillRect(0, 0, W, 92);
-    ctx.textAlign = "center"; ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 30px Arial, sans-serif"; ctx.fillText(EMPRESA.nombreCorto || "Transportes Rayza", W / 2, 46);
-    ctx.font = "16px Arial, sans-serif"; ctx.fillText("Boleto de viaje", W / 2, 74);
-
-    if (qrImg) ctx.drawImage(qrImg, (W - 240) / 2, 118, 240, 240);
-
-    let y = 408;
-    const linea = (label, val) => {
-      ctx.textAlign = "left"; ctx.fillStyle = "#64748b"; ctx.font = "15px Arial, sans-serif";
-      ctx.fillText(label, 40, y);
-      ctx.textAlign = "right"; ctx.fillStyle = "#0f172a"; ctx.font = "bold 18px Arial, sans-serif";
-      ctx.fillText(String(val ?? "—"), W - 40, y);
-      ctx.strokeStyle = "#eef2f7"; ctx.beginPath(); ctx.moveTo(40, y + 14); ctx.lineTo(W - 40, y + 14); ctx.stroke();
-      y += 44;
-    };
-    linea("Pasajero", b.pasajeroNombre);
-    linea("Ruta", b.ruta);
-    linea("Fecha", `${b.fechaSalida || "—"}${b.horaSalida ? " · " + b.horaSalida.slice(0, 5) + " h" : ""}`);
-    linea("Asiento", b.asiento);
-    linea("Boleto", b.comprobante);
-    if (b.comprobanteElectronico) linea("Comprobante", b.comprobanteElectronico);
-    linea("Pagado", soles(b.precio));
-
-    ctx.textAlign = "center"; ctx.fillStyle = "#64748b"; ctx.font = "14px Arial, sans-serif";
-    ctx.fillText("Presenta este QR al momento de embarcar", W / 2, H - 28);
-
-    const a = document.createElement("a");
-    a.href = canvas.toDataURL("image/png");
-    a.download = `boleto-${String(b.comprobante || "rayza").replace(/[^\w-]/g, "")}.png`;
-    document.body.appendChild(a); a.click(); a.remove();
-  };
-
-  if (qr) { const img = new Image(); img.onload = () => pintar(img); img.onerror = () => pintar(null); img.src = qr; }
-  else pintar(null);
-}
-
-/** Un boleto con su QR (uno por pasajero). */
+/** Un boleto con su QR (uno por pasajero). El botón descarga el ticket de embarque 80mm. */
 function Boleto({ b }) {
   const [qr, setQr] = useState(null);
+  const [bajando, setBajando] = useState(false);
+  const [error, setError] = useState(null);
+
   useEffect(() => {
     if (b?.codigoQr) QRCode.toDataURL(b.codigoQr, { width: 220, margin: 1 }).then(setQr).catch(() => setQr(null));
   }, [b]);
+
+  const descargar = async () => {
+    setBajando(true); setError(null);
+    try {
+      const t = await getTicket(b.ventaId);
+      await generarTicket80mm(t);
+    } catch (e) {
+      setError("No se pudo generar el ticket. Intenta de nuevo.");
+    } finally {
+      setBajando(false);
+    }
+  };
 
   return (
     <div className="boleto">
@@ -74,15 +40,11 @@ function Boleto({ b }) {
         )}
         <div className="total"><span>Pagado</span><span>{soles(b.precio)}</span></div>
         <div className="boleto-acciones">
-          <button type="button" className="btn btn-primary btn-sm" onClick={() => descargarBoleto(b, qr)}>
-            Descargar boleto
+          <button type="button" className="btn btn-primary btn-sm" onClick={descargar} disabled={bajando}>
+            {bajando ? "Generando…" : "Descargar ticket"}
           </button>
-          {b.enlacePdf && (
-            <a className="btn btn-ghost btn-sm" href={b.enlacePdf} target="_blank" rel="noreferrer">
-              Descargar comprobante
-            </a>
-          )}
         </div>
+        {error && <p className="muted" style={{ fontSize: 13, color: "var(--accent)" }}>{error}</p>}
       </div>
     </div>
   );
@@ -91,7 +53,7 @@ function Boleto({ b }) {
 /**
  * Confirmación de la compra. `data` puede traer un solo boleto (compra de 1 pasaje)
  * o una lista `pasajeros` (compra de varios): en ambos casos se muestra un QR por
- * pasajero, porque cada uno embarca con el suyo.
+ * pasajero, porque cada uno embarca con el suyo, y se puede descargar el ticket 80mm.
  */
 export default function Confirmacion({ data }) {
   if (!data) return null;
@@ -108,8 +70,9 @@ export default function Confirmacion({ data }) {
       <h3 style={{ fontSize: 24, marginBottom: 6 }}>{data.mensaje || "¡Pago realizado!"}</h3>
       <p className="muted">
         {data.correoEnviado
-          ? `Te enviamos ${boletos.length > 1 ? "los boletos" : "el boleto"} a tu correo. También puedes descargarlos aquí.`
-          : `Descarga ${boletos.length > 1 ? "tus boletos" : "tu boleto"}: no pudimos enviártelos por correo.`}
+          ? `Te enviamos ${boletos.length > 1 ? "los boletos" : "el boleto"} a tu correo. Descarga tu ticket para embarcar.`
+          : `Descarga ${boletos.length > 1 ? "tus tickets" : "tu ticket"} para embarcar.`}
+        {" "}La boleta o factura llega por correo.
       </p>
 
       <div className="boletos-lista">
@@ -126,7 +89,7 @@ export default function Confirmacion({ data }) {
         <Link className="btn btn-ghost" to="/comprar">Comprar otro pasaje</Link>
         <Link className="btn btn-primary" to={`/historial${correo ? "?correo=" + encodeURIComponent(correo) : ""}`}>Ver mis boletos</Link>
       </div>
-      <p className="muted" style={{ marginTop: 14, fontSize: 13 }}>Presenta cada QR al momento de embarcar.</p>
+      <p className="muted" style={{ marginTop: 14, fontSize: 13 }}>Presenta el QR del ticket al momento de embarcar.</p>
     </div>
   );
 }

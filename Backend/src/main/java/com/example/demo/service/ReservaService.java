@@ -8,6 +8,7 @@ import com.example.demo.dto.ReservaGrupoRequest;
 import com.example.demo.dto.ReservaGrupoResponse;
 import com.example.demo.dto.ReservaRequest;
 import com.example.demo.dto.ReservaResponse;
+import com.example.demo.dto.TicketDTO;
 import com.example.demo.model.RutaTarifaTramo;
 import com.example.demo.model.Venta;
 import com.example.demo.model.VentaTramoUsado;
@@ -248,6 +249,42 @@ public class ReservaService {
                 v.getPasajeroNombre(), v.getPasajeroDocumento(), v.getPasajeroTelefono(),
                 req.getOrdenOrigen(), req.getOrdenDestino());
         return v;
+    }
+
+    /** Datos completos de un boleto para imprimir el ticket de embarque (80mm/A4). */
+    @Transactional(readOnly = true)
+    public TicketDTO datosTicket(String ventaId) {
+        Venta v = ventaRepository.findById(ventaId)
+                .orElseThrow(() -> new RuntimeException("Boleto no encontrado"));
+        TicketDTO t = new TicketDTO();
+        t.id = v.getId();
+        t.serieComprobante = v.getSerieComprobante();
+        t.numeroComprobante = v.getNumeroComprobante();
+        t.viajeCodigo = v.getViajeCodigo();
+        t.paradaOrigen = v.getParadaOrigen();
+        t.paradaDestino = v.getParadaDestino();
+        t.asientoNumero = v.getAsientoNumero();
+        t.asientoTipo = v.getAsientoTipo() != null ? v.getAsientoTipo().name() : null;
+        t.pasajeroNombre = v.getPasajeroNombre();
+        t.tipoDocumento = v.getTipoDocumento() != null ? v.getTipoDocumento().name() : null;
+        t.pasajeroDocumento = v.getPasajeroDocumento();
+        t.edad = v.getEdad();
+        t.sexo = v.getSexo() != null ? v.getSexo().name() : null;
+        t.procedencia = v.getProcedencia();
+        t.pasajeroTelefono = v.getPasajeroTelefono();
+        t.precio = v.getPrecio();
+        t.codigoQr = v.getCodigoQr();
+        t.fechaVenta = v.getFechaVenta() != null ? v.getFechaVenta().toString() : null;
+        t.clienteNombre = v.getClienteNombre();
+        t.clienteTipoDoc = v.getClienteTipoDoc();
+        t.clienteDocumento = v.getClienteDocumento();
+        if (v.getViajeId() != null) {
+            viajeRepository.findById(v.getViajeId()).ifPresent(viaje -> {
+                t.fechaSalida = viaje.getFechaSalida() != null ? viaje.getFechaSalida().toString() : null;
+                t.horaSalida = viaje.getHoraSalida() != null ? viaje.getHoraSalida().toString() : null;
+            });
+        }
+        return t;
     }
 
     /** Qué medios de pago están configurados, con las claves públicas del navegador. */
