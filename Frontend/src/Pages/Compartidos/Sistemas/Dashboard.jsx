@@ -218,6 +218,20 @@ function Dashboard() {
                 {statsActivas.map((s, i) => <StatCard key={i} {...s} />)}
             </div>
 
+            {/* EFECTIVO POR OFICINA (HOY) — para cuadrar caja */}
+            {data && (
+                <div className="dash-efectivo">
+                    <div className="dash-efectivo-titulo">
+                        <i className="ti ti-cash"></i> Efectivo cobrado hoy por oficina
+                    </div>
+                    <div className="dash-efectivo-cards">
+                        <StatCard label="Efectivo Iquitos" valorRaw={data.efectivoIquitosHoy || 0} formato="moneda" icono="ti-building-store" color="azul" />
+                        <StatCard label="Efectivo Requena" valorRaw={data.efectivoRequenaHoy || 0} formato="moneda" icono="ti-building-store" color="verde" />
+                        <StatCard label="Descuentos Hoy" valorRaw={data.descuentosHoy || 0} formato="moneda" icono="ti-discount" color="amarillo" />
+                    </div>
+                </div>
+            )}
+
             {/* ENCOMIENDAS Y CAJA */}
             {extras && (
                 <div className="dash-extras">

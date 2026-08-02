@@ -25,9 +25,17 @@ public class VentaRequest {
     private String paradaDestino;
     private Integer ordenOrigen;
     private Integer ordenDestino;
-    private BigDecimal precio;
+    private BigDecimal precio;              // precio final (rebajado si hubo descuento)
+    private BigDecimal precioOriginal;      // tarifa antes de rebajar (para el registro)
+    private String lugarPago;               // IQUITOS | REQUENA
 
     // Getters y Setters
+    public BigDecimal getPrecioOriginal() { return precioOriginal; }
+    public void setPrecioOriginal(BigDecimal precioOriginal) { this.precioOriginal = precioOriginal; }
+
+    public String getLugarPago() { return lugarPago; }
+    public void setLugarPago(String lugarPago) { this.lugarPago = lugarPago; }
+
     public String getViajeId() { return viajeId; }
     public void setViajeId(String viajeId) { this.viajeId = viajeId; }
 

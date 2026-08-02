@@ -96,6 +96,18 @@ public class Venta {
     @Column(name = "precio", precision = 10, scale = 2)
     private BigDecimal precio;
 
+    /** Tarifa antes de rebajar (solo interno/reportes; el ticket muestra `precio`). */
+    @Column(name = "precio_original", precision = 10, scale = 2)
+    private BigDecimal precioOriginal;
+
+    /** Cuánto se rebajó (precioOriginal - precio). 0 si no hubo descuento. */
+    @Column(name = "descuento", precision = 10, scale = 2)
+    private BigDecimal descuento;
+
+    /** Dónde se cobró: IQUITOS / REQUENA (para separar el efectivo). */
+    @Column(name = "lugar_pago", length = 30)
+    private String lugarPago;
+
     @Column(name = "codigo_qr", length = 100)
     private String codigoQr;
 
@@ -233,6 +245,15 @@ public class Venta {
 
     public BigDecimal getPrecio() { return precio; }
     public void setPrecio(BigDecimal precio) { this.precio = precio; }
+
+    public BigDecimal getPrecioOriginal() { return precioOriginal; }
+    public void setPrecioOriginal(BigDecimal precioOriginal) { this.precioOriginal = precioOriginal; }
+
+    public BigDecimal getDescuento() { return descuento; }
+    public void setDescuento(BigDecimal descuento) { this.descuento = descuento; }
+
+    public String getLugarPago() { return lugarPago; }
+    public void setLugarPago(String lugarPago) { this.lugarPago = lugarPago; }
 
     public String getCodigoQr() { return codigoQr; }
     public void setCodigoQr(String codigoQr) { this.codigoQr = codigoQr; }

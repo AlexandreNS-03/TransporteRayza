@@ -59,6 +59,21 @@ public class DashboardService {
                 .filter(v -> v.getEmbarqueEstado() == Venta.EmbarqueEstado.EMBARCADO)
                 .count();
 
+        // Efectivo cobrado HOY separado por oficina (para cuadrar caja)
+        BigDecimal efectivoIquitosHoy = ventasHoy.stream()
+                .filter(v -> "IQUITOS".equalsIgnoreCase(v.getLugarPago()))
+                .map(v -> v.getPrecio() != null ? v.getPrecio() : BigDecimal.ZERO)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal efectivoRequenaHoy = ventasHoy.stream()
+                .filter(v -> "REQUENA".equalsIgnoreCase(v.getLugarPago()))
+                .map(v -> v.getPrecio() != null ? v.getPrecio() : BigDecimal.ZERO)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal descuentosHoy = ventasHoy.stream()
+                .map(v -> v.getDescuento() != null ? v.getDescuento() : BigDecimal.ZERO)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
         // SEMANA
         LocalDate finSemana = inicioSemana.plusDays(6);
         List<Venta> ventasSemana = ventasPagadas.stream()
@@ -176,6 +191,9 @@ public class DashboardService {
         dto.setTotalVentasHoy(ventasHoy.size());
         dto.setTotalPasajerosEmbarcados(embarcadosHoy);
         dto.setIngresosHoy(ingresosHoy);
+        dto.setEfectivoIquitosHoy(efectivoIquitosHoy);
+        dto.setEfectivoRequenaHoy(efectivoRequenaHoy);
+        dto.setDescuentosHoy(descuentosHoy);
         dto.setTotalVentasSemana(ventasSemana.size());
         dto.setIngresosSemana(ingresosSemana);
         dto.setTotalVentasMes(ventasMes.size());

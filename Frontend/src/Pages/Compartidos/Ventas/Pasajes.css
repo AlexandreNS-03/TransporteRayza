@@ -414,6 +414,11 @@
 .comp-btn.activo { background: #1a4db5; color: #fff; border-color: #1a4db5; }
 .comp-btn:hover:not(.activo) { border-color: #1a4db5; color: #1a4db5; }
 
+.precio-hint {
+    display: block; margin-top: 4px;
+    font-size: 12px; color: #b45309; font-weight: 600;
+}
+
 /* RESUMEN */
 .resumen-venta {
     background: #f8fafc; border: 1px solid #e5e7eb;
