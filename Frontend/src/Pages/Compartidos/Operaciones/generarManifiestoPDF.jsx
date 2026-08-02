@@ -4,15 +4,21 @@ import { cargarLogo, ajustarLogo } from "../../../Utils/logo.js";
 // ── Columnas de la tabla (ancho en mm, deben sumar el ancho de contenido) ──
 const COLUMNAS = [
     { titulo: "#",               ancho: 8,  align: "left" },
-    { titulo: "Nombre Completo", ancho: 52, align: "left" },
-    { titulo: "Documento",       ancho: 36, align: "left" },
-    { titulo: "Edad",            ancho: 13, align: "center" },
-    { titulo: "Sexo",            ancho: 18, align: "left" },
-    { titulo: "Procedencia",     ancho: 30, align: "left" },
-    { titulo: "Tramo",           ancho: 46, align: "left" },
-    { titulo: "Asiento",         ancho: 26, align: "left" },
-    { titulo: "Estado",          ancho: 24, align: "left" },
+    { titulo: "Nombre Completo", ancho: 42, align: "left" },
+    { titulo: "Documento",       ancho: 30, align: "left" },
+    { titulo: "Edad",            ancho: 11, align: "center" },
+    { titulo: "Sexo",            ancho: 14, align: "left" },
+    { titulo: "Procedencia",     ancho: 22, align: "left" },
+    { titulo: "Teléfono",        ancho: 22, align: "left" },
+    { titulo: "Tramo",           ancho: 34, align: "left" },
+    { titulo: "Asiento",         ancho: 18, align: "left" },
+    { titulo: "Observación",     ancho: 48, align: "left" },
+    { titulo: "Estado",          ancho: 20, align: "left" },
 ];
+
+// jsPDF (fuentes estándar) no tiene el glifo "→"; lo cambiamos por "-" para que
+// el texto de la ruta y otros no salga roto.
+const limpiar = (t) => String(t ?? "—").replace(/[→➔➜⟶]/g, "-");
 
 export async function generarManifiestoPDF(viaje, pasajeros, capacidadTotal) {
     const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
@@ -94,7 +100,7 @@ export async function generarManifiestoPDF(viaje, pasajeros, capacidadTotal) {
             doc.text(doc.splitTextToSize(String(valor || "—"), colW - 6), x, yy + 5);
         };
         dato("Código de viaje", viaje.codigoViaje, 0, 0);
-        dato("Ruta", viaje.rutaNombre, 1, 0);
+        dato("Ruta", limpiar(viaje.rutaNombre), 1, 0);
         dato("Fecha de salida", viaje.fechaSalida, 2, 0);
         dato("Hora de salida", viaje.horaSalida, 3, 0);
         dato("Origen", viaje.origen, 0, 1);
@@ -152,7 +158,7 @@ export async function generarManifiestoPDF(viaje, pasajeros, capacidadTotal) {
         y += 8;
     };
 
-    const lineasCelda = (texto, anchoCol) => doc.splitTextToSize(String(texto ?? "—"), anchoCol - 5);
+    const lineasCelda = (texto, anchoCol) => doc.splitTextToSize(limpiar(texto), anchoCol - 5);
 
     const dibujarFila = (fila, indice) => {
         doc.setFontSize(7.5);
@@ -215,8 +221,10 @@ export async function generarManifiestoPDF(viaje, pasajeros, capacidadTotal) {
         p.edad ?? "—",
         p.sexo || "—",
         p.procedencia || "—",
+        p.pasajeroTelefono || "—",
         tramo(p.paradaOrigen, p.paradaDestino),
         `${p.asientoTipo || ""} #${p.asientoNumero ?? "—"}`,
+        p.observacion || "—",
         p.embarqueEstado === "EMBARCADO" ? "Embarcado" : "Pendiente",
     ]);
 

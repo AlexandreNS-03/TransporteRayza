@@ -9,14 +9,25 @@ function Manifiesto() {
     const [viajeId, setViajeId]     = useState("");
     const [pasajeros, setPasajeros] = useState([]);
     const [capacidad, setCapacidad] = useState(null);
+    const [capacidadPorNombre, setCapacidadPorNombre] = useState({});
 
     const [cargandoViajes, setCargandoViajes] = useState(true);
     const [cargando, setCargando]   = useState(false);
     const [error, setError]         = useState(null);
     const [generandoPdf, setGenerandoPdf] = useState(false);
 
-    useEffect(() => { fetchViajes(); }, []);
+    useEffect(() => { fetchViajes(); fetchEmbarcaciones(); }, []);
     useEffect(() => { if (viajeId) fetchDatosViaje(); }, [viajeId]);
+
+    // Capacidad por nombre de embarcación (el ViajeDTO no trae embarcacionId)
+    const fetchEmbarcaciones = async () => {
+        try {
+            const data = await apiFetch("/api/embarcaciones");
+            const mapa = {};
+            data.forEach(e => { mapa[e.nombre] = e.capacidadTotal; });
+            setCapacidadPorNombre(mapa);
+        } catch (err) { console.error(err); }
+    };
 
     const fetchViajes = async () => {
         setCargandoViajes(true);
@@ -43,14 +54,8 @@ function Manifiesto() {
             setPasajeros(ventas.filter(v => v.estado !== "ANULADO"));
 
             const viaje = viajes.find(v => v.id === viajeId);
-            if (viaje?.embarcacionId) {
-                try {
-                    const emb = await apiFetch(`/api/embarcaciones/${viaje.embarcacionId}`);
-                    setCapacidad(emb.capacidadTotal ?? null);
-                } catch {
-                    setCapacidad(null); // si falla, simplemente no se muestra la capacidad
-                }
-            }
+            // La capacidad se resuelve por el nombre de la embarcación
+            setCapacidad(capacidadPorNombre[viaje?.embarcacionNombre] ?? null);
         } catch (err) {
             setError(err.message);
         } finally {
@@ -219,8 +224,10 @@ function Manifiesto() {
                                     <th>Edad</th>
                                     <th>Sexo</th>
                                     <th>Procedencia</th>
+                                    <th>Teléfono</th>
                                     <th>Tramo</th>
                                     <th>Asiento</th>
+                                    <th>Observación</th>
                                     <th>Estado</th>
                                 </tr>
                                 </thead>
@@ -233,6 +240,7 @@ function Manifiesto() {
                                         <td>{p.edad ?? "—"}</td>
                                         <td>{p.sexo || "—"}</td>
                                         <td>{p.procedencia || "—"}</td>
+                                        <td>{p.pasajeroTelefono || "—"}</td>
                                         <td>
                                             <div className="tramo-info">
                                                 <span>{p.paradaOrigen}</span>
@@ -246,6 +254,7 @@ function Manifiesto() {
                                             </span>
                                             <strong> #{p.asientoNumero}</strong>
                                         </td>
+                                        <td className="col-observacion">{p.observacion || "—"}</td>
                                         <td>
                                             <span className={`badge ${p.embarqueEstado === "EMBARCADO" ? "badge-embarcado" : "badge-pendiente"}`}>
                                                 {p.embarqueEstado === "EMBARCADO" ? "Embarcado" : "Pendiente"}
