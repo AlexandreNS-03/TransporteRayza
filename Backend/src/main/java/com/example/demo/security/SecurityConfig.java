@@ -63,7 +63,7 @@ public class SecurityConfig {
 
                         /*VIAJES*/
                         .requestMatchers(HttpMethod.GET,    "/api/viajes/**").hasAnyRole("ADMIN", "SUPERVISOR", "EMPLEADO")
-                        .requestMatchers(HttpMethod.POST,   "/api/viajes/**").hasAnyRole("ADMIN", "SUPERVISOR")
+                        .requestMatchers(HttpMethod.POST,   "/api/viajes/**").hasAnyRole("ADMIN", "SUPERVISOR", "EMPLEADO")
                         .requestMatchers(HttpMethod.PUT,    "/api/viajes/**").hasAnyRole("ADMIN", "SUPERVISOR")
                         .requestMatchers(HttpMethod.DELETE, "/api/viajes/**").hasRole("ADMIN")
 
@@ -87,7 +87,7 @@ public class SecurityConfig {
 
                         /*VENTAS*/
                         .requestMatchers(HttpMethod.GET,   "/api/ventas/**").hasAnyRole("ADMIN", "SUPERVISOR", "EMPLEADO")
-                        .requestMatchers(HttpMethod.POST,  "/api/ventas").hasAnyRole("ADMIN", "SUPERVISOR")
+                        .requestMatchers(HttpMethod.POST,  "/api/ventas").hasAnyRole("ADMIN", "SUPERVISOR", "EMPLEADO")
                         .requestMatchers(HttpMethod.PUT,   "/api/ventas/*").hasAnyRole("ADMIN", "SUPERVISOR")
                         .requestMatchers(HttpMethod.PATCH, "/api/ventas/*/anular").hasAnyRole("ADMIN", "SUPERVISOR")
 
@@ -123,7 +123,7 @@ public class SecurityConfig {
 
                         /*COMPROBANTES ELECTRONICOS (NUBEFACT)*/
                         .requestMatchers(HttpMethod.GET,   "/api/comprobantes/**").hasAnyRole("ADMIN", "SUPERVISOR", "EMPLEADO")
-                        .requestMatchers(HttpMethod.POST,  "/api/comprobantes").hasAnyRole("ADMIN", "SUPERVISOR")
+                        .requestMatchers(HttpMethod.POST,  "/api/comprobantes").hasAnyRole("ADMIN", "SUPERVISOR", "EMPLEADO")
                         .requestMatchers(HttpMethod.POST,  "/api/comprobantes/*/nota-credito").hasAnyRole("ADMIN", "SUPERVISOR")
                         .requestMatchers(HttpMethod.PATCH, "/api/comprobantes/*/anular").hasAnyRole("ADMIN", "SUPERVISOR")
 
