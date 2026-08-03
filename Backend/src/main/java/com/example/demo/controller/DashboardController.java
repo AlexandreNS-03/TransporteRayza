@@ -3,6 +3,7 @@ package com.example.demo.controller;
 import com.example.demo.dto.DashboardDTO;
 import com.example.demo.service.DashboardService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -17,7 +18,7 @@ public class DashboardController {
     }
 
     @GetMapping
-    public ResponseEntity<DashboardDTO> estadisticas() {
-        return ResponseEntity.ok(dashboardService.obtenerEstadisticas());
+    public ResponseEntity<DashboardDTO> estadisticas(Authentication auth) {
+        return ResponseEntity.ok(dashboardService.obtenerEstadisticas(auth != null ? auth.getName() : null));
     }
 }
