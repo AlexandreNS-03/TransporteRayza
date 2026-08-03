@@ -27,6 +27,10 @@ public class MovimientoCaja {
     @Column(name = "motivo", length = 200)
     private String motivo;
 
+    /** Cómo se pagó: EFECTIVO / YAPE / PLIN / TARJETA / TRANSFERENCIA. Null = efectivo. */
+    @Column(name = "metodo_pago", length = 20)
+    private String metodoPago;
+
     @Column(name = "observacion", columnDefinition = "TEXT")
     private String observacion;
 
@@ -68,6 +72,9 @@ public class MovimientoCaja {
 
     public String getMotivo() { return motivo; }
     public void setMotivo(String motivo) { this.motivo = motivo; }
+
+    public String getMetodoPago() { return metodoPago; }
+    public void setMetodoPago(String metodoPago) { this.metodoPago = metodoPago; }
 
     public String getObservacion() { return observacion; }
     public void setObservacion(String observacion) { this.observacion = observacion; }

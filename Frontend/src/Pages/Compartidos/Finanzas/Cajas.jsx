@@ -61,10 +61,18 @@ function Cajas() {
         finally { setCargando(false); }
     };
 
-    // Totales de la caja abierta (en vivo, a partir de los movimientos)
-    const ingresos = movimientos.filter(m => m.tipo === "INGRESO").reduce((s, m) => s + Number(m.monto), 0);
-    const egresos  = movimientos.filter(m => m.tipo === "EGRESO").reduce((s, m) => s + Number(m.monto), 0);
-    const enCaja   = Number(miCaja?.montoInicial ?? 0) + ingresos - egresos;
+    // Totales de la caja abierta (en vivo, a partir de los movimientos).
+    // El "en caja" a cuadrar es SOLO efectivo; lo digital (Yape/transferencias) va aparte.
+    const esEfectivoMov = (m) => !m.metodoPago || m.metodoPago === "EFECTIVO";
+    const sumar = (tipo, ef) => movimientos
+        .filter(m => m.tipo === tipo && esEfectivoMov(m) === ef)
+        .reduce((s, m) => s + Number(m.monto), 0);
+    const ingresosEfectivo = sumar("INGRESO", true);
+    const egresosEfectivo  = sumar("EGRESO", true);
+    const ingresosDigital  = sumar("INGRESO", false);
+    const egresosDigital   = sumar("EGRESO", false);
+    const enCaja   = Number(miCaja?.montoInicial ?? 0) + ingresosEfectivo - egresosEfectivo; // efectivo esperado
+    const digital  = ingresosDigital - egresosDigital;
 
     const accion = async (fn) => {
         setGuardando(true);
@@ -142,16 +150,16 @@ function Cajas() {
                                 <div><strong>{fmt(miCaja.montoInicial)}</strong><span>Monto inicial — {miCaja.fechaApertura}</span></div>
                             </div>
                             <div className="comp-stat monto">
-                                <i className="ti ti-arrow-down-left"></i>
-                                <div><strong>{fmt(ingresos)}</strong><span>Ingresos</span></div>
+                                <i className="ti ti-device-mobile"></i>
+                                <div><strong>{fmt(digital)}</strong><span>Digital (Yape/transf.)</span></div>
                             </div>
                             <div className="comp-stat anulado">
                                 <i className="ti ti-arrow-up-right"></i>
-                                <div><strong>{fmt(egresos)}</strong><span>Egresos</span></div>
+                                <div><strong>{fmt(egresosEfectivo + egresosDigital)}</strong><span>Egresos</span></div>
                             </div>
                             <div className="comp-stat">
                                 <i className="ti ti-cash"></i>
-                                <div><strong>{fmt(enCaja)}</strong><span>En caja (esperado)</span></div>
+                                <div><strong>{fmt(enCaja)}</strong><span>Efectivo en caja (esperado)</span></div>
                             </div>
                         </div>
 
@@ -218,7 +226,8 @@ function Cajas() {
                             <th>Apertura</th>
                             <th>Inicial</th>
                             <th>Ventas</th>
-                            <th>Neto</th>
+                            <th>Neto efectivo</th>
+                            <th>Digital</th>
                             <th>Cierre</th>
                             <th>Diferencia</th>
                             <th>Estado</th>
@@ -226,7 +235,7 @@ function Cajas() {
                         </thead>
                         <tbody>
                         {cajas.length === 0 ? (
-                            <tr><td colSpan={9} className="tabla-vacia"><i className="ti ti-cash-off"></i><span>Sin cajas registradas</span></td></tr>
+                            <tr><td colSpan={10} className="tabla-vacia"><i className="ti ti-cash-off"></i><span>Sin cajas registradas</span></td></tr>
                         ) : (
                             cajas.map(c => (
                                 <tr key={c.id}>
@@ -235,7 +244,8 @@ function Cajas() {
                                     <td data-label="Apertura">{c.fechaApertura} {c.horaApertura?.slice(0, 5)}</td>
                                     <td data-label="Inicial">{fmt(c.montoInicial)}</td>
                                     <td data-label="Ventas">{c.estado === "CERRADA" ? fmt(c.totalVentas) : "—"}</td>
-                                    <td data-label="Neto">{c.estado === "CERRADA" ? fmt(c.totalNeto) : "—"}</td>
+                                    <td data-label="Neto efectivo">{c.estado === "CERRADA" ? fmt(c.totalNeto) : "—"}</td>
+                                    <td data-label="Digital">{c.estado === "CERRADA" ? fmt(c.totalDigital) : "—"}</td>
                                     <td data-label="Cierre">{c.estado === "CERRADA" ? fmt(c.montoCierre) : "—"}</td>
                                     <td data-label="Diferencia">
                                         {c.estado === "CERRADA" ? (
@@ -356,9 +366,10 @@ function Cajas() {
                                 <div className="resumen-venta">
                                     <p className="resumen-titulo"><i className="ti ti-cash"></i> Resumen del día</p>
                                     <div className="resumen-fila"><span>Monto inicial</span><strong>{fmt(miCaja.montoInicial)}</strong></div>
-                                    <div className="resumen-fila"><span>Ingresos</span><strong>{fmt(ingresos)}</strong></div>
-                                    <div className="resumen-fila"><span>Egresos</span><strong>- {fmt(egresos)}</strong></div>
-                                    <div className="resumen-fila resumen-total"><span>Debe haber en caja</span><strong>{fmt(enCaja)}</strong></div>
+                                    <div className="resumen-fila"><span>Ingresos en efectivo</span><strong>{fmt(ingresosEfectivo)}</strong></div>
+                                    <div className="resumen-fila"><span>Egresos en efectivo</span><strong>- {fmt(egresosEfectivo)}</strong></div>
+                                    <div className="resumen-fila resumen-total"><span>Debe haber en caja (efectivo)</span><strong>{fmt(enCaja)}</strong></div>
+                                    <div className="resumen-fila"><span>Digital (Yape/transf., no cuenta)</span><strong>{fmt(digital)}</strong></div>
                                 </div>
                                 <div className="form-grupo">
                                     <label>Efectivo contado al cierre *</label>

@@ -407,8 +407,9 @@ function Pasajes() {
                 case "pasajeroNombre": return v.pasajeroNombre || "";
                 case "asientoNumero":  return v.asientoNumero ?? 0;
                 case "precio":         return Number(v.precio) || 0;
-                case "fechaVenta":     return v.fechaVenta || "";
-                case "createdAt":      return v.createdAt || "";
+                // Fechas: comparar como número (ms) para un orden cronológico exacto
+                case "fechaVenta":     return v.fechaVenta ? Date.parse(v.fechaVenta) : 0;
+                case "createdAt":      return v.createdAt ? Date.parse(v.createdAt) : 0;
                 default:               return v[orden.key];
             }
         };
