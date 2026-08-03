@@ -27,7 +27,7 @@ function comparar(a, b, dir) {
 
 function Encomiendas() {
     const usuario      = usuarioActual();
-    const puedeOperar  = usuario?.rol === "ADMIN" || usuario?.rol === "SUPERVISOR";
+    const puedeOperar  = usuario?.rol === "ADMIN" || usuario?.rol === "SUPERVISOR" || usuario?.rol === "EMPLEADO";
     const { toasts, mostrarToast } = useToast();
 
     const [encomiendas, setEncomiendas]   = useState([]);
