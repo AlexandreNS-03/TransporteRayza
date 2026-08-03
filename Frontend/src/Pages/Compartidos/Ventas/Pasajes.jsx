@@ -61,7 +61,7 @@ function Pasajes() {
     const [filtroEstado, setFiltro]   = useState("todos");
     const [fechaDesde, setFechaDesde] = useState("");
     const [fechaHasta, setFechaHasta] = useState("");
-    const [orden, setOrden] = useState({ key: "fechaVenta", dir: "desc" });
+    const [orden, setOrden] = useState({ key: "createdAt", dir: "desc" });
 
     // Comprobantes electrónicos (Nubefact)
     const [comprobantes, setComprobantes]           = useState([]);
@@ -408,6 +408,7 @@ function Pasajes() {
                 case "asientoNumero":  return v.asientoNumero ?? 0;
                 case "precio":         return Number(v.precio) || 0;
                 case "fechaVenta":     return v.fechaVenta || "";
+                case "createdAt":      return v.createdAt || "";
                 default:               return v[orden.key];
             }
         };

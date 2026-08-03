@@ -22,20 +22,38 @@ public class DashboardService {
 
     private final VentaRepository ventaRepository;
     private final ViajeRepository viajeRepository;
+    private final com.example.demo.repository.UsuarioRepository usuarioRepository;
 
     public DashboardService(VentaRepository ventaRepository,
-                            ViajeRepository viajeRepository) {
+                            ViajeRepository viajeRepository,
+                            com.example.demo.repository.UsuarioRepository usuarioRepository) {
         this.ventaRepository = ventaRepository;
         this.viajeRepository = viajeRepository;
+        this.usuarioRepository = usuarioRepository;
     }
 
-    public DashboardDTO obtenerEstadisticas() {
+    public DashboardDTO obtenerEstadisticas(String usuarioNombre) {
         LocalDate hoy       = LocalDate.now();
         LocalDate inicioSemana = hoy.minusDays(hoy.getDayOfWeek().getValue() - 1);
         LocalDate inicioMes    = hoy.with(TemporalAdjusters.firstDayOfMonth());
 
         List<Venta> todasVentas = ventaRepository.findAll();
         List<Viaje> todosViajes = viajeRepository.findAll();
+
+        // Cada usuario ve solo su sucursal (ADMIN y sin sucursal ven todo).
+        com.example.demo.model.Usuario u = usuarioNombre != null
+                ? usuarioRepository.findByUsername(usuarioNombre).orElse(null) : null;
+        if (u != null && u.getRol() != com.example.demo.model.Rol.ADMIN && u.getSucursalId() != null) {
+            String sucursalId = u.getSucursalId();
+            todosViajes = todosViajes.stream()
+                    .filter(v -> sucursalId.equals(v.getSucursalId()))
+                    .collect(Collectors.toList());
+            java.util.Set<String> misViajes = todosViajes.stream()
+                    .map(Viaje::getId).collect(Collectors.toSet());
+            todasVentas = todasVentas.stream()
+                    .filter(v -> v.getViajeId() != null && misViajes.contains(v.getViajeId()))
+                    .collect(Collectors.toList());
+        }
 
         // Filtrar ventas pagadas
         List<Venta> ventasPagadas = todasVentas.stream()

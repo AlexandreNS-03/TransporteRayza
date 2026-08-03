@@ -98,9 +98,22 @@ public class VentaService {
     }
 
     // Listar todas
-    public List<VentaDTO> listarVentas() {
-        return ventaRepository.findAllByOrderByFechaVentaDesc()
-                .stream().map(this::toDTO).collect(Collectors.toList());
+    public List<VentaDTO> listarVentas(String usuarioNombre) {
+        // Orden por creación descendente: la venta más reciente aparece primero.
+        List<Venta> ventas = ventaRepository.findAllByOrderByCreatedAtDesc();
+
+        // Cada usuario ve solo los pasajes de su sucursal (por el viaje). El ADMIN
+        // y los usuarios sin sucursal asignada ven todos.
+        Usuario u = usuarioNombre != null
+                ? usuarioRepository.findByUsername(usuarioNombre).orElse(null) : null;
+        if (u != null && u.getRol() != Rol.ADMIN && u.getSucursalId() != null) {
+            java.util.Set<String> misViajes = viajeRepository.findBySucursalId(u.getSucursalId())
+                    .stream().map(Viaje::getId).collect(Collectors.toSet());
+            ventas = ventas.stream()
+                    .filter(v -> v.getViajeId() != null && misViajes.contains(v.getViajeId()))
+                    .collect(Collectors.toList());
+        }
+        return ventas.stream().map(this::toDTO).collect(Collectors.toList());
     }
 
     // Listar por viaje

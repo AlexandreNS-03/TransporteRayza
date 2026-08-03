@@ -24,8 +24,8 @@ public class VentaController {
     }
 
     @GetMapping
-    public ResponseEntity<List<VentaDTO>> listar() {
-        return ResponseEntity.ok(ventaService.listarVentas());
+    public ResponseEntity<List<VentaDTO>> listar(Authentication auth) {
+        return ResponseEntity.ok(ventaService.listarVentas(auth != null ? auth.getName() : null));
     }
 
     @GetMapping("/viaje/{viajeId}")
