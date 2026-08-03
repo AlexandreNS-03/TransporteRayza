@@ -14,6 +14,8 @@ public interface ViajeRepository extends JpaRepository<Viaje, String> {
 
     List<Viaje> findBySucursalId(String sucursalId);
 
+    boolean existsByCodigoViaje(String codigoViaje);
+
     List<Viaje> findByFechaSalidaBetween(LocalDate inicio, LocalDate fin);
 
     /** Viajes en alguno de los estados dados y que ya deberían haber salido. */
