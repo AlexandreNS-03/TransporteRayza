@@ -54,6 +54,14 @@ public class Caja {
     @Column(name = "total_neto", precision = 10, scale = 2)
     private BigDecimal totalNeto;
 
+    /** Efectivo cobrado (ventas + ingresos en efectivo). Base para cuadrar la caja. */
+    @Column(name = "total_efectivo", precision = 10, scale = 2)
+    private BigDecimal totalEfectivo;
+
+    /** Cobrado por medios digitales (Yape/Plin/Tarjeta/Transferencia). No es efectivo físico. */
+    @Column(name = "total_digital", precision = 10, scale = 2)
+    private BigDecimal totalDigital;
+
     @Column(name = "monto_cierre", precision = 10, scale = 2)
     private BigDecimal montoCierre;
 
@@ -113,6 +121,12 @@ public class Caja {
 
     public BigDecimal getTotalNeto() { return totalNeto; }
     public void setTotalNeto(BigDecimal totalNeto) { this.totalNeto = totalNeto; }
+
+    public BigDecimal getTotalEfectivo() { return totalEfectivo; }
+    public void setTotalEfectivo(BigDecimal totalEfectivo) { this.totalEfectivo = totalEfectivo; }
+
+    public BigDecimal getTotalDigital() { return totalDigital; }
+    public void setTotalDigital(BigDecimal totalDigital) { this.totalDigital = totalDigital; }
 
     public BigDecimal getMontoCierre() { return montoCierre; }
     public void setMontoCierre(BigDecimal montoCierre) { this.montoCierre = montoCierre; }

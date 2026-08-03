@@ -96,24 +96,33 @@ public class CajaService {
 
         List<MovimientoCaja> movs = movimientoRepository.findByCajaIdOrderByCreatedAtDesc(cajaId);
 
-        BigDecimal ingresos = BigDecimal.ZERO;
-        BigDecimal egresos  = BigDecimal.ZERO;
+        BigDecimal ingresosEfectivo = BigDecimal.ZERO;  // solo efectivo físico
+        BigDecimal ingresosDigital  = BigDecimal.ZERO;  // Yape/Plin/Tarjeta/Transferencia
+        BigDecimal egresosEfectivo  = BigDecimal.ZERO;  // gastos/devoluciones en efectivo
+        BigDecimal egresosDigital   = BigDecimal.ZERO;  // devoluciones de pagos digitales
         BigDecimal ventas   = BigDecimal.ZERO;
         BigDecimal anulaciones = BigDecimal.ZERO;
         for (MovimientoCaja m : movs) {
+            boolean efectivo = esEfectivo(m.getMetodoPago());
             if (m.getTipo() == MovimientoCaja.TipoMovimiento.INGRESO) {
-                ingresos = ingresos.add(m.getMonto());
+                if (efectivo) ingresosEfectivo = ingresosEfectivo.add(m.getMonto());
+                else          ingresosDigital  = ingresosDigital.add(m.getMonto());
                 if (m.getMotivo() != null && m.getMotivo().startsWith("Venta")) ventas = ventas.add(m.getMonto());
             } else {
-                egresos = egresos.add(m.getMonto());
+                if (efectivo) egresosEfectivo = egresosEfectivo.add(m.getMonto());
+                else          egresosDigital  = egresosDigital.add(m.getMonto());
                 if (m.getMotivo() != null && m.getMotivo().startsWith("Anulación")) anulaciones = anulaciones.add(m.getMonto());
             }
         }
 
-        BigDecimal neto = caja.getMontoInicial().add(ingresos).subtract(egresos);
+        // El neto a cuadrar es SOLO efectivo: monto inicial + ingresos en efectivo − egresos en efectivo.
+        // Lo digital (Yape/transferencias) no es efectivo físico, se informa aparte.
+        BigDecimal neto = caja.getMontoInicial().add(ingresosEfectivo).subtract(egresosEfectivo);
 
         caja.setTotalVentas(ventas);
         caja.setTotalAnulaciones(anulaciones);
+        caja.setTotalEfectivo(ingresosEfectivo);
+        caja.setTotalDigital(ingresosDigital.subtract(egresosDigital));
         caja.setTotalNeto(neto);
         caja.setMontoCierre(req.getMontoCierre());
         caja.setDiferencia(req.getMontoCierre().subtract(neto));
@@ -155,20 +164,34 @@ public class CajaService {
     public void registrarMovimientoAutomatico(String usuarioNombre,
                                               MovimientoCaja.TipoMovimiento tipo,
                                               BigDecimal monto, String motivo) {
+        registrarMovimientoAutomatico(usuarioNombre, tipo, monto, motivo, null);
+    }
+
+    @Transactional
+    public void registrarMovimientoAutomatico(String usuarioNombre,
+                                              MovimientoCaja.TipoMovimiento tipo,
+                                              BigDecimal monto, String motivo, String metodoPago) {
         Caja caja = miCajaAbierta(usuarioNombre);
         if (caja == null || monto == null) return;
-        guardarMovimiento(caja, tipo, monto, motivo, null, usuarioNombre);
+        guardarMovimiento(caja, tipo, monto, motivo, null, usuarioNombre, metodoPago);
     }
 
     private MovimientoCaja guardarMovimiento(Caja caja, MovimientoCaja.TipoMovimiento tipo,
                                              BigDecimal monto, String motivo,
                                              String observacion, String usuarioNombre) {
+        return guardarMovimiento(caja, tipo, monto, motivo, observacion, usuarioNombre, null);
+    }
+
+    private MovimientoCaja guardarMovimiento(Caja caja, MovimientoCaja.TipoMovimiento tipo,
+                                             BigDecimal monto, String motivo,
+                                             String observacion, String usuarioNombre, String metodoPago) {
         MovimientoCaja m = new MovimientoCaja();
         m.setId(UUID.randomUUID().toString());
         m.setCajaId(caja.getId());
         m.setTipo(tipo);
         m.setMonto(monto);
         m.setMotivo(motivo);
+        m.setMetodoPago(metodoPago);
         m.setObservacion(observacion);
         m.setUsuarioId(caja.getUsuarioId());
         m.setUsuarioNombre(usuarioNombre);
@@ -178,5 +201,10 @@ public class CajaService {
         m.setHora(LocalTime.now().withNano(0));
         m.setCreatedAt(LocalDateTime.now());
         return movimientoRepository.save(m);
+    }
+
+    /** Efectivo físico si el método es EFECTIVO o si no se registró (ingresos manuales). */
+    private boolean esEfectivo(String metodoPago) {
+        return metodoPago == null || metodoPago.isBlank() || "EFECTIVO".equalsIgnoreCase(metodoPago);
     }
 }

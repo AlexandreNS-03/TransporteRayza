@@ -104,6 +104,7 @@ function Dashboard() {
                 cajasAbiertas: cajasAbiertas.length,
                 cajasAbiertasList: cajasAbiertas,
                 netoCerradasHoy: cerradasHoy.reduce((s, c) => s + (Number(c.totalNeto) || 0), 0),
+                digitalCerradasHoy: cerradasHoy.reduce((s, c) => s + (Number(c.totalDigital) || 0), 0),
             });
         } catch (err) { setError("Error al cargar el dashboard"); }
         finally { setCargando(false); }
@@ -245,7 +246,7 @@ function Dashboard() {
                     <div className="dash-cajas-panel">
                         <div className="dash-cajas-header">
                             <strong><i className="ti ti-cash"></i> Cajas abiertas ahora</strong>
-                            <span>Neto de cajas cerradas hoy: <b>S/ {extras.netoCerradasHoy.toLocaleString("es-PE")}</b></span>
+                            <span>Cerradas hoy — efectivo: <b>S/ {extras.netoCerradasHoy.toLocaleString("es-PE")}</b> · digital: <b>S/ {extras.digitalCerradasHoy.toLocaleString("es-PE")}</b></span>
                         </div>
                         {extras.cajasAbiertasList.length === 0 ? (
                             <p className="dash-cajas-vacio"><i className="ti ti-lock"></i> No hay cajas abiertas en este momento</p>

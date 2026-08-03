@@ -230,7 +230,8 @@ public class VentaService {
                 MovimientoCaja.TipoMovimiento.INGRESO,
                 venta.getPrecio(),
                 "Venta pasaje " + venta.getSerieComprobante() + "-" + venta.getNumeroComprobante()
-                        + " — " + venta.getPasajeroNombre());
+                        + " — " + venta.getPasajeroNombre(),
+                venta.getMetodoPago());
 
         auditoriaService.registrar("CREAR", "VENTAS", venta.getId(),
                 "Venta " + venta.getSerieComprobante() + "-" + venta.getNumeroComprobante()
@@ -307,7 +308,8 @@ public class VentaService {
                 MovimientoCaja.TipoMovimiento.EGRESO,
                 venta.getPrecio(),
                 "Anulación venta " + venta.getSerieComprobante() + "-" + venta.getNumeroComprobante()
-                        + " — " + venta.getPasajeroNombre());
+                        + " — " + venta.getPasajeroNombre(),
+                venta.getMetodoPago());
 
         auditoriaService.registrar("ANULAR", "VENTAS", venta.getId(),
                 "Venta " + venta.getSerieComprobante() + "-" + venta.getNumeroComprobante()
