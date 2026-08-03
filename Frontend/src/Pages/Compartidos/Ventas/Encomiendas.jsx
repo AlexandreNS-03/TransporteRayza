@@ -31,6 +31,8 @@ function Encomiendas() {
     // Filtros
     const [filtroEstado, setFiltroEstado] = useState("todos");
     const [busqueda, setBusqueda]         = useState("");
+    const [fechaDesde, setFechaDesde]     = useState("");
+    const [fechaHasta, setFechaHasta]     = useState("");
 
     // Modales
     const [modalCrear, setModalCrear]     = useState(false);
@@ -110,6 +112,8 @@ function Encomiendas() {
 
     const filtradas = encomiendas.filter(e => {
         if (filtroEstado !== "todos" && e.estado !== filtroEstado) return false;
+        if (fechaDesde && (e.fechaRegistro || "") < fechaDesde) return false;
+        if (fechaHasta && (e.fechaRegistro || "") > fechaHasta) return false;
         if (busqueda.trim()) {
             const q = busqueda.trim().toLowerCase();
             const coincide =
@@ -172,6 +176,14 @@ function Encomiendas() {
                     </select>
                 </div>
                 <div className="filtro-grupo">
+                    <label>Desde</label>
+                    <input type="date" value={fechaDesde} onChange={e => setFechaDesde(e.target.value)} />
+                </div>
+                <div className="filtro-grupo">
+                    <label>Hasta</label>
+                    <input type="date" value={fechaHasta} onChange={e => setFechaHasta(e.target.value)} />
+                </div>
+                <div className="filtro-grupo">
                     <label>Buscar</label>
                     <div className="filtro-buscar">
                         <i className="ti ti-search"></i>
@@ -179,7 +191,7 @@ function Encomiendas() {
                                value={busqueda} onChange={e => setBusqueda(e.target.value)} />
                     </div>
                 </div>
-                <button className="btn-limpiar" onClick={() => { setBusqueda(""); setFiltroEstado("todos"); }}>
+                <button className="btn-limpiar" onClick={() => { setBusqueda(""); setFiltroEstado("todos"); setFechaDesde(""); setFechaHasta(""); }}>
                     <i className="ti ti-filter-off"></i> Limpiar
                 </button>
             </div>

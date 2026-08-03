@@ -49,6 +49,8 @@ function Pasajes() {
     const [error, setError]           = useState(null);
     const [busqueda, setBusqueda]     = useState("");
     const [filtroEstado, setFiltro]   = useState("todos");
+    const [fechaDesde, setFechaDesde] = useState("");
+    const [fechaHasta, setFechaHasta] = useState("");
 
     // Comprobantes electrónicos (Nubefact)
     const [comprobantes, setComprobantes]           = useState([]);
@@ -380,6 +382,8 @@ function Pasajes() {
     const ventasFiltradas = ventas.filter(v => {
         if (filtroEstado === "pagado"  && v.estado !== "PAGADO")  return false;
         if (filtroEstado === "anulado" && v.estado !== "ANULADO") return false;
+        if (fechaDesde && (v.fechaVenta || "") < fechaDesde) return false;
+        if (fechaHasta && (v.fechaVenta || "") > fechaHasta) return false;
         return true;
     });
 
@@ -465,6 +469,14 @@ function Pasajes() {
                     </select>
                 </div>
                 <div className="filtro-grupo">
+                    <label>Desde</label>
+                    <input type="date" value={fechaDesde} onChange={e => setFechaDesde(e.target.value)} />
+                </div>
+                <div className="filtro-grupo">
+                    <label>Hasta</label>
+                    <input type="date" value={fechaHasta} onChange={e => setFechaHasta(e.target.value)} />
+                </div>
+                <div className="filtro-grupo">
                     <label>Buscar por documento</label>
                     <div className="filtro-buscar">
                         <i className="ti ti-search"></i>
@@ -478,7 +490,7 @@ function Pasajes() {
                         <button onClick={buscarPorDoc} className="btn-buscar-inline">Buscar</button>
                     </div>
                 </div>
-                <button className="btn-limpiar" onClick={() => { setBusqueda(""); setFiltro("todos"); fetchVentas(); }}>
+                <button className="btn-limpiar" onClick={() => { setBusqueda(""); setFiltro("todos"); setFechaDesde(""); setFechaHasta(""); fetchVentas(); }}>
                     <i className="ti ti-filter-off"></i> Limpiar
                 </button>
             </div>
