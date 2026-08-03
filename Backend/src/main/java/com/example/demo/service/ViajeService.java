@@ -76,7 +76,7 @@ public class ViajeService {
 
         Viaje v = new Viaje();
         v.setId(UUID.randomUUID().toString());
-        v.setCodigoViaje(generarCodigo(req, sucursal.getNombre()));
+        v.setCodigoViaje(generarCodigo(req, sucursal.getNombre(), embarcacion.getNombre()));
         v.setSucursalId(sucursal.getId());
         v.setSucursalNombre(sucursal.getNombre());
         v.setRutaId(ruta.getId());
@@ -123,12 +123,30 @@ public class ViajeService {
         }
     }
 
-    private String generarCodigo(ViajeRequest req, String sucursalNombre) {
-        // Formato: RR-E-20260618-1420-RAY
+    private String generarCodigo(ViajeRequest req, String sucursalNombre, String embarcacionNombre) {
+        // Formato: RR-E-20260618-1420-RAY-EMB
+        // Incluye la embarcación para que dos viajes a la misma hora con distinta
+        // embarcación no choquen (codigo_viaje es UNIQUE). Si aun así coincide, se
+        // agrega un sufijo -2, -3, ... para garantizar unicidad.
         String fecha = req.getFechaSalida().toString().replace("-", "");
         String hora  = req.getHoraSalida().toString().replace(":", "").substring(0, 4);
-        String suc   = sucursalNombre.substring(0, Math.min(3, sucursalNombre.length())).toUpperCase();
-        return "RR-E-" + fecha + "-" + hora + "-" + suc;
+        String suc   = slugCodigo(sucursalNombre);
+        String emb   = slugCodigo(embarcacionNombre);
+        String base  = "RR-E-" + fecha + "-" + hora + "-" + suc + "-" + emb;
+
+        String codigo = base;
+        int n = 2;
+        while (viajeRepository.existsByCodigoViaje(codigo)) {
+            codigo = base + "-" + n++;
+        }
+        return codigo;
+    }
+
+    /** Toma las primeras 3 letras/números (sin espacios ni acentos), en mayúscula. */
+    private String slugCodigo(String s) {
+        if (s == null) return "XXX";
+        String limpio = s.replaceAll("[^A-Za-z0-9]", "").toUpperCase();
+        return limpio.isEmpty() ? "XXX" : limpio.substring(0, Math.min(3, limpio.length()));
     }
 
     private ViajeDTO toDTO(Viaje v) {
