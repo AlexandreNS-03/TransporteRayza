@@ -26,6 +26,7 @@ function Viajes() {
     const usuario      = JSON.parse(localStorage.getItem("usuario"));
     const esAdmin      = usuario?.rol === "ADMIN";
     const esSupervisor = usuario?.rol === "SUPERVISOR";
+    const esEmpleado   = usuario?.rol === "EMPLEADO";
 
     const [viajes, setViajes]         = useState([]);
     const [cargando, setCargando]     = useState(true);
@@ -157,7 +158,7 @@ function Viajes() {
                     <p>Gestión administrativa de trayectos fluviales</p>
                 </div>
                 <div style={{ display: "flex", gap: "10px" }}>
-                    {(esAdmin || esSupervisor) && (
+                    {(esAdmin || esSupervisor || esEmpleado) && (
                         <button className="btn-nuevo" onClick={abrirModal}>
                             <i className="ti ti-plus"></i> Nuevo Viaje
                         </button>

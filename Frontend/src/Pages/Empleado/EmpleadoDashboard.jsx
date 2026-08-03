@@ -52,7 +52,7 @@ function EmpleadoDashboard() {
                         <i className="ti ti-ship"></i> Viajes
                     </NavLink>
 
-                    {(esAdmin || esSupervisor) && (
+                    {(esAdmin || esSupervisor || esEmpleado) && (
                         <NavLink to="/empleado/manifiesto" className={({ isActive }) => isActive ? "sb-item active" : "sb-item"}>
                             <i className="ti ti-clipboard-list"></i> Manifiesto
                         </NavLink>
