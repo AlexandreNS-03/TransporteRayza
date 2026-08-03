@@ -209,6 +209,11 @@
 .manifiesto-tabla tbody tr:hover { background: #f8fafc; }
 
 .col-numero { color: #9ca3af; font-size: 12px; }
+
+.manifiesto-tabla thead th.th-orden { cursor: pointer; user-select: none; }
+.th-orden span { margin-right: 4px; }
+.th-orden i { font-size: 13px; vertical-align: -1px; opacity: 0.55; }
+.th-orden:hover i { opacity: 1; }
 .col-observacion { max-width: 200px; color: #4b5563; font-size: 12px; white-space: normal; }
 
 .tramo-info {

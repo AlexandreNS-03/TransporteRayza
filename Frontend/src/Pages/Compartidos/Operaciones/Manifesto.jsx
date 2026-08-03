@@ -4,12 +4,22 @@ import generarManifiestoPDF    from "./generarManifiestoPDF.jsx";
 
 import { apiFetch } from "../../../Services/api.js";
 
+// Compara valores (texto o número) para ordenar A-Z / Z-A y número de asiento.
+function comparar(a, b, dir) {
+    const m = dir === "asc" ? 1 : -1;
+    if (a == null) a = "";
+    if (b == null) b = "";
+    if (typeof a === "number" && typeof b === "number") return (a - b) * m;
+    return String(a).localeCompare(String(b), "es", { numeric: true }) * m;
+}
+
 function Manifiesto() {
     const [viajes, setViajes]       = useState([]);
     const [viajeId, setViajeId]     = useState("");
     const [pasajeros, setPasajeros] = useState([]);
     const [capacidad, setCapacidad] = useState(null);
     const [capacidadPorNombre, setCapacidadPorNombre] = useState({});
+    const [orden, setOrden]         = useState({ key: "asientoNumero", dir: "asc" });
 
     const [cargandoViajes, setCargandoViajes] = useState(true);
     const [cargando, setCargando]   = useState(false);
@@ -70,11 +80,35 @@ function Manifiesto() {
     const totalPendientes = totalPasajeros - totalEmbarcados;
     const ocupacion = capacidad ? Math.round((totalPasajeros / capacidad) * 100) : null;
 
+    const alternarOrden = (key) => setOrden(o =>
+        o.key === key ? { key, dir: o.dir === "asc" ? "desc" : "asc" } : { key, dir: "asc" });
+
+    // Lista ordenada según la columna elegida (el PDF usa este mismo orden)
+    const pasajerosOrdenados = [...pasajeros].sort((a, b) => {
+        const val = (p) => {
+            switch (orden.key) {
+                case "pasajeroNombre": return p.pasajeroNombre || "";
+                case "asientoNumero":  return p.asientoNumero ?? 0;
+                default:               return p[orden.key];
+            }
+        };
+        return comparar(val(a), val(b), orden.dir);
+    });
+
+    const ThOrden = ({ label, ordKey }) => (
+        <th className="th-orden" onClick={() => alternarOrden(ordKey)} title="Ordenar">
+            <span>{label}</span>
+            <i className={`ti ${orden.key === ordKey
+                ? (orden.dir === "asc" ? "ti-sort-ascending" : "ti-sort-descending")
+                : "ti-arrows-sort"}`}></i>
+        </th>
+    );
+
     const descargarPdf = async () => {
-        if (!viajeSeleccionado || pasajeros.length === 0) return;
+        if (!viajeSeleccionado || pasajerosOrdenados.length === 0) return;
         setGenerandoPdf(true);
         try {
-            await generarManifiestoPDF(viajeSeleccionado, pasajeros, capacidad);
+            await generarManifiestoPDF(viajeSeleccionado, pasajerosOrdenados, capacidad);
         } finally {
             setGenerandoPdf(false);
         }
@@ -219,20 +253,20 @@ function Manifiesto() {
                                 <thead>
                                 <tr>
                                     <th>#</th>
-                                    <th>Nombre Completo</th>
+                                    <ThOrden label="Nombre Completo" ordKey="pasajeroNombre" />
                                     <th>Documento</th>
                                     <th>Edad</th>
                                     <th>Sexo</th>
                                     <th>Procedencia</th>
                                     <th>Teléfono</th>
                                     <th>Tramo</th>
-                                    <th>Asiento</th>
+                                    <ThOrden label="Asiento" ordKey="asientoNumero" />
                                     <th>Observación</th>
                                     <th>Estado</th>
                                 </tr>
                                 </thead>
                                 <tbody>
-                                {pasajeros.map((p, i) => (
+                                {pasajerosOrdenados.map((p, i) => (
                                     <tr key={p.id}>
                                         <td className="col-numero">{i + 1}</td>
                                         <td><strong>{p.pasajeroNombre}</strong></td>
