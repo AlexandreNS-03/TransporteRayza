@@ -27,6 +27,16 @@ function badgeEstado(estado) {
     return estado === "PAGADO" ? "badge badge-pagado" : "badge badge-anulado";
 }
 
+// Compara dos valores (texto o número) para ordenar. "es" + numeric ordena bien
+// nombres (A-Z / Z-A), números de asiento y fechas ISO.
+function comparar(a, b, dir) {
+    const m = dir === "asc" ? 1 : -1;
+    if (a == null) a = "";
+    if (b == null) b = "";
+    if (typeof a === "number" && typeof b === "number") return (a - b) * m;
+    return String(a).localeCompare(String(b), "es", { numeric: true }) * m;
+}
+
 function Pasajes() {
     const usuario      = JSON.parse(localStorage.getItem("usuario"));
     const esAdmin      = usuario?.rol === "ADMIN";
@@ -51,6 +61,7 @@ function Pasajes() {
     const [filtroEstado, setFiltro]   = useState("todos");
     const [fechaDesde, setFechaDesde] = useState("");
     const [fechaHasta, setFechaHasta] = useState("");
+    const [orden, setOrden] = useState({ key: "fechaVenta", dir: "desc" });
 
     // Comprobantes electrónicos (Nubefact)
     const [comprobantes, setComprobantes]           = useState([]);
@@ -387,7 +398,33 @@ function Pasajes() {
         return true;
     });
 
-    const pag = usePaginacion(ventasFiltradas, 10);
+    const alternarOrden = (key) => setOrden(o =>
+        o.key === key ? { key, dir: o.dir === "asc" ? "desc" : "asc" } : { key, dir: "asc" });
+
+    const ventasOrdenadas = [...ventasFiltradas].sort((a, b) => {
+        const val = (v) => {
+            switch (orden.key) {
+                case "pasajeroNombre": return v.pasajeroNombre || "";
+                case "asientoNumero":  return v.asientoNumero ?? 0;
+                case "precio":         return Number(v.precio) || 0;
+                case "fechaVenta":     return v.fechaVenta || "";
+                default:               return v[orden.key];
+            }
+        };
+        return comparar(val(a), val(b), orden.dir);
+    });
+
+    const pag = usePaginacion(ventasOrdenadas, 10);
+
+    // Encabezado clicable para ordenar (A-Z / Z-A, número, fecha)
+    const ThOrden = ({ label, ordKey }) => (
+        <th className="th-orden" onClick={() => alternarOrden(ordKey)} title="Ordenar">
+            <span>{label}</span>
+            <i className={`ti ${orden.key === ordKey
+                ? (orden.dir === "asc" ? "ti-sort-ascending" : "ti-sort-descending")
+                : "ti-arrows-sort"}`}></i>
+        </th>
+    );
 
     const viajeSeleccionado = viajes.find(v => v.id === form.viajeId);
 
@@ -505,13 +542,13 @@ function Pasajes() {
                         <thead>
                         <tr>
                             <th>Comprobante</th>
-                            <th>Pasajero</th>
+                            <ThOrden label="Pasajero" ordKey="pasajeroNombre" />
                             <th>Documento</th>
                             <th>Viaje</th>
                             <th>Tramo</th>
-                            <th>Asiento</th>
-                            <th>Precio</th>
-                            <th>Fecha</th>
+                            <ThOrden label="Asiento" ordKey="asientoNumero" />
+                            <ThOrden label="Precio" ordKey="precio" />
+                            <ThOrden label="Fecha" ordKey="fechaVenta" />
                             <th>Estado</th>
                             {puedeVender && <th>Acciones</th>}
                         </tr>

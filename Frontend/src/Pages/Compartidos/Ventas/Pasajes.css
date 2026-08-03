@@ -66,6 +66,11 @@
     letter-spacing: 0.5px;
 }
 
+.th-orden { cursor: pointer; user-select: none; white-space: nowrap; }
+.th-orden span { margin-right: 4px; }
+.th-orden i { font-size: 13px; vertical-align: -1px; opacity: 0.55; }
+.th-orden:hover i { opacity: 1; }
+
 .filtro-grupo select,
 .filtro-grupo input[type="date"] {
     height: 34px;

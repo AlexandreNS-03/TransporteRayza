@@ -16,6 +16,15 @@ const ESTADO_BADGE = {
     ENTREGADO: "badge-entregado", DEVUELTO: "badge-anulado"
 };
 
+// Compara valores (texto o número) para ordenar A-Z / Z-A, número y fecha.
+function comparar(a, b, dir) {
+    const m = dir === "asc" ? 1 : -1;
+    if (a == null) a = "";
+    if (b == null) b = "";
+    if (typeof a === "number" && typeof b === "number") return (a - b) * m;
+    return String(a).localeCompare(String(b), "es", { numeric: true }) * m;
+}
+
 function Encomiendas() {
     const usuario      = usuarioActual();
     const puedeOperar  = usuario?.rol === "ADMIN" || usuario?.rol === "SUPERVISOR";
@@ -33,6 +42,7 @@ function Encomiendas() {
     const [busqueda, setBusqueda]         = useState("");
     const [fechaDesde, setFechaDesde]     = useState("");
     const [fechaHasta, setFechaHasta]     = useState("");
+    const [orden, setOrden]               = useState({ key: "fechaRegistro", dir: "desc" });
 
     // Modales
     const [modalCrear, setModalCrear]     = useState(false);
@@ -127,7 +137,33 @@ function Encomiendas() {
         return true;
     });
 
-    const pag = usePaginacion(filtradas, 10);
+    const alternarOrden = (key) => setOrden(o =>
+        o.key === key ? { key, dir: o.dir === "asc" ? "desc" : "asc" } : { key, dir: "asc" });
+
+    const ordenadas = [...filtradas].sort((a, b) => {
+        const val = (e) => {
+            switch (orden.key) {
+                case "remitenteNombre":    return e.remitenteNombre || "";
+                case "destinatarioNombre": return e.destinatarioNombre || "";
+                case "precio":             return Number(e.precio) || 0;
+                case "codigoEncomienda":   return e.codigoEncomienda || "";
+                case "fechaRegistro":      return e.fechaRegistro || "";
+                default:                   return e[orden.key];
+            }
+        };
+        return comparar(val(a), val(b), orden.dir);
+    });
+
+    const ThOrden = ({ label, ordKey }) => (
+        <th className="th-orden" onClick={() => alternarOrden(ordKey)} title="Ordenar">
+            <span>{label}</span>
+            <i className={`ti ${orden.key === ordKey
+                ? (orden.dir === "asc" ? "ti-sort-ascending" : "ti-sort-descending")
+                : "ti-arrows-sort"}`}></i>
+        </th>
+    );
+
+    const pag = usePaginacion(ordenadas, 10);
 
     const enTransito = encomiendas.filter(e => e.estado === "EN_TRANSITO").length;
     const registradas = encomiendas.filter(e => e.estado === "REGISTRADO").length;
@@ -205,12 +241,12 @@ function Encomiendas() {
                     <table className="pasajes-tabla">
                         <thead>
                         <tr>
-                            <th>Código</th>
-                            <th>Remitente</th>
-                            <th>Destinatario</th>
+                            <ThOrden label="Código" ordKey="codigoEncomienda" />
+                            <ThOrden label="Remitente" ordKey="remitenteNombre" />
+                            <ThOrden label="Destinatario" ordKey="destinatarioNombre" />
                             <th>Paquete</th>
                             <th>Destino</th>
-                            <th>Precio</th>
+                            <ThOrden label="Precio" ordKey="precio" />
                             <th>Estado</th>
                             {puedeOperar && <th>Acciones</th>}
                         </tr>
