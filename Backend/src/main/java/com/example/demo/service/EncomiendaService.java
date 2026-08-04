@@ -153,4 +153,48 @@ public class EncomiendaService {
                 .orElse(1L);
         return String.format("ENC-%06d", siguiente);
     }
+
+    // ───────────────── Rastreo público (sin login) ─────────────────
+
+    public com.example.demo.dto.EncomiendaPublicDTO rastrearPorCodigo(String codigo) {
+        return encomiendaRepository.findByCodigoEncomienda(codigo == null ? "" : codigo.trim())
+                .map(this::toPublicDTO)
+                .orElseThrow(() -> new RuntimeException("No se encontró ninguna encomienda con ese código"));
+    }
+
+    public java.util.List<com.example.demo.dto.EncomiendaPublicDTO> rastrearPorRemitente(String documento) {
+        java.util.List<com.example.demo.dto.EncomiendaPublicDTO> r = encomiendaRepository
+                .findByRemitenteDocumentoOrderByCreatedAtDesc(documento == null ? "" : documento.trim())
+                .stream().map(this::toPublicDTO).collect(java.util.stream.Collectors.toList());
+        if (r.isEmpty()) throw new RuntimeException("No se encontraron encomiendas para ese documento");
+        return r;
+    }
+
+    public java.util.List<com.example.demo.dto.EncomiendaPublicDTO> rastrearPorDestinatario(String documento) {
+        java.util.List<com.example.demo.dto.EncomiendaPublicDTO> r = encomiendaRepository
+                .findByDestinatarioDocumentoOrderByCreatedAtDesc(documento == null ? "" : documento.trim())
+                .stream().map(this::toPublicDTO).collect(java.util.stream.Collectors.toList());
+        if (r.isEmpty()) throw new RuntimeException("No se encontraron encomiendas para ese documento");
+        return r;
+    }
+
+    private com.example.demo.dto.EncomiendaPublicDTO toPublicDTO(Encomienda e) {
+        com.example.demo.dto.EncomiendaPublicDTO dto = new com.example.demo.dto.EncomiendaPublicDTO();
+        dto.setCodigoEncomienda(e.getCodigoEncomienda());
+        dto.setFechaRegistro(e.getFechaRegistro() != null ? e.getFechaRegistro().toString() : null);
+        dto.setRemitenteNombre(e.getRemitenteNombre());
+        dto.setRemitenteDocumento(e.getRemitenteDocumento());
+        dto.setRemitenteTelefono(e.getRemitenteTelefono());
+        dto.setDestinatarioNombre(e.getDestinatarioNombre());
+        dto.setDestinatarioDocumento(e.getDestinatarioDocumento());
+        dto.setDestinatarioTelefono(e.getDestinatarioTelefono());
+        dto.setViajeDescripcion(e.getViajeDescripcion());
+        dto.setSucursalOrigenNombre(e.getSucursalOrigenNombre());
+        dto.setSucursalDestinoNombre(e.getSucursalDestinoNombre());
+        dto.setDescripcion(e.getDescripcion());
+        dto.setPeso(e.getPeso());
+        dto.setPrecio(e.getPrecio());
+        dto.setEstado(e.getEstado() != null ? e.getEstado().name() : null);
+        return dto;
+    }
 }

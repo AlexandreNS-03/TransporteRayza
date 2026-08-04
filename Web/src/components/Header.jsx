@@ -10,6 +10,7 @@ const LINKS = [
   { to: "/comprar", label: "Comprar pasaje" },
   { to: "/servicios", label: "Servicios" },
   { to: "/destinos", label: "Destinos" },
+  { to: "/rastreo", label: "Rastreo" },
   { to: "/contacto", label: "Contacto" },
 ];
 

@@ -129,3 +129,13 @@ export async function buscarBoletos({ correo, documento } = {}) {
 export function soles(n) {
   return "S/ " + Number(n || 0).toFixed(2);
 }
+
+// ── Rastreo público de encomiendas ──
+export async function rastrearEncomienda(tab, valor) {
+  const v = encodeURIComponent(String(valor || "").trim());
+  const ruta = tab === "remitente" ? `/encomiendas/remitente/${v}`
+             : tab === "destinatario" ? `/encomiendas/destinatario/${v}`
+             : `/encomiendas/rastrear/${v}`;
+  try { const { data } = await http.get(ruta); return data; }
+  catch (e) { throw desempaquetarError(e); }
+}
