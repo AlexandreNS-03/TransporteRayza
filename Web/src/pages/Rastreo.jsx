@@ -2,6 +2,7 @@ import { useState } from "react";
 import "./Rastreo.css";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import EscanerQR from "../components/EscanerQR";
 import { rastrearEncomienda } from "../services/publicApi";
 
 const ESTADOS = ["REGISTRADO", "EN_TRANSITO", "ENTREGADO", "DEVUELTO"];
@@ -141,20 +142,30 @@ function Rastreo() {
     const [resultado, setResultado] = useState(null);
     const [cargando, setCargando]   = useState(false);
     const [error, setError]         = useState(null);
+    const [escanerAbierto, setEscanerAbierto] = useState(false);
 
-    const buscar = async () => {
-        if (!busqueda.trim()) return;
+    const buscar = async (tab = tabActivo, valor = busqueda) => {
+        if (!String(valor).trim()) return;
         setCargando(true);
         setError(null);
         setResultado(null);
         try {
-            const data = await rastrearEncomienda(tabActivo, busqueda);
+            const data = await rastrearEncomienda(tab, valor);
             setResultado(data);
         } catch {
             setError("No se encontró ninguna encomienda con ese dato. Verifica e intenta de nuevo.");
         } finally {
             setCargando(false);
         }
+    };
+
+    // El QR del ticket contiene el código de la encomienda. Al leerlo, busca directo.
+    const alEscanear = (texto) => {
+        setEscanerAbierto(false);
+        const codigo = texto.includes("/") ? texto.split("/").filter(Boolean).pop() : texto;
+        setTab("codigo");
+        setBusqueda(codigo);
+        buscar("codigo", codigo);
     };
 
     const tabActual = TABS.find(t => t.id === tabActivo);
@@ -192,13 +203,36 @@ function Rastreo() {
                                     onChange={e => setBusqueda(e.target.value)}
                                     onKeyDown={e => e.key === "Enter" && buscar()}
                                 />
-                                <button className="rastreo-btn" onClick={buscar} disabled={cargando}>
+                                {tabActivo === "codigo" && (
+                                    <button className="rastreo-btn-qr" onClick={() => setEscanerAbierto(true)}
+                                            title="Escanear QR del ticket" aria-label="Escanear QR">
+                                        <i className="ti ti-qrcode"></i>
+                                    </button>
+                                )}
+                                <button className="rastreo-btn" onClick={() => buscar()} disabled={cargando}>
                                     {cargando
                                         ? <i className="ti ti-loader-2 spin"></i>
                                         : <><i className="ti ti-search"></i> Buscar</>
                                     }
                                 </button>
                             </div>
+
+                            {tabActivo === "codigo" && (
+                                <div className="rastreo-ejemplo">
+                                    <span className="rastreo-ejemplo-txt">
+                                        <i className="ti ti-info-circle"></i> El <strong>código</strong> está en tu ticket de encomienda:
+                                    </span>
+                                    <div className="ticket-mini">
+                                        <div className="ticket-mini-marca">TRANSPORTES RAYZA · Ticket de encomienda</div>
+                                        <div className="ticket-mini-codigo">
+                                            <span>CÓDIGO</span>
+                                            <strong>ENC-000123</strong>
+                                            <i className="ti ti-qrcode ticket-mini-qr"></i>
+                                        </div>
+                                        <div className="ticket-mini-flecha"><i className="ti ti-arrow-up"></i> aquí</div>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -219,6 +253,11 @@ function Rastreo() {
                     )}
                 </div>
             </div>
+
+            {escanerAbierto && (
+                <EscanerQR onDetectar={alEscanear} onCerrar={() => setEscanerAbierto(false)} />
+            )}
+
             <Footer />
         </>
     );
