@@ -53,9 +53,14 @@ function EmpleadoDashboard() {
                     </NavLink>
 
                     {(esAdmin || esSupervisor || esEmpleado) && (
-                        <NavLink to="/empleado/manifiesto" className={({ isActive }) => isActive ? "sb-item active" : "sb-item"}>
-                            <i className="ti ti-clipboard-list"></i> Manifiesto
-                        </NavLink>
+                        <>
+                            <NavLink to="/empleado/manifiesto" className={({ isActive }) => isActive ? "sb-item active" : "sb-item"}>
+                                <i className="ti ti-clipboard-list"></i> Manifiesto
+                            </NavLink>
+                            <NavLink to="/empleado/manifiesto-carga" className={({ isActive }) => isActive ? "sb-item active" : "sb-item"}>
+                                <i className="ti ti-package"></i> Manifiesto Carga
+                            </NavLink>
+                        </>
                     )}
 
                     <NavLink to="/empleado/embarque" className={({ isActive }) => isActive ? "sb-item active" : "sb-item"}>

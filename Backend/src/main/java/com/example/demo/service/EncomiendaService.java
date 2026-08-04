@@ -83,6 +83,10 @@ public class EncomiendaService {
         e.setPrecio(req.getPrecio());
         e.setObservacion(req.getObservacion());
         e.setClaveSeguridad(clave);
+        e.setParadaOrigen(req.getParadaOrigen());
+        e.setParadaDestino(req.getParadaDestino());
+        e.setOrdenOrigen(req.getOrdenOrigen());
+        e.setOrdenDestino(req.getOrdenDestino());
         e.setEstado(Encomienda.EstadoEncomienda.REGISTRADO);
         // Estado de pago: por defecto PAGADO (se cobra al registrar)
         Encomienda.EstadoPago estadoPago;
@@ -131,6 +135,19 @@ public class EncomiendaService {
                         + " para " + e.getDestinatarioNombre() + " (S/ " + e.getPrecio() + ")");
 
         return e;
+    }
+
+    /** Encomiendas de un viaje (manifiesto de carga), ordenadas por parada de bajada. */
+    public List<Encomienda> listarPorViaje(String viajeId) {
+        return encomiendaRepository.findByViajeIdOrderByCreatedAtAsc(viajeId).stream()
+                .filter(e -> e.getEstado() != Encomienda.EstadoEncomienda.DEVUELTO)
+                .sorted((a, b) -> {
+                    int oa = a.getOrdenDestino() != null ? a.getOrdenDestino() : Integer.MAX_VALUE;
+                    int ob = b.getOrdenDestino() != null ? b.getOrdenDestino() : Integer.MAX_VALUE;
+                    if (oa != ob) return Integer.compare(oa, ob);
+                    return a.getCodigoEncomienda().compareTo(b.getCodigoEncomienda());
+                })
+                .collect(java.util.stream.Collectors.toList());
     }
 
     @Transactional
@@ -254,6 +271,8 @@ public class EncomiendaService {
         dto.setPrecio(e.getPrecio());
         dto.setEstado(e.getEstado() != null ? e.getEstado().name() : null);
         dto.setEstadoPago(e.getEstadoPago() != null ? e.getEstadoPago().name() : null);
+        dto.setParadaOrigen(e.getParadaOrigen());
+        dto.setParadaDestino(e.getParadaDestino());
         return dto;
     }
 

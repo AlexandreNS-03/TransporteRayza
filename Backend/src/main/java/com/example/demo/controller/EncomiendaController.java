@@ -26,6 +26,12 @@ public class EncomiendaController {
         return ResponseEntity.ok(encomiendaService.listar());
     }
 
+    /** Manifiesto de carga: encomiendas asignadas a un viaje. */
+    @GetMapping("/viaje/{viajeId}")
+    public ResponseEntity<List<Encomienda>> porViaje(@PathVariable String viajeId) {
+        return ResponseEntity.ok(encomiendaService.listarPorViaje(viajeId));
+    }
+
     @PostMapping
     public ResponseEntity<Encomienda> crear(@RequestBody EncomiendaRequest req, Authentication auth) {
         return ResponseEntity.ok(encomiendaService.crear(req, auth.getName()));
