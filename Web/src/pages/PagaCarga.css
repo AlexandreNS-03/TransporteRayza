@@ -14,6 +14,53 @@
 .paga-monto span { font-size: 12px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.4px; }
 .paga-monto strong { font-size: 26px; color: #0f172a; }
 
-.paga-accion { text-align: center; }
-.paga-accion .rastreo-btn { width: 100%; justify-content: center; }
+.paga-accion { border-top: 1px solid #eef2f7; padding-top: 16px; }
 .paga-nota { margin-top: 10px; font-size: 12.5px; color: #6b7280; }
+
+.paga-titulo { font-size: 13px; font-weight: 600; color: #334155; margin-bottom: 10px; }
+
+/* Elegir medio de pago */
+.paga-medios { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.paga-medio {
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    padding: 16px 12px; cursor: pointer;
+    background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
+    transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+}
+.paga-medio:hover { border-color: #1a4db5; box-shadow: 0 6px 18px rgba(26, 77, 181, 0.12); transform: translateY(-1px); }
+.paga-medio i { font-size: 28px; color: #1a4db5; }
+.paga-medio strong { font-size: 14px; color: #0f172a; }
+.paga-medio span { font-size: 11.5px; color: #6b7280; }
+
+/* Formulario del medio elegido */
+.paga-form { display: flex; flex-direction: column; gap: 12px; }
+.paga-volver {
+    align-self: flex-start; background: transparent; border: none; cursor: pointer;
+    color: #1a4db5; font-size: 12.5px; display: flex; align-items: center; gap: 4px; padding: 0;
+}
+.paga-volver:hover { text-decoration: underline; }
+
+.paga-btn { width: 100%; justify-content: center; }
+
+.paga-campo { display: flex; flex-direction: column; gap: 4px; }
+.paga-campo label { font-size: 12px; font-weight: 600; color: #475569; }
+.paga-campo input {
+    height: 44px; border: 1px solid #d1d5db; border-radius: 8px; padding: 0 14px;
+    font-size: 14px; color: #1e293b; outline: none;
+}
+.paga-campo input:focus { border-color: #1a4db5; }
+.paga-ayuda { font-size: 11.5px; color: #6b7280; }
+
+/* Confirmación */
+.paga-exito {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 16px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px;
+}
+.paga-exito i { font-size: 28px; color: #15803d; flex-shrink: 0; }
+.paga-exito div { display: flex; flex-direction: column; gap: 2px; }
+.paga-exito strong { font-size: 14px; color: #15803d; }
+.paga-exito span { font-size: 12.5px; color: #166534; }
+
+@media (max-width: 480px) {
+    .paga-medios { grid-template-columns: 1fr; }
+}

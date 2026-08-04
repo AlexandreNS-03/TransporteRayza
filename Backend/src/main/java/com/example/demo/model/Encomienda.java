@@ -99,6 +99,10 @@ public class Encomienda {
     @Column(name = "entregado_at")
     private LocalDateTime entregadoAt;
 
+    /** Referencia de la transacción cuando se paga en línea (Izipay / Yape). */
+    @Column(name = "pasarela_referencia", length = 100)
+    private String pasarelaReferencia;
+
     public enum EstadoEncomienda { REGISTRADO, EN_TRANSITO, ENTREGADO, DEVUELTO }
     public enum EstadoPago { PENDIENTE, PAGADO, PAGA_DESTINO }
 
@@ -178,6 +182,9 @@ public class Encomienda {
 
     public LocalDateTime getEntregadoAt() { return entregadoAt; }
     public void setEntregadoAt(LocalDateTime entregadoAt) { this.entregadoAt = entregadoAt; }
+
+    public String getPasarelaReferencia() { return pasarelaReferencia; }
+    public void setPasarelaReferencia(String r) { this.pasarelaReferencia = r; }
 
     public String getUsuarioId() { return usuarioId; }
     public void setUsuarioId(String usuarioId) { this.usuarioId = usuarioId; }
