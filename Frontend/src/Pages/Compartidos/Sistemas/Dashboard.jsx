@@ -17,6 +17,7 @@ function badgeViaje(estado) {
 }
 
 const COLORES = { azul: "#1a4db5", verde: "#15803d", amarillo: "#a16207", morado: "#7c3aed", cyan: "#0891b2" };
+const METODO_LABEL = { EFECTIVO: "Efectivo", YAPE: "Yape", PLIN: "Plin", TARJETA: "Tarjeta", TRANSFERENCIA: "Transferencia" };
 
 /* ---------- Hook: animación de conteo para las tarjetas de stats ---------- */
 function useCountUp(valor, duracion = 700) {
@@ -228,8 +229,33 @@ function Dashboard() {
                     <div className="dash-efectivo-cards">
                         <StatCard label="Efectivo Iquitos" valorRaw={data.efectivoIquitosHoy || 0} formato="moneda" icono="ti-building-store" color="azul" />
                         <StatCard label="Efectivo Requena" valorRaw={data.efectivoRequenaHoy || 0} formato="moneda" icono="ti-building-store" color="verde" />
+                        <StatCard label="Total Efectivo" valorRaw={data.efectivoHoy || 0} formato="moneda" icono="ti-cash" color="verde" />
+                        <StatCard label="Total Digital" valorRaw={data.digitalHoy || 0} formato="moneda" icono="ti-device-mobile" color="cyan" />
                         <StatCard label="Descuentos Hoy" valorRaw={data.descuentosHoy || 0} formato="moneda" icono="ti-discount" color="amarillo" />
                     </div>
+
+                    {/* Cobros de hoy por método */}
+                    {data.cobrosMetodoHoy?.length > 0 && (
+                        <div className="dash-card chart-card" style={{ marginTop: 12 }}>
+                            <div className="dash-card-header">
+                                <h3><i className="ti ti-wallet"></i> Cobros de hoy por método</h3>
+                            </div>
+                            <div className="dash-card-body chart-body">
+                                <ResponsiveContainer width="100%" height={240}>
+                                    <PieChart>
+                                        <Pie data={data.cobrosMetodoHoy} dataKey="monto" nameKey="metodo"
+                                             cx="50%" cy="50%" innerRadius={55} outerRadius={85} paddingAngle={3}
+                                             label={({ metodo, percent }) => `${METODO_LABEL[metodo] || metodo} ${(percent * 100).toFixed(0)}%`}>
+                                            {data.cobrosMetodoHoy.map((_, i) => (
+                                                <Cell key={i} fill={Object.values(COLORES)[i % 5]} />
+                                            ))}
+                                        </Pie>
+                                        <Tooltip content={<ChartTooltip />} />
+                                    </PieChart>
+                                </ResponsiveContainer>
+                            </div>
+                        </div>
+                    )}
                 </div>
             )}
 

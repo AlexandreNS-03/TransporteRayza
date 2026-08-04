@@ -93,6 +93,26 @@ public class DashboardService {
                 .map(v -> v.getDescuento() != null ? v.getDescuento() : BigDecimal.ZERO)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
+        // Cobros de HOY por método de pago (efectivo, yape, plin, tarjeta, transferencia)
+        java.util.LinkedHashMap<String, BigDecimal> porMetodo = new java.util.LinkedHashMap<>();
+        for (String m : java.util.List.of("EFECTIVO", "YAPE", "PLIN", "TARJETA", "TRANSFERENCIA"))
+            porMetodo.put(m, BigDecimal.ZERO);
+        for (Venta v : ventasHoy) {
+            String m = (v.getMetodoPago() == null || v.getMetodoPago().isBlank())
+                    ? "EFECTIVO" : v.getMetodoPago().toUpperCase();
+            BigDecimal monto = v.getPrecio() != null ? v.getPrecio() : BigDecimal.ZERO;
+            porMetodo.merge(m, monto, BigDecimal::add);
+        }
+        List<DashboardDTO.CobroMetodoDTO> cobrosMetodoHoy = porMetodo.entrySet().stream()
+                .filter(e -> e.getValue().signum() > 0)
+                .map(e -> new DashboardDTO.CobroMetodoDTO(e.getKey(), e.getValue()))
+                .collect(Collectors.toList());
+        BigDecimal digitalHoy = ventasHoy.stream()
+                .filter(v -> !esEfectivo(v))
+                .map(v -> v.getPrecio() != null ? v.getPrecio() : BigDecimal.ZERO)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal efectivoHoy = ingresosHoy.subtract(digitalHoy);
+
         // SEMANA
         LocalDate finSemana = inicioSemana.plusDays(6);
         List<Venta> ventasSemana = ventasPagadas.stream()
@@ -213,6 +233,9 @@ public class DashboardService {
         dto.setEfectivoIquitosHoy(efectivoIquitosHoy);
         dto.setEfectivoRequenaHoy(efectivoRequenaHoy);
         dto.setDescuentosHoy(descuentosHoy);
+        dto.setEfectivoHoy(efectivoHoy);
+        dto.setDigitalHoy(digitalHoy);
+        dto.setCobrosMetodoHoy(cobrosMetodoHoy);
         dto.setTotalVentasSemana(ventasSemana.size());
         dto.setIngresosSemana(ingresosSemana);
         dto.setTotalVentasMes(ventasMes.size());
