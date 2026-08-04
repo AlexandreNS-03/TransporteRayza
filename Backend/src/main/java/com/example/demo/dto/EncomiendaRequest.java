@@ -17,6 +17,7 @@ public class EncomiendaRequest {
     private BigDecimal precio;
     private String observacion;
     private String claveSeguridad;       // 4 dígitos, para el recojo
+    private String estadoPago;           // PENDIENTE | PAGADO | PAGA_DESTINO
 
     public String getRemitenteNombre() { return remitenteNombre; }
     public void setRemitenteNombre(String remitenteNombre) { this.remitenteNombre = remitenteNombre; }
@@ -56,4 +57,7 @@ public class EncomiendaRequest {
 
     public String getClaveSeguridad() { return claveSeguridad; }
     public void setClaveSeguridad(String claveSeguridad) { this.claveSeguridad = claveSeguridad; }
+
+    public String getEstadoPago() { return estadoPago; }
+    public void setEstadoPago(String estadoPago) { this.estadoPago = estadoPago; }
 }

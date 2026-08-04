@@ -105,6 +105,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST,  "/api/encomiendas").hasAnyRole("ADMIN", "SUPERVISOR", "EMPLEADO")
                         .requestMatchers(HttpMethod.PATCH, "/api/encomiendas/*/estado").hasAnyRole("ADMIN", "SUPERVISOR", "EMPLEADO")
                         .requestMatchers(HttpMethod.PATCH, "/api/encomiendas/*/entregar").hasAnyRole("ADMIN", "SUPERVISOR", "EMPLEADO")
+                        .requestMatchers(HttpMethod.PATCH, "/api/encomiendas/*/estado-pago").hasAnyRole("ADMIN", "SUPERVISOR", "EMPLEADO")
 
                         /*AUDITORIA (solo administrador)*/
                         .requestMatchers("/api/auditoria/**").hasRole("ADMIN")

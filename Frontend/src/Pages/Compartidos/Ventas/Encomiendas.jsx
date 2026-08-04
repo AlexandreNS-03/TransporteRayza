@@ -11,6 +11,9 @@ const ESTADO_LABEL = {
     REGISTRADO: "Registrado", EN_TRANSITO: "En tránsito",
     ENTREGADO: "Entregado", DEVUELTO: "Devuelto"
 };
+const PAGO_LABEL = { PAGADO: "Pagado", PENDIENTE: "Pendiente", PAGA_DESTINO: "Paga en destino" };
+const PAGO_BADGE = { PAGADO: "badge-entregado", PENDIENTE: "badge-anulado", PAGA_DESTINO: "badge-transito" };
+
 const ESTADO_BADGE = {
     REGISTRADO: "badge-pagado", EN_TRANSITO: "badge-transito",
     ENTREGADO: "badge-entregado", DEVUELTO: "badge-anulado"
@@ -54,7 +57,7 @@ function Encomiendas() {
         remitenteNombre: "", remitenteDocumento: "", remitenteTelefono: "",
         destinatarioNombre: "", destinatarioDocumento: "", destinatarioTelefono: "",
         descripcion: "", peso: "", precio: "", sucursalDestinoId: "", viajeId: "", observacion: "",
-        claveSeguridad: ""
+        claveSeguridad: "", estadoPago: "PAGADO"
     };
     const [form, setForm] = useState(formVacio);
 
@@ -127,6 +130,18 @@ function Encomiendas() {
                 body: JSON.stringify({ estado: nuevoEstado })
             });
             mostrarToast("success", `${e.codigoEncomienda} marcada como ${etiqueta}`);
+            cargarTodo();
+        } catch (err) { mostrarToast("error", err.message); }
+    };
+
+    const cambiarEstadoPago = async (e, nuevo) => {
+        if (nuevo === "PAGADO" && !confirm(`¿Marcar ${e.codigoEncomienda} como PAGADO? Se registrará el ingreso en tu caja.`)) return;
+        try {
+            await apiFetch(`/api/encomiendas/${e.id}/estado-pago`, {
+                method: "PATCH",
+                body: JSON.stringify({ estadoPago: nuevo })
+            });
+            mostrarToast("success", `${e.codigoEncomienda}: pago → ${PAGO_LABEL[nuevo]}`);
             cargarTodo();
         } catch (err) { mostrarToast("error", err.message); }
     };
@@ -318,7 +333,14 @@ function Encomiendas() {
                                         </div>
                                     </td>
                                     <td data-label="Destino">{e.sucursalDestinoNombre || "—"}</td>
-                                    <td data-label="Precio"><strong>S/ {Number(e.precio).toFixed(2)}</strong></td>
+                                    <td data-label="Precio">
+                                        <strong>S/ {Number(e.precio).toFixed(2)}</strong>
+                                        {e.estadoPago && (
+                                            <><br /><span className={`badge ${PAGO_BADGE[e.estadoPago]}`} style={{ fontSize: "10px" }}>
+                                                {PAGO_LABEL[e.estadoPago] || e.estadoPago}
+                                            </span></>
+                                        )}
+                                    </td>
                                     <td data-label="Estado">
                                         <span className={`badge ${ESTADO_BADGE[e.estado]}`}>{ESTADO_LABEL[e.estado]}</span>
                                     </td>
@@ -330,6 +352,14 @@ function Encomiendas() {
                                                     title="Descargar guía / ticket del envío">
                                                 <i className="ti ti-file-invoice"></i>
                                             </button>
+                                            {/* Marcar pagado si aún no lo está */}
+                                            {e.estadoPago && e.estadoPago !== "PAGADO" && e.estado !== "DEVUELTO" && (
+                                                <button className="btn-accion generar"
+                                                        onClick={() => cambiarEstadoPago(e, "PAGADO")}
+                                                        title="Marcar como pagado">
+                                                    <i className="ti ti-cash"></i>
+                                                </button>
+                                            )}
                                             {e.estado !== "DEVUELTO" && (
                                                 comprobanteDeEncomienda(e.id) ? (
                                                     <button className="btn-accion emitido" disabled
@@ -464,6 +494,16 @@ function Encomiendas() {
                                            onChange={e => setForm(prev => ({ ...prev, claveSeguridad: e.target.value.replace(/\D/g, "").slice(0, 4) }))}
                                            placeholder="Ej: 4821" />
                                     <span className="campo-ayuda">El remitente la comunica al destinatario; se pedirá al recoger.</span>
+                                </div>
+
+                                <div className="form-grupo">
+                                    <label>Estado de pago</label>
+                                    <select name="estadoPago" value={form.estadoPago} onChange={handleChange}>
+                                        <option value="PAGADO">Pagado (cobrado ahora)</option>
+                                        <option value="PENDIENTE">Pendiente de pago</option>
+                                        <option value="PAGA_DESTINO">Paga en destino</option>
+                                    </select>
+                                    <span className="campo-ayuda">Solo "Pagado" registra el ingreso en caja.</span>
                                 </div>
 
                                 {errorModal && <div className="modal-error"><i className="ti ti-alert-circle"></i> {errorModal}</div>}

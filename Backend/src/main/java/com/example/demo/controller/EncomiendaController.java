@@ -46,4 +46,12 @@ public class EncomiendaController {
         return ResponseEntity.ok(encomiendaService.entregar(id,
                 body.get("clave"), body.get("receptorNombre"), body.get("receptorDocumento"), auth.getName()));
     }
+
+    /** Cambia el estado de pago (PENDIENTE / PAGADO / PAGA_DESTINO). */
+    @PatchMapping("/{id}/estado-pago")
+    public ResponseEntity<Encomienda> cambiarEstadoPago(@PathVariable String id,
+                                                        @RequestBody Map<String, String> body,
+                                                        Authentication auth) {
+        return ResponseEntity.ok(encomiendaService.cambiarEstadoPago(id, body.get("estadoPago"), auth.getName()));
+    }
 }

@@ -78,6 +78,12 @@ public class EncomiendaService {
         e.setObservacion(req.getObservacion());
         e.setClaveSeguridad(clave);
         e.setEstado(Encomienda.EstadoEncomienda.REGISTRADO);
+        // Estado de pago: por defecto PAGADO (se cobra al registrar)
+        Encomienda.EstadoPago estadoPago;
+        try { estadoPago = Encomienda.EstadoPago.valueOf(
+                req.getEstadoPago() == null ? "PAGADO" : req.getEstadoPago().trim().toUpperCase()); }
+        catch (Exception ex) { estadoPago = Encomienda.EstadoPago.PAGADO; }
+        e.setEstadoPago(estadoPago);
         e.setCreatedAt(LocalDateTime.now());
 
         // Viaje asociado (opcional)
@@ -106,11 +112,13 @@ public class EncomiendaService {
 
         encomiendaRepository.save(e);
 
-        // Ingreso en la caja abierta del usuario
-        cajaService.registrarMovimientoAutomatico(usuarioNombre,
-                MovimientoCaja.TipoMovimiento.INGRESO,
-                e.getPrecio(),
-                "Venta encomienda " + e.getCodigoEncomienda() + " — " + e.getRemitenteNombre());
+        // Ingreso en la caja SOLO si ya está pagado (pendiente / paga en destino no entra dinero aún)
+        if (e.getEstadoPago() == Encomienda.EstadoPago.PAGADO) {
+            cajaService.registrarMovimientoAutomatico(usuarioNombre,
+                    MovimientoCaja.TipoMovimiento.INGRESO,
+                    e.getPrecio(),
+                    "Venta encomienda " + e.getCodigoEncomienda() + " — " + e.getRemitenteNombre());
+        }
 
         auditoriaService.registrar("CREAR", "ENCOMIENDAS", e.getId(),
                 "Encomienda " + e.getCodigoEncomienda() + " de " + e.getRemitenteNombre()
@@ -239,6 +247,35 @@ public class EncomiendaService {
         dto.setPeso(e.getPeso());
         dto.setPrecio(e.getPrecio());
         dto.setEstado(e.getEstado() != null ? e.getEstado().name() : null);
+        dto.setEstadoPago(e.getEstadoPago() != null ? e.getEstadoPago().name() : null);
         return dto;
+    }
+
+    /** Cambia el estado de pago. Al pasar a PAGADO registra el ingreso en la caja. */
+    @Transactional
+    public Encomienda cambiarEstadoPago(String id, String nuevoEstadoPago, String usuarioNombre) {
+        Encomienda e = encomiendaRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Encomienda no encontrada"));
+
+        Encomienda.EstadoPago nuevo;
+        try { nuevo = Encomienda.EstadoPago.valueOf(nuevoEstadoPago); }
+        catch (Exception ex) { throw new RuntimeException("Estado de pago inválido"); }
+
+        Encomienda.EstadoPago anterior = e.getEstadoPago();
+        // Si pasa a PAGADO y antes no lo estaba, entra el dinero a la caja
+        if (nuevo == Encomienda.EstadoPago.PAGADO && anterior != Encomienda.EstadoPago.PAGADO) {
+            cajaService.registrarMovimientoAutomatico(usuarioNombre,
+                    MovimientoCaja.TipoMovimiento.INGRESO,
+                    e.getPrecio(),
+                    "Pago encomienda " + e.getCodigoEncomienda() + " — " + e.getRemitenteNombre());
+        }
+
+        e.setEstadoPago(nuevo);
+        encomiendaRepository.save(e);
+
+        auditoriaService.registrar("ESTADO_PAGO", "ENCOMIENDAS", e.getId(),
+                "Encomienda " + e.getCodigoEncomienda() + " pago → " + nuevo.name());
+
+        return e;
     }
 }

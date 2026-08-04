@@ -23,6 +23,10 @@ public class EncomiendaPublicDTO {
     private BigDecimal peso;
     private BigDecimal precio;
     private String estado;
+    private String estadoPago;
+
+    public String getEstadoPago() { return estadoPago; }
+    public void setEstadoPago(String v) { this.estadoPago = v; }
 
     public String getCodigoEncomienda() { return codigoEncomienda; }
     public void setCodigoEncomienda(String v) { this.codigoEncomienda = v; }

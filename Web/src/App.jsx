@@ -11,6 +11,7 @@ import MiCuenta from "./pages/MiCuenta";
 import Destinos from "./pages/Destinos";
 import DestinoDetalle from "./pages/DestinoDetalle";
 import Rastreo from "./pages/Rastreo";
+import PagaCarga from "./pages/PagaCarga";
 import CookieBanner from "./components/CookieBanner";
 
 export default function App() {
@@ -29,6 +30,7 @@ export default function App() {
         <Route path="/destinos" element={<Destinos />} />
         <Route path="/destinos/:slug" element={<DestinoDetalle />} />
         <Route path="/rastreo" element={<Rastreo />} />
+        <Route path="/paga-tu-carga" element={<PagaCarga />} />
         <Route path="*" element={<Landing />} />
       </Routes>
       <CookieBanner />

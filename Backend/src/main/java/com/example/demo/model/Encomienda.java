@@ -71,6 +71,11 @@ public class Encomienda {
     @Column(name = "estado", nullable = false)
     private EstadoEncomienda estado;
 
+    /** Estado del pago: PENDIENTE / PAGADO / PAGA_DESTINO (contra entrega). */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "estado_pago", length = 20)
+    private EstadoPago estadoPago;
+
     @Column(name = "usuario_id", length = 36)
     private String usuarioId;
 
@@ -95,6 +100,7 @@ public class Encomienda {
     private LocalDateTime entregadoAt;
 
     public enum EstadoEncomienda { REGISTRADO, EN_TRANSITO, ENTREGADO, DEVUELTO }
+    public enum EstadoPago { PENDIENTE, PAGADO, PAGA_DESTINO }
 
     // Getters y Setters
     public String getId() { return id; }
@@ -156,6 +162,9 @@ public class Encomienda {
 
     public EstadoEncomienda getEstado() { return estado; }
     public void setEstado(EstadoEncomienda estado) { this.estado = estado; }
+
+    public EstadoPago getEstadoPago() { return estadoPago; }
+    public void setEstadoPago(EstadoPago estadoPago) { this.estadoPago = estadoPago; }
 
     @com.fasterxml.jackson.annotation.JsonIgnore
     public String getClaveSeguridad() { return claveSeguridad; }
