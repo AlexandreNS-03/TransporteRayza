@@ -237,7 +237,8 @@
 .btn-accion.generar       { background: #fefce8; color: #a16207; }
 .btn-accion.generar:hover { background: #fef9c3; }
 
-.btn-accion.emitido { background: #f0fdf4; color: #15803d; cursor: default; }
+.btn-accion.emitido { background: #f0fdf4; color: #15803d; cursor: pointer; }
+.btn-accion.emitido:hover { background: #dcfce7; }
 
 .tabla-vacia { text-align: center; padding: 40px !important; color: #9ca3af; }
 .tabla-vacia i { font-size: 32px; display: block; margin-bottom: 8px; }
