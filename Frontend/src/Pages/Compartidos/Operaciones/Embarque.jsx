@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import "./Embarque.css";
 import EscanerQR from "./EscanerQR.jsx";
+import SelectorViaje from "../../../Components/SelectorViaje.jsx";
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8080";
 
@@ -235,20 +236,12 @@ function Embarque() {
             <div className="embarque-controles">
                 <div className="control-grupo">
                     <label>Seleccionar Viaje</label>
-                    <select
+                    <SelectorViaje
+                        viajes={viajes}
                         value={viajeId}
-                        onChange={e => { setViajeId(e.target.value); setBusqueda(""); }}
-                        disabled={cargandoViajes}
-                    >
-                        <option value="">
-                            {cargandoViajes ? "Cargando viajes..." : "Seleccionar viaje..."}
-                        </option>
-                        {viajes.map(v => (
-                            <option key={v.id} value={v.id}>
-                                {v.codigoViaje} — {v.rutaNombre} — {v.fechaSalida} {v.horaSalida}
-                            </option>
-                        ))}
-                    </select>
+                        onChange={(id) => { setViajeId(id); setBusqueda(""); }}
+                        cargando={cargandoViajes}
+                    />
                 </div>
 
                 <div className="control-separador">o</div>

@@ -5,6 +5,7 @@ import { apiFetch, usuarioActual } from "../../../Services/api.js";
 import { useToast, Toasts } from "../../../Components/Toast.jsx";
 import { usePaginacion, Paginacion } from "../../../Components/Paginacion.jsx";
 import GenerarComprobanteModal from "../Finanzas/GenerarComprobanteModal.jsx";
+import SelectorViaje from "../../../Components/SelectorViaje.jsx";
 import generarTicketEncomienda from "../../../Utils/generarTicketEncomienda.jsx";
 
 const ESTADO_LABEL = {
@@ -474,12 +475,12 @@ function Encomiendas() {
                                     </div>
                                     <div className="form-grupo">
                                         <label>Viaje (opcional)</label>
-                                        <select name="viajeId" value={form.viajeId} onChange={handleChange}>
-                                            <option value="">Sin viaje asignado</option>
-                                            {viajes.map(v => (
-                                                <option key={v.id} value={v.id}>{v.codigoViaje} — {v.fechaSalida} {v.horaSalida}</option>
-                                            ))}
-                                        </select>
+                                        <SelectorViaje
+                                            viajes={viajes}
+                                            value={form.viajeId}
+                                            onChange={(id) => setForm(prev => ({ ...prev, viajeId: id }))}
+                                            placeholder="Sin viaje asignado"
+                                        />
                                     </div>
                                 </div>
                                 <div className="form-grupo">
