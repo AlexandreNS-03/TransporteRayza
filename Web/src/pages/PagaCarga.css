@@ -1,0 +1,19 @@
+/* Estado de pago */
+.pago-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;
+}
+.pago-badge.pago-ok   { background: #f0fdf4; color: #15803d; }
+.pago-badge.pago-pend { background: #fef2f2; color: #b91c1c; }
+.pago-badge.pago-dest { background: #fefce8; color: #a16207; }
+
+.paga-monto {
+    display: flex; align-items: baseline; justify-content: space-between;
+    padding: 14px 16px; background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 10px;
+}
+.paga-monto span { font-size: 12px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.4px; }
+.paga-monto strong { font-size: 26px; color: #0f172a; }
+
+.paga-accion { text-align: center; }
+.paga-accion .rastreo-btn { width: 100%; justify-content: center; }
+.paga-nota { margin-top: 10px; font-size: 12.5px; color: #6b7280; }

@@ -11,6 +11,9 @@ const ESTADO_LABEL = {
     REGISTRADO: "Registrado", EN_TRANSITO: "En tránsito",
     ENTREGADO: "Entregado", DEVUELTO: "Devuelto"
 };
+const PAGO_LABEL = { PAGADO: "Pagado", PENDIENTE: "Pendiente", PAGA_DESTINO: "Paga en destino" };
+const PAGO_BADGE = { PAGADO: "badge-entregado", PENDIENTE: "badge-anulado", PAGA_DESTINO: "badge-transito" };
+
 const ESTADO_BADGE = {
     REGISTRADO: "badge-pagado", EN_TRANSITO: "badge-transito",
     ENTREGADO: "badge-entregado", DEVUELTO: "badge-anulado"
@@ -53,9 +56,16 @@ function Encomiendas() {
     const formVacio = {
         remitenteNombre: "", remitenteDocumento: "", remitenteTelefono: "",
         destinatarioNombre: "", destinatarioDocumento: "", destinatarioTelefono: "",
-        descripcion: "", peso: "", precio: "", sucursalDestinoId: "", viajeId: "", observacion: ""
+        descripcion: "", peso: "", precio: "", sucursalDestinoId: "", viajeId: "", observacion: "",
+        claveSeguridad: "", estadoPago: "PAGADO"
     };
     const [form, setForm] = useState(formVacio);
+
+    // Modal de recojo/entrega
+    const [encEntregar, setEncEntregar] = useState(null);
+    const [formEntregar, setFormEntregar] = useState({ clave: "", receptorNombre: "", receptorDocumento: "" });
+    const [entregando, setEntregando] = useState(false);
+    const [errorEntregar, setErrorEntregar] = useState(null);
 
     useEffect(() => { cargarTodo(); }, []);
 
@@ -89,6 +99,10 @@ function Encomiendas() {
     };
 
     const registrar = async () => {
+        if (!/^\d{4}$/.test(form.claveSeguridad || "")) {
+            setErrorModal("La clave de seguridad debe ser de 4 dígitos");
+            return;
+        }
         setGuardando(true);
         setErrorModal(null);
         try {
@@ -118,6 +132,41 @@ function Encomiendas() {
             mostrarToast("success", `${e.codigoEncomienda} marcada como ${etiqueta}`);
             cargarTodo();
         } catch (err) { mostrarToast("error", err.message); }
+    };
+
+    const cambiarEstadoPago = async (e, nuevo) => {
+        if (nuevo === "PAGADO" && !confirm(`¿Marcar ${e.codigoEncomienda} como PAGADO? Se registrará el ingreso en tu caja.`)) return;
+        try {
+            await apiFetch(`/api/encomiendas/${e.id}/estado-pago`, {
+                method: "PATCH",
+                body: JSON.stringify({ estadoPago: nuevo })
+            });
+            mostrarToast("success", `${e.codigoEncomienda}: pago → ${PAGO_LABEL[nuevo]}`);
+            cargarTodo();
+        } catch (err) { mostrarToast("error", err.message); }
+    };
+
+    const abrirEntregar = (e) => {
+        setEncEntregar(e);
+        setFormEntregar({ clave: "", receptorNombre: e.destinatarioNombre || "", receptorDocumento: e.destinatarioDocumento || "" });
+        setErrorEntregar(null);
+    };
+
+    const confirmarEntrega = async () => {
+        if (!formEntregar.receptorDocumento.trim()) { setErrorEntregar("El documento de quien recoge es obligatorio"); return; }
+        if (!/^\d{4}$/.test(formEntregar.clave || "")) { setErrorEntregar("Ingresa la clave de seguridad (4 dígitos)"); return; }
+        setEntregando(true);
+        setErrorEntregar(null);
+        try {
+            await apiFetch(`/api/encomiendas/${encEntregar.id}/entregar`, {
+                method: "PATCH",
+                body: JSON.stringify(formEntregar)
+            });
+            setEncEntregar(null);
+            mostrarToast("success", `${encEntregar.codigoEncomienda} entregada correctamente`);
+            cargarTodo();
+        } catch (err) { setErrorEntregar(err.message); }
+        finally { setEntregando(false); }
     };
 
     const filtradas = encomiendas.filter(e => {
@@ -284,7 +333,14 @@ function Encomiendas() {
                                         </div>
                                     </td>
                                     <td data-label="Destino">{e.sucursalDestinoNombre || "—"}</td>
-                                    <td data-label="Precio"><strong>S/ {Number(e.precio).toFixed(2)}</strong></td>
+                                    <td data-label="Precio">
+                                        <strong>S/ {Number(e.precio).toFixed(2)}</strong>
+                                        {e.estadoPago && (
+                                            <><br /><span className={`badge ${PAGO_BADGE[e.estadoPago]}`} style={{ fontSize: "10px" }}>
+                                                {PAGO_LABEL[e.estadoPago] || e.estadoPago}
+                                            </span></>
+                                        )}
+                                    </td>
                                     <td data-label="Estado">
                                         <span className={`badge ${ESTADO_BADGE[e.estado]}`}>{ESTADO_LABEL[e.estado]}</span>
                                     </td>
@@ -296,6 +352,14 @@ function Encomiendas() {
                                                     title="Descargar guía / ticket del envío">
                                                 <i className="ti ti-file-invoice"></i>
                                             </button>
+                                            {/* Marcar pagado si aún no lo está */}
+                                            {e.estadoPago && e.estadoPago !== "PAGADO" && e.estado !== "DEVUELTO" && (
+                                                <button className="btn-accion generar"
+                                                        onClick={() => cambiarEstadoPago(e, "PAGADO")}
+                                                        title="Marcar como pagado">
+                                                    <i className="ti ti-cash"></i>
+                                                </button>
+                                            )}
                                             {e.estado !== "DEVUELTO" && (
                                                 comprobanteDeEncomienda(e.id) ? (
                                                     <button className="btn-accion emitido" disabled
@@ -320,8 +384,8 @@ function Encomiendas() {
                                             {(e.estado === "REGISTRADO" || e.estado === "EN_TRANSITO") && (
                                                 <>
                                                     <button className="btn-accion email"
-                                                            onClick={() => cambiarEstado(e, "ENTREGADO")}
-                                                            title="Marcar entregado">
+                                                            onClick={() => abrirEntregar(e)}
+                                                            title="Entregar (recojo con clave)">
                                                         <i className="ti ti-circle-check"></i>
                                                     </button>
                                                     <button className="btn-accion anular"
@@ -423,6 +487,25 @@ function Encomiendas() {
                                     <input type="text" name="observacion" value={form.observacion} onChange={handleChange} placeholder="Frágil, entregar con cuidado" />
                                 </div>
 
+                                <div className="form-grupo">
+                                    <label>Clave de seguridad (4 dígitos) *</label>
+                                    <input type="text" name="claveSeguridad" inputMode="numeric" maxLength={4}
+                                           value={form.claveSeguridad}
+                                           onChange={e => setForm(prev => ({ ...prev, claveSeguridad: e.target.value.replace(/\D/g, "").slice(0, 4) }))}
+                                           placeholder="Ej: 4821" />
+                                    <span className="campo-ayuda">El remitente la comunica al destinatario; se pedirá al recoger.</span>
+                                </div>
+
+                                <div className="form-grupo">
+                                    <label>Estado de pago</label>
+                                    <select name="estadoPago" value={form.estadoPago} onChange={handleChange}>
+                                        <option value="PAGADO">Pagado (cobrado ahora)</option>
+                                        <option value="PENDIENTE">Pendiente de pago</option>
+                                        <option value="PAGA_DESTINO">Paga en destino</option>
+                                    </select>
+                                    <span className="campo-ayuda">Solo "Pagado" registra el ingreso en caja.</span>
+                                </div>
+
                                 {errorModal && <div className="modal-error"><i className="ti ti-alert-circle"></i> {errorModal}</div>}
                             </div>
                         </div>
@@ -447,6 +530,55 @@ function Encomiendas() {
                         mostrarToast("success", `Comprobante ${c.serie}-${String(c.numero).padStart(8, "0")} emitido`);
                     }}
                 />
+            )}
+
+            {/* MODAL RECOJO / ENTREGA */}
+            {encEntregar && (
+                <div className="modal-overlay" onClick={() => setEncEntregar(null)}>
+                    <div className="modal modal-wizard modal-anular" onClick={ev => ev.stopPropagation()}>
+                        <div className="wizard-header">
+                            <h3><i className="ti ti-package-import"></i> Entregar {encEntregar.codigoEncomienda}</h3>
+                            <button className="modal-cerrar" onClick={() => setEncEntregar(null)}><i className="ti ti-x"></i></button>
+                        </div>
+                        <div className="modal-body">
+                            <div className="wizard-contenido">
+                                <div className="edit-nota">
+                                    <i className="ti ti-info-circle"></i>
+                                    Verifica el documento de identidad de quien recoge y pide la clave de seguridad de 4 dígitos.
+                                </div>
+                                <div className="resumen-venta">
+                                    <div className="resumen-fila"><span>Destinatario</span><strong>{encEntregar.destinatarioNombre}</strong></div>
+                                    <div className="resumen-fila"><span>Destino</span><strong>{encEntregar.sucursalDestinoNombre || "—"}</strong></div>
+                                </div>
+                                <div className="form-grupo">
+                                    <label>Nombre de quien recoge</label>
+                                    <input type="text" value={formEntregar.receptorNombre}
+                                           onChange={e => setFormEntregar(p => ({ ...p, receptorNombre: e.target.value }))}
+                                           placeholder="Nombre completo" />
+                                </div>
+                                <div className="form-grupo">
+                                    <label>Documento de quien recoge *</label>
+                                    <input type="text" value={formEntregar.receptorDocumento}
+                                           onChange={e => setFormEntregar(p => ({ ...p, receptorDocumento: e.target.value }))}
+                                           placeholder="DNI / CE" />
+                                </div>
+                                <div className="form-grupo">
+                                    <label>Clave de seguridad (4 dígitos) *</label>
+                                    <input type="text" inputMode="numeric" maxLength={4} value={formEntregar.clave}
+                                           onChange={e => setFormEntregar(p => ({ ...p, clave: e.target.value.replace(/\D/g, "").slice(0, 4) }))}
+                                           placeholder="****" />
+                                </div>
+                                {errorEntregar && <div className="modal-error"><i className="ti ti-alert-circle"></i> {errorEntregar}</div>}
+                            </div>
+                        </div>
+                        <div className="modal-footer">
+                            <button className="btn-cancelar" onClick={() => setEncEntregar(null)}>Cancelar</button>
+                            <button className="btn-guardar" onClick={confirmarEntrega} disabled={entregando}>
+                                {entregando ? <><i className="ti ti-loader-2 spin"></i> Entregando...</> : <><i className="ti ti-circle-check"></i> Confirmar entrega</>}
+                            </button>
+                        </div>
+                    </div>
+                </div>
             )}
 
             <Toasts toasts={toasts} />

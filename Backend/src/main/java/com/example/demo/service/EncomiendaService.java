@@ -56,6 +56,9 @@ public class EncomiendaService {
             throw new RuntimeException("La descripción del paquete es obligatoria");
         if (req.getPrecio() == null || req.getPrecio().signum() <= 0)
             throw new RuntimeException("El precio del envío debe ser mayor a cero");
+        String clave = req.getClaveSeguridad() == null ? "" : req.getClaveSeguridad().trim();
+        if (!clave.matches("\\d{4}"))
+            throw new RuntimeException("La clave de seguridad debe ser de 4 dígitos");
 
         Usuario usuario = usuarioRepository.findByUsername(usuarioNombre).orElse(null);
 
@@ -73,7 +76,14 @@ public class EncomiendaService {
         e.setPeso(req.getPeso());
         e.setPrecio(req.getPrecio());
         e.setObservacion(req.getObservacion());
+        e.setClaveSeguridad(clave);
         e.setEstado(Encomienda.EstadoEncomienda.REGISTRADO);
+        // Estado de pago: por defecto PAGADO (se cobra al registrar)
+        Encomienda.EstadoPago estadoPago;
+        try { estadoPago = Encomienda.EstadoPago.valueOf(
+                req.getEstadoPago() == null ? "PAGADO" : req.getEstadoPago().trim().toUpperCase()); }
+        catch (Exception ex) { estadoPago = Encomienda.EstadoPago.PAGADO; }
+        e.setEstadoPago(estadoPago);
         e.setCreatedAt(LocalDateTime.now());
 
         // Viaje asociado (opcional)
@@ -102,11 +112,13 @@ public class EncomiendaService {
 
         encomiendaRepository.save(e);
 
-        // Ingreso en la caja abierta del usuario
-        cajaService.registrarMovimientoAutomatico(usuarioNombre,
-                MovimientoCaja.TipoMovimiento.INGRESO,
-                e.getPrecio(),
-                "Venta encomienda " + e.getCodigoEncomienda() + " — " + e.getRemitenteNombre());
+        // Ingreso en la caja SOLO si ya está pagado (pendiente / paga en destino no entra dinero aún)
+        if (e.getEstadoPago() == Encomienda.EstadoPago.PAGADO) {
+            cajaService.registrarMovimientoAutomatico(usuarioNombre,
+                    MovimientoCaja.TipoMovimiento.INGRESO,
+                    e.getPrecio(),
+                    "Venta encomienda " + e.getCodigoEncomienda() + " — " + e.getRemitenteNombre());
+        }
 
         auditoriaService.registrar("CREAR", "ENCOMIENDAS", e.getId(),
                 "Encomienda " + e.getCodigoEncomienda() + " de " + e.getRemitenteNombre()
@@ -126,6 +138,9 @@ public class EncomiendaService {
 
         if (e.getEstado() == Encomienda.EstadoEncomienda.ENTREGADO)
             throw new RuntimeException("La encomienda ya fue entregada");
+        // La entrega se hace por el proceso de recojo (valida la clave de seguridad).
+        if (estado == Encomienda.EstadoEncomienda.ENTREGADO)
+            throw new RuntimeException("Para entregar usa el recojo con la clave de seguridad");
 
         // DEVUELTO implica devolver el dinero: egreso en la caja del usuario
         if (estado == Encomienda.EstadoEncomienda.DEVUELTO) {
@@ -144,6 +159,43 @@ public class EncomiendaService {
         return e;
     }
 
+    /**
+     * Recojo/entrega: valida la clave de seguridad de 4 dígitos y registra al
+     * receptor (documento de identidad). Solo entonces marca ENTREGADO.
+     */
+    @Transactional
+    public Encomienda entregar(String id, String clave, String receptorNombre,
+                               String receptorDocumento, String usuarioNombre) {
+        Encomienda e = encomiendaRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Encomienda no encontrada"));
+
+        if (e.getEstado() == Encomienda.EstadoEncomienda.ENTREGADO)
+            throw new RuntimeException("La encomienda ya fue entregada");
+        if (e.getEstado() == Encomienda.EstadoEncomienda.DEVUELTO)
+            throw new RuntimeException("La encomienda fue devuelta, no se puede entregar");
+
+        // Verifica la clave (si la encomienda tiene una registrada)
+        String claveGuardada = e.getClaveSeguridad();
+        if (claveGuardada != null && !claveGuardada.isBlank()) {
+            if (clave == null || !claveGuardada.equals(clave.trim()))
+                throw new RuntimeException("La clave de seguridad no coincide");
+        }
+        if (receptorDocumento == null || receptorDocumento.isBlank())
+            throw new RuntimeException("El documento de quien recoge es obligatorio");
+
+        e.setEstado(Encomienda.EstadoEncomienda.ENTREGADO);
+        e.setReceptorNombre(receptorNombre != null ? receptorNombre.trim() : null);
+        e.setReceptorDocumento(receptorDocumento.trim());
+        e.setEntregadoAt(LocalDateTime.now());
+        encomiendaRepository.save(e);
+
+        auditoriaService.registrar("ENTREGAR", "ENCOMIENDAS", e.getId(),
+                "Encomienda " + e.getCodigoEncomienda() + " entregada a "
+                        + e.getReceptorDocumento() + (receptorNombre != null ? " (" + receptorNombre + ")" : ""));
+
+        return e;
+    }
+
     private String generarCodigo() {
         long siguiente = encomiendaRepository.findTopByOrderByCodigoEncomiendaDesc()
                 .map(e -> {
@@ -152,5 +204,78 @@ public class EncomiendaService {
                 })
                 .orElse(1L);
         return String.format("ENC-%06d", siguiente);
+    }
+
+    // ───────────────── Rastreo público (sin login) ─────────────────
+
+    public com.example.demo.dto.EncomiendaPublicDTO rastrearPorCodigo(String codigo) {
+        return encomiendaRepository.findByCodigoEncomienda(codigo == null ? "" : codigo.trim())
+                .map(this::toPublicDTO)
+                .orElseThrow(() -> new RuntimeException("No se encontró ninguna encomienda con ese código"));
+    }
+
+    public java.util.List<com.example.demo.dto.EncomiendaPublicDTO> rastrearPorRemitente(String documento) {
+        java.util.List<com.example.demo.dto.EncomiendaPublicDTO> r = encomiendaRepository
+                .findByRemitenteDocumentoOrderByCreatedAtDesc(documento == null ? "" : documento.trim())
+                .stream().map(this::toPublicDTO).collect(java.util.stream.Collectors.toList());
+        if (r.isEmpty()) throw new RuntimeException("No se encontraron encomiendas para ese documento");
+        return r;
+    }
+
+    public java.util.List<com.example.demo.dto.EncomiendaPublicDTO> rastrearPorDestinatario(String documento) {
+        java.util.List<com.example.demo.dto.EncomiendaPublicDTO> r = encomiendaRepository
+                .findByDestinatarioDocumentoOrderByCreatedAtDesc(documento == null ? "" : documento.trim())
+                .stream().map(this::toPublicDTO).collect(java.util.stream.Collectors.toList());
+        if (r.isEmpty()) throw new RuntimeException("No se encontraron encomiendas para ese documento");
+        return r;
+    }
+
+    private com.example.demo.dto.EncomiendaPublicDTO toPublicDTO(Encomienda e) {
+        com.example.demo.dto.EncomiendaPublicDTO dto = new com.example.demo.dto.EncomiendaPublicDTO();
+        dto.setCodigoEncomienda(e.getCodigoEncomienda());
+        dto.setFechaRegistro(e.getFechaRegistro() != null ? e.getFechaRegistro().toString() : null);
+        dto.setRemitenteNombre(e.getRemitenteNombre());
+        dto.setRemitenteDocumento(e.getRemitenteDocumento());
+        dto.setRemitenteTelefono(e.getRemitenteTelefono());
+        dto.setDestinatarioNombre(e.getDestinatarioNombre());
+        dto.setDestinatarioDocumento(e.getDestinatarioDocumento());
+        dto.setDestinatarioTelefono(e.getDestinatarioTelefono());
+        dto.setViajeDescripcion(e.getViajeDescripcion());
+        dto.setSucursalOrigenNombre(e.getSucursalOrigenNombre());
+        dto.setSucursalDestinoNombre(e.getSucursalDestinoNombre());
+        dto.setDescripcion(e.getDescripcion());
+        dto.setPeso(e.getPeso());
+        dto.setPrecio(e.getPrecio());
+        dto.setEstado(e.getEstado() != null ? e.getEstado().name() : null);
+        dto.setEstadoPago(e.getEstadoPago() != null ? e.getEstadoPago().name() : null);
+        return dto;
+    }
+
+    /** Cambia el estado de pago. Al pasar a PAGADO registra el ingreso en la caja. */
+    @Transactional
+    public Encomienda cambiarEstadoPago(String id, String nuevoEstadoPago, String usuarioNombre) {
+        Encomienda e = encomiendaRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Encomienda no encontrada"));
+
+        Encomienda.EstadoPago nuevo;
+        try { nuevo = Encomienda.EstadoPago.valueOf(nuevoEstadoPago); }
+        catch (Exception ex) { throw new RuntimeException("Estado de pago inválido"); }
+
+        Encomienda.EstadoPago anterior = e.getEstadoPago();
+        // Si pasa a PAGADO y antes no lo estaba, entra el dinero a la caja
+        if (nuevo == Encomienda.EstadoPago.PAGADO && anterior != Encomienda.EstadoPago.PAGADO) {
+            cajaService.registrarMovimientoAutomatico(usuarioNombre,
+                    MovimientoCaja.TipoMovimiento.INGRESO,
+                    e.getPrecio(),
+                    "Pago encomienda " + e.getCodigoEncomienda() + " — " + e.getRemitenteNombre());
+        }
+
+        e.setEstadoPago(nuevo);
+        encomiendaRepository.save(e);
+
+        auditoriaService.registrar("ESTADO_PAGO", "ENCOMIENDAS", e.getId(),
+                "Encomienda " + e.getCodigoEncomienda() + " pago → " + nuevo.name());
+
+        return e;
     }
 }

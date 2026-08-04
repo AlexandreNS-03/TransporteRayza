@@ -11,4 +11,9 @@ public interface EncomiendaRepository extends JpaRepository<Encomienda, String> 
     List<Encomienda> findAllByOrderByCreatedAtDesc();
 
     Optional<Encomienda> findTopByOrderByCodigoEncomiendaDesc();
+
+    // Rastreo público de encomiendas
+    Optional<Encomienda> findByCodigoEncomienda(String codigo);
+    List<Encomienda> findByRemitenteDocumentoOrderByCreatedAtDesc(String documento);
+    List<Encomienda> findByDestinatarioDocumentoOrderByCreatedAtDesc(String documento);
 }

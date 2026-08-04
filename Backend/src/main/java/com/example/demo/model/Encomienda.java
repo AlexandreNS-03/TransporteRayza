@@ -71,6 +71,11 @@ public class Encomienda {
     @Column(name = "estado", nullable = false)
     private EstadoEncomienda estado;
 
+    /** Estado del pago: PENDIENTE / PAGADO / PAGA_DESTINO (contra entrega). */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "estado_pago", length = 20)
+    private EstadoPago estadoPago;
+
     @Column(name = "usuario_id", length = 36)
     private String usuarioId;
 
@@ -80,7 +85,22 @@ public class Encomienda {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
+    /** Clave de seguridad de 4 dígitos para el recojo (la fija el remitente). */
+    @Column(name = "clave_seguridad", length = 10)
+    private String claveSeguridad;
+
+    /** Datos de quién recogió la encomienda (al entregar). */
+    @Column(name = "receptor_nombre", length = 150)
+    private String receptorNombre;
+
+    @Column(name = "receptor_documento", length = 20)
+    private String receptorDocumento;
+
+    @Column(name = "entregado_at")
+    private LocalDateTime entregadoAt;
+
     public enum EstadoEncomienda { REGISTRADO, EN_TRANSITO, ENTREGADO, DEVUELTO }
+    public enum EstadoPago { PENDIENTE, PAGADO, PAGA_DESTINO }
 
     // Getters y Setters
     public String getId() { return id; }
@@ -142,6 +162,22 @@ public class Encomienda {
 
     public EstadoEncomienda getEstado() { return estado; }
     public void setEstado(EstadoEncomienda estado) { this.estado = estado; }
+
+    public EstadoPago getEstadoPago() { return estadoPago; }
+    public void setEstadoPago(EstadoPago estadoPago) { this.estadoPago = estadoPago; }
+
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    public String getClaveSeguridad() { return claveSeguridad; }
+    public void setClaveSeguridad(String claveSeguridad) { this.claveSeguridad = claveSeguridad; }
+
+    public String getReceptorNombre() { return receptorNombre; }
+    public void setReceptorNombre(String receptorNombre) { this.receptorNombre = receptorNombre; }
+
+    public String getReceptorDocumento() { return receptorDocumento; }
+    public void setReceptorDocumento(String receptorDocumento) { this.receptorDocumento = receptorDocumento; }
+
+    public LocalDateTime getEntregadoAt() { return entregadoAt; }
+    public void setEntregadoAt(LocalDateTime entregadoAt) { this.entregadoAt = entregadoAt; }
 
     public String getUsuarioId() { return usuarioId; }
     public void setUsuarioId(String usuarioId) { this.usuarioId = usuarioId; }
