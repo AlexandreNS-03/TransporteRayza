@@ -301,13 +301,17 @@
 
 /* CONTENIDO */
 .modal-body { padding: 20px; overflow-y: auto; flex: 1; }
-.modal-scroll { max-height: 55vh; overflow-y: auto; }
+.modal-scroll { max-height: 55vh; overflow-y: auto; overflow-x: hidden; }
 
 .wizard-contenido { display: flex; flex-direction: column; gap: 14px; }
 .wizard-titulo { font-size: 13px; font-weight: 600; color: #374151; margin: 0; }
 
 .form-fila { display: flex; gap: 12px; }
-.form-grupo { display: flex; flex-direction: column; gap: 5px; flex: 1; }
+/* min-width:0 es imprescindible: sin él, un flex item no se encoge por debajo
+   de su contenido y un texto largo (p. ej. el código del viaje) desborda
+   toda la fila del modal. */
+.form-grupo { display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 0; }
+.form-fila > .form-grupo { flex: 1 1 0; }
 .form-grupo label { font-size: 12px; font-weight: 600; color: #374151; }
 
 .form-grupo input,
