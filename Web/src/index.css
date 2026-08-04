@@ -131,6 +131,10 @@ h1,h2,h3,h4 { font-family: var(--font-head); color: var(--ink); line-height: 1.1
 .announce button { background: none; border: 0; color: #cfe0f7; cursor: pointer; font-size: 18px; line-height: 1; padding: 2px 6px; border-radius: 6px; }
 .announce button:hover { background: rgba(255,255,255,.12); color: #fff; }
 
+/* El header es fijo: al saltar a una sección con ancla (#destinos, #nosotros)
+   este margen evita que el título quede tapado debajo del header. */
+section[id], div[id] { scroll-margin-top: 90px; }
+
 /* ---------- Header ---------- */
 header.site {
   position: sticky; top: 0; z-index: 50;
@@ -559,18 +563,32 @@ header.site.scrolled::before { background: color-mix(in srgb, var(--bg) 96%, tra
 .dp-day.sel { background: var(--accent); color: #fff; box-shadow: var(--sh-red); }
 
 /* ---------- Footer ---------- */
-footer.site { background: var(--brand-800); color: rgba(255,255,255,.72); padding: 56px 0 28px; }
-footer.site .cols { display: grid; grid-template-columns: 1.6fr 1fr 1fr 1fr; gap: 32px; margin-bottom: 34px; }
-@media (max-width: 720px) { footer.site .cols { grid-template-columns: 1fr 1fr; gap: 26px; } }
-footer.site h4 { color: #fff; font-size: 14px; margin-bottom: 14px; }
+footer.site { background: var(--brand-800); color: rgba(255,255,255,.72); padding: 34px 0 18px; }
+footer.site .cols { display: grid; grid-template-columns: 1.6fr 1fr 1fr 1fr; gap: 24px; margin-bottom: 20px; }
+footer.site h4 { color: #fff; font-size: 13px; margin-bottom: 9px; }
 footer.site ul { list-style: none; padding: 0; margin: 0; }
-footer.site ul li { margin-bottom: 10px; font-size: 14.5px; }
+footer.site ul li { margin-bottom: 6px; font-size: 13.5px; }
 footer.site a:hover { color: #fff; }
-footer.site .social { display: flex; gap: 10px; margin-top: 14px; }
-footer.site .social a { width: 40px; height: 40px; border-radius: 11px; display: grid; place-items: center; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.12); }
+footer.site .social { display: flex; gap: 8px; margin-top: 10px; }
+footer.site .social a { width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.12); }
 footer.site .social a:hover { background: var(--accent); border-color: var(--accent); }
-footer.site .social svg { width: 20px; height: 20px; }
-footer.site .foot-bottom { border-top: 1px solid rgba(255,255,255,.12); padding-top: 22px; font-size: 13px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+footer.site .social svg { width: 17px; height: 17px; }
+footer.site .foot-bottom { border-top: 1px solid rgba(255,255,255,.12); padding-top: 14px; font-size: 12.5px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+/* El logo del footer también más discreto */
+footer.site .logo .txt b { font-size: 16px; }
+footer.site .logo .mark { width: 34px; height: 34px; }
+@media (max-width: 720px) {
+  footer.site { padding: 26px 0 16px; }
+  footer.site .cols { grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 16px; }
+  footer.site ul li { margin-bottom: 5px; font-size: 13px; }
+  footer.site .foot-bottom { justify-content: center; text-align: center; font-size: 12px; }
+  /* En móvil el texto de presentación es lo más prescindible: los datos
+     útiles (teléfono, correo, direcciones) se mantienen. */
+  footer.site .cols > div:first-child > p { display: none; }
+  footer.site .logo .txt b { font-size: 15px; }
+  footer.site .social a { width: 30px; height: 30px; border-radius: 8px; }
+  footer.site .social svg { width: 15px; height: 15px; }
+}
 
 /* ---- Itinerario del tramo: guía de llegada por parada ---- */
 .itinerario { margin-top: 10px; }
@@ -781,8 +799,8 @@ footer.site .foot-bottom { border-top: 1px solid rgba(255,255,255,.12); padding-
 }
 
 /* ---- Datos de contacto en el pie ---- */
-.footer-contacto { list-style: none; margin: 14px 0 0; padding: 0; }
-.footer-contacto li { font-size: 13.5px; line-height: 1.65; margin-bottom: 5px; }
+.footer-contacto { list-style: none; margin: 10px 0 0; padding: 0; }
+.footer-contacto li { font-size: 12.5px; line-height: 1.5; margin-bottom: 3px; }
 .footer-contacto b { color: #dbe6f5; }
 
 /* Logo oficial de la pasarela; si falta el archivo se usa el ícono de respaldo */

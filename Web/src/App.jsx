@@ -11,12 +11,14 @@ import MiCuenta from "./pages/MiCuenta";
 import Destinos from "./pages/Destinos";
 import DestinoDetalle from "./pages/DestinoDetalle";
 import Rastreo from "./pages/Rastreo";
+import IrArriba from "./components/IrArriba";
 import PagaCarga from "./pages/PagaCarga";
 import CookieBanner from "./components/CookieBanner";
 
 export default function App() {
   return (
     <BrowserRouter>
+      <IrArriba />
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/comprar" element={<Comprar />} />
