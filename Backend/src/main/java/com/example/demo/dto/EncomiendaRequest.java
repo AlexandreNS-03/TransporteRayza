@@ -16,6 +16,7 @@ public class EncomiendaRequest {
     private BigDecimal peso;             // kg
     private BigDecimal precio;
     private String observacion;
+    private String claveSeguridad;       // 4 dígitos, para el recojo
 
     public String getRemitenteNombre() { return remitenteNombre; }
     public void setRemitenteNombre(String remitenteNombre) { this.remitenteNombre = remitenteNombre; }
@@ -52,4 +53,7 @@ public class EncomiendaRequest {
 
     public String getObservacion() { return observacion; }
     public void setObservacion(String observacion) { this.observacion = observacion; }
+
+    public String getClaveSeguridad() { return claveSeguridad; }
+    public void setClaveSeguridad(String claveSeguridad) { this.claveSeguridad = claveSeguridad; }
 }

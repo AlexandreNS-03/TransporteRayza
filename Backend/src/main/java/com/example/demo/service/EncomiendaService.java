@@ -56,6 +56,9 @@ public class EncomiendaService {
             throw new RuntimeException("La descripción del paquete es obligatoria");
         if (req.getPrecio() == null || req.getPrecio().signum() <= 0)
             throw new RuntimeException("El precio del envío debe ser mayor a cero");
+        String clave = req.getClaveSeguridad() == null ? "" : req.getClaveSeguridad().trim();
+        if (!clave.matches("\\d{4}"))
+            throw new RuntimeException("La clave de seguridad debe ser de 4 dígitos");
 
         Usuario usuario = usuarioRepository.findByUsername(usuarioNombre).orElse(null);
 
@@ -73,6 +76,7 @@ public class EncomiendaService {
         e.setPeso(req.getPeso());
         e.setPrecio(req.getPrecio());
         e.setObservacion(req.getObservacion());
+        e.setClaveSeguridad(clave);
         e.setEstado(Encomienda.EstadoEncomienda.REGISTRADO);
         e.setCreatedAt(LocalDateTime.now());
 
@@ -126,6 +130,9 @@ public class EncomiendaService {
 
         if (e.getEstado() == Encomienda.EstadoEncomienda.ENTREGADO)
             throw new RuntimeException("La encomienda ya fue entregada");
+        // La entrega se hace por el proceso de recojo (valida la clave de seguridad).
+        if (estado == Encomienda.EstadoEncomienda.ENTREGADO)
+            throw new RuntimeException("Para entregar usa el recojo con la clave de seguridad");
 
         // DEVUELTO implica devolver el dinero: egreso en la caja del usuario
         if (estado == Encomienda.EstadoEncomienda.DEVUELTO) {
@@ -140,6 +147,43 @@ public class EncomiendaService {
 
         auditoriaService.registrar("CAMBIAR_ESTADO", "ENCOMIENDAS", e.getId(),
                 "Encomienda " + e.getCodigoEncomienda() + " → " + estado.name());
+
+        return e;
+    }
+
+    /**
+     * Recojo/entrega: valida la clave de seguridad de 4 dígitos y registra al
+     * receptor (documento de identidad). Solo entonces marca ENTREGADO.
+     */
+    @Transactional
+    public Encomienda entregar(String id, String clave, String receptorNombre,
+                               String receptorDocumento, String usuarioNombre) {
+        Encomienda e = encomiendaRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Encomienda no encontrada"));
+
+        if (e.getEstado() == Encomienda.EstadoEncomienda.ENTREGADO)
+            throw new RuntimeException("La encomienda ya fue entregada");
+        if (e.getEstado() == Encomienda.EstadoEncomienda.DEVUELTO)
+            throw new RuntimeException("La encomienda fue devuelta, no se puede entregar");
+
+        // Verifica la clave (si la encomienda tiene una registrada)
+        String claveGuardada = e.getClaveSeguridad();
+        if (claveGuardada != null && !claveGuardada.isBlank()) {
+            if (clave == null || !claveGuardada.equals(clave.trim()))
+                throw new RuntimeException("La clave de seguridad no coincide");
+        }
+        if (receptorDocumento == null || receptorDocumento.isBlank())
+            throw new RuntimeException("El documento de quien recoge es obligatorio");
+
+        e.setEstado(Encomienda.EstadoEncomienda.ENTREGADO);
+        e.setReceptorNombre(receptorNombre != null ? receptorNombre.trim() : null);
+        e.setReceptorDocumento(receptorDocumento.trim());
+        e.setEntregadoAt(LocalDateTime.now());
+        encomiendaRepository.save(e);
+
+        auditoriaService.registrar("ENTREGAR", "ENCOMIENDAS", e.getId(),
+                "Encomienda " + e.getCodigoEncomienda() + " entregada a "
+                        + e.getReceptorDocumento() + (receptorNombre != null ? " (" + receptorNombre + ")" : ""));
 
         return e;
     }

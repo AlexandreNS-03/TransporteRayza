@@ -37,4 +37,13 @@ public class EncomiendaController {
                                                     Authentication auth) {
         return ResponseEntity.ok(encomiendaService.cambiarEstado(id, body.get("estado"), auth.getName()));
     }
+
+    /** Recojo: valida la clave de seguridad y el documento del receptor, luego entrega. */
+    @PatchMapping("/{id}/entregar")
+    public ResponseEntity<Encomienda> entregar(@PathVariable String id,
+                                               @RequestBody Map<String, String> body,
+                                               Authentication auth) {
+        return ResponseEntity.ok(encomiendaService.entregar(id,
+                body.get("clave"), body.get("receptorNombre"), body.get("receptorDocumento"), auth.getName()));
+    }
 }

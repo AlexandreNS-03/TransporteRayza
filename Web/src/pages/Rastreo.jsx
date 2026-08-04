@@ -62,6 +62,13 @@ function TarjetaEncomienda({ enc }) {
 
             <p className="estado-desc">{ESTADO_DESC[enc.estado]}</p>
 
+            {(enc.estado === "REGISTRADO" || enc.estado === "EN_TRANSITO") && (
+                <p className="enc-recojo-nota">
+                    <i className="ti ti-shield-lock"></i>
+                    Para el recojo, el destinatario debe presentar su <strong>documento de identidad</strong> y la <strong>clave de seguridad de 4 dígitos</strong> que le dio el remitente.
+                </p>
+            )}
+
             <div className="enc-grid">
                 <div className="enc-seccion">
                     <p className="enc-seccion-titulo"><i className="ti ti-user"></i> Remitente</p>
