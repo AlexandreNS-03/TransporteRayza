@@ -24,9 +24,17 @@ public class EncomiendaPublicDTO {
     private BigDecimal precio;
     private String estado;
     private String estadoPago;
+    private String paradaOrigen;
+    private String paradaDestino;
 
     public String getEstadoPago() { return estadoPago; }
     public void setEstadoPago(String v) { this.estadoPago = v; }
+
+    public String getParadaOrigen() { return paradaOrigen; }
+    public void setParadaOrigen(String v) { this.paradaOrigen = v; }
+
+    public String getParadaDestino() { return paradaDestino; }
+    public void setParadaDestino(String v) { this.paradaDestino = v; }
 
     public String getCodigoEncomienda() { return codigoEncomienda; }
     public void setCodigoEncomienda(String v) { this.codigoEncomienda = v; }

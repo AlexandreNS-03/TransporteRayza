@@ -52,6 +52,9 @@ function SupervisorDashboard() {
                     <NavLink to="/supervisor/manifiesto" className={item}>
                         <i className="ti ti-clipboard-list"></i> Manifiesto
                     </NavLink>
+                    <NavLink to="/supervisor/manifiesto-carga" className={item}>
+                        <i className="ti ti-package"></i> Manifiesto Carga
+                    </NavLink>
                     <NavLink to="/supervisor/embarque" className={item}>
                         <i className="ti ti-package"></i> Embarque
                     </NavLink>

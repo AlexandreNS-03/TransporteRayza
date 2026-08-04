@@ -52,9 +52,14 @@ function AdminDashboard() {
                     </NavLink>
 
                     {(esAdmin || esSupervisor) && (
-                        <NavLink to="/admin/manifiesto" className={({ isActive }) => isActive ? "sb-item active" : "sb-item"}>
-                            <i className="ti ti-clipboard-list"></i> Manifiesto
-                        </NavLink>
+                        <>
+                            <NavLink to="/admin/manifiesto" className={({ isActive }) => isActive ? "sb-item active" : "sb-item"}>
+                                <i className="ti ti-clipboard-list"></i> Manifiesto
+                            </NavLink>
+                            <NavLink to="/admin/manifiesto-carga" className={({ isActive }) => isActive ? "sb-item active" : "sb-item"}>
+                                <i className="ti ti-package"></i> Manifiesto Carga
+                            </NavLink>
+                        </>
                     )}
 
                     <NavLink to="/admin/embarque" className={({ isActive }) => isActive ? "sb-item active" : "sb-item"}>

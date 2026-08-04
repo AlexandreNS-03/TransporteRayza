@@ -17,6 +17,10 @@ public class EncomiendaRequest {
     private BigDecimal precio;
     private String observacion;
     private String claveSeguridad;       // 4 dígitos, para el recojo
+    private String paradaOrigen;         // tramo dentro del viaje
+    private String paradaDestino;
+    private Integer ordenOrigen;
+    private Integer ordenDestino;
     private String estadoPago;           // PENDIENTE | PAGADO | PAGA_DESTINO
 
     public String getRemitenteNombre() { return remitenteNombre; }
@@ -57,6 +61,18 @@ public class EncomiendaRequest {
 
     public String getClaveSeguridad() { return claveSeguridad; }
     public void setClaveSeguridad(String claveSeguridad) { this.claveSeguridad = claveSeguridad; }
+
+    public String getParadaOrigen() { return paradaOrigen; }
+    public void setParadaOrigen(String v) { this.paradaOrigen = v; }
+
+    public String getParadaDestino() { return paradaDestino; }
+    public void setParadaDestino(String v) { this.paradaDestino = v; }
+
+    public Integer getOrdenOrigen() { return ordenOrigen; }
+    public void setOrdenOrigen(Integer v) { this.ordenOrigen = v; }
+
+    public Integer getOrdenDestino() { return ordenDestino; }
+    public void setOrdenDestino(Integer v) { this.ordenDestino = v; }
 
     public String getEstadoPago() { return estadoPago; }
     public void setEstadoPago(String estadoPago) { this.estadoPago = estadoPago; }

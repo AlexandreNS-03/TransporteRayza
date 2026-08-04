@@ -38,6 +38,8 @@ function Encomiendas() {
     const [comprobantes, setComprobantes] = useState([]);
     const [sucursales, setSucursales]     = useState([]);
     const [viajes, setViajes]             = useState([]);
+    const [paradas, setParadas]           = useState([]);
+    const [cargandoParadas, setCargandoParadas] = useState(false);
     const [cargando, setCargando]         = useState(true);
     const [error, setError]               = useState(null);
 
@@ -58,7 +60,8 @@ function Encomiendas() {
         remitenteNombre: "", remitenteDocumento: "", remitenteTelefono: "",
         destinatarioNombre: "", destinatarioDocumento: "", destinatarioTelefono: "",
         descripcion: "", peso: "", precio: "", sucursalDestinoId: "", viajeId: "", observacion: "",
-        claveSeguridad: "", estadoPago: "PAGADO"
+        claveSeguridad: "", estadoPago: "PAGADO",
+        paradaOrigen: "", paradaDestino: "", ordenOrigen: "", ordenDestino: ""
     };
     const [form, setForm] = useState(formVacio);
 
@@ -94,6 +97,27 @@ function Encomiendas() {
         setModalCrear(true);
     };
 
+    /** Al elegir viaje se cargan sus paradas, para poder marcar el tramo. */
+    const elegirViaje = async (id) => {
+        setForm(prev => ({ ...prev, viajeId: id, paradaOrigen: "", paradaDestino: "", ordenOrigen: "", ordenDestino: "" }));
+        setParadas([]);
+        const viaje = viajes.find(v => v.id === id);
+        if (!viaje?.rutaId) return;
+        setCargandoParadas(true);
+        try {
+            const ruta = await apiFetch(`/api/rutas/${viaje.rutaId}`);
+            setParadas(ruta.paradas || []);
+        } catch (err) { console.error(err); }
+        finally { setCargandoParadas(false); }
+    };
+
+    const elegirParada = (cual, nombre) => {
+        const p = paradas.find(x => x.nombre === nombre);
+        setForm(prev => cual === "origen"
+            ? { ...prev, paradaOrigen: nombre, ordenOrigen: p?.orden ?? "", paradaDestino: "", ordenDestino: "" }
+            : { ...prev, paradaDestino: nombre, ordenDestino: p?.orden ?? "" });
+    };
+
     const handleChange = (e) => {
         const { name, value } = e.target;
         setForm(prev => ({ ...prev, [name]: value }));
@@ -112,6 +136,8 @@ function Encomiendas() {
                 body: JSON.stringify({
                     ...form,
                     peso: form.peso ? parseFloat(form.peso) : null,
+                    ordenOrigen: form.ordenOrigen !== "" ? parseInt(form.ordenOrigen) : null,
+                    ordenDestino: form.ordenDestino !== "" ? parseInt(form.ordenDestino) : null,
                     precio: parseFloat(form.precio)
                 })
             });
@@ -478,10 +504,44 @@ function Encomiendas() {
                                         <SelectorViaje
                                             viajes={viajes}
                                             value={form.viajeId}
-                                            onChange={(id) => setForm(prev => ({ ...prev, viajeId: id }))}
+                                            onChange={elegirViaje}
                                             placeholder="Sin viaje asignado"
                                         />
                                     </div>
+
+                                    {/* Tramo dentro del viaje: muchas encomiendas bajan
+                                        en una parada intermedia, no en la sucursal final. */}
+                                    {form.viajeId && (
+                                        <div className="form-fila">
+                                            <div className="form-grupo">
+                                                <label>Sube en</label>
+                                                <select value={form.paradaOrigen}
+                                                        onChange={e => elegirParada("origen", e.target.value)}
+                                                        disabled={cargandoParadas}>
+                                                    <option value="">
+                                                        {cargandoParadas ? "Cargando paradas..." : "Seleccionar..."}
+                                                    </option>
+                                                    {paradas.map(p => (
+                                                        <option key={p.id} value={p.nombre}>{p.nombre}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                            <div className="form-grupo">
+                                                <label>Baja en</label>
+                                                <select value={form.paradaDestino}
+                                                        onChange={e => elegirParada("destino", e.target.value)}
+                                                        disabled={cargandoParadas}>
+                                                    <option value="">Seleccionar...</option>
+                                                    {paradas
+                                                        .filter(p => p.orden > (form.ordenOrigen || 0))
+                                                        .map(p => (
+                                                            <option key={p.id} value={p.nombre}>{p.nombre}</option>
+                                                        ))}
+                                                </select>
+                                                <span className="campo-ayuda">Parada donde se entrega el paquete.</span>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="form-grupo">
                                     <label>Observación</label>

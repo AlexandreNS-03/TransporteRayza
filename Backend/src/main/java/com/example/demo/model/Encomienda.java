@@ -55,6 +55,20 @@ public class Encomienda {
     @Column(name = "sucursal_destino_nombre", length = 100)
     private String sucursalDestinoNombre;
 
+    /** Tramo dentro del viaje: muchas encomiendas bajan en una parada intermedia. */
+    @Column(name = "parada_origen", length = 100)
+    private String paradaOrigen;
+
+    @Column(name = "parada_destino", length = 100)
+    private String paradaDestino;
+
+    /** Orden de las paradas en la ruta (para ordenar el manifiesto por bajada). */
+    @Column(name = "orden_origen")
+    private Integer ordenOrigen;
+
+    @Column(name = "orden_destino")
+    private Integer ordenDestino;
+
     @Column(name = "descripcion", length = 300)
     private String descripcion;
 
@@ -151,6 +165,18 @@ public class Encomienda {
 
     public String getSucursalDestinoNombre() { return sucursalDestinoNombre; }
     public void setSucursalDestinoNombre(String sucursalDestinoNombre) { this.sucursalDestinoNombre = sucursalDestinoNombre; }
+
+    public String getParadaOrigen() { return paradaOrigen; }
+    public void setParadaOrigen(String paradaOrigen) { this.paradaOrigen = paradaOrigen; }
+
+    public String getParadaDestino() { return paradaDestino; }
+    public void setParadaDestino(String paradaDestino) { this.paradaDestino = paradaDestino; }
+
+    public Integer getOrdenOrigen() { return ordenOrigen; }
+    public void setOrdenOrigen(Integer ordenOrigen) { this.ordenOrigen = ordenOrigen; }
+
+    public Integer getOrdenDestino() { return ordenDestino; }
+    public void setOrdenDestino(Integer ordenDestino) { this.ordenDestino = ordenDestino; }
 
     public String getDescripcion() { return descripcion; }
     public void setDescripcion(String descripcion) { this.descripcion = descripcion; }
