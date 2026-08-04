@@ -138,8 +138,8 @@ header.site {
   backdrop-filter: saturate(160%) blur(14px); border-bottom: 1px solid var(--line);
 }
 .nav { display: flex; align-items: center; justify-content: space-between; height: 74px; gap: 20px; }
-.nav-links { display: flex; align-items: center; gap: 30px; }
-.nav-links a { color: var(--ink-soft); font-weight: 500; font-size: 15px; position: relative; padding: 6px 0; }
+.nav-links { display: flex; align-items: center; gap: 22px; }
+.nav-links a { color: var(--ink-soft); font-weight: 500; font-size: 15px; position: relative; padding: 6px 0; white-space: nowrap; }
 .nav-links a::after { content: ""; position: absolute; left: 0; right: 100%; bottom: -2px; height: 2px; background: var(--accent); border-radius: 2px; transition: right .28s var(--ease); }
 .nav-links a:hover { color: var(--ink); }
 .nav-links a:hover::after { right: 0; }

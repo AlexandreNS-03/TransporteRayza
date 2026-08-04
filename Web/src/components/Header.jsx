@@ -11,7 +11,7 @@ const LINKS = [
   { to: "/servicios", label: "Servicios" },
   { to: "/destinos", label: "Destinos" },
   { to: "/rastreo", label: "Rastreo" },
-  { to: "/paga-tu-carga", label: "Paga tu carga" },
+  { to: "/paga-tu-carga", label: "Pagar carga" },
   { to: "/contacto", label: "Contacto" },
 ];
 

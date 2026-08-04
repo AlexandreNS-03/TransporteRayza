@@ -130,6 +130,22 @@ export function soles(n) {
   return "S/ " + Number(n || 0).toFixed(2);
 }
 
+// ── Pago en línea de una encomienda ──
+export async function formularioPagoEncomienda(codigo) {
+  try { const { data } = await http.post(`/encomiendas/${encodeURIComponent(codigo)}/pago/formulario`); return data; }
+  catch (e) { throw desempaquetarError(e); }
+}
+
+export async function pagarEncomienda(codigo, { krAnswer, krHash } = {}) {
+  try { const { data } = await http.post(`/encomiendas/${encodeURIComponent(codigo)}/pagar`, { krAnswer, krHash }); return data; }
+  catch (e) { throw desempaquetarError(e); }
+}
+
+export async function pagarEncomiendaYape(codigo, token) {
+  try { const { data } = await http.post(`/encomiendas/${encodeURIComponent(codigo)}/pagar/yape`, { token }); return data; }
+  catch (e) { throw desempaquetarError(e); }
+}
+
 // ── Rastreo público de encomiendas ──
 export async function rastrearEncomienda(tab, valor) {
   const v = encodeURIComponent(String(valor || "").trim());

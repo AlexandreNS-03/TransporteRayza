@@ -27,19 +27,25 @@ public class EncomiendaService {
     private final ViajeRepository viajeRepository;
     private final CajaService cajaService;
     private final AuditoriaService auditoriaService;
+    private final IzipayService izipayService;
+    private final MercadoPagoService mercadoPagoService;
 
     public EncomiendaService(EncomiendaRepository encomiendaRepository,
                              UsuarioRepository usuarioRepository,
                              SucursalRepository sucursalRepository,
                              ViajeRepository viajeRepository,
                              CajaService cajaService,
-                             AuditoriaService auditoriaService) {
+                             AuditoriaService auditoriaService,
+                             IzipayService izipayService,
+                             MercadoPagoService mercadoPagoService) {
         this.encomiendaRepository = encomiendaRepository;
         this.usuarioRepository    = usuarioRepository;
         this.sucursalRepository   = sucursalRepository;
         this.viajeRepository      = viajeRepository;
         this.cajaService          = cajaService;
         this.auditoriaService     = auditoriaService;
+        this.izipayService        = izipayService;
+        this.mercadoPagoService   = mercadoPagoService;
     }
 
     public List<Encomienda> listar() {
@@ -249,6 +255,70 @@ public class EncomiendaService {
         dto.setEstado(e.getEstado() != null ? e.getEstado().name() : null);
         dto.setEstadoPago(e.getEstadoPago() != null ? e.getEstadoPago().name() : null);
         return dto;
+    }
+
+    // ───────────────── Pago en línea de la encomienda (público) ─────────────────
+
+    /** Busca la encomienda por código y valida que se pueda cobrar en línea. */
+    private Encomienda porCodigoParaPago(String codigo) {
+        Encomienda e = encomiendaRepository.findByCodigoEncomienda(codigo == null ? "" : codigo.trim())
+                .orElseThrow(() -> new RuntimeException("No se encontró una encomienda con ese código"));
+        if (e.getEstadoPago() == Encomienda.EstadoPago.PAGADO)
+            throw new RuntimeException("Esta encomienda ya está pagada");
+        if (e.getEstado() == Encomienda.EstadoEncomienda.DEVUELTO)
+            throw new RuntimeException("Esta encomienda fue devuelta");
+        if (e.getPrecio() == null || e.getPrecio().signum() <= 0)
+            throw new RuntimeException("La encomienda no tiene un monto por cobrar");
+        return e;
+    }
+
+    /** Paso previo del pago con tarjeta: pide a Izipay el formulario de esta encomienda. */
+    @Transactional(readOnly = true)
+    public IzipayService.Formulario prepararPagoEncomienda(String codigo) {
+        Encomienda e = porCodigoParaPago(codigo);
+        int cents = e.getPrecio().multiply(java.math.BigDecimal.valueOf(100)).intValueExact();
+        return izipayService.crearFormulario(
+                e.getCodigoEncomienda(), cents, null,
+                e.getRemitenteNombre(), e.getRemitenteDocumento(), e.getRemitenteTelefono());
+    }
+
+    /** Confirma el pago con tarjeta (Izipay) y marca la encomienda como PAGADA. */
+    @Transactional
+    public com.example.demo.dto.EncomiendaPublicDTO pagarEncomiendaTarjeta(String codigo, String krAnswer, String krHash) {
+        Encomienda e = porCodigoParaPago(codigo);
+        IzipayService.Resultado pago = izipayService.verificarPago(krAnswer, krHash);
+        if (!pago.pagado)
+            throw new RuntimeException(pago.motivo != null ? pago.motivo : "El pago no se pudo confirmar");
+        return marcarPagadaEnLinea(e, pago.referencia, "tarjeta");
+    }
+
+    /** Confirma el pago con Yape (Mercado Pago) y marca la encomienda como PAGADA. */
+    @Transactional
+    public com.example.demo.dto.EncomiendaPublicDTO pagarEncomiendaYape(String codigo, String token) {
+        Encomienda e = porCodigoParaPago(codigo);
+        MercadoPagoService.Resultado pago = mercadoPagoService.pagar(
+                token, e.getPrecio(), "Encomienda Rayza " + e.getCodigoEncomienda(),
+                null, "enc-" + e.getId());
+        if (!pago.pagado)
+            throw new RuntimeException(pago.motivo != null ? pago.motivo : "El pago con Yape no se pudo confirmar");
+        return marcarPagadaEnLinea(e, pago.referencia, "Yape");
+    }
+
+    /**
+     * Marca la encomienda como pagada en línea. No toca ninguna caja: el dinero
+     * entra por la pasarela, no al efectivo de una oficina.
+     */
+    private com.example.demo.dto.EncomiendaPublicDTO marcarPagadaEnLinea(Encomienda e, String referencia, String medio) {
+        e.setEstadoPago(Encomienda.EstadoPago.PAGADO);
+        e.setPasarelaReferencia(referencia);
+        encomiendaRepository.save(e);
+
+        auditoriaService.registrar("PAGO_WEB", "ENCOMIENDAS", e.getId(),
+                "Encomienda " + e.getCodigoEncomienda() + " pagada en línea con " + medio
+                        + " (S/ " + e.getPrecio() + ")"
+                        + (referencia != null ? " ref " + referencia : ""));
+
+        return toPublicDTO(e);
     }
 
     /** Cambia el estado de pago. Al pasar a PAGADO registra el ingreso en la caja. */

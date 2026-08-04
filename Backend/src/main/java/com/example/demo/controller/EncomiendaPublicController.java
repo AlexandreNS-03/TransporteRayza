@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Rastreo público de encomiendas (sin login). Va bajo /api/public/** que ya es
@@ -34,5 +35,29 @@ public class EncomiendaPublicController {
     @GetMapping("/destinatario/{documento}")
     public ResponseEntity<List<EncomiendaPublicDTO>> rastrearPorDestinatario(@PathVariable String documento) {
         return ResponseEntity.ok(encomiendaService.rastrearPorDestinatario(documento));
+    }
+
+    // ── Pago en línea de la encomienda ──
+
+    /** Paso previo del pago con tarjeta: formulario de Izipay para esta encomienda. */
+    @PostMapping("/{codigo}/pago/formulario")
+    public ResponseEntity<?> formularioDePago(@PathVariable String codigo) {
+        return ResponseEntity.ok(encomiendaService.prepararPagoEncomienda(codigo));
+    }
+
+    /** Confirma el pago con tarjeta. */
+    @PostMapping("/{codigo}/pagar")
+    public ResponseEntity<EncomiendaPublicDTO> pagar(@PathVariable String codigo,
+                                                     @RequestBody Map<String, Object> body) {
+        return ResponseEntity.ok(encomiendaService.pagarEncomiendaTarjeta(codigo,
+                (String) body.get("krAnswer"), (String) body.get("krHash")));
+    }
+
+    /** Confirma el pago con Yape. */
+    @PostMapping("/{codigo}/pagar/yape")
+    public ResponseEntity<EncomiendaPublicDTO> pagarYape(@PathVariable String codigo,
+                                                         @RequestBody Map<String, Object> body) {
+        return ResponseEntity.ok(encomiendaService.pagarEncomiendaYape(codigo,
+                (String) body.get("token")));
     }
 }
