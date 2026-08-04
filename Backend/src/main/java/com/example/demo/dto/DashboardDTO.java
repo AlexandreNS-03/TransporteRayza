@@ -17,6 +17,9 @@ public class DashboardDTO {
     private BigDecimal efectivoIquitosHoy;
     private BigDecimal efectivoRequenaHoy;
     private BigDecimal descuentosHoy;
+    private BigDecimal efectivoHoy;
+    private BigDecimal digitalHoy;
+    private List<CobroMetodoDTO> cobrosMetodoHoy;
     private List<ViajeProximoDTO> viajesProximos;
     private List<UltimaVentaDTO> ultimasVentas;
     private List<VentaPorDiaDTO> ventasPorDia;
@@ -156,6 +159,23 @@ public class DashboardDTO {
 
     public BigDecimal getDescuentosHoy() { return descuentosHoy; }
     public void setDescuentosHoy(BigDecimal d) { this.descuentosHoy = d; }
+
+    public BigDecimal getEfectivoHoy() { return efectivoHoy; }
+    public void setEfectivoHoy(BigDecimal e) { this.efectivoHoy = e; }
+
+    public BigDecimal getDigitalHoy() { return digitalHoy; }
+    public void setDigitalHoy(BigDecimal d) { this.digitalHoy = d; }
+
+    public List<CobroMetodoDTO> getCobrosMetodoHoy() { return cobrosMetodoHoy; }
+    public void setCobrosMetodoHoy(List<CobroMetodoDTO> c) { this.cobrosMetodoHoy = c; }
+
+    public static class CobroMetodoDTO {
+        private String metodo;
+        private BigDecimal monto;
+        public CobroMetodoDTO(String metodo, BigDecimal monto) { this.metodo = metodo; this.monto = monto; }
+        public String getMetodo() { return metodo; }
+        public BigDecimal getMonto() { return monto; }
+    }
 
     public List<ViajeProximoDTO> getViajesProximos() { return viajesProximos; }
     public void setViajesProximos(List<ViajeProximoDTO> v) { this.viajesProximos = v; }
