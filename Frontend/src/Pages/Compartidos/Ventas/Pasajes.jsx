@@ -8,6 +8,7 @@ import GenerarComprobanteModal from "../Finanzas/GenerarComprobanteModal.jsx";
 import { apiFetch, consultarDni } from "../../../Services/api.js";
 import { useToast, Toasts } from "../../../Components/Toast.jsx";
 import { usePaginacion, Paginacion } from "../../../Components/Paginacion.jsx";
+import SelectorViaje from "../../../Components/SelectorViaje.jsx";
 
 const TIPO_DOC     = ["DNI", "CE", "PASAPORTE", "RUC"];
 const SEXO         = ["Masculino", "Femenino", "Otro"];
@@ -739,14 +740,11 @@ function Pasajes() {
                                     <p className="wizard-titulo">Selecciona el viaje</p>
                                     <div className="form-grupo">
                                         <label>Viaje *</label>
-                                        <select name="viajeId" value={form.viajeId} onChange={handleChange}>
-                                            <option value="">Seleccionar viaje...</option>
-                                            {viajes.map(v => (
-                                                <option key={v.id} value={v.id}>
-                                                    {v.codigoViaje} — {v.rutaNombre} — {v.fechaSalida} {v.horaSalida}
-                                                </option>
-                                            ))}
-                                        </select>
+                                        <SelectorViaje
+                                            viajes={viajes}
+                                            value={form.viajeId}
+                                            onChange={(id) => setForm(prev => ({ ...prev, viajeId: id }))}
+                                        />
                                     </div>
 
                                     {viajeSeleccionado && (

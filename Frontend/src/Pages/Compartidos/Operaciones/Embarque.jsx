@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import "./Embarque.css";
 import EscanerQR from "./EscanerQR.jsx";
+import SelectorViaje from "../../../Components/SelectorViaje.jsx";
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8080";
 
@@ -136,6 +137,40 @@ function Embarque() {
     };
 
     // --- NUEVO: procesar el QR escaneado (busca la venta por su codigoQr) ---
+    /**
+     * Embarca directo tras escanear el QR. No recarga por viaje (la búsqueda por
+     * QR muestra un solo pasaje): actualiza la fila con lo que devuelve el backend.
+     */
+    const embarcarDirecto = async (venta) => {
+        setProcesando(venta.id);
+        try {
+            const token = localStorage.getItem("token");
+            const res = await fetch(`${API_BASE}/api/ventas/${venta.id}/embarcar`, {
+                method: "PATCH",
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+            if (!res.ok) {
+                let mensaje = "Error al embarcar pasajero";
+                if (res.status === 403)      mensaje = "No tienes permiso para embarcar pasajeros";
+                else if (res.status === 401) mensaje = "Tu sesión expiró, vuelve a iniciar sesión";
+                else {
+                    try { const d = await res.json(); mensaje = d.message || d.error || mensaje; } catch {}
+                }
+                throw new Error(mensaje);
+            }
+            const actualizada = await res.json();
+            setPasajeros([actualizada]);
+            setToast({
+                tipo: "success",
+                mensaje: `${venta.pasajeroNombre} embarcado correctamente. Se envió confirmación por correo.`
+            });
+        } catch (err) {
+            setToast({ tipo: "error", mensaje: err.message });
+        } finally {
+            setProcesando(null);
+        }
+    };
+
     const procesarQrEscaneado = async (codigo) => {
         setEscanerAbierto(false);
         if (!codigo) return;
@@ -159,11 +194,17 @@ function Embarque() {
             setBusqueda("");
             setFiltroEstado("todos");
             setPasajeros([venta]);
+
             if (venta.embarqueEstado === "EMBARCADO") {
                 setToast({ tipo: "error", mensaje: `${venta.pasajeroNombre} ya estaba embarcado.` });
-            } else {
-                setToast({ tipo: "success", mensaje: `Pasaje de ${venta.pasajeroNombre} encontrado. Pulsa Embarcar para confirmar.` });
+                return;
             }
+            if (!puedeEmbarcar) {
+                setToast({ tipo: "error", mensaje: "No tienes permiso para embarcar pasajeros." });
+                return;
+            }
+            // Al escanear se marca el embarque de una vez (sin pulsar "Embarcar")
+            await embarcarDirecto(venta);
         } catch (err) {
             setError(err.message);
             setPasajeros([]);
@@ -235,20 +276,12 @@ function Embarque() {
             <div className="embarque-controles">
                 <div className="control-grupo">
                     <label>Seleccionar Viaje</label>
-                    <select
+                    <SelectorViaje
+                        viajes={viajes}
                         value={viajeId}
-                        onChange={e => { setViajeId(e.target.value); setBusqueda(""); }}
-                        disabled={cargandoViajes}
-                    >
-                        <option value="">
-                            {cargandoViajes ? "Cargando viajes..." : "Seleccionar viaje..."}
-                        </option>
-                        {viajes.map(v => (
-                            <option key={v.id} value={v.id}>
-                                {v.codigoViaje} — {v.rutaNombre} — {v.fechaSalida} {v.horaSalida}
-                            </option>
-                        ))}
-                    </select>
+                        onChange={(id) => { setViajeId(id); setBusqueda(""); }}
+                        cargando={cargandoViajes}
+                    />
                 </div>
 
                 <div className="control-separador">o</div>
@@ -266,8 +299,9 @@ function Embarque() {
                         <button className="btn-buscar" onClick={buscarPorQrODoc}>
                             <i className="ti ti-search"></i> Buscar
                         </button>
-                        <button className="btn-escanear" onClick={() => setEscanerAbierto(true)}>
-                            <i className="ti ti-qrcode"></i> Escanear QR
+                        <button className="btn-escanear" onClick={() => setEscanerAbierto(true)}
+                                title="Escanea el QR del boleto y el pasajero queda embarcado">
+                            <i className="ti ti-qrcode"></i> Escanear y embarcar
                         </button>
                     </div>
                 </div>

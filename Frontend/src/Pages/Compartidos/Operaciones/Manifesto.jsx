@@ -3,6 +3,7 @@ import "./Manifiesto.css";
 import generarManifiestoPDF    from "./generarManifiestoPDF.jsx";
 
 import { apiFetch } from "../../../Services/api.js";
+import SelectorViaje from "../../../Components/SelectorViaje.jsx";
 
 // Compara valores (texto o número) para ordenar A-Z / Z-A y número de asiento.
 function comparar(a, b, dir) {
@@ -137,20 +138,12 @@ function Manifiesto() {
             <div className="manifiesto-controles">
                 <div className="control-grupo">
                     <label>Seleccionar Viaje</label>
-                    <select
+                    <SelectorViaje
+                        viajes={viajes}
                         value={viajeId}
-                        onChange={e => setViajeId(e.target.value)}
-                        disabled={cargandoViajes}
-                    >
-                        <option value="">
-                            {cargandoViajes ? "Cargando viajes..." : "Seleccionar viaje..."}
-                        </option>
-                        {viajes.map(v => (
-                            <option key={v.id} value={v.id}>
-                                {v.codigoViaje} — {v.rutaNombre} — {v.fechaSalida} {v.horaSalida} ({v.estado})
-                            </option>
-                        ))}
-                    </select>
+                        onChange={setViajeId}
+                        cargando={cargandoViajes}
+                    />
                 </div>
             </div>
 
