@@ -8,14 +8,14 @@ export default function Footer() {
       <div className="wrap">
         <div className="cols">
           <div>
-            <div className="logo" style={{ marginBottom: 14 }}>
-              <LogoMark size={40} />
+            <div className="logo" style={{ marginBottom: 10 }}>
+              <LogoMark size={34} />
               <span className="txt">
                 <b style={{ color: "#fff" }}>Transportes <span style={{ color: "var(--accent)" }}>Rayza</span></b>
                 <small style={{ color: "#b9c8e0" }}>Amazonía · Perú</small>
               </span>
             </div>
-            <p style={{ fontSize: 14.5, maxWidth: 300, lineHeight: 1.7 }}>
+            <p style={{ fontSize: 13, maxWidth: 300, lineHeight: 1.55 }}>
               {EMPRESA.nombre} — Transporte fluvial de pasajeros y encomiendas en la región Loreto, Perú.
             </p>
             <ul className="footer-contacto">
@@ -43,14 +43,14 @@ export default function Footer() {
               <li><Link to="/comprar">Comprar pasaje</Link></li>
               <li><Link to="/comprar">Buscar viajes</Link></li>
               <li><Link to="/mi-cuenta">Mis viajes</Link></li>
-              <li><a href="/#destinos">Destinos</a></li>
+              <li><Link to="/#destinos">Destinos</Link></li>
             </ul>
           </div>
           <div>
             <h4>Empresa</h4>
             <ul>
               <li><Link to="/servicios">Servicios</Link></li>
-              <li><a href="/#nosotros">Nosotros</a></li>
+              <li><Link to="/#nosotros">Nosotros</Link></li>
               <li><Link to="/contacto">Contacto</Link></li>
               <li><a href="https://sistema.transporterayza.com">Acceso del personal</a></li>
             </ul>
