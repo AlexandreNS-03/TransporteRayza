@@ -171,6 +171,12 @@ function Pasajes() {
         setForm(prev => ({ ...prev, [name]: value }));
     };
 
+    /** Abre el PDF del comprobante electrónico ya emitido (enlace de Nubefact). */
+    const abrirComprobante = (c) => {
+        if (c?.enlacePdf) window.open(c.enlacePdf, "_blank", "noopener");
+        else mostrarToast("error", "El comprobante aún no tiene un PDF disponible");
+    };
+
     const enviarCorreo = async (id) => {
         try {
             await apiFetch(`/api/ventas/${id}/enviar-comprobante`, { method: "POST" });
@@ -660,8 +666,8 @@ function Pasajes() {
                                                 comprobantePorVenta(v.id) ? (
                                                     <button
                                                         className="btn-accion emitido"
-                                                        title={`Comprobante emitido: ${comprobantePorVenta(v.id).serie}-${String(comprobantePorVenta(v.id).numero).padStart(8, "0")}`}
-                                                        disabled
+                                                        onClick={() => abrirComprobante(comprobantePorVenta(v.id))}
+                                                        title={`Ver comprobante ${comprobantePorVenta(v.id).serie}-${String(comprobantePorVenta(v.id).numero).padStart(8, "0")}`}
                                                     >
                                                         <i className="ti ti-file-check"></i>
                                                     </button>

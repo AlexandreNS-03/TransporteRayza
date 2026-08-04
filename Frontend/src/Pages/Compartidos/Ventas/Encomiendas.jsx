@@ -147,6 +147,12 @@ function Encomiendas() {
         } catch (err) { mostrarToast("error", err.message); }
     };
 
+    /** Abre el PDF del comprobante electrónico ya emitido (enlace de Nubefact). */
+    const abrirComprobante = (c) => {
+        if (c?.enlacePdf) window.open(c.enlacePdf, "_blank", "noopener");
+        else mostrarToast("error", "El comprobante aún no tiene un PDF disponible");
+    };
+
     const abrirEntregar = (e) => {
         setEncEntregar(e);
         setFormEntregar({ clave: "", receptorNombre: e.destinatarioNombre || "", receptorDocumento: e.destinatarioDocumento || "" });
@@ -363,8 +369,9 @@ function Encomiendas() {
                                             )}
                                             {e.estado !== "DEVUELTO" && (
                                                 comprobanteDeEncomienda(e.id) ? (
-                                                    <button className="btn-accion emitido" disabled
-                                                            title={`Comprobante emitido: ${comprobanteDeEncomienda(e.id).serie}-${String(comprobanteDeEncomienda(e.id).numero).padStart(8, "0")}`}>
+                                                    <button className="btn-accion emitido"
+                                                            onClick={() => abrirComprobante(comprobanteDeEncomienda(e.id))}
+                                                            title={`Ver comprobante ${comprobanteDeEncomienda(e.id).serie}-${String(comprobanteDeEncomienda(e.id).numero).padStart(8, "0")}`}>
                                                         <i className="ti ti-file-check"></i>
                                                     </button>
                                                 ) : (
