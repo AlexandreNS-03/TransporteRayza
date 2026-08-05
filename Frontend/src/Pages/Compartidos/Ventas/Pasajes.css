@@ -750,3 +750,17 @@
 
 .barco-cabina i,
 .barco-motor i { font-size: 15px; }
+
+
+/* Aviso de cancelaciones / pasajes por resolver */
+.aviso-cancel {
+    display: flex; gap: 10px; align-items: flex-start;
+    padding: 12px 14px; background: #fffbeb;
+    border: 1px solid #fde68a; border-radius: 8px;
+}
+.aviso-cancel i { font-size: 20px; color: #b45309; flex-shrink: 0; }
+.aviso-cancel div { display: flex; flex-direction: column; gap: 3px; }
+.aviso-cancel strong { font-size: 13px; color: #92400e; }
+.aviso-cancel span { font-size: 12.5px; color: #92400e; line-height: 1.55; }
+.acciones-cell { display: flex; gap: 6px; }
+.btn-accion:disabled { opacity: .5; cursor: not-allowed; }

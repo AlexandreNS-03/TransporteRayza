@@ -13,6 +13,7 @@ import Viajes from "./Pages/Compartidos/Operaciones/Viajes.jsx";
 import Rutas from "./Pages/Compartidos/Administracion/Rutas.jsx"
 import Manifiesto from "./Pages/Compartidos/Operaciones/Manifesto.jsx";
 import ManifiestoCarga from "./Pages/Compartidos/Operaciones/ManifiestoCarga.jsx";
+import PorResolver from "./Pages/Compartidos/Operaciones/PorResolver.jsx";
 import Embarque from "./Pages/Compartidos/Operaciones/Embarque.jsx";
 import Embarcaciones from "./Pages/Compartidos/Administracion/Embarcaciones.jsx";
 import Paradas from "./Pages/Compartidos/Operaciones/Paradas.jsx";
@@ -57,6 +58,7 @@ function App() {
                     <Route  path="reportes" element={<Reportes />} />
                     <Route path="manifiesto" element={<Manifiesto />} />
                     <Route path="manifiesto-carga" element={<ManifiestoCarga />} />
+                    <Route path="por-resolver" element={<PorResolver />} />
                     <Route path="auditoria" element={<Auditorias />} />
                 </Route>
 
@@ -84,6 +86,7 @@ function App() {
                     <Route  path="reportes" element={<Reportes />} />
                     <Route  path="manifiesto" element={<Manifiesto />} />
                     <Route  path="manifiesto-carga" element={<ManifiestoCarga />} />
+                    <Route  path="por-resolver" element={<PorResolver />} />
                 </Route>
 
                 {/* EMPLEADO con rutas hijas */}
@@ -110,6 +113,7 @@ function App() {
                     <Route  path="reportes" element={<Reportes />} />
                     <Route  path="manifiesto" element={<Manifiesto />} />
                     <Route  path="manifiesto-carga" element={<ManifiestoCarga />} />
+                    <Route  path="por-resolver" element={<PorResolver />} />
                 </Route>
 
             </Routes>

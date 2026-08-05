@@ -399,6 +399,9 @@ public class VentaService {
         }
     }
 
+    /** Igual que toDTO, pero accesible desde otros servicios/controladores. */
+    public VentaDTO aDTO(Venta v) { return toDTO(v); }
+
     private VentaDTO toDTO(Venta v) {
         VentaDTO dto = new VentaDTO();
         dto.setId(v.getId());

@@ -20,6 +20,7 @@ public class ViajeDTO {
     private BigDecimal precioNormal;
     private BigDecimal precioVip;
     private String estado;
+    private String motivoCancelacion;
     private String rutaId;
     private List<ParadaDTO> paradas;
 
@@ -78,6 +79,9 @@ public class ViajeDTO {
 
     public BigDecimal getPrecioVip() { return precioVip; }
     public void setPrecioVip(BigDecimal p) { this.precioVip = p; }
+
+    public String getMotivoCancelacion() { return motivoCancelacion; }
+    public void setMotivoCancelacion(String m) { this.motivoCancelacion = m; }
 
     public String getEstado() { return estado; }
     public void setEstado(String estado) { this.estado = estado; }
