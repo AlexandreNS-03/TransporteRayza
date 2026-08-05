@@ -18,6 +18,7 @@ public interface VentaRepository extends JpaRepository<Venta, String> {
 
     Optional<Venta> findTopByOrderByNumeroComprobanteDesc();
     List<Venta> findByViajeId(String viajeId);
+    List<Venta> findByResolucion(Venta.Resolucion resolucion);
     Optional<Venta> findByCodigoQr(String codigoQr);
     List<Venta> findByPasajeroDocumento(String documento);
     List<Venta> findByClienteEmailIgnoreCaseOrderByCreatedAtDesc(String clienteEmail);

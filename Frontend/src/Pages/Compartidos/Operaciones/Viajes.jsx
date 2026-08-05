@@ -27,6 +27,13 @@ function Viajes() {
     const esAdmin      = usuario?.rol === "ADMIN";
     const esSupervisor = usuario?.rol === "SUPERVISOR";
     const esEmpleado   = usuario?.rol === "EMPLEADO";
+    const puedeCancelar = esAdmin || esSupervisor;
+
+    // Cancelar viaje
+    const [viajeCancelar, setViajeCancelar] = useState(null);
+    const [motivoCancel, setMotivoCancel]   = useState("");
+    const [cancelando, setCancelando]       = useState(false);
+    const [errorCancel, setErrorCancel]     = useState(null);
 
     const [viajes, setViajes]         = useState([]);
     const [cargando, setCargando]     = useState(true);
@@ -76,6 +83,28 @@ function Viajes() {
         } finally {
             setCargando(false);
         }
+    };
+
+    const confirmarCancelacion = async () => {
+        if (motivoCancel.trim().length < 5) { setErrorCancel("Escribe el motivo (mínimo 5 letras)"); return; }
+        setCancelando(true); setErrorCancel(null);
+        try {
+            const token = localStorage.getItem("token");
+            const res = await fetch(`${API_BASE}/api/viajes/${viajeCancelar.id}/cancelar`, {
+                method: "PATCH",
+                headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
+                body: JSON.stringify({ motivo: motivoCancel.trim() })
+            });
+            if (!res.ok) {
+                let m = "No se pudo cancelar el viaje";
+                try { const d = await res.json(); m = d.message || d.error || m; } catch {}
+                throw new Error(m);
+            }
+            setViajeCancelar(null);
+            setMotivoCancel("");
+            fetchViajes();
+        } catch (err) { setErrorCancel(err.message); }
+        finally { setCancelando(false); }
     };
 
     const abrirModal = async () => {
@@ -251,12 +280,13 @@ function Viajes() {
                             <th>Embarcación</th>
                             <th>Sucursal</th>
                             <th>Estado</th>
+                            {puedeCancelar && <th>Acciones</th>}
                         </tr>
                         </thead>
                         <tbody>
                         {viajesFiltrados.length === 0 ? (
                             <tr>
-                                <td colSpan={8} className="tabla-vacia">
+                                <td colSpan={puedeCancelar ? 9 : 8} className="tabla-vacia">
                                     <i className="ti ti-ship-off"></i>
                                     <span>No se encontraron viajes</span>
                                 </td>
@@ -279,7 +309,23 @@ function Viajes() {
                                             <span className={badgeClass(v.estado)}>
                                                 {ESTADO_LABEL[v.estado] || v.estado}
                                             </span>
+                                        {v.estado === "CANCELADO" && v.motivoCancelacion && (
+                                            <div className="motivo-cancel" title={v.motivoCancelacion}>
+                                                {v.motivoCancelacion}
+                                            </div>
+                                        )}
                                     </td>
+                                    {puedeCancelar && (
+                                        <td>
+                                            {(v.estado === "PROGRAMADO" || v.estado === "EN_CURSO") && (
+                                                <button className="btn-cancelar-viaje"
+                                                        onClick={() => { setViajeCancelar(v); setMotivoCancel(""); setErrorCancel(null); }}
+                                                        title="Cancelar viaje">
+                                                    <i className="ti ti-ban"></i> Cancelar
+                                                </button>
+                                            )}
+                                        </td>
+                                    )}
                                 </tr>
                             ))
                         )}
@@ -381,6 +427,50 @@ function Viajes() {
                 </div>
             )}
 
+            {/* MODAL CANCELAR VIAJE */}
+            {viajeCancelar && (
+                <div className="modal-overlay" onClick={() => setViajeCancelar(null)}>
+                    <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 480 }}>
+                        <div className="modal-header">
+                            <h3>Cancelar viaje {viajeCancelar.codigoViaje}</h3>
+                            <button className="modal-cerrar" onClick={() => setViajeCancelar(null)}>
+                                <i className="ti ti-x"></i>
+                            </button>
+                        </div>
+                        <div className="modal-body">
+                            <div className="aviso-cancel">
+                                <i className="ti ti-alert-triangle"></i>
+                                <div>
+                                    <strong>El viaje dejará de venderse.</strong>
+                                    <span>
+                                        Los pasajes ya vendidos quedan <b>por resolver</b>: nadie pierde su
+                                        dinero todavía. Después decides, pasajero por pasajero, si se devuelve,
+                                        se reprograma o queda como saldo a favor.
+                                    </span>
+                                </div>
+                            </div>
+                            <div className="form-grupo">
+                                <label>Motivo de la cancelación *</label>
+                                <input type="text" value={motivoCancel}
+                                       onChange={e => setMotivoCancel(e.target.value)}
+                                       placeholder="Ej: mal tiempo, falla mecánica, río bajo" />
+                                <span className="campo-ayuda">Se le muestra al pasajero y queda en auditoría.</span>
+                            </div>
+                            {errorCancel && (
+                                <div className="modal-error"><i className="ti ti-alert-circle"></i> {errorCancel}</div>
+                            )}
+                        </div>
+                        <div className="modal-footer">
+                            <button className="btn-cancelar" onClick={() => setViajeCancelar(null)}>Volver</button>
+                            <button className="btn-peligro" onClick={confirmarCancelacion} disabled={cancelando}>
+                                {cancelando
+                                    ? <><i className="ti ti-loader-2 spin"></i> Cancelando...</>
+                                    : <><i className="ti ti-ban"></i> Cancelar viaje</>}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

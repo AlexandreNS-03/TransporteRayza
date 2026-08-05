@@ -74,6 +74,14 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST,   "/api/viajes/**").hasAnyRole("ADMIN", "SUPERVISOR", "EMPLEADO")
                         .requestMatchers(HttpMethod.PUT,    "/api/viajes/**").hasAnyRole("ADMIN", "SUPERVISOR")
                         .requestMatchers(HttpMethod.DELETE, "/api/viajes/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PATCH,  "/api/viajes/*/cancelar").hasAnyRole("ADMIN", "SUPERVISOR")
+
+                        /*CANCELACIONES: resolver los pasajes de un viaje cancelado*/
+                        .requestMatchers(HttpMethod.GET,   "/api/ventas/por-resolver").hasAnyRole("ADMIN", "SUPERVISOR", "EMPLEADO")
+                        .requestMatchers(HttpMethod.PATCH, "/api/ventas/*/devolver").hasAnyRole("ADMIN", "SUPERVISOR", "EMPLEADO")
+                        .requestMatchers(HttpMethod.PATCH, "/api/ventas/*/saldo-favor").hasAnyRole("ADMIN", "SUPERVISOR", "EMPLEADO")
+                        .requestMatchers(HttpMethod.PATCH, "/api/ventas/*/reprogramar").hasAnyRole("ADMIN", "SUPERVISOR", "EMPLEADO")
+                        .requestMatchers(HttpMethod.GET,   "/api/saldo/**").hasAnyRole("ADMIN", "SUPERVISOR", "EMPLEADO")
 
                         /*SUCURSAL*/
                         .requestMatchers(HttpMethod.GET,    "/api/sucursales/**").hasAnyRole("ADMIN", "SUPERVISOR", "EMPLEADO")

@@ -58,6 +58,13 @@ public class Viaje {
     @Column(name = "estado")
     private EstadoViaje estado;
 
+    /** Por qué se canceló el viaje (se muestra al pasajero y queda en auditoría). */
+    @Column(name = "motivo_cancelacion", length = 300)
+    private String motivoCancelacion;
+
+    @Column(name = "cancelado_at")
+    private java.time.LocalDateTime canceladoAt;
+
     @OneToMany(mappedBy = "viaje", fetch = FetchType.LAZY)
     @OrderBy("orden ASC")
     private List<ViajeParada> paradas;
@@ -111,6 +118,12 @@ public class Viaje {
 
     public BigDecimal getPrecioVip() { return precioVip; }
     public void setPrecioVip(BigDecimal precioVip) { this.precioVip = precioVip; }
+
+    public String getMotivoCancelacion() { return motivoCancelacion; }
+    public void setMotivoCancelacion(String m) { this.motivoCancelacion = m; }
+
+    public java.time.LocalDateTime getCanceladoAt() { return canceladoAt; }
+    public void setCanceladoAt(java.time.LocalDateTime c) { this.canceladoAt = c; }
 
     public EstadoViaje getEstado() { return estado; }
     public void setEstado(EstadoViaje estado) { this.estado = estado; }

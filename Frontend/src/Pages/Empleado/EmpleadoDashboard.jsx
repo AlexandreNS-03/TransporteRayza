@@ -60,6 +60,9 @@ function EmpleadoDashboard() {
                             <NavLink to="/empleado/manifiesto-carga" className={({ isActive }) => isActive ? "sb-item active" : "sb-item"}>
                                 <i className="ti ti-package"></i> Manifiesto Carga
                             </NavLink>
+                            <NavLink to="/empleado/por-resolver" className={({ isActive }) => isActive ? "sb-item active" : "sb-item"}>
+                                <i className="ti ti-alert-triangle"></i> Por resolver
+                            </NavLink>
                         </>
                     )}
 

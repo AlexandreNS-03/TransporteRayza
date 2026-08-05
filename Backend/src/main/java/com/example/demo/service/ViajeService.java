@@ -171,6 +171,7 @@ public class ViajeService {
         dto.setHoraSalida(v.getHoraSalida() != null ? v.getHoraSalida().toString() : null);
         dto.setPrecioNormal(v.getPrecioNormal());
         dto.setPrecioVip(v.getPrecioVip());
+        dto.setMotivoCancelacion(v.getMotivoCancelacion());
         dto.setEstado(v.getEstado() != null ? v.getEstado().name() : null);
         dto.setRutaId(v.getRutaId());
 

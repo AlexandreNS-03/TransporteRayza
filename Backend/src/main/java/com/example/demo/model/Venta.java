@@ -158,6 +158,14 @@ public class Venta {
     @Column(name = "pasarela_referencia", length = 100)
     private String pasarelaReferencia;
 
+    /**
+     * Solo se usa cuando el viaje se cancela: queda PENDIENTE hasta que alguien
+     * decida qué hacer con el dinero del pasajero. Null = no hay nada que resolver.
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "resolucion", length = 20)
+    private Resolucion resolucion;
+
     @OneToMany(mappedBy = "venta", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<VentaTramoUsado> tramosUsados;
 
@@ -167,6 +175,7 @@ public class Venta {
     public enum AsientoTipo { NORMAL, VIP }
     public enum EmbarqueEstado { PENDIENTE, EMBARCADO }
     public enum EstadoVenta { PAGADO, ANULADO, RESERVADO }
+    public enum Resolucion { PENDIENTE, DEVUELTO, REPROGRAMADO, SALDO_FAVOR }
 
     // Getters y Setters
     public String getId() { return id; }
@@ -303,6 +312,9 @@ public class Venta {
 
     public LocalDateTime getReservaExpira() { return reservaExpira; }
     public void setReservaExpira(LocalDateTime reservaExpira) { this.reservaExpira = reservaExpira; }
+
+    public Resolucion getResolucion() { return resolucion; }
+    public void setResolucion(Resolucion r) { this.resolucion = r; }
 
     public String getPasarelaReferencia() { return pasarelaReferencia; }
     public void setPasarelaReferencia(String r) { this.pasarelaReferencia = r; }
