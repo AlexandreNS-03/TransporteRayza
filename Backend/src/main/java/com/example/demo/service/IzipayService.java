@@ -232,6 +232,18 @@ public class IzipayService {
         }
     }
 
+    /**
+     * Valida solo la firma de una notificación, sin exigir que el pago esté aprobado.
+     * Lo usa el aviso de abandono, donde el pedido justamente NO está pagado.
+     */
+    public boolean firmaIpnValida(String krAnswer, String krHash, String krHashKey) {
+        if (!estaActiva()) return true;                       // modo simulación
+        if (krAnswer == null || krHash == null) return false;
+        String llave = "password".equalsIgnoreCase(krHashKey) ? password : hmacSha256;
+        if (llave == null || llave.isBlank()) return false;
+        return firmaValidaCon(krAnswer, krHash, llave);
+    }
+
     /** Devuelve el orderId que viene dentro de la notificación. */
     public String orderIdDe(String krAnswer) {
         try {

@@ -24,12 +24,15 @@ public class IzipayIpnService {
     private final EncomiendaRepository encomiendaRepository;
     private final ReservaService reservaService;
     private final AuditoriaService auditoriaService;
+    private final RecordatorioPagoService recordatorioPagoService;
 
     public IzipayIpnService(IzipayService izipayService,
                             VentaRepository ventaRepository,
                             EncomiendaRepository encomiendaRepository,
                             ReservaService reservaService,
-                            AuditoriaService auditoriaService) {
+                            AuditoriaService auditoriaService,
+                            RecordatorioPagoService recordatorioPagoService) {
+        this.recordatorioPagoService = recordatorioPagoService;
         this.izipayService = izipayService;
         this.ventaRepository = ventaRepository;
         this.encomiendaRepository = encomiendaRepository;
@@ -76,5 +79,24 @@ public class IzipayIpnService {
                 "Pedido " + orderId + " (" + pendientes.size() + " pasaje(s)) confirmado "
                         + "por notificación de Izipay");
         return "Pago confirmado";
+    }
+
+    /**
+     * Aviso de abandono: el comprador cerró el formulario sin pagar. No se toca la
+     * venta (el asiento sigue retenido hasta que venza); solo se le escribe para que
+     * pueda terminar el pago a tiempo.
+     */
+    @Transactional
+    public String procesarAbandono(String krAnswer, String krHash, String krHashKey) {
+        if (!izipayService.firmaIpnValida(krAnswer, krHash, krHashKey))
+            return "Ignorada: la notificación no es auténtica";
+
+        String orderId = izipayService.orderIdDe(krAnswer);
+        if (orderId == null || orderId.isBlank()) return "Sin orderId";
+
+        // Las encomiendas se pagan sin retener nada: no hay plazo que avisar.
+        if (orderId.startsWith("ENC-")) return "Encomienda: sin aviso de abandono";
+
+        return recordatorioPagoService.avisarPorOrden(orderId);
     }
 }

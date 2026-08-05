@@ -287,6 +287,63 @@ public class ReservaService {
         return t;
     }
 
+    /**
+     * Reservas que siguen esperando pago, para la página que abre el cliente desde el
+     * correo de aviso. Se piden por id (UUID), no por número de pedido: el id no se
+     * puede adivinar, así que el enlace del correo sirve sin pedir sesión.
+     *
+     * Devuelve solo lo necesario para mostrar el resumen y cobrar; nada de datos
+     * sensibles del comprador.
+     */
+    @Transactional(readOnly = true)
+    public java.util.Map<String, Object> pendientesPorIds(List<String> ids) {
+        java.util.Map<String, Object> r = new java.util.LinkedHashMap<>();
+        List<java.util.Map<String, Object>> items = new ArrayList<>();
+        BigDecimal total = BigDecimal.ZERO;
+        LocalDateTime expira = null;
+        boolean algunoPagado = false;
+
+        for (String id : ids) {
+            Venta v = ventaRepository.findById(id).orElse(null);
+            if (v == null) continue;
+            if (v.getEstado() == Venta.EstadoVenta.PAGADO) { algunoPagado = true; continue; }
+            if (v.getEstado() != Venta.EstadoVenta.RESERVADO) continue;
+            if (v.getReservaExpira() != null && LocalDateTime.now().isAfter(v.getReservaExpira())) continue;
+
+            java.util.Map<String, Object> i = new java.util.LinkedHashMap<>();
+            i.put("reservaId", v.getId());
+            i.put("pasajeroNombre", v.getPasajeroNombre());
+            i.put("asientoNumero", v.getAsientoNumero());
+            i.put("asientoTipo", v.getAsientoTipo() != null ? v.getAsientoTipo().name() : null);
+            i.put("precio", v.getPrecio());
+            items.add(i);
+
+            total = total.add(v.getPrecio() == null ? BigDecimal.ZERO : v.getPrecio());
+            if (expira == null || (v.getReservaExpira() != null && v.getReservaExpira().isBefore(expira)))
+                expira = v.getReservaExpira();
+
+            if (r.isEmpty()) {
+                r.put("origen", v.getParadaOrigen());
+                r.put("destino", v.getParadaDestino());
+                if (v.getViajeId() != null) {
+                    Viaje viaje = viajeRepository.findById(v.getViajeId()).orElse(null);
+                    if (viaje != null) {
+                        r.put("fechaSalida", viaje.getFechaSalida() != null ? viaje.getFechaSalida().toString() : null);
+                        r.put("horaSalida", viaje.getHoraSalida() != null ? viaje.getHoraSalida().toString() : null);
+                        r.put("embarcacionNombre", viaje.getEmbarcacionNombre());
+                    }
+                }
+            }
+        }
+
+        r.put("items", items);
+        r.put("reservaIds", items.stream().map(i -> (String) i.get("reservaId")).toList());
+        r.put("total", total);
+        r.put("expiraEn", expira != null ? expira.toString() : null);
+        r.put("yaPagado", items.isEmpty() && algunoPagado);
+        return r;
+    }
+
     /** Qué medios de pago están configurados, con las claves públicas del navegador. */
     public java.util.Map<String, Object> metodosDePago() {
         java.util.Map<String, Object> tarjeta = new java.util.LinkedHashMap<>();

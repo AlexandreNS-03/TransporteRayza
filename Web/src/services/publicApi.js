@@ -54,6 +54,17 @@ export async function crearReservaGrupo(grupo, token) {
   } catch (e) { throw desempaquetarError(e); }
 }
 
+/**
+ * Reservas que siguen esperando pago. Se usa en la página a la que llega el cliente
+ * desde el correo de "tu reserva tiene un pago pendiente".
+ */
+export async function reservasPendientes(ids) {
+  try {
+    const { data } = await http.get("/reservas/pendientes", { params: { ids } });
+    return data;
+  } catch (e) { throw desempaquetarError(e); }
+}
+
 /** Formulario de Izipay para el total del grupo. */
 export async function formularioDePagoGrupo(reservaIds) {
   try {

@@ -13,6 +13,7 @@ import DestinoDetalle from "./pages/DestinoDetalle";
 import Rastreo from "./pages/Rastreo";
 import IrArriba from "./components/IrArriba";
 import PagaCarga from "./pages/PagaCarga";
+import PagarReserva from "./pages/PagarReserva";
 import CookieBanner from "./components/CookieBanner";
 
 export default function App() {
@@ -33,6 +34,8 @@ export default function App() {
         <Route path="/destinos/:slug" element={<DestinoDetalle />} />
         <Route path="/rastreo" element={<Rastreo />} />
         <Route path="/paga-tu-carga" element={<PagaCarga />} />
+        {/* Enlace del correo de "tu reserva tiene un pago pendiente" */}
+        <Route path="/pagar-reserva" element={<PagarReserva />} />
         <Route path="*" element={<Landing />} />
       </Routes>
       <CookieBanner />

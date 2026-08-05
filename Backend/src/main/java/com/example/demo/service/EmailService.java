@@ -107,6 +107,27 @@ public class EmailService implements InitializingBean {
             enviarPorSmtp(destinatario, "Embarque confirmado - Transportes Rayza", html, null);
     }
 
+    // ------------------------------------------------- Reserva pendiente de pago
+
+    /**
+     * Aviso al cliente que dejó la compra a medias: el asiento sigue retenido pero
+     * vence en pocos minutos. El botón lleva a terminar el pago.
+     */
+    public void enviarPagoPendiente(String destinatario, String nombre, String ruta,
+                                    String fecha, String hora, String asientos,
+                                    int cantidad, java.math.BigDecimal total,
+                                    long minutos, String enlace) throws MessagingException {
+
+        String html = construirHtmlPagoPendiente(nombre, ruta, fecha, hora, asientos,
+                                                 cantidad, total, minutos, enlace);
+        String asunto = "¡Atención! Tu reserva tiene un pago pendiente - Transportes Rayza";
+
+        if (usaResend())
+            enviarPorResend(destinatario, asunto, html, null);
+        else
+            enviarPorSmtp(destinatario, asunto, html, null);
+    }
+
     // ------------------------------------------------------- Correo de texto simple
 
     /**
@@ -243,5 +264,67 @@ public class EmailService implements InitializingBean {
         </body>
         </html>
     """.formatted(nombre, ruta, asiento, hora);
+    }
+
+    private String construirHtmlPagoPendiente(String nombre, String ruta, String fecha,
+                                              String hora, String asientos, int cantidad,
+                                              java.math.BigDecimal total, long minutos,
+                                              String enlace) {
+        String cuando = (fecha == null || fecha.isBlank()) ? "—"
+                : fecha + (hora == null || hora.isBlank() ? "" : " · " + hora + " h");
+        String queGuardamos = cantidad == 1 ? "tu pasaje" : "tus pasajes";
+        String tiempo = minutos == 1 ? "1 minuto" : minutos + " minutos";
+
+        return """
+        <!DOCTYPE html>
+        <html>
+        <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background:#f4f6fb;">
+            <div style="background: #1a4db5; padding: 24px; text-align: center;">
+                <h1 style="color: white; margin: 0; font-size: 22px;">¡Atención!</h1>
+                <p style="color: rgba(255,255,255,0.9); margin: 6px 0 0; font-size: 18px;">
+                    En tu reserva hay un <strong>pago pendiente</strong>
+                </p>
+            </div>
+            <div style="padding: 24px; background: #fff;">
+                <p style="font-size:16px;">Hola <strong>%s</strong>,</p>
+                <p>Vimos que empezaste a comprar tus pasajes pero el pago no llegó a completarse,
+                   por lo que todavía no podemos emitir tu boleto.</p>
+
+                <div style="background:#fff7ed; border:1px solid #fed7aa; border-radius:8px; padding:14px; margin:18px 0;">
+                    <p style="margin:0; color:#9a3412; font-size:15px;">
+                        Guardamos %s por <strong>%s más</strong>. Pasado ese tiempo el
+                        asiento se libera y queda disponible para otra persona.
+                    </p>
+                </div>
+
+                <div style="background: #f8fafc; border-radius: 8px; padding: 16px; margin: 16px 0;">
+                    <p style="margin: 4px 0;"><strong>Ruta:</strong> %s</p>
+                    <p style="margin: 4px 0;"><strong>Salida:</strong> %s</p>
+                    <p style="margin: 4px 0;"><strong>Asiento(s):</strong> %s</p>
+                    <p style="margin: 4px 0;"><strong>Total a pagar:</strong> S/ %s</p>
+                </div>
+
+                <div style="text-align:center; margin: 26px 0;">
+                    <a href="%s" style="background:#1a4db5; color:#fff; text-decoration:none;
+                       padding:14px 32px; border-radius:6px; font-weight:bold; font-size:16px;
+                       display:inline-block;">Pagar mi reserva</a>
+                </div>
+
+                <p style="color:#6b7280; font-size:12px; text-align:center; word-break:break-all;">
+                    Si el botón no funciona, copia este enlace en tu navegador:<br>%s
+                </p>
+                <p style="color:#6b7280; font-size:12px;">
+                    Si ya pagaste o prefieres no continuar, puedes ignorar este mensaje.
+                </p>
+            </div>
+            <div style="background: #f8fafc; padding: 16px; text-align: center;">
+                <p style="color: #9ca3af; font-size: 12px; margin: 0;">
+                    Transportes Rayza · Requena e Iquitos, Loreto
+                </p>
+            </div>
+        </body>
+        </html>
+    """.formatted(nombre == null ? "" : nombre, queGuardamos, tiempo, ruta, cuando, asientos,
+                  total == null ? "0.00" : total.toPlainString(), enlace, enlace);
     }
 }
