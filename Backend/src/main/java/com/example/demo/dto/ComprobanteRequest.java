@@ -4,6 +4,7 @@ public class ComprobanteRequest {
 
     private String ventaId;                  // venta de pasaje…
     private String encomiendaId;             // …o encomienda (solo uno de los dos)
+    private String grupoVentaId;             // …o un grupo de pasajes vendidos juntos
     private String tipoDeComprobante;        // FACTURA | BOLETA
     private String clienteTipoDeDocumento;   // Código SUNAT: 1=DNI, 4=CE, 6=RUC, 7=PASAPORTE
     private String clienteNumeroDeDocumento;
@@ -17,6 +18,9 @@ public class ComprobanteRequest {
 
     public String getEncomiendaId() { return encomiendaId; }
     public void setEncomiendaId(String encomiendaId) { this.encomiendaId = encomiendaId; }
+
+    public String getGrupoVentaId() { return grupoVentaId; }
+    public void setGrupoVentaId(String grupoVentaId) { this.grupoVentaId = grupoVentaId; }
 
     public String getTipoDeComprobante() { return tipoDeComprobante; }
     public void setTipoDeComprobante(String tipoDeComprobante) { this.tipoDeComprobante = tipoDeComprobante; }

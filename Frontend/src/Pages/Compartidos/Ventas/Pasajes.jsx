@@ -38,6 +38,13 @@ function comparar(a, b, dir) {
     return String(a).localeCompare(String(b), "es", { numeric: true }) * m;
 }
 
+const PASAJERO_VACIO = {
+    tipoDocumento: "DNI", pasajeroNombre: "", pasajeroDocumento: "",
+    procedencia: "", pasajeroTelefono: "", edad: "", sexo: "Masculino"
+};
+
+const MAX_PASAJEROS = 10;
+
 function Pasajes() {
     const usuario      = JSON.parse(localStorage.getItem("usuario"));
     const esAdmin      = usuario?.rol === "ADMIN";
@@ -79,7 +86,7 @@ function Pasajes() {
     const [paso, setPaso]             = useState(1);
     const [guardando, setGuardando]   = useState(false);
     const [errorModal, setErrorModal] = useState(null);
-    const [consultandoDni, setConsultandoDni] = useState(false);
+    const [consultandoDni, setConsultandoDni] = useState(null);   // índice del pasajero consultado
 
     // Datos para selects
     const [viajes, setViajes]         = useState([]);
@@ -87,24 +94,31 @@ function Pasajes() {
     const [asientos, setAsientos]     = useState([]);
     const [tarifa, setTarifa]         = useState(null);
 
-    // Formulario
+    // Formulario: lo que es común a toda la compra (viaje, tramo, comprobante, pago)
     const [form, setForm] = useState({
         // Paso 1
         viajeId: "",
-        // Paso 2
-        tipoDocumento: "DNI", pasajeroNombre: "", pasajeroDocumento: "",
-        procedencia: "", pasajeroTelefono: "", edad: "", sexo: "Masculino", clienteEmail: "",
+        // Paso 2 (contacto de la compra)
+        clienteEmail: "",
         // Paso 3
         paradaOrigen: "", paradaDestino: "", ordenOrigen: "", ordenDestino: "",
-        // Paso 4
-        asientoNumero: "", asientoTipo: "",
         // Paso 5
         tipoComprobante: "TICKET",
         clienteNombre: "", clienteTipoDoc: "DNI",
         clienteDocumento: "", detalleComprobante: "",
-        precio: "", precioOriginal: "", lugarPago: lugarPagoDefault,
+        lugarPago: lugarPagoDefault,
         metodoPago: "EFECTIVO", observacion: ""
     });
+
+    /**
+     * Una fila por persona que viaja. Se venden juntas, con un solo comprobante:
+     * antes había que repetir toda la venta pasajero por pasajero, y cada uno salía
+     * con su propia boleta.
+     */
+    const [pasajeros, setPasajeros] = useState([{ ...PASAJERO_VACIO }]);
+
+    /** Asientos elegidos, en el mismo orden que los pasajeros. */
+    const [elegidos, setElegidos] = useState([]);
 
     useEffect(() => { fetchVentas(); fetchComprobantes(); }, []);
 
@@ -116,8 +130,19 @@ function Pasajes() {
     };
 
     // Comprobante electrónico vigente (ACEPTADO) por venta — las notas de crédito no cuentan
-    const comprobantePorVenta = (ventaId) =>
-        comprobantes.find(c => c.ventaId === ventaId && c.estado === "ACEPTADO" && c.tipoDeComprobante !== "NOTA_CREDITO");
+    /**
+     * Comprobante vigente de un pasaje. Si el pasaje se vendió junto a otros, el
+     * comprobante es uno solo para todo el grupo: se busca también por ahí, si no
+     * los demás pasajes se verían como si les faltara boleta.
+     */
+    const comprobantePorVenta = (v) =>
+        comprobantes.find(c =>
+            (c.ventaId === v.id || (v.grupoVentaId && c.grupoVentaId === v.grupoVentaId))
+            && c.estado === "ACEPTADO" && c.tipoDeComprobante !== "NOTA_CREDITO");
+
+    /** Los demás pasajes vendidos en la misma operación. */
+    const grupoDe = (v) =>
+        v.grupoVentaId ? ventas.filter(x => x.grupoVentaId === v.grupoVentaId) : [v];
 
     const fetchVentas = async () => {
         setCargando(true);
@@ -151,15 +176,14 @@ function Pasajes() {
         setParadas([]);
         setAsientos([]);
         setTarifa(null);
+        setPasajeros([{ ...PASAJERO_VACIO }]);
+        setElegidos([]);
         setForm({
-            viajeId: "", tipoDocumento: "DNI", pasajeroNombre: "",
-            pasajeroDocumento: "", procedencia: "", pasajeroTelefono: "",
-            edad: "", sexo: "Masculino", clienteEmail:"",
+            viajeId: "", clienteEmail: "",
             paradaOrigen: "", paradaDestino: "", ordenOrigen: "", ordenDestino: "",
-            asientoNumero: "", asientoTipo: "",
             tipoComprobante: "TICKET", clienteNombre: "", clienteTipoDoc: "DNI",
-            clienteDocumento: "", detalleComprobante: "", precio: "",
-            precioOriginal: "", lugarPago: lugarPagoDefault,
+            clienteDocumento: "", detalleComprobante: "",
+            lugarPago: lugarPagoDefault,
             metodoPago: "EFECTIVO", observacion: ""
         });
     };
@@ -198,25 +222,48 @@ function Pasajes() {
         } catch (err) { setErrorModal("Error al cargar paradas del viaje"); }
     };
 
-    // Autocompletar nombre del pasajero por DNI
-    const consultarDniPasajero = async () => {
-        setConsultandoDni(true);
-        setErrorModal(null);
-        try {
-            const data = await consultarDni(form.pasajeroDocumento.trim());
-            setForm(prev => ({ ...prev, pasajeroNombre: data.nombreCompleto }));
-        } catch (err) { setErrorModal(err.message); }
-        finally { setConsultandoDni(false); }
+    // ── Pasajeros ──
+    const cambiarPasajero = (i, campo, valor) =>
+        setPasajeros(prev => prev.map((p, j) => (j === i ? { ...p, [campo]: valor } : p)));
+
+    /** Cambia cuántas personas viajan: agrega filas vacías o recorta las de más. */
+    const cambiarCantidad = (n) => {
+        const cantidad = Math.max(1, Math.min(MAX_PASAJEROS, n));
+        setPasajeros(prev => {
+            const arr = prev.slice(0, cantidad);
+            while (arr.length < cantidad) arr.push({ ...PASAJERO_VACIO });
+            return arr;
+        });
+        // Los asientos ya elegidos dejan de calzar si se achica el grupo.
+        setElegidos(prev => prev.slice(0, cantidad));
     };
 
-    // ── PASO 2: datos pasajero ──
+    // Autocompletar nombre del pasajero por DNI
+    const consultarDniPasajero = async (i) => {
+        setConsultandoDni(i);
+        setErrorModal(null);
+        try {
+            const data = await consultarDni((pasajeros[i].pasajeroDocumento || "").trim());
+            cambiarPasajero(i, "pasajeroNombre", data.nombreCompleto);
+        } catch (err) { setErrorModal(err.message); }
+        finally { setConsultandoDni(null); }
+    };
+
+    // ── PASO 2: datos de los pasajeros ──
     const confirmarPasajero = () => {
-        if (!form.pasajeroNombre || !form.pasajeroDocumento) {
-            setErrorModal("Nombre y documento son obligatorios");
-            return;
+        for (let i = 0; i < pasajeros.length; i++) {
+            const p = pasajeros[i];
+            if (!p.pasajeroNombre?.trim() || !p.pasajeroDocumento?.trim()) {
+                setErrorModal(`Completa el nombre y el documento del pasajero ${i + 1}`);
+                return;
+            }
         }
-        // Copiar nombre al cliente por defecto
-        setForm(prev => ({ ...prev, clienteNombre: prev.pasajeroNombre, clienteDocumento: prev.pasajeroDocumento }));
+        // El primer pasajero es, por defecto, a nombre de quién va el comprobante
+        setForm(prev => ({
+            ...prev,
+            clienteNombre: prev.clienteNombre || pasajeros[0].pasajeroNombre,
+            clienteDocumento: prev.clienteDocumento || pasajeros[0].pasajeroDocumento
+        }));
         setErrorModal(null);
         setPaso(3);
     };
@@ -256,23 +303,34 @@ function Pasajes() {
         } catch (err) { setErrorModal("Error al cargar asientos o tarifas"); }
     };
 
-    // ── PASO 4: seleccionar asiento ──
+    // ── PASO 4: seleccionar asientos (uno por pasajero) ──
     const seleccionarAsiento = (asiento) => {
         const tarifaAsiento = asiento.tipo === "VIP" ? tarifa?.precioVip : tarifa?.precioNormal;
-        setForm(prev => ({
-            ...prev,
-            asientoNumero: asiento.numero,
-            asientoTipo: asiento.tipo,
-            precio: tarifaAsiento,
-            precioOriginal: tarifaAsiento
-        }));
+        setElegidos(prev => {
+            const ya = prev.findIndex(a => a.numero === asiento.numero);
+            if (ya >= 0) return prev.filter(a => a.numero !== asiento.numero);
+            if (prev.length >= pasajeros.length) return prev;   // ya están todos
+            return [...prev, {
+                numero: asiento.numero, tipo: asiento.tipo,
+                precio: tarifaAsiento, precioOriginal: tarifaAsiento
+            }];
+        });
     };
 
+    const cambiarPrecio = (i, valor) =>
+        setElegidos(prev => prev.map((a, j) => (j === i ? { ...a, precio: valor } : a)));
+
     const confirmarAsiento = () => {
-        if (!form.asientoNumero) { setErrorModal("Selecciona un asiento"); return; }
+        if (elegidos.length !== pasajeros.length) {
+            setErrorModal(`Elige ${pasajeros.length} asiento(s), uno por pasajero`);
+            return;
+        }
         setErrorModal(null);
         setPaso(5);
     };
+
+    /** Total de la compra con los precios (ya rebajados) de cada asiento. */
+    const totalCompra = elegidos.reduce((t, a) => t + (parseFloat(a.precio) || 0), 0);
 
     // ── PASO 5: comprobante ──
     const confirmarVenta = async () => {
@@ -288,47 +346,69 @@ function Pasajes() {
             setErrorModal("Indica el método de pago (Efectivo, Yape, etc.)");
             return;
         }
-        const precioFinal = parseFloat(form.precio);
-        if (isNaN(precioFinal) || precioFinal < 0) {
-            setErrorModal("El precio no es válido");
-            return;
+        for (const a of elegidos) {
+            const precio = parseFloat(a.precio);
+            if (isNaN(precio) || precio < 0) {
+                setErrorModal(`El precio del asiento #${a.numero} no es válido`);
+                return;
+            }
         }
+
+        // Datos de cada pasajero con su asiento y su precio
+        const filas = pasajeros.map((p, i) => ({
+            tipoDocumento:     p.tipoDocumento,
+            pasajeroNombre:    p.pasajeroNombre,
+            pasajeroDocumento: p.pasajeroDocumento,
+            procedencia:       p.procedencia,
+            pasajeroTelefono:  p.pasajeroTelefono,
+            edad:              parseInt(p.edad) || null,
+            sexo:              p.sexo,
+            asientoNumero:     elegidos[i].numero,
+            asientoTipo:       elegidos[i].tipo,
+            precio:            parseFloat(elegidos[i].precio),
+            precioOriginal:    elegidos[i].precioOriginal !== "" && elegidos[i].precioOriginal != null
+                                   ? parseFloat(elegidos[i].precioOriginal)
+                                   : parseFloat(elegidos[i].precio)
+        }));
+
+        const comun = {
+            viajeId:            form.viajeId,
+            paradaOrigen:       form.paradaOrigen,
+            paradaDestino:      form.paradaDestino,
+            ordenOrigen:        parseInt(form.ordenOrigen),
+            ordenDestino:       parseInt(form.ordenDestino),
+            clienteEmail:       form.clienteEmail,
+            tipoComprobante:    form.tipoComprobante,
+            clienteNombre:      form.clienteNombre,
+            clienteTipoDoc:     form.clienteTipoDoc,
+            clienteDocumento:   form.clienteDocumento,
+            detalleComprobante: form.detalleComprobante,
+            lugarPago:          form.lugarPago,
+            metodoPago:         form.metodoPago,
+            observacion:        form.observacion
+        };
+
         setGuardando(true);
         setErrorModal(null);
         try {
-            await apiFetch("/api/ventas", {
-                method: "POST",
-                body: JSON.stringify({
-                    viajeId:           form.viajeId,
-                    tipoDocumento:     form.tipoDocumento,
-                    pasajeroNombre:    form.pasajeroNombre,
-                    pasajeroDocumento: form.pasajeroDocumento,
-                    procedencia:       form.procedencia,
-                    pasajeroTelefono:  form.pasajeroTelefono,
-                    clienteEmail:      form.clienteEmail,
-                    edad:              parseInt(form.edad) || null,
-                    sexo:              form.sexo,
-                    tipoComprobante:   form.tipoComprobante,
-                    clienteNombre:     form.clienteNombre,
-                    clienteTipoDoc:    form.clienteTipoDoc,
-                    clienteDocumento:  form.clienteDocumento,
-                    detalleComprobante: form.detalleComprobante,
-                    asientoNumero:     form.asientoNumero,
-                    asientoTipo:       form.asientoTipo,
-                    paradaOrigen:      form.paradaOrigen,
-                    paradaDestino:     form.paradaDestino,
-                    ordenOrigen:       parseInt(form.ordenOrigen),
-                    ordenDestino:      parseInt(form.ordenDestino),
-                    precio:            precioFinal,
-                    precioOriginal:    form.precioOriginal !== "" ? parseFloat(form.precioOriginal) : precioFinal,
-                    lugarPago:         form.lugarPago,
-                    metodoPago:        form.metodoPago,
-                    observacion:       form.observacion
-                })
-            });
+            // Con un solo pasajero se usa la venta de siempre; con varios, la venta en
+            // grupo, que las deja unidas para emitir un comprobante por todas.
+            if (filas.length === 1) {
+                await apiFetch("/api/ventas", {
+                    method: "POST",
+                    body: JSON.stringify({ ...comun, ...filas[0] })
+                });
+            } else {
+                await apiFetch("/api/ventas/grupo", {
+                    method: "POST",
+                    body: JSON.stringify({ ...comun, pasajeros: filas })
+                });
+            }
             cerrarModal();
             fetchVentas();
-        } catch (err) { setErrorModal("Error al registrar la venta"); }
+        } catch (err) {
+            setErrorModal(err.message || "Error al registrar la venta");
+        }
         finally { setGuardando(false); }
     };
 
@@ -460,17 +540,24 @@ function Pasajes() {
         const precio  = esVip ? tarifa?.precioVip : tarifa?.precioNormal;
         const etiqueta = esVip ? "⭐ VIP" : "💺 Normal";
 
-        const boton = (a) => (
-            <button
-                key={a.id}
-                className={`barco-asiento ${esVip ? "vip" : "normal"} ${!a.libreParaTramo ? "ocupado" : ""} ${form.asientoNumero === a.numero ? "seleccionado" : ""}`}
-                onClick={() => a.libreParaTramo && seleccionarAsiento(a)}
-                disabled={!a.libreParaTramo}
-                title={!a.libreParaTramo ? "Ocupado" : `${esVip ? "VIP" : "Normal"} #${a.numero} — S/ ${precio}`}
-            >
-                {a.numero}
-            </button>
-        );
+        const boton = (a) => {
+            // Al vender para varias personas, el asiento muestra a qué pasajero le tocó.
+            const pos = elegidos.findIndex(e => e.numero === a.numero);
+            return (
+                <button
+                    key={a.id}
+                    className={`barco-asiento ${esVip ? "vip" : "normal"} ${!a.libreParaTramo ? "ocupado" : ""} ${pos >= 0 ? "seleccionado" : ""}`}
+                    onClick={() => a.libreParaTramo && seleccionarAsiento(a)}
+                    disabled={!a.libreParaTramo}
+                    title={!a.libreParaTramo ? "Ocupado"
+                        : pos >= 0 ? `Asiento de ${pasajeros[pos]?.pasajeroNombre || `pasajero ${pos + 1}`} — clic para soltarlo`
+                        : `${esVip ? "VIP" : "Normal"} #${a.numero} — S/ ${precio}`}
+                >
+                    {a.numero}
+                    {pos >= 0 && pasajeros.length > 1 && <span className="asiento-pax">P{pos + 1}</span>}
+                </button>
+            );
+        };
 
         return (
             <div className="barco-seccion">
@@ -663,11 +750,11 @@ function Pasajes() {
 
                                             {/* Comprobante electrónico (boleta/factura Nubefact) */}
                                             {v.estado === "PAGADO" && (
-                                                comprobantePorVenta(v.id) ? (
+                                                comprobantePorVenta(v) ? (
                                                     <button
                                                         className="btn-accion emitido"
-                                                        onClick={() => abrirComprobante(comprobantePorVenta(v.id))}
-                                                        title={`Ver comprobante ${comprobantePorVenta(v.id).serie}-${String(comprobantePorVenta(v.id).numero).padStart(8, "0")}`}
+                                                        onClick={() => abrirComprobante(comprobantePorVenta(v))}
+                                                        title={`Ver comprobante ${comprobantePorVenta(v).serie}-${String(comprobantePorVenta(v).numero).padStart(8, "0")}`}
                                                     >
                                                         <i className="ti ti-file-check"></i>
                                                     </button>
@@ -675,7 +762,9 @@ function Pasajes() {
                                                     <button
                                                         className="btn-accion generar"
                                                         onClick={() => setVentaParaComp(v)}
-                                                        title="Generar boleta / factura electrónica"
+                                                        title={v.grupoVentaId
+                                                            ? `Generar un comprobante por los ${grupoDe(v).length} pasajes de esta venta`
+                                                            : "Generar boleta / factura electrónica"}
                                                     >
                                                         <i className="ti ti-receipt-2"></i>
                                                     </button>
@@ -753,6 +842,26 @@ function Pasajes() {
                                         />
                                     </div>
 
+                                    <div className="form-grupo">
+                                        <label>¿Cuántas personas viajan? *</label>
+                                        <div className="cantidad-pax">
+                                            <button type="button" onClick={() => cambiarCantidad(pasajeros.length - 1)}
+                                                    disabled={pasajeros.length <= 1} title="Quitar pasajero">
+                                                <i className="ti ti-minus"></i>
+                                            </button>
+                                            <span className="cantidad-pax-valor">{pasajeros.length}</span>
+                                            <button type="button" onClick={() => cambiarCantidad(pasajeros.length + 1)}
+                                                    disabled={pasajeros.length >= MAX_PASAJEROS} title="Agregar pasajero">
+                                                <i className="ti ti-plus"></i>
+                                            </button>
+                                            <span className="cantidad-pax-nota">
+                                                {pasajeros.length === 1
+                                                    ? "Un pasaje"
+                                                    : `${pasajeros.length} pasajes en una sola venta, con un comprobante`}
+                                            </span>
+                                        </div>
+                                    </div>
+
                                     {viajeSeleccionado && (
                                         <div className="viaje-card">
                                             <div className="viaje-card-item">
@@ -772,73 +881,89 @@ function Pasajes() {
                                 </div>
                             )}
 
-                            {/* ── PASO 2: PASAJERO ── */}
+                            {/* ── PASO 2: PASAJEROS ── */}
                             {paso === 2 && (
                                 <div className="wizard-contenido">
-                                    <p className="wizard-titulo">Datos del pasajero</p>
-                                    <div className="form-fila">
-                                        <div className="form-grupo">
-                                            <label>Tipo Documento *</label>
-                                            <select name="tipoDocumento" value={form.tipoDocumento} onChange={handleChange}>
-                                                {TIPO_DOC.map(t => <option key={t}>{t}</option>)}
-                                            </select>
-                                        </div>
-                                        <div className="form-grupo">
-                                            <label>Número Documento *</label>
-                                            <div className="doc-consulta">
-                                                <input type="text" name="pasajeroDocumento"
-                                                       value={form.pasajeroDocumento} onChange={handleChange}
-                                                       placeholder="12345678" />
-                                                {form.tipoDocumento === "DNI" && (
-                                                    <button type="button" className="btn-consulta"
-                                                            onClick={consultarDniPasajero}
-                                                            disabled={!/^\d{8}$/.test(form.pasajeroDocumento.trim()) || consultandoDni}
-                                                            title="Consultar nombre (RENIEC)">
-                                                        {consultandoDni
-                                                            ? <i className="ti ti-loader-2 spin"></i>
-                                                            : <><i className="ti ti-search"></i></>}
-                                                    </button>
-                                                )}
+                                    <p className="wizard-titulo">
+                                        {pasajeros.length === 1 ? "Datos del pasajero" : `Datos de los ${pasajeros.length} pasajeros`}
+                                    </p>
+
+                                    {pasajeros.map((p, i) => (
+                                        <div key={i} className={pasajeros.length > 1 ? "pax-bloque" : ""}>
+                                            {pasajeros.length > 1 && (
+                                                <p className="pax-titulo">
+                                                    <i className="ti ti-user"></i> Pasajero {i + 1}
+                                                    {p.pasajeroNombre && <span> — {p.pasajeroNombre}</span>}
+                                                </p>
+                                            )}
+                                            <div className="form-fila">
+                                                <div className="form-grupo">
+                                                    <label>Tipo Documento *</label>
+                                                    <select value={p.tipoDocumento}
+                                                            onChange={e => cambiarPasajero(i, "tipoDocumento", e.target.value)}>
+                                                        {TIPO_DOC.map(t => <option key={t}>{t}</option>)}
+                                                    </select>
+                                                </div>
+                                                <div className="form-grupo">
+                                                    <label>Número Documento *</label>
+                                                    <div className="doc-consulta">
+                                                        <input type="text" value={p.pasajeroDocumento}
+                                                               onChange={e => cambiarPasajero(i, "pasajeroDocumento", e.target.value)}
+                                                               placeholder="12345678" />
+                                                        {p.tipoDocumento === "DNI" && (
+                                                            <button type="button" className="btn-consulta"
+                                                                    onClick={() => consultarDniPasajero(i)}
+                                                                    disabled={!/^\d{8}$/.test((p.pasajeroDocumento || "").trim()) || consultandoDni !== null}
+                                                                    title="Consultar nombre (RENIEC)">
+                                                                {consultandoDni === i
+                                                                    ? <i className="ti ti-loader-2 spin"></i>
+                                                                    : <i className="ti ti-search"></i>}
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className="form-grupo">
+                                                <label>Nombre Completo *</label>
+                                                <input type="text" value={p.pasajeroNombre}
+                                                       onChange={e => cambiarPasajero(i, "pasajeroNombre", e.target.value)}
+                                                       placeholder="Juan Pérez García" />
+                                            </div>
+                                            <div className="form-fila">
+                                                <div className="form-grupo">
+                                                    <label>Edad</label>
+                                                    <input type="number" value={p.edad} min="0" max="120"
+                                                           onChange={e => cambiarPasajero(i, "edad", e.target.value)}
+                                                           placeholder="25" />
+                                                </div>
+                                                <div className="form-grupo">
+                                                    <label>Sexo</label>
+                                                    <select value={p.sexo}
+                                                            onChange={e => cambiarPasajero(i, "sexo", e.target.value)}>
+                                                        {SEXO.map(x => <option key={x}>{x}</option>)}
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div className="form-fila">
+                                                <div className="form-grupo">
+                                                    <label>Procedencia</label>
+                                                    <input type="text" value={p.procedencia}
+                                                           onChange={e => cambiarPasajero(i, "procedencia", e.target.value)}
+                                                           placeholder="Lima" />
+                                                </div>
+                                                <div className="form-grupo">
+                                                    <label>Teléfono</label>
+                                                    <input type="text" value={p.pasajeroTelefono}
+                                                           onChange={e => cambiarPasajero(i, "pasajeroTelefono", e.target.value)}
+                                                           placeholder="999888777" />
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                    <div className="form-grupo">
-                                        <label>Nombre Completo *</label>
-                                        <input type="text" name="pasajeroNombre"
-                                               value={form.pasajeroNombre} onChange={handleChange}
-                                               placeholder="Juan Pérez García" />
-                                    </div>
-                                    <div className="form-fila">
-                                        <div className="form-grupo">
-                                            <label>Edad</label>
-                                            <input type="number" name="edad"
-                                                   value={form.edad} onChange={handleChange}
-                                                   placeholder="25" min="0" max="120" />
-                                        </div>
-                                        <div className="form-grupo">
-                                            <label>Sexo</label>
-                                            <select name="sexo" value={form.sexo} onChange={handleChange}>
-                                                {SEXO.map(s => <option key={s}>{s}</option>)}
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div className="form-fila">
-                                        <div className="form-grupo">
-                                            <label>Procedencia</label>
-                                            <input type="text" name="procedencia"
-                                                   value={form.procedencia} onChange={handleChange}
-                                                   placeholder="Lima" />
-                                        </div>
-                                        <div className="form-grupo">
-                                            <label>Teléfono</label>
-                                            <input type="text" name="pasajeroTelefono"
-                                                   value={form.pasajeroTelefono} onChange={handleChange}
-                                                   placeholder="999888777" />
-                                        </div>
-                                    </div>
+                                    ))}
 
+                                    {/* El correo es uno solo: a ahí se mandan los boletos de toda la compra */}
                                     <div className="form-grupo">
-                                        <label>Correo electrónico</label>
+                                        <label>Correo electrónico {pasajeros.length > 1 && "(se envían todos los boletos ahí)"}</label>
                                         <input type="email" name="clienteEmail"
                                                value={form.clienteEmail} onChange={handleChange}
                                                placeholder="correo@ejemplo.com" />
@@ -893,7 +1018,28 @@ function Pasajes() {
                             {/* ── PASO 4: ASIENTO ── */}
                             {paso === 4 && (
                                 <div className="wizard-contenido">
-                                    <p className="wizard-titulo">Selecciona un asiento</p>
+                                    <p className="wizard-titulo">
+                                        {pasajeros.length === 1
+                                            ? "Selecciona un asiento"
+                                            : `Selecciona ${pasajeros.length} asientos (uno por pasajero)`}
+                                    </p>
+
+                                    {pasajeros.length > 1 && (
+                                        <div className="pax-asientos">
+                                            {pasajeros.map((p, i) => (
+                                                <div key={i} className={`pax-asiento ${elegidos[i] ? "listo" : ""}`}>
+                                                    <span className="pax-asiento-nombre">
+                                                        P{i + 1} · {p.pasajeroNombre || "Pasajero " + (i + 1)}
+                                                    </span>
+                                                    <strong>
+                                                        {elegidos[i]
+                                                            ? `#${elegidos[i].numero} · ${elegidos[i].tipo}`
+                                                            : "sin asiento"}
+                                                    </strong>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
 
                                     {tarifa && (
                                         <div className="tarifa-info">
@@ -936,11 +1082,12 @@ function Pasajes() {
 
                                     <div className="popa-label">⬇ popa (atrás)</div>
 
-                                    {form.asientoNumero && (
+                                    {elegidos.length > 0 && (
                                         <div className="asiento-seleccionado-info">
                                             <i className="ti ti-check-circle" aria-hidden="true"></i>
-                                            Asiento <strong>#{form.asientoNumero}</strong> — {form.asientoTipo} —
-                                            <strong> S/ {form.precio}</strong>
+                                            {elegidos.length === 1
+                                                ? <>Asiento <strong>#{elegidos[0].numero}</strong> — {elegidos[0].tipo} — <strong>S/ {elegidos[0].precio}</strong></>
+                                                : <>{elegidos.length} de {pasajeros.length} asientos: <strong>{elegidos.map(a => "#" + a.numero).join(", ")}</strong> — total <strong>S/ {totalCompra.toFixed(2)}</strong></>}
                                         </div>
                                     )}
                                 </div>
@@ -995,22 +1142,33 @@ function Pasajes() {
                                                placeholder="Servicio de transporte fluvial" />
                                     </div>
 
-                                    {/* Precio a cobrar (editable para rebajas) */}
+                                    {/* Precio a cobrar por pasajero (editable para rebajas) */}
+                                    <div className="form-grupo">
+                                        <label>Precio a cobrar (S/) *</label>
+                                        {elegidos.map((a, i) => (
+                                            <div key={a.numero} className="precio-fila">
+                                                {pasajeros.length > 1 && (
+                                                    <span className="precio-fila-quien">
+                                                        {pasajeros[i]?.pasajeroNombre || `Pasajero ${i + 1}`} · #{a.numero}
+                                                    </span>
+                                                )}
+                                                <input type="number" min="0" step="0.10"
+                                                       value={a.precio}
+                                                       onChange={e => cambiarPrecio(i, e.target.value)}
+                                                       placeholder="0.00" />
+                                                {a.precioOriginal !== "" && a.precioOriginal != null &&
+                                                 parseFloat(a.precio) < parseFloat(a.precioOriginal) && (
+                                                    <span className="precio-hint">
+                                                        Tarifa S/ {a.precioOriginal} · rebaja S/ {
+                                                            (parseFloat(a.precioOriginal) - (parseFloat(a.precio) || 0)).toFixed(2)
+                                                        }
+                                                    </span>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+
                                     <div className="form-fila">
-                                        <div className="form-grupo">
-                                            <label>Precio a cobrar (S/) *</label>
-                                            <input type="number" name="precio" min="0" step="0.10"
-                                                   value={form.precio} onChange={handleChange}
-                                                   placeholder="0.00" />
-                                            {form.precioOriginal !== "" &&
-                                             parseFloat(form.precio) < parseFloat(form.precioOriginal) && (
-                                                <span className="precio-hint">
-                                                    Tarifa S/ {form.precioOriginal} · rebaja S/ {
-                                                        (parseFloat(form.precioOriginal) - (parseFloat(form.precio) || 0)).toFixed(2)
-                                                    }
-                                                </span>
-                                            )}
-                                        </div>
                                         <div className="form-grupo">
                                             <label>Lugar de pago *</label>
                                             <div className="comp-selector">
@@ -1056,21 +1214,24 @@ function Pasajes() {
                                     {/* Resumen final */}
                                     <div className="resumen-venta">
                                         <p className="resumen-titulo"><i className="ti ti-receipt"></i> Resumen de la venta</p>
-                                        <div className="resumen-fila"><span>Pasajero</span><strong>{form.pasajeroNombre}</strong></div>
+                                        {pasajeros.map((p, i) => (
+                                            <div className="resumen-fila" key={i}>
+                                                <span>{pasajeros.length > 1 ? `Pasajero ${i + 1}` : "Pasajero"}</span>
+                                                <strong>{p.pasajeroNombre} · #{elegidos[i]?.numero} · S/ {elegidos[i]?.precio}</strong>
+                                            </div>
+                                        ))}
                                         <div className="resumen-fila"><span>Viaje</span><strong>{viajeSeleccionado?.codigoViaje}</strong></div>
                                         <div className="resumen-fila"><span>Tramo</span><strong>{form.paradaOrigen} → {form.paradaDestino}</strong></div>
-                                        <div className="resumen-fila"><span>Asiento</span><strong>{form.asientoTipo} #{form.asientoNumero}</strong></div>
                                         {form.lugarPago && (
                                             <div className="resumen-fila"><span>Lugar de pago</span><strong>{form.lugarPago === "IQUITOS" ? "Iquitos" : "Oficina Requena"}</strong></div>
                                         )}
                                         {form.metodoPago && (
                                             <div className="resumen-fila"><span>Método de pago</span><strong>{METODOS_PAGO.find(m => m.key === form.metodoPago)?.label}</strong></div>
                                         )}
-                                        {form.precioOriginal !== "" &&
-                                         parseFloat(form.precio) < parseFloat(form.precioOriginal) && (
-                                            <div className="resumen-fila"><span>Rebaja</span><strong>− S/ {(parseFloat(form.precioOriginal) - (parseFloat(form.precio) || 0)).toFixed(2)}</strong></div>
+                                        {pasajeros.length > 1 && (
+                                            <div className="resumen-fila"><span>Comprobante</span><strong>Uno solo por los {pasajeros.length} pasajes</strong></div>
                                         )}
-                                        <div className="resumen-fila resumen-total"><span>Total</span><strong>S/ {form.precio}</strong></div>
+                                        <div className="resumen-fila resumen-total"><span>Total</span><strong>S/ {totalCompra.toFixed(2)}</strong></div>
                                     </div>
                                 </div>
                             )}
@@ -1116,6 +1277,7 @@ function Pasajes() {
             {ventaParaComprobante && (
                 <GenerarComprobanteModal
                     venta={ventaParaComprobante}
+                    grupo={grupoDe(ventaParaComprobante)}
                     onClose={() => setVentaParaComp(null)}
                     onGenerado={(c) => {
                         setVentaParaComp(null);

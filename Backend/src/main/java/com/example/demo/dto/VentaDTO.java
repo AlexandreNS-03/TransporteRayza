@@ -42,6 +42,7 @@ public class VentaDTO {
     private String embarqueEstado;
     private String estado;
     private String canal;              // MOSTRADOR | WEB
+    private String grupoVentaId;       // pasajes vendidos juntos (misma operación)
     private String fechaVenta;
     private String usuarioNombre;
     private String createdAt;
@@ -50,6 +51,9 @@ public class VentaDTO {
     private List<String> tramosUsados;
 
     // Getters y Setters
+    public String getGrupoVentaId() { return grupoVentaId; }
+    public void setGrupoVentaId(String grupoVentaId) { this.grupoVentaId = grupoVentaId; }
+
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
 

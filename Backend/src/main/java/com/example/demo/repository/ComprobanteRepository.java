@@ -22,6 +22,13 @@ public interface ComprobanteRepository extends JpaRepository<Comprobante, String
                                                             Comprobante.EstadoComprobante estado,
                                                             Comprobante.TipoComprobante tipo);
 
+    // Comprobante vigente de una venta en grupo (varios pasajes en un solo documento)
+    boolean existsByGrupoVentaIdAndEstadoAndTipoDeComprobanteNot(String grupoVentaId,
+                                                                 Comprobante.EstadoComprobante estado,
+                                                                 Comprobante.TipoComprobante tipo);
+
+    List<Comprobante> findByGrupoVentaId(String grupoVentaId);
+
     boolean existsByEncomiendaIdAndEstadoAndTipoDeComprobanteNot(String encomiendaId,
                                                                  Comprobante.EstadoComprobante estado,
                                                                  Comprobante.TipoComprobante tipo);
