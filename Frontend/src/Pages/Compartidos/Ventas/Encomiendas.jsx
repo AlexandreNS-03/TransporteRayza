@@ -498,24 +498,27 @@ function Encomiendas() {
                                         <input type="number" min="0" step="0.01" name="precio" value={form.precio} onChange={handleChange} placeholder="25.00" />
                                     </div>
                                 </div>
-                                <div className="form-fila">
-                                    <div className="form-grupo">
-                                        <label>Sucursal de destino</label>
-                                        <select name="sucursalDestinoId" value={form.sucursalDestinoId} onChange={handleChange}>
-                                            <option value="">Seleccionar...</option>
-                                            {sucursales.map(s => <option key={s.id} value={s.id}>{s.nombre}</option>)}
-                                        </select>
-                                    </div>
-                                    <div className="form-grupo">
-                                        <label>Viaje (opcional)</label>
-                                        <SelectorViaje
-                                            viajes={viajes}
-                                            value={form.viajeId}
-                                            onChange={elegirViaje}
-                                            placeholder="Sin viaje asignado"
-                                        />
-                                    </div>
+                                <div className="form-grupo">
+                                    <label>Sucursal de destino</label>
+                                    <select name="sucursalDestinoId" value={form.sucursalDestinoId} onChange={handleChange}>
+                                        <option value="">Seleccionar...</option>
+                                        {sucursales.map(s => <option key={s.id} value={s.id}>{s.nombre}</option>)}
+                                    </select>
+                                </div>
 
+                                {/* El viaje va en su propia fila: el selector necesita
+                                    ancho para que la ruta y el código se lean completos. */}
+                                <div className="form-grupo">
+                                    <label>Viaje (opcional)</label>
+                                    <SelectorViaje
+                                        viajes={viajes}
+                                        value={form.viajeId}
+                                        onChange={elegirViaje}
+                                        placeholder="Sin viaje asignado"
+                                    />
+                                </div>
+
+                                <>
                                     {/* Tramo dentro del viaje: muchas encomiendas bajan
                                         en una parada intermedia, no en la sucursal final. */}
                                     {form.viajeId && (
@@ -549,7 +552,7 @@ function Encomiendas() {
                                             </div>
                                         </div>
                                     )}
-                                </div>
+                                </>
                                 <div className="form-grupo">
                                     <label>Observación</label>
                                     <input type="text" name="observacion" value={form.observacion} onChange={handleChange} placeholder="Frágil, entregar con cuidado" />
