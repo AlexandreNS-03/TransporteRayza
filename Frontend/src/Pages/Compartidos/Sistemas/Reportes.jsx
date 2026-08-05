@@ -23,6 +23,7 @@ const TIPOS = [
     { key: "ventas",     label: "Ventas e Ingresos", icon: "ti-cash" },
     { key: "pagos",      label: "Formas de Pago", icon: "ti-wallet" },
     { key: "pagosviaje", label: "Pagos por Viaje", icon: "ti-ship" },
+    { key: "encomiendas", label: "Encomiendas", icon: "ti-package" },
     { key: "vendedores", label: "Vendedores", icon: "ti-user-dollar" },
     { key: "horas",      label: "Ventas por Hora", icon: "ti-clock" },
     { key: "asientos",   label: "VIP vs Normal", icon: "ti-armchair-2" },
@@ -46,6 +47,7 @@ function Reportes() {
     const [viajes, setViajes]           = useState([]);
     const [sucursales, setSucursales]   = useState([]);
     const [embarcaciones, setEmbarcaciones] = useState([]);
+    const [encomiendas, setEncomiendas] = useState([]);
 
     const [cargando, setCargando] = useState(true);
     const [error, setError]       = useState(null);
@@ -58,17 +60,19 @@ function Reportes() {
             setCargando(true);
             setError(null);
             try {
-                const [rVentas, rViajes, rSucursales, rEmbarcaciones] = await Promise.all([
+                const [rVentas, rViajes, rSucursales, rEmbarcaciones, rEncomiendas] = await Promise.all([
                     fetch(`${API}/ventas`, { headers: authHeaders() }),
                     fetch(`${API}/viajes`, { headers: authHeaders() }),
                     fetch(`${API}/sucursales`, { headers: authHeaders() }),
                     fetch(`${API}/embarcaciones`, { headers: authHeaders() }),
+                    fetch(`${API}/encomiendas`, { headers: authHeaders() }),
                 ]);
                 if (!rVentas.ok || !rViajes.ok) throw new Error("Error al cargar los datos de reportes");
                 setVentas(await rVentas.json());
                 setViajes(await rViajes.json());
                 setSucursales(rSucursales.ok ? await rSucursales.json() : []);
                 setEmbarcaciones(rEmbarcaciones.ok ? await rEmbarcaciones.json() : []);
+                setEncomiendas(rEncomiendas.ok ? await rEncomiendas.json() : []);
             } catch (err) {
                 setError(err.message);
             } finally {
@@ -249,6 +253,68 @@ function Reportes() {
         return base;
     }, [viajesEnRango]);
 
+    // ---------- Reporte: ENCOMIENDAS ----------
+    const encomiendasFiltradas = useMemo(
+        () => encomiendas.filter(e => enRango(e.fechaRegistro)),
+        [encomiendas, desde, hasta]
+    );
+
+    const encResumen = useMemo(() => {
+        const r = {
+            total: 0, ingreso: 0, peso: 0,
+            entregadas: 0, enTransito: 0, registradas: 0, devueltas: 0,
+            cobrado: 0, porCobrar: 0,
+        };
+        encomiendasFiltradas.forEach(e => {
+            const monto = Number(e.precio) || 0;
+            r.total += 1;
+            r.peso += Number(e.peso) || 0;
+            if (e.estado === "DEVUELTO") { r.devueltas += 1; return; }
+            r.ingreso += monto;
+            if (e.estado === "ENTREGADO") r.entregadas += 1;
+            else if (e.estado === "EN_TRANSITO") r.enTransito += 1;
+            else r.registradas += 1;
+            if (e.estadoPago === "PAGADO" || !e.estadoPago) r.cobrado += monto;
+            else r.porCobrar += monto;
+        });
+        return r;
+    }, [encomiendasFiltradas]);
+
+    /**
+     * Cobros pendientes agrupados por la oficina donde toca cobrar:
+     * "paga en destino" se cobra en la sucursal de destino; lo que quedó
+     * pendiente sin más, en la de origen (donde se registró).
+     */
+    const cobrosPendientes = useMemo(() => {
+        const m = new Map();
+        encomiendasFiltradas
+            .filter(e => e.estado !== "DEVUELTO" && e.estadoPago && e.estadoPago !== "PAGADO")
+            .forEach(e => {
+                const oficina = (e.estadoPago === "PAGA_DESTINO"
+                    ? e.sucursalDestinoNombre : e.sucursalOrigenNombre) || "Sin oficina";
+                const a = m.get(oficina) || { oficina, pendiente: 0, enDestino: 0, bultos: 0, monto: 0 };
+                a.bultos += 1;
+                a.monto += Number(e.precio) || 0;
+                if (e.estadoPago === "PAGA_DESTINO") a.enDestino += Number(e.precio) || 0;
+                else a.pendiente += Number(e.precio) || 0;
+                m.set(oficina, a);
+            });
+        return [...m.values()].sort((a, b) => b.monto - a.monto);
+    }, [encomiendasFiltradas]);
+
+    const encPorDia = useMemo(() => {
+        const m = new Map();
+        encomiendasFiltradas.filter(e => e.estado !== "DEVUELTO").forEach(e => {
+            const d = e.fechaRegistro;
+            const a = m.get(d) || { dia: d, ingreso: 0, bultos: 0 };
+            a.ingreso += Number(e.precio) || 0;
+            a.bultos += 1;
+            m.set(d, a);
+        });
+        return [...m.values()].sort((a, b) => a.dia.localeCompare(b.dia))
+            .map(x => ({ ...x, etq: x.dia.slice(5) }));
+    }, [encomiendasFiltradas]);
+
     // ---------- Reporte: PAGOS POR VIAJE ----------
     const pagosPorViaje = useMemo(() => {
         const m = new Map();
@@ -324,6 +390,20 @@ function Reportes() {
         } else if (t === "pagosviaje") {
             cols = ["Código", "Ruta", "Fecha", "Efectivo", "Digital", "Total", "Pasajes"];
             pagosPorViaje.forEach(v => filas.push([v.codigo, v.ruta, v.fecha, v.efectivo, v.digital, v.total, v.pasajes]));
+        } else if (t === "encomiendas") {
+            cols = ["Oficina donde cobrar", "Bultos", "Pendiente de pago (S/)", "Paga en destino (S/)", "Total por cobrar (S/)"];
+            cobrosPendientes.forEach(c => filas.push([c.oficina, c.bultos, c.pendiente, c.enDestino, c.monto]));
+            filas.push([]);
+            filas.push(["Resumen del periodo", "", "", "", ""]);
+            filas.push(["Encomiendas", encResumen.total, "", "", ""]);
+            filas.push(["Ingreso total (S/)", n(encResumen.ingreso), "", "", ""]);
+            filas.push(["Ya cobrado (S/)", n(encResumen.cobrado), "", "", ""]);
+            filas.push(["Por cobrar (S/)", n(encResumen.porCobrar), "", "", ""]);
+            filas.push(["Peso total (kg)", n(encResumen.peso), "", "", ""]);
+            filas.push(["Entregadas", encResumen.entregadas, "", "", ""]);
+            filas.push(["En tránsito", encResumen.enTransito, "", "", ""]);
+            filas.push(["Registradas", encResumen.registradas, "", "", ""]);
+            filas.push(["Devueltas", encResumen.devueltas, "", "", ""]);
         } else if (t === "vendedores") {
             cols = ["Vendedor", "Pasajes", "Ingreso", "Ticket promedio"];
             rankingVendedores.forEach(r => filas.push([r.nombre, r.pasajes, r.ingreso, r.pasajes ? r.ingreso / r.pasajes : 0]));
@@ -704,6 +784,98 @@ function Reportes() {
                                         </tbody>
                                     </table>
                                 </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* ================= ENCOMIENDAS ================= */}
+                    {tipo === "encomiendas" && (
+                        <div className="reporte-bloque">
+                            <div className="kpi-grid">
+                                <div className="kpi-card"><i className="ti ti-package kpi-icon"></i><div>
+                                    <span className="kpi-label">Encomiendas</span>
+                                    <span className="kpi-valor">{encResumen.total}</span></div></div>
+                                <div className="kpi-card"><i className="ti ti-cash kpi-icon"></i><div>
+                                    <span className="kpi-label">Ingreso total</span>
+                                    <span className="kpi-valor">{moneda(encResumen.ingreso)}</span></div></div>
+                                <div className="kpi-card"><i className="ti ti-circle-check kpi-icon"></i><div>
+                                    <span className="kpi-label">Ya cobrado</span>
+                                    <span className="kpi-valor">{moneda(encResumen.cobrado)}</span></div></div>
+                                <div className="kpi-card kpi-alerta"><i className="ti ti-alert-circle kpi-icon"></i><div>
+                                    <span className="kpi-label">Por cobrar</span>
+                                    <span className="kpi-valor">{moneda(encResumen.porCobrar)}</span></div></div>
+                                <div className="kpi-card"><i className="ti ti-weight kpi-icon"></i><div>
+                                    <span className="kpi-label">Peso total</span>
+                                    <span className="kpi-valor">{encResumen.peso.toFixed(1)} kg</span></div></div>
+                                <div className="kpi-card"><i className="ti ti-truck-delivery kpi-icon"></i><div>
+                                    <span className="kpi-label">Entregadas</span>
+                                    <span className="kpi-valor">{encResumen.entregadas}</span></div></div>
+                            </div>
+
+                            <div className="reporte-panel">
+                                <h3>Cobros pendientes por oficina</h3>
+                                <p className="panel-nota">
+                                    Cuánto falta cobrar y dónde toca hacerlo: lo marcado como
+                                    “paga en destino” se cobra en la oficina de llegada; el resto,
+                                    donde se registró el envío.
+                                </p>
+                                {cobrosPendientes.length === 0 ? (
+                                    <div className="sin-datos">No hay cobros pendientes en el rango seleccionado 🎉</div>
+                                ) : (
+                                    <div className="tabla-wrapper">
+                                        <table className="reportes-tabla">
+                                            <thead>
+                                            <tr>
+                                                <th>Oficina donde cobrar</th>
+                                                <th>Bultos</th>
+                                                <th>Pendiente de pago</th>
+                                                <th>Paga en destino</th>
+                                                <th>Total por cobrar</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            {cobrosPendientes.map(c => (
+                                                <tr key={c.oficina}>
+                                                    <td><strong>{c.oficina}</strong></td>
+                                                    <td>{c.bultos}</td>
+                                                    <td>{moneda(c.pendiente)}</td>
+                                                    <td>{moneda(c.enDestino)}</td>
+                                                    <td><strong>{moneda(c.monto)}</strong></td>
+                                                </tr>
+                                            ))}
+                                            <tr className="fila-total">
+                                                <td><strong>TOTAL</strong></td>
+                                                <td><strong>{cobrosPendientes.reduce((s, c) => s + c.bultos, 0)}</strong></td>
+                                                <td><strong>{moneda(cobrosPendientes.reduce((s, c) => s + c.pendiente, 0))}</strong></td>
+                                                <td><strong>{moneda(cobrosPendientes.reduce((s, c) => s + c.enDestino, 0))}</strong></td>
+                                                <td><strong>{moneda(encResumen.porCobrar)}</strong></td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="reporte-panel">
+                                <h3>Encomiendas e Ingresos por Día</h3>
+                                {encPorDia.length === 0 ? (
+                                    <div className="sin-datos">Sin encomiendas en el rango seleccionado</div>
+                                ) : (
+                                    <div className="chart-print">
+                                        <ResponsiveContainer width="100%" height={280}>
+                                            <ComposedChart data={encPorDia} margin={{ top: 10, right: 16, left: 0, bottom: 0 }}>
+                                                <CartesianGrid strokeDasharray="3 3" stroke="#eef2f7" />
+                                                <XAxis dataKey="etq" tick={{ fontSize: 11, fill: "#6b7280" }} />
+                                                <YAxis yAxisId="l" tick={{ fontSize: 11, fill: "#6b7280" }} />
+                                                <YAxis yAxisId="r" orientation="right" allowDecimals={false} tick={{ fontSize: 11, fill: "#6b7280" }} />
+                                                <Tooltip formatter={(val, name) => name === "Ingreso" ? moneda(val) : val} />
+                                                <Legend />
+                                                <Bar yAxisId="l" dataKey="ingreso" name="Ingreso" fill="#0891b2" radius={[4, 4, 0, 0]} maxBarSize={46} />
+                                                <Line yAxisId="r" type="monotone" dataKey="bultos" name="Bultos" stroke="#a16207" strokeWidth={2} dot={{ r: 3 }} />
+                                            </ComposedChart>
+                                        </ResponsiveContainer>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     )}
