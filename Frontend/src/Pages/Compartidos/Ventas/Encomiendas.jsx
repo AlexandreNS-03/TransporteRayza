@@ -7,6 +7,7 @@ import { usePaginacion, Paginacion } from "../../../Components/Paginacion.jsx";
 import GenerarComprobanteModal from "../Finanzas/GenerarComprobanteModal.jsx";
 import SelectorViaje from "../../../Components/SelectorViaje.jsx";
 import generarTicketEncomienda from "../../../Utils/generarTicketEncomienda.jsx";
+import generarEtiqueta100mm from "../../../Utils/generarEtiqueta100mm.jsx";
 
 const ESTADO_LABEL = {
     REGISTRADO: "Registrado", EN_TRANSITO: "En tránsito",
@@ -384,6 +385,12 @@ function Encomiendas() {
                                                     onClick={() => generarTicketEncomienda(e)}
                                                     title="Descargar guía / ticket del envío">
                                                 <i className="ti ti-file-invoice"></i>
+                                            </button>
+                                            {/* Etiqueta 100mm para pegar en el bulto */}
+                                            <button className="btn-accion comprobante"
+                                                    onClick={() => generarEtiqueta100mm(e)}
+                                                    title="Etiqueta 100mm para pegar en el paquete">
+                                                <i className="ti ti-tag"></i>
                                             </button>
                                             {/* Marcar pagado si aún no lo está */}
                                             {e.estadoPago && e.estadoPago !== "PAGADO" && e.estado !== "DEVUELTO" && (
