@@ -3,6 +3,7 @@ import { useSearchParams, Link } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import Confirmacion from "../components/Confirmacion";
+import LogoPasarela from "../components/LogoPasarela";
 import { reservasPendientes, formularioDePagoGrupo, pagarGrupo,
          pagarConYapeGrupo, metodosDePago, soles } from "../services/publicApi";
 import { tokenizarYape } from "../services/yape";
@@ -176,13 +177,13 @@ export default function PagarReserva() {
                     <div className="metodos-pago">
                       <button type="button" className={`metodo ${metodo === "tarjeta" ? "activo" : ""}`}
                               onClick={() => { setMetodo("tarjeta"); setErrorPago(null); }} disabled={pagando}>
-                        <span className="metodo-icono">💳</span>
+                        <LogoPasarela archivo="izipay.png" alt="Izipay" respaldo="💳" />
                         <span className="metodo-nombre">Tarjeta</span>
                         <span className="metodo-detalle">Débito o crédito</span>
                       </button>
                       <button type="button" className={`metodo ${metodo === "yape" ? "activo" : ""}`}
                               onClick={() => { setMetodo("yape"); setErrorPago(null); }} disabled={pagando}>
-                        <span className="metodo-icono">📱</span>
+                        <LogoPasarela archivo="yape.png" alt="Yape" respaldo="📱" />
                         <span className="metodo-nombre">Yape</span>
                         <span className="metodo-detalle">Con tu celular</span>
                       </button>

@@ -8,6 +8,7 @@ import MapaAsientos from "../components/MapaAsientos";
 import SelectorPasajeros from "../components/SelectorPasajeros";
 import FormularioPasajero, { FormularioContacto } from "../components/FormularioPasajero";
 import Confirmacion from "../components/Confirmacion";
+import LogoPasarela from "../components/LogoPasarela";
 import { buscarViajes, crearReservaGrupo, pagarGrupo, formularioDePagoGrupo,
          metodosDePago, pagarConYapeGrupo, soles } from "../services/publicApi";
 import { tokenizarYape } from "../services/yape";
@@ -24,12 +25,6 @@ const PASAJERO_INICIAL = {
 const CONTACTO_INICIAL = {
   clienteEmail: "", tipoComprobante: "BOLETA", clienteDocumento: "", clienteNombre: "",
 };
-
-function LogoPasarela({ archivo, alt, respaldo }) {
-  const [falla, setFalla] = useState(false);
-  if (falla) return <span className="metodo-icono">{respaldo}</span>;
-  return <img className="metodo-logo" src={`/pagos/${archivo}`} alt={alt} onError={() => setFalla(true)} />;
-}
 
 const precioAsiento = (viaje, a) => Number(((a?.tipo === "VIP" ? viaje?.precioVip : viaje?.precioNormal) ?? viaje?.precioNormal) || 0);
 const totalLeg = (viaje, asientos) => asientos.reduce((s, a) => s + precioAsiento(viaje, a), 0);
