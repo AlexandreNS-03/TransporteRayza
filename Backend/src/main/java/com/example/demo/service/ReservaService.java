@@ -324,8 +324,11 @@ public class ReservaService {
             throw new RuntimeException("La reserva expiró. Vuelve a elegir tu asiento.");
 
         int cents = v.getPrecio().multiply(BigDecimal.valueOf(100)).intValueExact();
+        String orden = v.getSerieComprobante() + "-" + v.getNumeroComprobante();
+        v.setOrdenPago(orden);
+        ventaRepository.save(v);
         return izipayService.crearFormulario(
-                v.getSerieComprobante() + "-" + v.getNumeroComprobante(),
+                orden,
                 cents, v.getClienteEmail(), v.getPasajeroNombre(),
                 v.getPasajeroDocumento(), v.getPasajeroTelefono());
     }
@@ -391,8 +394,10 @@ public class ReservaService {
         int cents = total.multiply(BigDecimal.valueOf(100)).intValueExact();
         // Un orderId de grupo: Izipay verifica firma + estado, no cruza el orderId,
         // así que un solo formulario cobra el total de todo el grupo.
+        String ordenGrupo = "GRP-" + reservaIds.get(0);
+        for (Venta v : ventas) { v.setOrdenPago(ordenGrupo); ventaRepository.save(v); }
         return izipayService.crearFormulario(
-                "GRP-" + reservaIds.get(0), cents, primera.getClienteEmail(),
+                ordenGrupo, cents, primera.getClienteEmail(),
                 primera.getPasajeroNombre(), primera.getPasajeroDocumento(), primera.getPasajeroTelefono());
     }
 
@@ -459,6 +464,29 @@ public class ReservaService {
      * asientos, emite comprobante (si está activado) y envía un boleto por pasajero.
      * Devuelve un boleto por cada reserva del grupo (todas, ya pagadas o recién pagadas).
      */
+    /**
+     * Confirma el pago cuando lo avisa la notificación IPN de Izipay (no el
+     * navegador). Hace lo mismo que el pago normal: marca pagado, confirma el
+     * asiento, emite el comprobante y manda el boleto por correo.
+     */
+    @Transactional
+    public void confirmarDesdeIpn(List<Venta> pendientes, String referencia) {
+        for (Venta v : pendientes) {
+            v.setEstado(Venta.EstadoVenta.PAGADO);
+            v.setPasarelaReferencia(referencia);
+            v.setReservaExpira(null);
+            ventaRepository.save(v);
+            asientoService.confirmarAsiento(v.getId());
+
+            emitirComprobanteElectronico(v);
+            try {
+                ventaService.enviarComprobante(v.getId());
+            } catch (Exception e) {
+                System.err.println("[IPN] No se pudo enviar el boleto por correo: " + e.getMessage());
+            }
+        }
+    }
+
     private ConfirmacionGrupoDTO confirmarPagoGrupo(List<String> reservaIds,
                                                     List<Venta> pendientes, String referencia) {
         Set<String> pendIds = new HashSet<>();

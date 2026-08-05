@@ -193,11 +193,61 @@ public class IzipayService {
         }
     }
 
+    /**
+     * Verifica una notificación IPN (servidor a servidor).
+     *
+     * Ojo con la llave: en la respuesta del navegador Izipay firma con la clave
+     * HMAC-SHA256, pero en el IPN firma con la CONTRASEÑA de la tienda. Cuál usó
+     * viene en el campo kr-hash-key, y confundirlas es el error típico que hace
+     * que el IPN "no valide".
+     */
+    public Resultado verificarIpn(String krAnswer, String krHash, String krHashKey) {
+        Resultado r = new Resultado();
+
+        if (krAnswer == null || krHash == null) {
+            r.motivo = "Notificación incompleta";
+            return r;
+        }
+        String llave = "password".equalsIgnoreCase(krHashKey) ? password : hmacSha256;
+        if (llave == null || llave.isBlank()) {
+            r.motivo = "Falta configurar la llave para validar la notificación";
+            return r;
+        }
+        if (!firmaValidaCon(krAnswer, krHash, llave)) {
+            r.motivo = "La notificación no es auténtica";
+            return r;
+        }
+
+        try {
+            JsonNode a = json.readTree(krAnswer);
+            String estado = a.path("orderStatus").asText("");
+            r.pagado = "PAID".equalsIgnoreCase(estado);
+            if (!r.pagado) r.motivo = "Pago en estado " + estado;
+            r.referencia = a.path("transactions").isArray() && a.path("transactions").size() > 0
+                    ? a.path("transactions").get(0).path("uuid").asText(null) : null;
+            return r;
+        } catch (Exception e) {
+            r.motivo = "No se pudo leer la notificación";
+            return r;
+        }
+    }
+
+    /** Devuelve el orderId que viene dentro de la notificación. */
+    public String orderIdDe(String krAnswer) {
+        try {
+            return json.readTree(krAnswer).path("orderDetails").path("orderId").asText(null);
+        } catch (Exception e) { return null; }
+    }
+
     /** HMAC-SHA256 del cuerpo tal cual llegó, comparado en hexadecimal. */
     private boolean firmaValida(String krAnswer, String krHash) {
+        return firmaValidaCon(krAnswer, krHash, hmacSha256);
+    }
+
+    private boolean firmaValidaCon(String krAnswer, String krHash, String llave) {
         try {
             Mac mac = Mac.getInstance("HmacSHA256");
-            mac.init(new SecretKeySpec(hmacSha256.getBytes(StandardCharsets.UTF_8), "HmacSHA256"));
+            mac.init(new SecretKeySpec(llave.getBytes(StandardCharsets.UTF_8), "HmacSHA256"));
             byte[] firma = mac.doFinal(krAnswer.getBytes(StandardCharsets.UTF_8));
 
             StringBuilder hex = new StringBuilder(firma.length * 2);

@@ -159,6 +159,13 @@ public class Venta {
     private String pasarelaReferencia;
 
     /**
+     * Identificador del pedido enviado a la pasarela. Permite ubicar la(s)
+     * venta(s) cuando llega la notificación IPN, que solo trae el orderId.
+     */
+    @Column(name = "orden_pago", length = 60)
+    private String ordenPago;
+
+    /**
      * Solo se usa cuando el viaje se cancela: queda PENDIENTE hasta que alguien
      * decida qué hacer con el dinero del pasajero. Null = no hay nada que resolver.
      */
@@ -315,6 +322,9 @@ public class Venta {
 
     public Resolucion getResolucion() { return resolucion; }
     public void setResolucion(Resolucion r) { this.resolucion = r; }
+
+    public String getOrdenPago() { return ordenPago; }
+    public void setOrdenPago(String o) { this.ordenPago = o; }
 
     public String getPasarelaReferencia() { return pasarelaReferencia; }
     public void setPasarelaReferencia(String r) { this.pasarelaReferencia = r; }
