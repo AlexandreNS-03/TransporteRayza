@@ -154,6 +154,10 @@ public class Venta {
     @Column(name = "reserva_expira")
     private LocalDateTime reservaExpira;   // hasta cuándo se sostiene el asiento sin pagar
 
+    /** Cuándo se le avisó al cliente que dejó la compra a medias (para no repetirlo). */
+    @Column(name = "aviso_pago_enviado")
+    private LocalDateTime avisoPagoEnviado;
+
     /** Referencia de la transacción en la pasarela (Izipay). */
     @Column(name = "pasarela_referencia", length = 100)
     private String pasarelaReferencia;
@@ -319,6 +323,9 @@ public class Venta {
 
     public LocalDateTime getReservaExpira() { return reservaExpira; }
     public void setReservaExpira(LocalDateTime reservaExpira) { this.reservaExpira = reservaExpira; }
+
+    public LocalDateTime getAvisoPagoEnviado() { return avisoPagoEnviado; }
+    public void setAvisoPagoEnviado(LocalDateTime avisoPagoEnviado) { this.avisoPagoEnviado = avisoPagoEnviado; }
 
     public Resolucion getResolucion() { return resolucion; }
     public void setResolucion(Resolucion r) { this.resolucion = r; }

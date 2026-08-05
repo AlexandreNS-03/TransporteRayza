@@ -28,6 +28,10 @@ public interface VentaRepository extends JpaRepository<Venta, String> {
     List<Venta> findByClienteIdOrderByCreatedAtDesc(String clienteId);
     List<Venta> findByEstadoAndReservaExpiraBefore(Venta.EstadoVenta estado, java.time.LocalDateTime limite);
 
+    /** Reservas sin pagar que están por vencer y a las que todavía no se les avisó. */
+    List<Venta> findByEstadoAndAvisoPagoEnviadoIsNullAndReservaExpiraBetween(
+            Venta.EstadoVenta estado, java.time.LocalDateTime desde, java.time.LocalDateTime hasta);
+
     @Query("""
         SELECT v.fechaVenta AS dia, COUNT(v) AS ventas, SUM(v.precio) AS ingresos
         FROM Venta v

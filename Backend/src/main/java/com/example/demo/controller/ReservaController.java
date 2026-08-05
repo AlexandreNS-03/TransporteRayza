@@ -48,6 +48,18 @@ public class ReservaController {
         return ResponseEntity.ok(reservaService.datosTicket(id));
     }
 
+    /**
+     * Reservas que siguen esperando pago, para la página "termina tu pago" a la que
+     * llega el cliente desde el correo de aviso. Los ids van separados por coma.
+     */
+    @GetMapping("/pendientes")
+    public ResponseEntity<?> pendientes(@RequestParam String ids) {
+        List<String> lista = java.util.Arrays.stream(ids.split(","))
+                .map(String::trim).filter(s -> !s.isEmpty()).toList();
+        if (lista.isEmpty()) throw new RuntimeException("Enlace inválido");
+        return ResponseEntity.ok(reservaService.pendientesPorIds(lista));
+    }
+
     /** Reserva de varios pasajes (1 a 5) en una sola compra. */
     @PostMapping("/grupo")
     public ResponseEntity<ReservaGrupoResponse> reservarGrupo(@RequestBody ReservaGrupoRequest req,

@@ -42,4 +42,21 @@ public class IzipayIpnController {
             return ResponseEntity.ok("Notificación recibida");
         }
     }
+
+    /**
+     * "URL de notificación al abandonar (comprador)": Izipay avisa cuando el cliente
+     * abre el formulario y se va sin pagar. El asiento sigue retenido unos minutos,
+     * así que se le manda un correo con el enlace para terminar la compra.
+     */
+    @PostMapping(path = "/abandono", consumes = "application/x-www-form-urlencoded")
+    public ResponseEntity<String> abandono(@RequestParam(name = "kr-answer", required = false) String krAnswer,
+                                           @RequestParam(name = "kr-hash", required = false) String krHash,
+                                           @RequestParam(name = "kr-hash-key", required = false) String krHashKey) {
+        try {
+            return ResponseEntity.ok(ipnService.procesarAbandono(krAnswer, krHash, krHashKey));
+        } catch (Exception e) {
+            System.err.println("[Izipay abandono] " + e.getMessage());
+            return ResponseEntity.ok("Notificación recibida");
+        }
+    }
 }
