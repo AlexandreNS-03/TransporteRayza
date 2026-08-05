@@ -1,7 +1,9 @@
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { soles } from "../services/publicApi";
+import ViajesCancelados from "../components/ViajesCancelados";
 import { estaLogueado, clienteActual, cerrarSesion, getPerfil, actualizarPerfil, getMisViajes } from "../services/authCliente";
 
 export default function MiCuenta() {
@@ -45,6 +47,12 @@ export default function MiCuenta() {
               <h2 style={{ fontSize: 30 }}>Hola, {perfil.nombres || "viajero"} 👋</h2>
             </div>
             <button className="btn btn-ghost" onClick={salir}>Cerrar sesión</button>
+          </div>
+
+          {/* Saldo a favor y viajes cancelados: va arriba porque es lo que el
+              cliente necesita resolver antes que nada. */}
+          <div style={{ marginTop: 20 }}>
+            <ViajesCancelados />
           </div>
 
           <div className="steps" style={{ justifyContent: "flex-start", marginTop: 20 }}>
