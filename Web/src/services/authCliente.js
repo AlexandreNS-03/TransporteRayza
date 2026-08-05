@@ -58,3 +58,25 @@ export async function getMisViajes() {
   try { const { data } = await axios.get(`${API}/viajes`, headers()); return data; }
   catch (e) { throw err(e); }
 }
+
+// ── Saldo a favor y pasajes por resolver (viaje cancelado) ──
+
+export async function getSaldo() {
+  try { const { data } = await axios.get(`${API}/saldo`, headers()); return data; }
+  catch { return { saldo: 0, movimientos: [] }; }
+}
+
+export async function getPorResolver() {
+  try { const { data } = await axios.get(`${API}/por-resolver`, headers()); return data; }
+  catch { return []; }
+}
+
+export async function guardarComoSaldo(ventaId) {
+  const { data } = await axios.patch(`${API}/pasajes/${ventaId}/saldo-favor`, {}, headers());
+  return data;
+}
+
+export async function reprogramarPasaje(ventaId, viajeId) {
+  const { data } = await axios.patch(`${API}/pasajes/${ventaId}/reprogramar`, { viajeId }, headers());
+  return data;
+}

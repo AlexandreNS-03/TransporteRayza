@@ -1,0 +1,71 @@
+.vc { display: flex; flex-direction: column; gap: 16px; margin-bottom: 20px; }
+.vc-cargando { color: var(--ink-soft); font-size: 14px; }
+
+/* Aviso de resultado */
+.vc-aviso {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 12px 14px; border-radius: 10px; font-size: 14px;
+}
+.vc-aviso.ok    { background: #f0fdf4; border: 1px solid #bbf7d0; color: #15803d; }
+.vc-aviso.error { background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; }
+.vc-aviso button { background: none; border: 0; font-size: 20px; line-height: 1; cursor: pointer; color: inherit; }
+
+/* Saldo a favor */
+.vc-saldo {
+  background: linear-gradient(135deg, #0a1628, #1a4db5);
+  color: #fff; border-radius: 14px; padding: 18px 20px;
+}
+.vc-saldo > div { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.vc-saldo span { font-size: 12px; text-transform: uppercase; letter-spacing: .1em; color: rgba(255,255,255,.75); }
+.vc-saldo strong { font-size: 30px; font-weight: 800; }
+.vc-saldo p { margin: 6px 0 0; font-size: 13px; color: rgba(255,255,255,.8); line-height: 1.5; }
+
+.vc-movs { list-style: none; margin: 12px 0 0; padding: 12px 0 0; border-top: 1px solid rgba(255,255,255,.18); }
+.vc-movs li { display: flex; justify-content: space-between; gap: 12px; font-size: 12.5px; padding: 4px 0; color: rgba(255,255,255,.85); }
+.vc-movs b.mas   { color: #86efac; }
+.vc-movs b.menos { color: #fca5a5; }
+
+/* Pasajes por resolver */
+.vc-pendientes {
+  background: #fffbeb; border: 1px solid #fde68a; border-radius: 14px; padding: 18px 20px;
+}
+.vc-pendientes h3 { margin: 0; font-size: 17px; color: #92400e; }
+.vc-sub { margin: 6px 0 14px; font-size: 13.5px; color: #92400e; line-height: 1.55; }
+
+.vc-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 14px; margin-bottom: 10px; }
+.vc-card:last-child { margin-bottom: 0; }
+.vc-card-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.vc-card-top strong { display: block; font-size: 15px; color: var(--ink); }
+.vc-cod { font-size: 11px; color: var(--ink-soft); font-family: ui-monospace, monospace; }
+.vc-monto { font-size: 18px; color: var(--ink); white-space: nowrap; }
+
+.vc-acciones { display: flex; gap: 10px; flex-wrap: wrap; }
+.vc-acciones .btn { flex: 1 1 160px; justify-content: center; }
+
+/* Elegir nueva fecha */
+.vc-opciones-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.vc-opciones-head strong { font-size: 14px; }
+.vc-volver { background: none; border: 0; color: var(--accent); font-size: 13px; cursor: pointer; }
+.vc-vacio { font-size: 13px; color: var(--ink-soft); line-height: 1.5; }
+
+.vc-opcion {
+  width: 100%; display: flex; align-items: center; gap: 12px; text-align: left;
+  padding: 10px; margin-bottom: 8px; cursor: pointer;
+  background: #fff; border: 1px solid #e5e7eb; border-radius: 10px;
+  transition: border-color .15s, background .15s;
+}
+.vc-opcion:hover:not(:disabled) { border-color: var(--accent); background: #f8fafc; }
+.vc-opcion:disabled { opacity: .6; cursor: not-allowed; }
+.vc-hora {
+  font-size: 15px; font-weight: 700; color: #1a4db5; background: #eff6ff;
+  border-radius: 8px; padding: 6px 10px; min-width: 62px; text-align: center; flex: none;
+}
+.vc-info { display: flex; flex-direction: column; gap: 1px; flex: 1; min-width: 0; }
+.vc-info strong { font-size: 13.5px; color: var(--ink); }
+.vc-info small { font-size: 11.5px; color: var(--ink-soft); }
+.vc-elegir { font-size: 12.5px; font-weight: 600; color: var(--accent); flex: none; }
+
+@media (max-width: 520px) {
+  .vc-saldo strong { font-size: 26px; }
+  .vc-acciones .btn { flex: 1 1 100%; }
+}

@@ -189,6 +189,41 @@ public class CancelacionService {
         return saldoRepository.findByClienteEmailIgnoreCaseOrderByCreatedAtDesc(email.trim());
     }
 
+    // ───────────── Lo que puede hacer el propio cliente desde la web ─────────────
+
+    /** Pasajes del cliente (por su correo) que quedaron por resolver. */
+    public List<Venta> misPendientes(String email) {
+        if (email == null || email.isBlank()) return List.of();
+        return ventaRepository.findByResolucion(Venta.Resolucion.PENDIENTE).stream()
+                .filter(v -> email.equalsIgnoreCase(v.getClienteEmail()))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * El cliente elige guardar su pasaje como saldo a favor. Se valida que el
+     * pasaje sea suyo: sin esto, cualquiera con sesión podría tocar el de otro.
+     */
+    @Transactional
+    public Venta clienteGuardaSaldo(String ventaId, String email) {
+        verificarDueño(ventaId, email);
+        return dejarSaldoAFavor(ventaId, "cliente:" + email);
+    }
+
+    /** El cliente elige otro viaje para su pasaje. */
+    @Transactional
+    public Venta clienteReprograma(String ventaId, String nuevoViajeId, String email) {
+        verificarDueño(ventaId, email);
+        return reprogramar(ventaId, nuevoViajeId, null, "cliente:" + email);
+    }
+
+    private void verificarDueño(String ventaId, String email) {
+        Venta v = ventaRepository.findById(ventaId)
+                .orElseThrow(() -> new RuntimeException("Pasaje no encontrado"));
+        if (email == null || v.getClienteEmail() == null
+                || !email.equalsIgnoreCase(v.getClienteEmail()))
+            throw new RuntimeException("Ese pasaje no te pertenece");
+    }
+
     private Venta paraResolver(String ventaId) {
         Venta v = ventaRepository.findById(ventaId)
                 .orElseThrow(() -> new RuntimeException("Pasaje no encontrado"));
