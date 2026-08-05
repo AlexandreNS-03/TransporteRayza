@@ -3,6 +3,7 @@ package com.example.demo.controller;
 import com.example.demo.dto.UsuarioDTO;
 import com.example.demo.dto.VentaDTO;
 import com.example.demo.dto.VentaEditRequest;
+import com.example.demo.dto.VentaGrupoRequest;
 import com.example.demo.dto.VentaRequest;
 import com.example.demo.model.Usuario;
 import com.example.demo.service.VentaService;
@@ -52,6 +53,13 @@ public class VentaController {
     public ResponseEntity<VentaDTO> crear(@RequestBody VentaRequest req,
                                           Authentication auth) {
         return ResponseEntity.ok(ventaService.crearVenta(req, auth.getName()));
+    }
+
+    /** Varios pasajes en una sola operación (un solo comprobante por todos). */
+    @PostMapping("/grupo")
+    public ResponseEntity<List<VentaDTO>> crearGrupo(@RequestBody VentaGrupoRequest req,
+                                                     Authentication auth) {
+        return ResponseEntity.ok(ventaService.crearVentaGrupo(req, auth.getName()));
     }
 
     @PostMapping("/{id}/enviar-comprobante")

@@ -89,6 +89,7 @@ public class ComprobanteService {
     public ComprobanteDTO generar(ComprobanteRequest req, String usuarioNombre) {
         // El comprobante puede ser por una venta de pasaje o por una encomienda
         Venta venta = null;
+        List<Venta> grupo = null;
         Encomienda encomienda = null;
         BigDecimal total;
         String descripcionDefecto;
@@ -106,6 +107,24 @@ public class ComprobanteService {
 
             total = encomienda.getPrecio();
             descripcionDefecto = descripcionPorDefecto(encomienda);
+        } else if (req.getGrupoVentaId() != null && !req.getGrupoVentaId().isBlank()) {
+            // Varios pasajes vendidos juntos: un solo documento por todos.
+            grupo = ventaRepository.findByGrupoVentaId(req.getGrupoVentaId()).stream()
+                    .filter(v -> v.getEstado() != Venta.EstadoVenta.ANULADO)
+                    .sorted(java.util.Comparator.comparing(Venta::getAsientoNumero,
+                            java.util.Comparator.nullsLast(Integer::compareTo)))
+                    .collect(Collectors.toList());
+            if (grupo.isEmpty())
+                throw new RuntimeException("No hay pasajes vigentes en esta compra");
+
+            if (yaTieneComprobante(grupo))
+                throw new RuntimeException("Esta compra ya tiene un comprobante emitido");
+
+            venta = grupo.get(0);
+            total = grupo.stream()
+                    .map(v -> v.getPrecio() == null ? BigDecimal.ZERO : v.getPrecio())
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            descripcionDefecto = descripcionPorDefecto(grupo);
         } else {
             venta = ventaRepository.findById(req.getVentaId())
                     .orElseThrow(() -> new RuntimeException("Venta no encontrada"));
@@ -113,8 +132,7 @@ public class ComprobanteService {
             if (venta.getEstado() == Venta.EstadoVenta.ANULADO)
                 throw new RuntimeException("No se puede emitir un comprobante de una venta anulada");
 
-            if (comprobanteRepository.existsByVentaIdAndEstadoAndTipoDeComprobanteNot(req.getVentaId(),
-                    Comprobante.EstadoComprobante.ACEPTADO, Comprobante.TipoComprobante.NOTA_CREDITO))
+            if (yaTieneComprobante(List.of(venta)))
                 throw new RuntimeException("Esta venta ya tiene un comprobante emitido");
 
             total = venta.getPrecio();
@@ -150,6 +168,7 @@ public class ComprobanteService {
         Comprobante c = new Comprobante();
         c.setId(UUID.randomUUID().toString());
         c.setVentaId(venta != null ? venta.getId() : null);
+        c.setGrupoVentaId(grupo != null ? req.getGrupoVentaId() : null);
         c.setEncomiendaId(encomienda != null ? encomienda.getId() : null);
         c.setTipoDeComprobante(tipo);
         c.setSerie(serie);
@@ -224,6 +243,7 @@ public class ComprobanteService {
         Comprobante nc = new Comprobante();
         nc.setId(UUID.randomUUID().toString());
         nc.setVentaId(original.getVentaId());
+        nc.setGrupoVentaId(original.getGrupoVentaId());
         nc.setEncomiendaId(original.getEncomiendaId());
         nc.setTipoDeComprobante(Comprobante.TipoComprobante.NOTA_CREDITO);
         nc.setSerie(serie);
@@ -303,6 +323,35 @@ public class ComprobanteService {
         return toDTO(c);
     }
 
+    /**
+     * Un pasaje ya está facturado si tiene su propio comprobante o si entró en uno
+     * de grupo. Se revisa por los dos lados: si no, un pasaje vendido en grupo se
+     * podría facturar otra vez por separado.
+     */
+    private boolean yaTieneComprobante(List<Venta> ventas) {
+        for (Venta v : ventas) {
+            if (comprobanteRepository.existsByVentaIdAndEstadoAndTipoDeComprobanteNot(v.getId(),
+                    Comprobante.EstadoComprobante.ACEPTADO, Comprobante.TipoComprobante.NOTA_CREDITO))
+                return true;
+            if (v.getGrupoVentaId() != null
+                    && comprobanteRepository.existsByGrupoVentaIdAndEstadoAndTipoDeComprobanteNot(
+                        v.getGrupoVentaId(),
+                        Comprobante.EstadoComprobante.ACEPTADO, Comprobante.TipoComprobante.NOTA_CREDITO))
+                return true;
+        }
+        return false;
+    }
+
+    /** Descripción de un comprobante que cubre varios pasajes. */
+    private String descripcionPorDefecto(List<Venta> grupo) {
+        Venta p = grupo.get(0);
+        String asientos = grupo.stream()
+                .map(v -> "#" + v.getAsientoNumero())
+                .collect(Collectors.joining(", "));
+        return String.format("Servicio de transporte fluvial %s - %s, Viaje %s, %d pasajes (asientos %s)",
+                p.getParadaOrigen(), p.getParadaDestino(), p.getViajeCodigo(), grupo.size(), asientos);
+    }
+
     private String descripcionPorDefecto(Venta v) {
         return String.format("Servicio de transporte fluvial %s - %s, Viaje %s, Asiento %s #%d",
                 v.getParadaOrigen(), v.getParadaDestino(), v.getViajeCodigo(),
@@ -327,6 +376,7 @@ public class ComprobanteService {
         ComprobanteDTO dto = new ComprobanteDTO();
         dto.setId(c.getId());
         dto.setVentaId(c.getVentaId());
+        dto.setGrupoVentaId(c.getGrupoVentaId());
         dto.setEncomiendaId(c.getEncomiendaId());
         dto.setTipoDeComprobante(c.getTipoDeComprobante().name());
         dto.setSerie(c.getSerie());

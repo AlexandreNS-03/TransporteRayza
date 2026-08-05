@@ -151,6 +151,10 @@ public class Venta {
     @Column(name = "canal", length = 15)
     private String canal;                 // MOSTRADOR (personal) | WEB (cliente en línea)
 
+    /** Ventas hechas juntas (varios pasajeros en una sola operación) comparten este id. */
+    @Column(name = "grupo_venta_id", length = 36)
+    private String grupoVentaId;
+
     @Column(name = "reserva_expira")
     private LocalDateTime reservaExpira;   // hasta cuándo se sostiene el asiento sin pagar
 
@@ -320,6 +324,9 @@ public class Venta {
 
     public String getCanal() { return canal; }
     public void setCanal(String canal) { this.canal = canal; }
+
+    public String getGrupoVentaId() { return grupoVentaId; }
+    public void setGrupoVentaId(String grupoVentaId) { this.grupoVentaId = grupoVentaId; }
 
     public LocalDateTime getReservaExpira() { return reservaExpira; }
     public void setReservaExpira(LocalDateTime reservaExpira) { this.reservaExpira = reservaExpira; }

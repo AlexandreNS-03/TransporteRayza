@@ -22,6 +22,10 @@ public class Comprobante {
     @Column(name = "encomienda_id", length = 36)
     private String encomiendaId;
 
+    /** Si cubre varios pasajes vendidos juntos, el grupo al que pertenecen. */
+    @Column(name = "grupo_venta_id", length = 36)
+    private String grupoVentaId;
+
     @Enumerated(EnumType.STRING)
     @JdbcTypeCode(SqlTypes.VARCHAR)
     @Column(name = "tipo_de_comprobante", nullable = false, length = 15)
@@ -116,6 +120,9 @@ public class Comprobante {
 
     public String getEncomiendaId() { return encomiendaId; }
     public void setEncomiendaId(String encomiendaId) { this.encomiendaId = encomiendaId; }
+
+    public String getGrupoVentaId() { return grupoVentaId; }
+    public void setGrupoVentaId(String grupoVentaId) { this.grupoVentaId = grupoVentaId; }
 
     public TipoComprobante getTipoDeComprobante() { return tipoDeComprobante; }
     public void setTipoDeComprobante(TipoComprobante tipoDeComprobante) { this.tipoDeComprobante = tipoDeComprobante; }

@@ -10,7 +10,9 @@ const DOC_A_CODIGO = { DNI: "1", CE: "4", RUC: "6", PASAPORTE: "7" };
  * Modal para emitir una boleta o factura electrónica (formato Nubefact)
  * a partir de una venta de pasaje o de una encomienda.
  */
-function GenerarComprobanteModal({ venta, encomienda, onClose, onGenerado }) {
+function GenerarComprobanteModal({ venta, encomienda, grupo, onClose, onGenerado }) {
+    // Varios pasajes vendidos juntos van en un solo documento, por el total de todos.
+    const pasajes  = grupo && grupo.length > 1 ? grupo : null;
     const [guardando, setGuardando] = useState(false);
     const [error, setError] = useState(null);
     const [consultando, setConsultando] = useState(false);
@@ -18,7 +20,9 @@ function GenerarComprobanteModal({ venta, encomienda, onClose, onGenerado }) {
 
     // Datos precargados según el origen (venta o encomienda)
     const docCliente = venta ? (DOC_A_CODIGO[venta.clienteTipoDoc] || "1") : "1";
-    const descripcionInicial = venta
+    const descripcionInicial = pasajes
+        ? `Servicio de transporte fluvial ${venta.paradaOrigen} - ${venta.paradaDestino}, Viaje ${venta.viajeCodigo}, ${pasajes.length} pasajes (asientos ${pasajes.map(p => "#" + p.asientoNumero).join(", ")})`
+        : venta
         ? `Servicio de transporte fluvial ${venta.paradaOrigen} - ${venta.paradaDestino}, Viaje ${venta.viajeCodigo}, Asiento ${venta.asientoTipo} #${venta.asientoNumero}`
         : `Servicio de encomienda ${encomienda.codigoEncomienda}: ${encomienda.descripcion}${encomienda.peso ? ` (${encomienda.peso} kg)` : ""}`;
 
@@ -33,7 +37,9 @@ function GenerarComprobanteModal({ venta, encomienda, onClose, onGenerado }) {
     });
 
     // Operación exonerada de IGV (Ley 27037 - Amazonía): el precio es el monto final, sin IGV
-    const total = parseFloat(venta ? venta.precio : encomienda.precio) || 0;
+    const total = pasajes
+        ? pasajes.reduce((t, p) => t + (parseFloat(p.precio) || 0), 0)
+        : parseFloat(venta ? venta.precio : encomienda.precio) || 0;
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -67,7 +73,9 @@ function GenerarComprobanteModal({ venta, encomienda, onClose, onGenerado }) {
 
         setGuardando(true);
         try {
-            const referencia = venta ? { ventaId: venta.id } : { encomiendaId: encomienda.id };
+            const referencia = pasajes ? { grupoVentaId: venta.grupoVentaId }
+                             : venta   ? { ventaId: venta.id }
+                             : { encomiendaId: encomienda.id };
             const comprobante = await apiFetch("/api/comprobantes", {
                 method: "POST",
                 body: JSON.stringify({ ...referencia, ...form })
@@ -230,6 +238,12 @@ function GenerarComprobanteModal({ venta, encomienda, onClose, onGenerado }) {
                             <div className="resumen-fila"><span>Serie - Número</span><strong>Asignados automáticamente al emitir</strong></div>
                             <div className="resumen-fila"><span>Fecha de emisión</span><strong>{new Date().toLocaleDateString("es-PE")}</strong></div>
                             <div className="resumen-fila"><span>Moneda</span><strong>PEN (Soles)</strong></div>
+                            {pasajes && (
+                                <div className="resumen-fila">
+                                    <span>Cubre</span>
+                                    <strong>{pasajes.length} pasajes · {pasajes.map(p => p.pasajeroNombre).join(", ")}</strong>
+                                </div>
+                            )}
                             <div className="resumen-fila"><span>Op. Exonerada</span><strong>S/ {total.toFixed(2)}</strong></div>
                             <div className="resumen-fila"><span>IGV (Exonerado)</span><strong>S/ 0.00</strong></div>
                             <div className="resumen-fila resumen-total"><span>Importe Total</span><strong>S/ {total.toFixed(2)}</strong></div>

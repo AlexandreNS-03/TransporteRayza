@@ -6,6 +6,7 @@ public class ComprobanteDTO {
 
     private String id;
     private String ventaId;
+    private String grupoVentaId;   // si cubre varios pasajes vendidos juntos
     private String encomiendaId;
     private String tipoDeComprobante;
     private String serie;
@@ -40,6 +41,9 @@ public class ComprobanteDTO {
 
     public String getVentaId() { return ventaId; }
     public void setVentaId(String ventaId) { this.ventaId = ventaId; }
+
+    public String getGrupoVentaId() { return grupoVentaId; }
+    public void setGrupoVentaId(String grupoVentaId) { this.grupoVentaId = grupoVentaId; }
 
     public String getEncomiendaId() { return encomiendaId; }
     public void setEncomiendaId(String encomiendaId) { this.encomiendaId = encomiendaId; }

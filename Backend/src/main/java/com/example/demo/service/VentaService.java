@@ -2,6 +2,7 @@ package com.example.demo.service;
 
 import com.example.demo.dto.VentaDTO;
 import com.example.demo.dto.VentaEditRequest;
+import com.example.demo.dto.VentaGrupoRequest;
 import com.example.demo.dto.VentaRequest;
 import com.example.demo.model.*;
 import com.example.demo.repository.*;
@@ -17,6 +18,9 @@ import java.util.stream.Collectors;
 
 @Service
 public class VentaService {
+
+    /** Tope de pasajes por operación: más que eso, conviene partir la venta. */
+    private static final int MAX_PASAJEROS_GRUPO = 10;
 
     private final VentaRepository ventaRepository;
     private final VentaTramoUsadoRepository tramoUsadoRepository;
@@ -145,6 +149,74 @@ public class VentaService {
     // Crear venta
     @Transactional
     public VentaDTO crearVenta(VentaRequest req, String usuarioNombre) {
+        return crearVenta(req, usuarioNombre, null);
+    }
+
+    /**
+     * Venta de varios pasajes en una sola operación: una familia o un grupo que viaja
+     * junto se atiende de una vez, con un solo comprobante por todos.
+     *
+     * Cada pasajero sigue siendo una venta con su asiento, su QR y su boleto — eso no
+     * cambia—, pero todas quedan unidas por un mismo grupo. Va en una sola transacción:
+     * si un asiento se ocupó mientras se llenaba el formulario, no se vende ninguno a
+     * medias.
+     */
+    @Transactional
+    public List<VentaDTO> crearVentaGrupo(VentaGrupoRequest req, String usuarioNombre) {
+        List<VentaRequest> pasajeros = req.getPasajeros();
+        if (pasajeros == null || pasajeros.isEmpty())
+            throw new RuntimeException("Agrega al menos un pasajero");
+        if (pasajeros.size() > MAX_PASAJEROS_GRUPO)
+            throw new RuntimeException("Se pueden vender hasta " + MAX_PASAJEROS_GRUPO
+                    + " pasajes en una sola operación");
+
+        // Dos pasajeros en el mismo asiento: el segundo chocaría al marcarlo vendido
+        // y el error saldría confuso. Mejor decirlo antes de tocar nada.
+        java.util.Set<Integer> vistos = new java.util.HashSet<>();
+        for (VentaRequest p : pasajeros) {
+            if (p.getAsientoNumero() == null)
+                throw new RuntimeException("Falta elegir el asiento de " + nombreDe(p));
+            if (!vistos.add(p.getAsientoNumero()))
+                throw new RuntimeException("El asiento #" + p.getAsientoNumero() + " está repetido");
+        }
+
+        String grupoId = UUID.randomUUID().toString();
+        List<VentaDTO> creadas = new ArrayList<>();
+        for (VentaRequest p : pasajeros) {
+            // Lo común no se repite por pasajero: se copia acá.
+            p.setViajeId(req.getViajeId());
+            p.setParadaOrigen(req.getParadaOrigen());
+            p.setParadaDestino(req.getParadaDestino());
+            p.setOrdenOrigen(req.getOrdenOrigen());
+            p.setOrdenDestino(req.getOrdenDestino());
+            p.setTipoComprobante(req.getTipoComprobante());
+            p.setClienteNombre(req.getClienteNombre());
+            p.setClienteTipoDoc(req.getClienteTipoDoc());
+            p.setClienteDocumento(req.getClienteDocumento());
+            p.setDetalleComprobante(req.getDetalleComprobante());
+            p.setLugarPago(req.getLugarPago());
+            p.setMetodoPago(req.getMetodoPago());
+            if (p.getObservacion() == null || p.getObservacion().isBlank())
+                p.setObservacion(req.getObservacion());
+            if (p.getClienteEmail() == null || p.getClienteEmail().isBlank())
+                p.setClienteEmail(req.getClienteEmail());
+
+            creadas.add(crearVenta(p, usuarioNombre, grupoId));
+        }
+
+        auditoriaService.registrar("CREAR", "VENTAS", grupoId,
+                "Venta de " + creadas.size() + " pasajes en una sola operación a nombre de "
+                        + req.getClienteNombre());
+        return creadas;
+    }
+
+    private String nombreDe(VentaRequest p) {
+        return p.getPasajeroNombre() == null || p.getPasajeroNombre().isBlank()
+                ? "un pasajero" : p.getPasajeroNombre();
+    }
+
+    @Transactional
+    public VentaDTO crearVenta(VentaRequest req, String usuarioNombre, String grupoVentaId) {
         Viaje viaje = viajeRepository.findById(req.getViajeId())
                 .orElseThrow(() -> new RuntimeException("Viaje no encontrado"));
 
@@ -162,6 +234,7 @@ public class VentaService {
 
         Venta venta = new Venta();
         venta.setId(UUID.randomUUID().toString());
+        venta.setGrupoVentaId(grupoVentaId);
         venta.setViajeId(viaje.getId());
         venta.setViajeCodigo(viaje.getCodigoViaje());
         venta.setViajeDescripcion(viaje.getRutaNombre());
@@ -405,6 +478,7 @@ public class VentaService {
     private VentaDTO toDTO(Venta v) {
         VentaDTO dto = new VentaDTO();
         dto.setId(v.getId());
+        dto.setGrupoVentaId(v.getGrupoVentaId());
         dto.setViajeId(v.getViajeId());
         dto.setViajeCodigo(v.getViajeCodigo());
         dto.setViajeDescripcion(v.getViajeDescripcion());
