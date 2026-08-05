@@ -10,7 +10,7 @@ import FormularioPasajero, { FormularioContacto } from "../components/Formulario
 import Confirmacion from "../components/Confirmacion";
 import LogoPasarela from "../components/LogoPasarela";
 import { buscarViajes, crearReservaGrupo, pagarGrupo, formularioDePagoGrupo,
-         metodosDePago, pagarConYapeGrupo, soles } from "../services/publicApi";
+         metodosDePago, pagarConYapeGrupo, avisarAbandono, soles } from "../services/publicApi";
 import { tokenizarYape } from "../services/yape";
 import { pagarConIzipay, limpiarIzipay } from "../services/izipay";
 import { tokenCliente } from "../services/authCliente";
@@ -193,6 +193,24 @@ export default function Comprar() {
   useEffect(() => {
     if (paso === 3 && !metodos) metodosDePago().then(setMetodos).catch(() => {});
   }, [paso, metodos]);
+
+  /**
+   * Si el cliente cierra la pestaña con el pago empezado, avisamos al servidor para
+   * que le llegue el correo con el enlace para terminarlo. Sin esto habría que
+   * esperar al recordatorio automático, que tarda unos minutos.
+   *
+   * Solo aplica en el paso de pago y con reservas ya creadas: antes de eso no hay
+   * ningún asiento retenido que se pueda perder.
+   */
+  useEffect(() => {
+    if (paso !== 3) return;
+    const alSalir = () => {
+      if (confirmacion) return;                    // ya pagó, no hay nada pendiente
+      avisarAbandono([...(reservaIda?.reservaIds || []), ...(reservaVuelta?.reservaIds || [])]);
+    };
+    window.addEventListener("pagehide", alSalir);
+    return () => window.removeEventListener("pagehide", alSalir);
+  }, [paso, reservaIda, reservaVuelta, confirmacion]);
 
   const pasajeroData = (i) => ({
     tipoDocumento: pasajeros[i]?.tipoDocumento || "DNI",

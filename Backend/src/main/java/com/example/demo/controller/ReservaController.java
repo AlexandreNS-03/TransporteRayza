@@ -6,6 +6,7 @@ import com.example.demo.dto.ReservaGrupoRequest;
 import com.example.demo.dto.ReservaGrupoResponse;
 import com.example.demo.dto.ReservaRequest;
 import com.example.demo.dto.ReservaResponse;
+import com.example.demo.service.RecordatorioPagoService;
 import com.example.demo.service.ReservaService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,9 +25,12 @@ import java.util.Map;
 public class ReservaController {
 
     private final ReservaService reservaService;
+    private final RecordatorioPagoService recordatorioPagoService;
 
-    public ReservaController(ReservaService reservaService) {
+    public ReservaController(ReservaService reservaService,
+                             RecordatorioPagoService recordatorioPagoService) {
         this.reservaService = reservaService;
+        this.recordatorioPagoService = recordatorioPagoService;
     }
 
     @ExceptionHandler(RuntimeException.class)
@@ -66,6 +70,19 @@ public class ReservaController {
                                                               Authentication auth) {
         String email = (auth != null) ? auth.getName() : null;
         return ResponseEntity.ok(reservaService.crearReservaGrupo(req, email));
+    }
+
+    /**
+     * El cliente cerró la pestaña en el paso de pago. El navegador lo avisa con un
+     * "beacon" al descargarse la página; acá se le manda el correo para que pueda
+     * terminar la compra antes de que el asiento se libere.
+     *
+     * No cambia nada de la venta: si ya pagó o la reserva venció, no se hace nada.
+     */
+    @PostMapping("/abandono")
+    public ResponseEntity<?> abandono(@RequestBody Map<String, Object> body) {
+        return ResponseEntity.ok(Map.of("resultado",
+                recordatorioPagoService.avisarPorIds(reservaIds(body))));
     }
 
     /** Formulario de Izipay para el total del grupo. */

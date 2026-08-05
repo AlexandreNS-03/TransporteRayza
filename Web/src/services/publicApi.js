@@ -55,6 +55,29 @@ export async function crearReservaGrupo(grupo, token) {
 }
 
 /**
+ * Avisa que el cliente se fue con el pago a medias, para que le llegue el correo
+ * al toque en vez de esperar al recordatorio automático.
+ *
+ * Va con sendBeacon porque se dispara mientras la pestaña se está cerrando: el
+ * navegador entrega el envío igual aunque la página ya no exista. Si no está
+ * disponible, se usa fetch con keepalive. Nunca lanza error: es un aviso, no
+ * puede estorbar a lo que el cliente esté haciendo.
+ */
+export function avisarAbandono(reservaIds) {
+  if (!reservaIds?.length) return;
+  const url = `${API}/reservas/abandono`;
+  const cuerpo = JSON.stringify({ reservaIds });
+  try {
+    if (navigator.sendBeacon) {
+      navigator.sendBeacon(url, new Blob([cuerpo], { type: "application/json" }));
+      return;
+    }
+    fetch(url, { method: "POST", body: cuerpo, keepalive: true,
+                 headers: { "Content-Type": "application/json" } }).catch(() => {});
+  } catch { /* el recordatorio automático lo cubre igual */ }
+}
+
+/**
  * Reservas que siguen esperando pago. Se usa en la página a la que llega el cliente
  * desde el correo de "tu reserva tiene un pago pendiente".
  */
