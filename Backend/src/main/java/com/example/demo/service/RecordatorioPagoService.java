@@ -38,8 +38,13 @@ import java.util.stream.Collectors;
 @Service
 public class RecordatorioPagoService {
 
-    /** Se avisa cuando a la reserva le quedan menos de estos minutos. */
-    private static final int MINUTOS_ANTES = 10;
+    /**
+     * Se avisa cuando a la reserva le quedan menos de estos minutos. Con 15 de plazo,
+     * el aviso sale unos 3 minutos después de empezar el pago: suficiente para no
+     * escribirle a quien todavía está tecleando su tarjeta, y a tiempo para que le
+     * queden 12 minutos de margen.
+     */
+    private static final int MINUTOS_ANTES = 12;
 
     private final VentaRepository ventaRepository;
     private final ViajeRepository viajeRepository;
@@ -67,6 +72,21 @@ public class RecordatorioPagoService {
                 .filter(this::sigueEsperandoPago)
                 .toList();
         if (ventas.isEmpty()) return "No hay reservas pendientes para " + ordenPago;
+        return avisar(ventas) ? "Aviso enviado" : "Ya se había avisado";
+    }
+
+    /**
+     * Aviso inmediato: el navegador se cerró en el paso de pago. Es lo que cubre el
+     * caso más común, cerrar la pestaña, que la pasarela no llega a reportar.
+     */
+    @Transactional
+    public String avisarPorIds(List<String> ids) {
+        if (ids == null || ids.isEmpty()) return "Sin reservas";
+        List<Venta> ventas = new ArrayList<>();
+        for (String id : ids) {
+            ventaRepository.findById(id).filter(this::sigueEsperandoPago).ifPresent(ventas::add);
+        }
+        if (ventas.isEmpty()) return "No hay reservas pendientes";
         return avisar(ventas) ? "Aviso enviado" : "Ya se había avisado";
     }
 
