@@ -3,6 +3,7 @@ import "./Pasajes.css";
 import generarComprobante from "../../../Utils/generarComprobante.jsx";
 import generarTicketA4 from "../../../Utils/generarTicketA4.jsx";
 import GenerarComprobanteModal from "../Finanzas/GenerarComprobanteModal.jsx";
+import { avisarGuardado, CARPETAS } from "../../../Utils/descargas.js";
 
 
 import { apiFetch, consultarDni } from "../../../Services/api.js";
@@ -722,7 +723,7 @@ function Pasajes() {
                                             {/* Descargar ticket 80mm (térmica) */}
                                             <button
                                                 className="btn-accion comprobante"
-                                                onClick={() => generarComprobante(v)}
+                                                onClick={async () => avisarGuardado(mostrarToast, await generarComprobante(v), "Boleto", CARPETAS.BOLETOS)}
                                                 title="Descargar ticket (80mm)"
                                             >
                                                 <i className="ti ti-file-invoice"></i>
@@ -731,7 +732,7 @@ function Pasajes() {
                                             {/* Descargar ticket A4 */}
                                             <button
                                                 className="btn-accion a4"
-                                                onClick={() => generarTicketA4(v)}
+                                                onClick={async () => avisarGuardado(mostrarToast, await generarTicketA4(v), "Boleto A4", CARPETAS.BOLETOS)}
                                                 title="Descargar ticket (A4)"
                                             >
                                                 <i className="ti ti-file-type-pdf"></i>

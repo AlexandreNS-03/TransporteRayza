@@ -1,6 +1,7 @@
 import jsPDF from "jspdf";
 import QRCode from "qrcode";
 import { cargarLogo, ajustarLogo } from "./logo.js";
+import { guardarPdf, CARPETAS } from "./descargas.js";
 
 const DOC_LABEL = { DNI: "DNI", CE: "CE", PASAPORTE: "PASAPORTE", RUC: "RUC" };
 
@@ -207,7 +208,7 @@ export async function generarTicketA4(venta) {
     doc.setFontSize(10);
     doc.text("¡Gracias por viajar con Transportes Rayza!", W / 2, y, { align: "center" });
 
-    doc.save(`TICKET-A4-${venta.serieComprobante}-${venta.numeroComprobante}.pdf`);
+    return guardarPdf(doc, `TICKET-A4-${venta.serieComprobante}-${venta.numeroComprobante}.pdf`, CARPETAS.BOLETOS);
 }
 
 export default generarTicketA4;

@@ -1,6 +1,7 @@
 import jsPDF from "jspdf";
 import QRCode from "qrcode";
 import { cargarLogo, ajustarLogo } from "./logo.js";
+import { guardarPdf, CARPETAS } from "./descargas.js";
 
 const DOC_LABEL = { "1": "DNI", "4": "CE", "6": "RUC", "7": "PASAPORTE" };
 
@@ -190,7 +191,7 @@ export async function generarComprobantePDF(c) {
     doc.text("Representación impresa del comprobante electrónico.", ancho / 2, 280, { align: "center" });
     doc.text("Consulte su documento en www.nubefact.com", ancho / 2, 285, { align: "center" });
 
-    doc.save(`${c.tipoDeComprobante}-${c.serie}-${numeroFmt}.pdf`);
+    return guardarPdf(doc, `${c.tipoDeComprobante}-${c.serie}-${numeroFmt}.pdf`, CARPETAS.BOLETOS);
 }
 
 export default generarComprobantePDF;

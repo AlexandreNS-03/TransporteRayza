@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import "./Manifiesto.css";
 import generarManifiestoPDF    from "./generarManifiestoPDF.jsx";
 import { useToast, Toasts } from "../../../Components/Toast.jsx";
-import { CARPETA_REPORTES } from "../../../Utils/descargas.js";
+import { avisarGuardado, CARPETAS } from "../../../Utils/descargas.js";
 
 import { apiFetch } from "../../../Services/api.js";
 import SelectorViaje from "../../../Components/SelectorViaje.jsx";
@@ -113,9 +113,7 @@ function Manifiesto() {
         setGenerandoPdf(true);
         try {
             const enCarpeta = await generarManifiestoPDF(viajeSeleccionado, pasajerosOrdenados, capacidad);
-            mostrarToast("success", enCarpeta
-                ? `Manifiesto guardado en la carpeta ${CARPETA_REPORTES}`
-                : "Manifiesto descargado");
+            avisarGuardado(mostrarToast, enCarpeta, "Manifiesto", CARPETAS.MANIFIESTOS);
         } finally {
             setGenerandoPdf(false);
         }

@@ -8,6 +8,7 @@ import GenerarComprobanteModal from "../Finanzas/GenerarComprobanteModal.jsx";
 import SelectorViaje from "../../../Components/SelectorViaje.jsx";
 import generarTicketEncomienda from "../../../Utils/generarTicketEncomienda.jsx";
 import generarEtiqueta100mm from "../../../Utils/generarEtiqueta100mm.jsx";
+import { avisarGuardado, CARPETAS } from "../../../Utils/descargas.js";
 
 const ESTADO_LABEL = {
     REGISTRADO: "Registrado", EN_TRANSITO: "En tránsito",
@@ -382,13 +383,13 @@ function Encomiendas() {
                                         <td className="acciones-cell">
                                             {/* Ticket / guía de encomienda (cualquier estado) */}
                                             <button className="btn-accion comprobante"
-                                                    onClick={() => generarTicketEncomienda(e)}
+                                                    onClick={async () => avisarGuardado(mostrarToast, await generarTicketEncomienda(e), "Guía", CARPETAS.ENCOMIENDAS)}
                                                     title="Descargar guía / ticket del envío">
                                                 <i className="ti ti-file-invoice"></i>
                                             </button>
                                             {/* Etiqueta 100mm para pegar en el bulto */}
                                             <button className="btn-accion comprobante"
-                                                    onClick={() => generarEtiqueta100mm(e)}
+                                                    onClick={async () => avisarGuardado(mostrarToast, await generarEtiqueta100mm(e), "Etiqueta", CARPETAS.ENCOMIENDAS)}
                                                     title="Etiqueta 100mm para pegar en el paquete">
                                                 <i className="ti ti-tag"></i>
                                             </button>

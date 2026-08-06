@@ -7,11 +7,27 @@
  * carpeta "Reportes-RAYZA" y de ahí en adelante todo cae solo en ese sitio, sin
  * volver a preguntar.
  *
+ * Dentro se separa por tipo, para no terminar con cientos de boletos encima de los
+ * manifiestos:
+ *
+ *   Reportes-RAYZA/Boletos       boletos, tickets y comprobantes de venta
+ *   Reportes-RAYZA/Encomiendas   guías y etiquetas de carga
+ *   Reportes-RAYZA/Manifiestos   manifiestos de pasajeros y de carga
+ *   Reportes-RAYZA/Reportes      exportaciones de reportes
+ *
  * Funciona en Chrome y Edge (los que usan en la oficina). En Firefox y Safari no
  * existe esa función: ahí el archivo baja como siempre, a Descargas.
  */
 
 const CARPETA = "Reportes-RAYZA";
+
+/** Subcarpetas por tipo de documento. */
+export const CARPETAS = {
+    BOLETOS: "Boletos",
+    ENCOMIENDAS: "Encomiendas",
+    MANIFIESTOS: "Manifiestos",
+    REPORTES: "Reportes",
+};
 const BD = "rayza-archivos";
 const ALMACEN = "carpetas";
 const CLAVE = "reportes";
@@ -61,10 +77,10 @@ async function tienePermiso(handle) {
 }
 
 /**
- * Carpeta "Reportes-RAYZA" lista para escribir, o null si no se puede usar
- * (navegador sin soporte, o el usuario prefirió la descarga de siempre).
+ * Carpeta donde va el archivo, ya creada, o null si no se puede usar (navegador
+ * sin soporte, o el usuario prefirió la descarga de siempre).
  */
-async function carpetaDestino() {
+async function carpetaDestino(subcarpeta) {
     if (!soportado() || rechazado) return null;
 
     let base = await leerCarpetaGuardada();
@@ -87,7 +103,9 @@ async function carpetaDestino() {
     }
 
     try {
-        return await base.getDirectoryHandle(CARPETA, { create: true });
+        const raiz = await base.getDirectoryHandle(CARPETA, { create: true });
+        if (!subcarpeta) return raiz;
+        return await raiz.getDirectoryHandle(subcarpeta, { create: true });
     } catch { return null; }
 }
 
@@ -107,11 +125,14 @@ function descargarNormal(blob, nombre) {
  * Guarda el archivo en Reportes-RAYZA si se puede, y si no lo descarga como
  * siempre. Nunca lanza error: el archivo tiene que llegar igual.
  *
+ * @param {Blob}   blob       contenido del archivo
+ * @param {string} nombre     nombre con extensión
+ * @param {string} [subcarpeta] una de CARPETAS; si falta, va a la raíz
  * @returns {Promise<boolean>} true si quedó en la carpeta, false si fue a Descargas.
  */
-export async function guardarArchivo(blob, nombre) {
+export async function guardarArchivo(blob, nombre, subcarpeta) {
     try {
-        const carpeta = await carpetaDestino();
+        const carpeta = await carpetaDestino(subcarpeta);
         if (carpeta) {
             const archivo = await carpeta.getFileHandle(nombre, { create: true });
             const escritura = await archivo.createWritable();
@@ -127,12 +148,28 @@ export async function guardarArchivo(blob, nombre) {
 }
 
 /** Igual que guardarArchivo, pero recibiendo el documento de jsPDF. */
-export async function guardarPdf(doc, nombre) {
-    return guardarArchivo(doc.output("blob"), nombre);
+export async function guardarPdf(doc, nombre, subcarpeta) {
+    return guardarArchivo(doc.output("blob"), nombre, subcarpeta);
 }
 
 /** Nombre de la carpeta, para poder avisarle al usuario dónde quedó el archivo. */
 export const CARPETA_REPORTES = CARPETA;
+
+/**
+ * Aviso de dónde quedó el archivo. Se saca acá para que todas las pantallas digan
+ * lo mismo y nadie se quede buscando el PDF.
+ *
+ * @param mostrarToast  el de useToast()
+ * @param enCarpeta     lo que devolvió guardarArchivo / guardarPdf
+ * @param que           "Boleto", "Guía", "Manifiesto"…
+ * @param subcarpeta    una de CARPETAS
+ */
+export function avisarGuardado(mostrarToast, enCarpeta, que, subcarpeta) {
+    if (!mostrarToast) return;
+    mostrarToast("success", enCarpeta
+        ? `${que} guardado en ${CARPETA}/${subcarpeta}`
+        : `${que} descargado`);
+}
 
 /** Si este navegador puede guardar en carpeta (para mostrarlo o no en pantalla). */
 export const soportaCarpeta = soportado;

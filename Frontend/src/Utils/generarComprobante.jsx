@@ -1,6 +1,7 @@
 import jsPDF from "jspdf";
 import QRCode from "qrcode";
 import { cargarLogo, ajustarLogo } from "./logo.js";
+import { guardarPdf, CARPETAS } from "./descargas.js";
 
 /**
  * Ticket de embarque (80mm) con estilo "boarding pass":
@@ -244,7 +245,7 @@ export async function generarComprobante(venta) {
     doc.text("¡Gracias por viajar con Transportes Rayza!", ancho / 2, y, { align: "center" });
 
     // ── DESCARGAR ──
-    doc.save(`TICKET-${venta.serieComprobante}-${venta.numeroComprobante}.pdf`);
+    return guardarPdf(doc, `TICKET-${venta.serieComprobante}-${venta.numeroComprobante}.pdf`, CARPETAS.BOLETOS);
 }
 
 export default generarComprobante;
