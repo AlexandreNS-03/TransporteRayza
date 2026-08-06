@@ -2,6 +2,7 @@ import jsPDF from "jspdf";
 import QRCode from "qrcode";
 import { cargarLogo, ajustarLogo } from "./logo.js";
 import { qrSunat } from "./generarComprobantePDF.jsx";
+import { guardarPdf, CARPETAS } from "./descargas.js";
 
 const DOC_LABEL = { "1": "DNI", "4": "CE", "6": "RUC", "7": "PASAPORTE" };
 
@@ -163,7 +164,7 @@ export async function generarComprobante80mm(c) {
     y += 3;
     doc.text("Consúltelo en www.nubefact.com", ancho / 2, y, { align: "center" });
 
-    doc.save(`${c.tipoDeComprobante}-${c.serie}-${numeroFmt}-80mm.pdf`);
+    return guardarPdf(doc, `${c.tipoDeComprobante}-${c.serie}-${numeroFmt}-80mm.pdf`, CARPETAS.BOLETOS);
 }
 
 export default generarComprobante80mm;

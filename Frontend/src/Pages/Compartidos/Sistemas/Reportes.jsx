@@ -5,7 +5,7 @@ import {
     PieChart, Pie, Cell, Legend, ComposedChart, Line,
 } from "recharts";
 import "./Reportes.css";
-import { guardarArchivo } from "../../../Utils/descargas.js";
+import { guardarArchivo, CARPETAS } from "../../../Utils/descargas.js";
 
 const COLORES = ["#1a4db5", "#15803d", "#a16207", "#7c3aed", "#0891b2", "#db2777"];
 
@@ -450,7 +450,7 @@ function Reportes() {
         const datos = XLSX.write(wb, { bookType: "xlsx", type: "array" });
         await guardarArchivo(
             new Blob([datos], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }),
-            `reporte_${tipo}_${desde}_a_${hasta}.xlsx`);
+            `reporte_${tipo}_${desde}_a_${hasta}.xlsx`, CARPETAS.REPORTES);
     };
 
     const imprimir = () => {

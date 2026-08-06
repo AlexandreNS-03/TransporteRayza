@@ -4,7 +4,7 @@ import generarManifiestoCargaPDF from "./generarManifiestoCargaPDF.jsx";
 import SelectorViaje from "../../../Components/SelectorViaje.jsx";
 import { apiFetch } from "../../../Services/api.js";
 import { useToast, Toasts } from "../../../Components/Toast.jsx";
-import { CARPETA_REPORTES } from "../../../Utils/descargas.js";
+import { avisarGuardado, CARPETAS } from "../../../Utils/descargas.js";
 
 const ESTADO_LABEL = {
     REGISTRADO: "Registrado", EN_TRANSITO: "En tránsito",
@@ -69,9 +69,7 @@ function ManifiestoCarga() {
         setGenerandoPdf(true);
         try {
             const enCarpeta = await generarManifiestoCargaPDF(viajeSeleccionado, encomiendas);
-            mostrarToast("success", enCarpeta
-                ? `Manifiesto de carga guardado en la carpeta ${CARPETA_REPORTES}`
-                : "Manifiesto de carga descargado");
+            avisarGuardado(mostrarToast, enCarpeta, "Manifiesto de carga", CARPETAS.MANIFIESTOS);
         }
         finally { setGenerandoPdf(false); }
     };

@@ -1,6 +1,7 @@
 import jsPDF from "jspdf";
 import QRCode from "qrcode";
 import { cargarLogo, ajustarLogo } from "./logo.js";
+import { guardarPdf, CARPETAS } from "./descargas.js";
 
 const ESTADO_LABEL = {
     REGISTRADO: "Registrado", EN_TRANSITO: "En tránsito",
@@ -182,7 +183,7 @@ export async function generarTicketEncomienda(e) {
     doc.setFontSize(7);
     doc.text("¡Gracias por confiar en Transportes Rayza!", ancho / 2, y, { align: "center" });
 
-    doc.save(`ENCOMIENDA-${e.codigoEncomienda}.pdf`);
+    return guardarPdf(doc, `ENCOMIENDA-${e.codigoEncomienda}.pdf`, CARPETAS.ENCOMIENDAS);
 }
 
 export default generarTicketEncomienda;

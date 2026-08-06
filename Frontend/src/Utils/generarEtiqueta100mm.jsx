@@ -1,6 +1,7 @@
 import jsPDF from "jspdf";
 import QRCode from "qrcode";
 import { cargarLogo, ajustarLogo } from "./logo.js";
+import { guardarPdf, CARPETAS } from "./descargas.js";
 
 /**
  * Etiqueta de 100 mm para pegar en el bulto.
@@ -118,7 +119,7 @@ export async function generarEtiqueta100mm(e) {
     doc.setTextColor(...gris);
     doc.text("Firma de conformidad", L - 23, yPie + 8, { align: "center" });
 
-    doc.save(`ETIQUETA-${e.codigoEncomienda || "encomienda"}.pdf`);
+    return guardarPdf(doc, `ETIQUETA-${e.codigoEncomienda || "encomienda"}.pdf`, CARPETAS.ENCOMIENDAS);
 }
 
 export default generarEtiqueta100mm;

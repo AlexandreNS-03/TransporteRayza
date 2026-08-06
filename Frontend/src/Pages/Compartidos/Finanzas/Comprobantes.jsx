@@ -6,6 +6,7 @@ import generarComprobante80mm from "../../../Utils/generarComprobante80mm.jsx";
 
 import { apiFetch } from "../../../Services/api.js";
 import { useToast, Toasts } from "../../../Components/Toast.jsx";
+import { avisarGuardado, CARPETAS } from "../../../Utils/descargas.js";
 import { usePaginacion, Paginacion } from "../../../Components/Paginacion.jsx";
 
 const DOC_LABEL  = { "1": "DNI", "4": "CE", "6": "RUC", "7": "PASAPORTE" };
@@ -104,8 +105,10 @@ function Comprobantes() {
     };
 
     const descargarPDF = async (c, formato = "a4") => {
-        if (formato === "80mm") { await generarComprobante80mm(c); return; }
-        await generarComprobantePDF(c); // A4: nuestro diseño A4
+        const enCarpeta = formato === "80mm"
+            ? await generarComprobante80mm(c)
+            : await generarComprobantePDF(c);   // A4: nuestro diseño A4
+        avisarGuardado(mostrarToast, enCarpeta, "Comprobante", CARPETAS.BOLETOS);
     };
 
     // PDF oficial de Nubefact (formato del proveedor), si existe
