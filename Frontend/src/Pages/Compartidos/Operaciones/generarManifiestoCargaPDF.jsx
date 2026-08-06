@@ -1,5 +1,6 @@
 import jsPDF from "jspdf";
 import { cargarLogo, ajustarLogo } from "../../../Utils/logo.js";
+import { guardarPdf } from "../../../Utils/descargas.js";
 
 // Columnas del manifiesto de carga (ancho en mm; suman el ancho de contenido).
 const COLUMNAS = [
@@ -261,7 +262,7 @@ export async function generarManifiestoCargaPDF(viaje, encomiendas) {
         doc.text(`Página ${p} de ${totalPaginas}`, ancho - margen, alto - 7, { align: "right" });
     }
 
-    doc.save(`ManifiestoCarga-${viaje.codigoViaje}.pdf`);
+    return guardarPdf(doc, `ManifiestoCarga-${viaje.codigoViaje}.pdf`);
 }
 
 export default generarManifiestoCargaPDF;

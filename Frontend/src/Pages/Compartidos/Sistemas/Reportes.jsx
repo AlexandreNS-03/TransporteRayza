@@ -5,6 +5,7 @@ import {
     PieChart, Pie, Cell, Legend, ComposedChart, Line,
 } from "recharts";
 import "./Reportes.css";
+import { guardarArchivo } from "../../../Utils/descargas.js";
 
 const COLORES = ["#1a4db5", "#15803d", "#a16207", "#7c3aed", "#0891b2", "#db2777"];
 
@@ -429,7 +430,7 @@ function Reportes() {
         return { cols, filas };
     };
 
-    const exportarExcel = () => {
+    const exportarExcel = async () => {
         const meta = TIPOS.find(t => t.key === tipo)?.label || tipo;
         const { cols, filas } = datosDelReporte();
         // Encabezado con el rango + tabla
@@ -444,7 +445,12 @@ function Reportes() {
         ws["!cols"] = cols.map((c, i) => ({ wch: Math.max(12, ...aoa.slice(3).map(r => String(r[i] ?? "").length + 2)) }));
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, meta.slice(0, 28));
-        XLSX.writeFile(wb, `reporte_${tipo}_${desde}_a_${hasta}.xlsx`);
+        // Se arma el archivo en memoria para poder dejarlo en la carpeta de reportes
+        // (XLSX.writeFile baja directo a Descargas y no deja elegir dónde).
+        const datos = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+        await guardarArchivo(
+            new Blob([datos], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }),
+            `reporte_${tipo}_${desde}_a_${hasta}.xlsx`);
     };
 
     const imprimir = () => {

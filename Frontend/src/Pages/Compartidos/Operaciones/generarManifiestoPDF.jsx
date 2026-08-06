@@ -1,5 +1,6 @@
 import jsPDF from "jspdf";
 import { cargarLogo, ajustarLogo } from "../../../Utils/logo.js";
+import { guardarPdf } from "../../../Utils/descargas.js";
 
 // ── Columnas de la tabla (ancho en mm, deben sumar el ancho de contenido) ──
 const COLUMNAS = [
@@ -266,7 +267,7 @@ export async function generarManifiestoPDF(viaje, pasajeros, capacidadTotal) {
         doc.text(`Página ${p} de ${totalPaginas}`, ancho - margen, alto - 7, { align: "right" });
     }
 
-    doc.save(`Manifiesto-${viaje.codigoViaje}.pdf`);
+    return guardarPdf(doc, `Manifiesto-${viaje.codigoViaje}.pdf`);
 }
 
 export default generarManifiestoPDF;

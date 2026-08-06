@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import "./Manifiesto.css";
 import generarManifiestoPDF    from "./generarManifiestoPDF.jsx";
+import { useToast, Toasts } from "../../../Components/Toast.jsx";
+import { CARPETA_REPORTES } from "../../../Utils/descargas.js";
 
 import { apiFetch } from "../../../Services/api.js";
 import SelectorViaje from "../../../Components/SelectorViaje.jsx";
@@ -15,6 +17,7 @@ function comparar(a, b, dir) {
 }
 
 function Manifiesto() {
+    const { toasts, mostrarToast } = useToast();
     const [viajes, setViajes]       = useState([]);
     const [viajeId, setViajeId]     = useState("");
     const [pasajeros, setPasajeros] = useState([]);
@@ -109,7 +112,10 @@ function Manifiesto() {
         if (!viajeSeleccionado || pasajerosOrdenados.length === 0) return;
         setGenerandoPdf(true);
         try {
-            await generarManifiestoPDF(viajeSeleccionado, pasajerosOrdenados, capacidad);
+            const enCarpeta = await generarManifiestoPDF(viajeSeleccionado, pasajerosOrdenados, capacidad);
+            mostrarToast("success", enCarpeta
+                ? `Manifiesto guardado en la carpeta ${CARPETA_REPORTES}`
+                : "Manifiesto descargado");
         } finally {
             setGenerandoPdf(false);
         }
@@ -295,6 +301,7 @@ function Manifiesto() {
                     )}
                 </>
             )}
+            <Toasts toasts={toasts} />
         </div>
     );
 }
