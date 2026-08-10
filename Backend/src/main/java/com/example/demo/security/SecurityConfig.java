@@ -127,6 +127,12 @@ public class SecurityConfig {
                         .requestMatchers("/api/auditoria/**").hasRole("ADMIN")
 
                         /*SOPORTE*/
+                        /*VERIFICADOR DEL SISTEMA: lo consulta cualquiera que trabaje acá,
+                          porque quien atiende es el primero en notar que algo falla.
+                          El respaldo baja datos de todos los pasajeros: solo administración.*/
+                        .requestMatchers(HttpMethod.GET, "/api/diagnostico/respaldo").hasAnyRole("ADMIN", "SUPERVISOR")
+                        .requestMatchers(HttpMethod.GET, "/api/diagnostico/**").hasAnyRole("ADMIN", "SUPERVISOR", "EMPLEADO")
+
                         .requestMatchers(HttpMethod.POST,  "/api/soporte").hasAnyRole("ADMIN", "SUPERVISOR", "EMPLEADO")
                         .requestMatchers(HttpMethod.GET,   "/api/soporte").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PATCH, "/api/soporte/*/atendido").hasRole("ADMIN")

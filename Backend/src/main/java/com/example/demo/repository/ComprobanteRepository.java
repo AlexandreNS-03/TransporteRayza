@@ -29,6 +29,9 @@ public interface ComprobanteRepository extends JpaRepository<Comprobante, String
 
     List<Comprobante> findByGrupoVentaId(String grupoVentaId);
 
+    /** Comprobantes que no quedaron aceptados, para el verificador del sistema. */
+    long countByEstadoNot(Comprobante.EstadoComprobante estado);
+
     boolean existsByEncomiendaIdAndEstadoAndTipoDeComprobanteNot(String encomiendaId,
                                                                  Comprobante.EstadoComprobante estado,
                                                                  Comprobante.TipoComprobante tipo);
