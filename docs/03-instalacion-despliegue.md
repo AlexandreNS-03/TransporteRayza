@@ -61,17 +61,40 @@ Railway inyecta `PORT` solo. Auto-despliega al mergear a `main`.
 
 ### Frontends → Netlify
 
-**Sistema (`Frontend/`)** — auto-deploy conectado a GitHub:
-- Base directory: `Frontend`, build `npm run build`, publish `dist`.
-- Variable: `VITE_API_URL = https://transporterayza-production.up.railway.app`
-- SPA redirect a `/index.html` (ya en `netlify.toml`).
+Los dos sitios se publican **solos desde GitHub Actions** al mergear a `main`
+(`.github/workflows/desplegar-web.yml` y `desplegar-sistema.yml`). Cada uno se
+dispara solo si el cambio tocó su carpeta.
 
-**Web del cliente (`Web/`)** — despliegue **manual** (drag & drop):
-```bash
-git switch main && git pull
-cd Web && rm -rf dist && VITE_API_URL=https://transporterayza-production.up.railway.app npm run build
-```
-Arrastrar `Web/dist` a Netlify (Add new site → Deploy manually). Rehacer tras cada cambio en `Web/`.
+Se hace así, y no con la conexión a GitHub de Netlify ni arrastrando el `dist`,
+por una razón concreta: el `netlify.toml` de cada sitio (redirección SPA y
+encabezados de seguridad) queda **fuera** de `dist`, así que subiendo la carpeta a
+mano nunca llegaba al sitio. Desplegando desde `Web/` y `Frontend/` sí se aplica.
+
+**Secretos que hay que configurar** una vez, en el repositorio
+(Settings → Secrets and variables → Actions):
+
+| Secreto | De dónde sale |
+|---|---|
+| `NETLIFY_AUTH_TOKEN` | Netlify → User settings → Applications → New access token (uno solo, sirve para ambos sitios) |
+| `NETLIFY_SITE_ID` | Site ID (o Project ID) del sitio de **transporterayza.com** |
+| `NETLIFY_SITE_ID_SISTEMA` | Site ID del sitio de **sistema.transporterayza.com** |
+
+Si faltan, el flujo avisa y no publica, pero no se marca en rojo.
+
+La dirección del backend no va como secreto: no lo es —viaja dentro del
+JavaScript que descarga cualquier visitante— y los flujos ya usan la de
+producción por defecto. Si algún día cambia, se define como *variable* del
+repositorio (Settings → Variables → `VITE_API_URL`), sin tocar el código.
+
+> Ojo: `RAILWAY_PUBLIC_DOMAIN` es otra cosa. Railway se la inyecta **al backend**
+> con su propio dominio (y sin `https://`). Los frontends se construyen fuera de
+> Railway y nunca ven esa variable.
+
+> Si alguno de los sitios está conectado a GitHub desde Netlify, **desconectarlo**:
+> si no, cada merge lo desplegaría dos veces.
+
+Para publicar a mano en una emergencia: pestaña **Actions** → el flujo que
+corresponda → **Run workflow**.
 
 ## 4. Dominios (recomendado)
 

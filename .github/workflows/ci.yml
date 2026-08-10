@@ -1,0 +1,69 @@
+# Revisión automática de cada cambio antes de mergearlo.
+#
+# Existe porque hasta ahora nada comprobaba que el proyecto siquiera compilara:
+# los errores se descubrían al desplegar, o peor, en la oficina.
+name: Revisión
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  backend:
+    name: Backend (pruebas)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Preparar Java 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: temurin
+          cache: maven
+
+      # Las pruebas corren contra una base H2 en memoria: no hace falta MySQL.
+      - name: Compilar y probar
+        working-directory: Backend
+        run: ./mvnw --batch-mode verify
+
+  frontend:
+    name: Sistema administrativo (build)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: Frontend/package-lock.json
+      - name: Instalar
+        working-directory: Frontend
+        run: npm ci
+      - name: Construir
+        working-directory: Frontend
+        run: npm run build
+
+  web:
+    name: Web del cliente (build)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: Web/package-lock.json
+      - name: Instalar
+        working-directory: Web
+        run: npm ci
+      - name: Construir
+        working-directory: Web
+        run: npm run build
+
+      # Aviso temprano si la carga inicial vuelve a dispararse: el peso de esta web
+      # se paga con los datos del celular de cada cliente.
+      - name: Revisar el peso de la carga inicial
+        working-directory: Web
+        run: node ../.github/scripts/peso-inicial.mjs
