@@ -1,15 +1,18 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import "./Rastreo.css";
 import "./PagaCarga.css";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import EscanerQR from "../components/EscanerQR";
 import {
     rastrearEncomienda, metodosDePago, formularioPagoEncomienda,
     pagarEncomienda, pagarEncomiendaYape,
 } from "../services/publicApi";
 import { pagarConIzipay, limpiarIzipay } from "../services/izipay";
 import { tokenizarYape } from "../services/yape";
+
+// El lector de QR arrastra la librería que decodifica la imagen: se descarga
+// recién cuando alguien abre la cámara, no al entrar a la página.
+const EscanerQR = lazy(() => import("../components/EscanerQR"));
 
 const PAGO = {
     PAGADO:       { label: "Pagado",            clase: "pago-ok",   icono: "ti-circle-check", desc: "Esta encomienda ya está pagada. No necesitas hacer nada más." },
@@ -234,7 +237,11 @@ function PagaCarga() {
                 </div>
             </div>
 
-            {escaner && <EscanerQR onDetectar={alEscanear} onCerrar={() => setEscaner(false)} />}
+            {escaner && (
+              <Suspense fallback={null}>
+                <EscanerQR onDetectar={alEscanear} onCerrar={() => setEscaner(false)} />
+              </Suspense>
+            )}
             <Footer />
         </>
     );

@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import QRCode from "qrcode";
 import { Link } from "react-router-dom";
 import { soles, getTicket } from "../services/publicApi";
-import { generarTicket80mm } from "../Utils/generarTicket80mm";
 
 /** Un boleto con su QR (uno por pasajero). El botón descarga el ticket de embarque 80mm. */
 function Boleto({ b }) {
@@ -18,6 +17,9 @@ function Boleto({ b }) {
     setBajando(true); setError(null);
     try {
       const t = await getTicket(b.ventaId);
+      // Se descarga jsPDF recién ahora: pesa más que el resto de la página junta
+      // y la mayoría de la gente nunca toca este botón.
+      const { generarTicket80mm } = await import("../Utils/generarTicket80mm");
       await generarTicket80mm(t);
     } catch (e) {
       setError("No se pudo generar el ticket. Intenta de nuevo.");

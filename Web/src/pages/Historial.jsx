@@ -3,7 +3,6 @@ import { useSearchParams, Link } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { buscarBoletos, getTicket, soles } from "../services/publicApi";
-import { generarTicketA4 } from "../Utils/generarTicketA4";
 import { estaLogueado } from "../services/authCliente";
 
 /** Una fila de boleto con su botón de descarga del ticket A4. */
@@ -15,6 +14,7 @@ function BoletoRow({ b }) {
     setBajando(true); setError(null);
     try {
       const t = await getTicket(b.ventaId);
+      const { generarTicketA4 } = await import("../Utils/generarTicketA4");
       await generarTicketA4(t);
     } catch {
       setError("No se pudo generar el ticket.");

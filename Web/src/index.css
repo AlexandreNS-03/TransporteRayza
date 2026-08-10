@@ -1089,3 +1089,26 @@ footer.site .logo .mark { width: 34px; height: 34px; }
   background:var(--card);cursor:pointer;font-size:17px;line-height:1;display:grid;place-items:center;
   transition:border-color .2s,transform .15s}
 .tema-btn:hover{border-color:var(--sky);transform:translateY(-1px)}
+
+/* ---------- Espera mientras llega una página ---------- */
+/* Las páginas se descargan al entrar en ellas; esto es lo que se ve ese instante. */
+.pagina-cargando {
+  min-height: 60vh;
+  display: grid;
+  place-items: center;
+}
+
+.cargando-giro {
+  width: 34px;
+  height: 34px;
+  border: 3px solid var(--line, #e5e7eb);
+  border-top-color: var(--brand, #c8102e);
+  border-radius: 50%;
+  animation: cargando-vuelta 0.8s linear infinite;
+}
+
+@keyframes cargando-vuelta { to { transform: rotate(360deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .cargando-giro { animation-duration: 2.4s; }
+}
