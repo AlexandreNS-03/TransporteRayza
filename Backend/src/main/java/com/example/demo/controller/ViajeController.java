@@ -19,9 +19,17 @@ public class ViajeController {
         this.viajeService = viajeService;
     }
 
+    /**
+     * Lista de viajes. Con `estado` se traen solo los que interesan, separados por
+     * coma: `?estado=PROGRAMADO` o `?estado=PROGRAMADO,EN_CURSO`.
+     *
+     * Sin filtro devuelve el historial completo, que crece para siempre. Las
+     * pantallas que solo necesitan elegir un viaje próximo deben filtrar acá y no
+     * descargarse todo para tirar el 95%.
+     */
     @GetMapping
-    public ResponseEntity<List<ViajeDTO>> listar() {
-        return ResponseEntity.ok(viajeService.listarViajes());
+    public ResponseEntity<List<ViajeDTO>> listar(@RequestParam(required = false) String estado) {
+        return ResponseEntity.ok(viajeService.listarViajes(estado));
     }
 
     @PostMapping

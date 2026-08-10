@@ -3,6 +3,8 @@
 // - Detecta sesión expirada (JWT vencido o 401) y redirige al login
 // - Convierte los errores del backend ({"message": ...}) en Error con mensaje legible
 
+import { reportarError } from "./errores.js";
+
 const API = import.meta.env.VITE_API_URL || "http://localhost:8080";
 
 export function token() {
@@ -67,7 +69,39 @@ export async function apiFetch(url, opts = {}) {
 
     if (res.status === 204) return null;
     const contentType = res.headers.get("content-type") || "";
-    return contentType.includes("application/json") ? res.json() : null;
+    if (!contentType.includes("application/json")) return null;
+
+    // Se lee como texto y se convierte acá, en vez de res.json(), para poder decir
+    // algo útil cuando la respuesta llega cortada o mezclada: con res.json() el
+    // usuario veía el error crudo del navegador ("Expected ':' after property
+    // name in JSON at position 1140995"), que no le dice nada a nadie.
+    const texto = await res.text();
+    try {
+        return JSON.parse(texto);
+    } catch (e) {
+        reportarRespuestaRota(url, texto, e);
+        throw new Error("La respuesta del servidor llegó incompleta o dañada. "
+            + "Suele ser la conexión; vuelve a intentarlo. Ya se avisó al equipo.");
+    }
+}
+
+/**
+ * Manda el caso a Soporte con lo justo para poder diagnosticarlo: cuánto llegó y
+ * qué había alrededor del punto donde se cortó. Sin esto solo queda "salió un
+ * error raro" y no hay forma de saber qué pasó.
+ */
+function reportarRespuestaRota(url, texto, error) {
+    try {
+        const pos = Number(/position (\d+)/.exec(error.message)?.[1] ?? -1);
+        const alrededor = pos >= 0
+            ? texto.slice(Math.max(0, pos - 120), pos + 120)
+            : texto.slice(0, 240);
+        reportarError(`Respuesta JSON inválida en ${url}`,
+            `${error.message}\n`
+            + `Tamaño recibido: ${texto.length} caracteres\n`
+            + `Termina en: ${JSON.stringify(texto.slice(-80))}\n`
+            + `Alrededor del corte: ${JSON.stringify(alrededor)}`);
+    } catch { /* el reporte nunca debe tapar el error original */ }
 }
 
 /**

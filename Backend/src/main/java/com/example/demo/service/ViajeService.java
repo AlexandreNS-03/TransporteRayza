@@ -47,8 +47,23 @@ public class ViajeService {
 
     // Listar todos
     public List<ViajeDTO> listarViajes() {
+        return listarViajes(null);
+    }
+
+    /**
+     * @param estados estados separados por coma; si viene vacío, todos.
+     */
+    public List<ViajeDTO> listarViajes(String estados) {
+        java.util.Set<Viaje.EstadoViaje> filtro = new java.util.HashSet<>();
+        if (estados != null && !estados.isBlank()) {
+            for (String e : estados.split(",")) {
+                try { filtro.add(Viaje.EstadoViaje.valueOf(e.trim().toUpperCase())); }
+                catch (IllegalArgumentException ignorado) { /* estado desconocido: se ignora */ }
+            }
+        }
         return viajeRepository.findAllByOrderByFechaSalidaDesc()
                 .stream()
+                .filter(v -> filtro.isEmpty() || filtro.contains(v.getEstado()))
                 .map(this::toDTO)
                 .collect(Collectors.toList());
     }

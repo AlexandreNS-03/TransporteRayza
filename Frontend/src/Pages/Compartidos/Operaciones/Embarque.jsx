@@ -45,13 +45,10 @@ function Embarque() {
         setCargandoViajes(true);
         try {
             const token = localStorage.getItem("token");
-            const res = await fetch(`${API_BASE}/api/viajes`, {
+            const res = await fetch(`${API_BASE}/api/viajes?estado=PROGRAMADO,EN_CURSO`, {
                 headers: { "Authorization": `Bearer ${token}` }
             });
-            const data = await res.json();
-            setViajes(data.filter(v =>
-                v.estado === "PROGRAMADO" || v.estado === "EN_CURSO"
-            ));
+            setViajes(await res.json());
         } catch (err) {
             console.error(err);
         } finally {
