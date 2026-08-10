@@ -1089,3 +1089,22 @@ footer.site .logo .mark { width: 34px; height: 34px; }
   background:var(--card);cursor:pointer;font-size:17px;line-height:1;display:grid;place-items:center;
   transition:border-color .2s,transform .15s}
 .tema-btn:hover{border-color:var(--sky);transform:translateY(-1px)}
+
+/* ---------- Pantalla de error (red de seguridad) ---------- */
+/* Se ve solo si una pantalla revienta; antes quedaba la página en blanco. */
+.pantalla-error {
+  min-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 14px;
+  padding: 40px 24px;
+}
+
+.pantalla-error h1 { margin: 0; font-size: clamp(24px, 5vw, 34px); }
+.pantalla-error p  { margin: 0; max-width: 46ch; color: var(--ink-soft, #64748b); line-height: 1.6; }
+
+.pantalla-error-acciones { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 6px; }
+.pantalla-error-ayuda { font-size: 14px; }
