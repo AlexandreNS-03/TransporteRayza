@@ -34,12 +34,11 @@ mysql -h <host> -P <puerto> -u root -p railway < Backend/sql/verificar-esquema.s
 
 ## 2. Al desplegar un cambio
 
-1. Mergear el PR a `main` → Railway (backend) y Netlify (sistema) redespliegan solos.
-2. Si el cambio trae migración nueva, aplicarla a la base.
-3. Si tocó `Web/`, recompilar el `dist` y subirlo a Netlify (manual).
-4. Verificar el esquema.
+1. Mergear el PR a `main`. **Todo se despliega solo**: Railway (backend) y, por GitHub Actions, los dos sitios de Netlify — pero cada uno solo si el cambio tocó su carpeta.
+2. Si el cambio trae migración nueva, aplicarla a la base **antes** de que el backend arranque con el código nuevo.
+3. Verificar el esquema.
 
-> Regla: solo hay que rehacer el `dist` de la web-cliente cuando el cambio tocó la carpeta `Web/`. Backend y sistema se auto-despliegan.
+> Ya no hay que arrastrar ninguna carpeta `dist` a Netlify. Si algo no se publicó, mirar la pestaña **Actions** del repositorio: ahí está el motivo.
 
 ## 3. Respaldos (backups)
 
