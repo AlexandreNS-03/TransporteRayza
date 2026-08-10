@@ -109,3 +109,22 @@ code {
   padding: 4px 8px;
   background: var(--code-bg);
 }
+
+/* ---------- Pantalla de error (red de seguridad) ---------- */
+/* Se ve solo si una pantalla revienta; antes quedaba la página en blanco. */
+.pantalla-error {
+    min-height: 70vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 12px;
+    padding: 40px 24px;
+}
+
+.pantalla-error i { font-size: 44px; color: #b45309; }
+.pantalla-error h2 { margin: 0; font-size: 22px; color: #1e293b; }
+.pantalla-error p { margin: 0; max-width: 52ch; color: #6b7280; line-height: 1.6; font-size: 14px; }
+.pantalla-error-acciones { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 8px; }
+.pantalla-error-acciones a { text-decoration: none; }

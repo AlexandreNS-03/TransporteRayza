@@ -1,0 +1,58 @@
+# Publica el sistema administrativo al mergear a main.
+#
+# Igual que la web del cliente, se venía subiendo arrastrando la carpeta dist a
+# mano; por eso el netlify.toml nunca se aplicaba y el sistema quedó sin
+# encabezados de seguridad. Desplegando desde la carpeta Frontend sí se aplica.
+name: Publicar sistema administrativo
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'Frontend/**'
+      - '.github/workflows/desplegar-sistema.yml'
+  workflow_dispatch:
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Comprobar credenciales
+        id: credenciales
+        run: |
+          if [ -z "${{ secrets.NETLIFY_AUTH_TOKEN }}" ] || [ -z "${{ secrets.NETLIFY_SITE_ID_SISTEMA }}" ]; then
+            echo "listo=no" >> $GITHUB_OUTPUT
+            echo "::warning::Falta configurar NETLIFY_AUTH_TOKEN y NETLIFY_SITE_ID_SISTEMA en los secretos del repositorio. El sistema no se publicó."
+          else
+            echo "listo=si" >> $GITHUB_OUTPUT
+          fi
+
+      - uses: actions/setup-node@v4
+        if: steps.credenciales.outputs.listo == 'si'
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: Frontend/package-lock.json
+
+      - name: Construir
+        if: steps.credenciales.outputs.listo == 'si'
+        working-directory: Frontend
+        env:
+          # La dirección del backend no es secreta: viaja dentro del JavaScript que
+          # descarga cualquier visitante. Se puede cambiar sin tocar el código con
+          # una variable del repositorio (Settings → Variables), y si no está, se
+          # usa la de producción: así nunca queda apuntando a localhost por olvido.
+          VITE_API_URL: ${{ vars.VITE_API_URL || 'https://transporterayza-production.up.railway.app' }}
+        run: |
+          npm ci
+          npm run build
+
+      - name: Publicar en Netlify
+        if: steps.credenciales.outputs.listo == 'si'
+        working-directory: Frontend
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID_SISTEMA }}
+        run: npx --yes netlify-cli@17 deploy --dir=dist --prod --message "main ${{ github.sha }}"
