@@ -159,14 +159,11 @@ function Pasajes() {
     const abrirModal = async () => {
         resetForm();
         try {
-            const data = await apiFetch("/api/viajes");
+            const data = await apiFetch("/api/viajes?estado=PROGRAMADO");
             // Venta por sucursal: cada sucursal solo vende los viajes que salen de ella
             // (ADMIN o usuarios sin sucursal asignada ven todos)
             const soloMiSucursal = !esAdmin && usuario?.sucursalId;
-            setViajes(data.filter(v =>
-                v.estado === "PROGRAMADO" &&
-                (!soloMiSucursal || v.sucursalId === usuario.sucursalId)
-            ));
+            setViajes(data.filter(v => !soloMiSucursal || v.sucursalId === usuario.sucursalId));
         } catch (err) { console.error(err); }
         setModal(true);
     };

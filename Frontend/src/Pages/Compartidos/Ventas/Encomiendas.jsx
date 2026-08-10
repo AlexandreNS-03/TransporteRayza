@@ -93,8 +93,7 @@ function Encomiendas() {
         setErrorModal(null);
         try {
             setSucursales(await apiFetch("/api/sucursales/activas"));
-            const vs = await apiFetch("/api/viajes");
-            setViajes(vs.filter(v => v.estado === "PROGRAMADO"));
+            setViajes(await apiFetch("/api/viajes?estado=PROGRAMADO"));
         } catch (err) { console.error(err); }
         setModalCrear(true);
     };

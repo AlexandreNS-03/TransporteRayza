@@ -32,9 +32,10 @@ function PorResolver() {
         setError(null);
         try {
             setPendientes(await apiFetch("/api/ventas/por-resolver"));
-            const vs = await apiFetch("/api/viajes");
-            setViajes(vs.filter(v => v.estado === "PROGRAMADO"));
-        } catch (err) { setError(err.message); }
+            setViajes(await apiFetch("/api/viajes?estado=PROGRAMADO"));
+        } catch (err) {
+            setError(err.message);
+        }
         finally { setCargando(false); }
     };
 
@@ -47,7 +48,9 @@ function PorResolver() {
             });
             mostrarToast("success", `${venta.pasajeroNombre}: ${etiqueta}`);
             setReprogramar(null);
-            cargar();
+            // Si al recargar falla algo, el pasaje YA quedó resuelto: hay que
+            // decirlo, o parece que la acción no se hizo y se intenta de nuevo.
+            cargar().catch(() => {});
         } catch (err) { mostrarToast("error", err.message); }
         finally { setProcesando(null); }
     };
@@ -87,7 +90,17 @@ function PorResolver() {
 
             {cargando && <div className="pasajes-estado"><i className="ti ti-loader-2 spin"></i> Cargando...</div>}
             {error && !cargando && (
-                <div className="pasajes-estado error"><i className="ti ti-alert-circle"></i> {error}</div>
+                <div className="pasajes-estado error">
+                    <i className="ti ti-alert-circle"></i>
+                    <span>
+                        {error}
+                        <br />
+                        <small>
+                            Esto es al cargar la lista: lo que ya resolviste quedó guardado.
+                            Pulsa Actualizar para verla al día.
+                        </small>
+                    </span>
+                </div>
             )}
 
             {!cargando && !error && pendientes.length === 0 && (
