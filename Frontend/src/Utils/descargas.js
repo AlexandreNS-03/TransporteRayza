@@ -14,6 +14,7 @@
  *   Reportes-RAYZA/Encomiendas   guías y etiquetas de carga
  *   Reportes-RAYZA/Manifiestos   manifiestos de pasajeros y de carga
  *   Reportes-RAYZA/Reportes      exportaciones de reportes
+ *   Reportes-RAYZA/Respaldos     copias de seguridad de la base
  *
  * Funciona en Chrome y Edge (los que usan en la oficina). En Firefox y Safari no
  * existe esa función: ahí el archivo baja como siempre, a Descargas.
@@ -27,6 +28,7 @@ export const CARPETAS = {
     ENCOMIENDAS: "Encomiendas",
     MANIFIESTOS: "Manifiestos",
     REPORTES: "Reportes",
+    RESPALDOS: "Respaldos",
 };
 const BD = "rayza-archivos";
 const ALMACEN = "carpetas";

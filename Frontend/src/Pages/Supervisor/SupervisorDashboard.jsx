@@ -79,6 +79,9 @@ function SupervisorDashboard() {
                     </NavLink>
 
                     <p className="sb-section">AYUDA</p>
+                    <NavLink to="/supervisor/estado" className={item}>
+                        <i className="ti ti-activity-heartbeat"></i> Estado del sistema
+                    </NavLink>
                     <NavLink to="/supervisor/soporte" className={item}>
                         <i className="ti ti-lifebuoy"></i> Soporte
                     </NavLink>

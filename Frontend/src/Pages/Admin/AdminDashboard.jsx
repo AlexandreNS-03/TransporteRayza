@@ -123,6 +123,9 @@ function AdminDashboard() {
                     )}
 
                     <p className="sb-section">AYUDA</p>
+                    <NavLink to="/admin/estado" className={({ isActive }) => isActive ? "sb-item active" : "sb-item"}>
+                        <i className="ti ti-activity-heartbeat"></i> Estado del sistema
+                    </NavLink>
                     <NavLink to="/admin/soporte" className={({ isActive }) => isActive ? "sb-item active" : "sb-item"}>
                         <i className="ti ti-lifebuoy"></i> Soporte
                     </NavLink>

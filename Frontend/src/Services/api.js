@@ -66,6 +66,25 @@ export async function apiFetch(url, opts = {}) {
     return contentType.includes("application/json") ? res.json() : null;
 }
 
+/**
+ * Igual que apiFetch pero devuelve el archivo tal cual (ZIP, PDF). Se usa para el
+ * respaldo, que no es JSON.
+ */
+export async function apiBlob(url) {
+    const t = token();
+    if (!t || tokenExpirado(t)) {
+        cerrarSesion();
+        throw new Error("Sesión expirada. Inicia sesión nuevamente.");
+    }
+    const res = await fetch(`${API}${url}`, { headers: { "Authorization": `Bearer ${t}` } });
+    if (res.status === 401) {
+        cerrarSesion();
+        throw new Error("Sesión expirada. Inicia sesión nuevamente.");
+    }
+    if (!res.ok) throw new Error("No se pudo generar el archivo");
+    return res.blob();
+}
+
 // Consultas RENIEC/SUNAT vía el proxy del backend
 export async function consultarDni(dni) {
     return apiFetch(`/api/consulta/dni/${dni}`);
