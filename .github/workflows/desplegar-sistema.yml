@@ -25,6 +25,14 @@ jobs:
           if [ -z "${{ secrets.NETLIFY_AUTH_TOKEN }}" ] || [ -z "${{ secrets.NETLIFY_SITE_ID_SISTEMA }}" ]; then
             echo "listo=no" >> $GITHUB_OUTPUT
             echo "::warning::Falta configurar NETLIFY_AUTH_TOKEN y NETLIFY_SITE_ID_SISTEMA en los secretos del repositorio. El sistema no se publicó."
+            {
+              echo "## ⚠️ NO se publicó"
+              echo ""
+              echo "Faltan los secretos \`NETLIFY_AUTH_TOKEN\` y/o \`NETLIFY_SITE_ID_SISTEMA\`."
+              echo "El sitio en vivo sigue con la versión anterior."
+              echo ""
+              echo "Se configuran una sola vez en **Settings → Secrets and variables → Actions**."
+            } >> $GITHUB_STEP_SUMMARY
           else
             echo "listo=si" >> $GITHUB_OUTPUT
           fi
@@ -55,4 +63,11 @@ jobs:
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID_SISTEMA }}
-        run: npx --yes netlify-cli@17 deploy --dir=dist --prod --message "main ${{ github.sha }}"
+        run: |
+          npx --yes netlify-cli@17 deploy --dir=dist --prod \
+            --message "main ${{ github.sha }}" | tee salida.txt
+          {
+            echo "## ✅ Publicado"
+            echo ""
+            grep -iE "website url|unique deploy url|build logs" salida.txt || true
+          } >> $GITHUB_STEP_SUMMARY
