@@ -78,9 +78,17 @@ mano nunca llegaba al sitio. Desplegando desde `Web/` y `Frontend/` sí se aplic
 | `NETLIFY_AUTH_TOKEN` | Netlify → User settings → Applications → New access token (uno solo, sirve para ambos sitios) |
 | `NETLIFY_SITE_ID` | Site ID (o Project ID) del sitio de **transporterayza.com** |
 | `NETLIFY_SITE_ID_SISTEMA` | Site ID del sitio de **sistema.transporterayza.com** |
-| `VITE_API_URL` | `https://transporterayza-production.up.railway.app` |
 
 Si faltan, el flujo avisa y no publica, pero no se marca en rojo.
+
+La dirección del backend no va como secreto: no lo es —viaja dentro del
+JavaScript que descarga cualquier visitante— y los flujos ya usan la de
+producción por defecto. Si algún día cambia, se define como *variable* del
+repositorio (Settings → Variables → `VITE_API_URL`), sin tocar el código.
+
+> Ojo: `RAILWAY_PUBLIC_DOMAIN` es otra cosa. Railway se la inyecta **al backend**
+> con su propio dominio (y sin `https://`). Los frontends se construyen fuera de
+> Railway y nunca ven esa variable.
 
 > Si alguno de los sitios está conectado a GitHub desde Netlify, **desconectarlo**:
 > si no, cada merge lo desplegaría dos veces.

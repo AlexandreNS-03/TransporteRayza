@@ -43,7 +43,11 @@ jobs:
         if: steps.credenciales.outputs.listo == 'si'
         working-directory: Web
         env:
-          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+          # La dirección del backend no es secreta: viaja dentro del JavaScript que
+          # descarga cualquier visitante. Se puede cambiar sin tocar el código con
+          # una variable del repositorio (Settings → Variables), y si no está, se
+          # usa la de producción: así nunca queda apuntando a localhost por olvido.
+          VITE_API_URL: ${{ vars.VITE_API_URL || 'https://transporterayza-production.up.railway.app' }}
         run: |
           npm ci
           npm run build
