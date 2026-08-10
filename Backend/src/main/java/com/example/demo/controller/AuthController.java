@@ -3,6 +3,7 @@ package com.example.demo.controller;
 import com.example.demo.dto.LoginRequest;
 import com.example.demo.dto.LoginResponse;
 import com.example.demo.service.AuthService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.*;
 
 import org.springframework.http.HttpStatus;
@@ -32,9 +33,20 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public LoginResponse login(
-            @RequestBody LoginRequest request) {
+    public LoginResponse login(@RequestBody LoginRequest request,
+                               HttpServletRequest http) {
+        return authService.login(request, ipDe(http));
+    }
 
-        return authService.login(request);
+    /**
+     * Dirección real de quien llama. En Railway la aplicación está detrás de un
+     * proxy, así que la IP directa siempre sería la del proxy: la del visitante
+     * viene en X-Forwarded-For, primera de la lista.
+     */
+    private String ipDe(HttpServletRequest http) {
+        String reenviada = http.getHeader("X-Forwarded-For");
+        if (reenviada != null && !reenviada.isBlank())
+            return reenviada.split(",")[0].trim();
+        return http.getRemoteAddr();
     }
 }
