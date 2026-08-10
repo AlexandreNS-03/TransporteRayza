@@ -58,7 +58,11 @@ export async function apiFetch(url, opts = {}) {
             const data = await res.json();
             mensaje = data.message || data.error || data.mensaje || mensaje;
         } catch { /* respuesta sin cuerpo JSON */ }
-        throw new Error(mensaje);
+        // El código va adjunto: hay pantallas que reaccionan distinto a un 404
+        // (endpoint que todavía no existe) que a un error del servidor.
+        const error = new Error(mensaje);
+        error.status = res.status;
+        throw error;
     }
 
     if (res.status === 204) return null;
@@ -81,7 +85,11 @@ export async function apiBlob(url) {
         cerrarSesion();
         throw new Error("Sesión expirada. Inicia sesión nuevamente.");
     }
-    if (!res.ok) throw new Error("No se pudo generar el archivo");
+    if (!res.ok) {
+        const error = new Error("No se pudo generar el archivo");
+        error.status = res.status;
+        throw error;
+    }
     return res.blob();
 }
 

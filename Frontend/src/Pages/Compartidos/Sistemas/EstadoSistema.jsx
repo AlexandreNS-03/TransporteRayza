@@ -7,6 +7,11 @@ import { guardarArchivo, avisarGuardado, CARPETAS } from "../../../Utils/descarg
 /** Cada cuánto se vuelve a revisar todo y cada cuánto se mide la conexión. */
 const CADA_DIAGNOSTICO = 60_000;
 const CADA_PING        = 8_000;
+/**
+ * Si el servidor no responde, medir cada 8 segundos solo llena la consola de
+ * errores y no aporta nada: se espacia hasta medio minuto hasta que vuelva.
+ */
+const CADA_PING_CAIDO  = 30_000;
 const MEDICIONES       = 20;        // las últimas, para el gráfico
 
 const SEMAFORO = {
@@ -50,7 +55,12 @@ function EstadoSistema() {
             setDiag(await apiFetch("/api/diagnostico"));
             setError(null);
         } catch (e) {
-            setError(e.message);
+            // Un 404 acá no es una falla del sistema: es que el servidor todavía no
+            // tiene esta pantalla, típico durante los minutos de un despliegue.
+            setError(e.status === 404
+                ? "El servidor todavía no tiene el verificador. Si el sistema se acaba de "
+                  + "actualizar, espera un par de minutos y vuelve a cargar la página."
+                : e.message);
         } finally { setCargando(false); }
     };
 
@@ -65,6 +75,15 @@ function EstadoSistema() {
     // de verdad siente el usuario al guardar una venta.
     useEffect(() => {
         let vivo = true;
+        let temporizador;
+
+        const programar = () => {
+            if (!vivo) return;
+            // Con el servidor caído se mide más espaciado, para no llenar la consola
+            // de errores ni insistir en vano.
+            temporizador = setTimeout(medir, fallosRef.current >= 3 ? CADA_PING_CAIDO : CADA_PING);
+        };
+
         const medir = async () => {
             const inicio = performance.now();
             try {
@@ -79,16 +98,18 @@ function EstadoSistema() {
                 setFallos(fallosRef.current);
                 setLatencias(prev => [...prev, null].slice(-MEDICIONES));
             }
+            programar();
         };
+
         medir();
-        const t = setInterval(medir, CADA_PING);
-        return () => { vivo = false; clearInterval(t); };
+        return () => { vivo = false; clearTimeout(temporizador); };
     }, []);
 
     const validas   = latencias.filter(l => l != null);
     const ultima    = validas.length ? validas[validas.length - 1] : null;
     const promedio  = validas.length ? Math.round(validas.reduce((a, b) => a + b, 0) / validas.length) : null;
     const conexion  = calidadConexion(ultima, fallos);
+    const midiendoEspaciado = fallos >= 3;
 
     const estado    = diag?.estadoGeneral || "SIN_DATOS";
     const semaforo  = SEMAFORO[estado] || SEMAFORO.SIN_DATOS;
@@ -194,7 +215,10 @@ function EstadoSistema() {
                                   title={l == null ? "Sin respuesta" : `${l} ms`} />
                         ))}
                     </div>
-                    <p className="conexion-nota">Se mide cada {CADA_PING / 1000} segundos</p>
+                    <p className="conexion-nota">
+                        Se mide cada {(midiendoEspaciado ? CADA_PING_CAIDO : CADA_PING) / 1000} segundos
+                        {midiendoEspaciado && " (espaciado porque el servidor no responde)"}
+                    </p>
                 </div>
             </div>
 
