@@ -1,9 +1,12 @@
-import { useState } from "react";
+import { useState, lazy, Suspense } from "react";
 import "./Rastreo.css";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import EscanerQR from "../components/EscanerQR";
 import { rastrearEncomienda } from "../services/publicApi";
+
+// El lector de QR arrastra la librería que decodifica la imagen: se descarga
+// recién cuando alguien abre la cámara, no al entrar a la página.
+const EscanerQR = lazy(() => import("../components/EscanerQR"));
 
 const ESTADOS = ["REGISTRADO", "EN_TRANSITO", "ENTREGADO", "DEVUELTO"];
 const ESTADO_LABEL = {
@@ -255,7 +258,9 @@ function Rastreo() {
             </div>
 
             {escanerAbierto && (
-                <EscanerQR onDetectar={alEscanear} onCerrar={() => setEscanerAbierto(false)} />
+                <Suspense fallback={null}>
+                    <EscanerQR onDetectar={alEscanear} onCerrar={() => setEscanerAbierto(false)} />
+                </Suspense>
             )}
 
             <Footer />
