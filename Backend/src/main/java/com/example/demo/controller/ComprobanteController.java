@@ -4,6 +4,7 @@ import com.example.demo.dto.AnularComprobanteRequest;
 import com.example.demo.dto.ComprobanteDTO;
 import com.example.demo.dto.ComprobanteRequest;
 import com.example.demo.service.ComprobanteService;
+import com.example.demo.service.ComprobantesPendientesService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -17,14 +18,27 @@ import java.util.Map;
 public class ComprobanteController {
 
     private final ComprobanteService comprobanteService;
+    private final ComprobantesPendientesService comprobantesPendientesService;
 
-    public ComprobanteController(ComprobanteService comprobanteService) {
+    public ComprobanteController(ComprobanteService comprobanteService,
+                                 ComprobantesPendientesService comprobantesPendientesService) {
         this.comprobanteService = comprobanteService;
+        this.comprobantesPendientesService = comprobantesPendientesService;
     }
 
     @GetMapping
     public ResponseEntity<List<ComprobanteDTO>> listar() {
         return ResponseEntity.ok(comprobanteService.listar());
+    }
+
+    /**
+     * Lo que se cobró pidiendo boleta o factura y todavía no se emitió, agrupado por
+     * fecha de viaje. Cada quien ve lo de su sucursal; el ADMIN, todo.
+     */
+    @GetMapping("/pendientes")
+    public ResponseEntity<Map<String, Object>> pendientes(Authentication auth) {
+        return ResponseEntity.ok(comprobantesPendientesService.pendientes(
+                auth != null ? auth.getName() : null));
     }
 
     @GetMapping("/venta/{ventaId}")

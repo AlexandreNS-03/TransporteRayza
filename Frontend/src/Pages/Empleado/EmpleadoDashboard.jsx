@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Outlet, NavLink } from "react-router-dom";
 import "./EmpleadoDashboard.css";
+import AvisoComprobantes from "../../Components/AvisoComprobantes.jsx";
 
 function EmpleadoDashboard() {
     const navigate = useNavigate();
@@ -157,6 +158,8 @@ function EmpleadoDashboard() {
                 </main>
 
             </div>
+            {/* Recordatorio de boletas y facturas sin emitir (una vez al día) */}
+            <AvisoComprobantes />
         </div>
     );
 }

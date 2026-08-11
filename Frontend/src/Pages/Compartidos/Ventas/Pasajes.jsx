@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import "./Pasajes.css";
 import generarComprobante from "../../../Utils/generarComprobante.jsx";
 import generarTicketA4 from "../../../Utils/generarTicketA4.jsx";
@@ -67,7 +68,11 @@ function Pasajes() {
     const [cargando, setCargando]     = useState(true);
     const [error, setError]           = useState(null);
     const [busqueda, setBusqueda]     = useState("");
-    const [filtroEstado, setFiltro]   = useState("todos");
+    // El recordatorio de comprobantes llega acá con ?pendientes=1 para mostrar
+    // directamente lo que falta emitir.
+    const [parametros] = useSearchParams();
+    const [filtroEstado, setFiltro]   = useState(
+        parametros.get("pendientes") === "1" ? "sin-comprobante" : "todos");
     const [fechaDesde, setFechaDesde] = useState("");
     const [fechaHasta, setFechaHasta] = useState("");
     const [orden, setOrden] = useState({ key: "createdAt", dir: "desc" });
@@ -478,6 +483,12 @@ function Pasajes() {
     const ventasFiltradas = ventas.filter(v => {
         if (filtroEstado === "pagado"  && v.estado !== "PAGADO")  return false;
         if (filtroEstado === "anulado" && v.estado !== "ANULADO") return false;
+        // Falta emitir: se cobró pidiendo boleta o factura y todavía no la tiene.
+        // Lo vendido como ticket no cuenta, ese cliente no pidió comprobante.
+        if (filtroEstado === "sin-comprobante" &&
+            !(v.estado === "PAGADO"
+              && (v.tipoComprobante === "BOLETA" || v.tipoComprobante === "FACTURA")
+              && !comprobantePorVenta(v))) return false;
         if (fechaDesde && (v.fechaVenta || "") < fechaDesde) return false;
         if (fechaHasta && (v.fechaVenta || "") > fechaHasta) return false;
         return true;
@@ -597,6 +608,7 @@ function Pasajes() {
                         <option value="todos">Todos</option>
                         <option value="pagado">Pagado</option>
                         <option value="anulado">Anulado</option>
+                        <option value="sin-comprobante">Falta su comprobante</option>
                     </select>
                 </div>
                 <div className="filtro-grupo">
