@@ -97,28 +97,38 @@ export default function Landing() {
       </section>
 
       {/* ===== SERVICIOS ===== */}
+      {/* Tres tarjetas idénticas decían que los tres servicios pesan lo mismo, y no
+          es cierto: el pasaje es el negocio. Ahora la composición lo refleja. */}
       <section className="section" id="servicios">
         <div className="wrap">
           <div className="section-head">
             <h2>Todo para moverte por el río</h2>
-            <p>Soluciones de transporte fluvial pensadas para las personas y comunidades de la Amazonía.</p>
+            <p>Tres formas de viajar con nosotros, y una sola manera de hacerlo: a tiempo y sin sustos.</p>
           </div>
-          <div className="cards">
-            <Reveal className="card hoverable" delay={1}>
-              <div className="icon"><svg className="svg-ic" viewBox="0 0 24 24"><path d="M3 14l9-3 9 3"/><path d="M5 14v4a2 2 0 002 2h10a2 2 0 002-2v-4"/><path d="M12 11V5"/><path d="M9 5h6"/></svg></div>
-              <h3>Pasajeros</h3>
-              <p className="muted">Viajes cómodos y seguros con embarcaciones equipadas y personal capacitado.</p>
+
+          <div className="servicios-comp">
+            <Reveal className="servicio-principal">
+              <h3>Pasajes de pasajeros</h3>
+              <p>
+                Viajes cómodos y seguros con embarcaciones equipadas y personal capacitado.
+                Eliges tu asiento, pagas en línea y subes con tu boleto en el celular.
+              </p>
+              <Link className="btn btn-primary" to="/comprar">Comprar pasaje</Link>
             </Reveal>
-            <Reveal className="card hoverable" delay={2}>
-              <div className="icon"><svg className="svg-ic" viewBox="0 0 24 24"><path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 7v10l9 4 9-4V7"/><path d="M12 11v10"/></svg></div>
-              <h3>Encomiendas</h3>
-              <p className="muted">Envío de paquetes puerta a puerto con comprobante electrónico y entrega responsable.</p>
-            </Reveal>
-            <Reveal className="card hoverable" delay={3}>
-              <div className="icon"><svg className="svg-ic" viewBox="0 0 24 24"><path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 21v-6h6v6"/></svg></div>
-              <h3>Hotel Rayza</h3>
-              <p className="muted">Hospedaje, terraza y restaurante para que tu estadía y tu viaje sean una sola experiencia.</p>
-            </Reveal>
+
+            <div className="servicios-secundarios">
+              <Reveal className="servicio-item" delay={1}>
+                <h3>Encomiendas</h3>
+                <p>Envío de paquetes puerta a puerto, con comprobante electrónico y clave de recojo.</p>
+                <Link className="servicio-enlace" to="/rastreo">Rastrear un envío</Link>
+              </Reveal>
+
+              <Reveal className="servicio-item" delay={2}>
+                <h3>Hotel Rayza</h3>
+                <p>Hospedaje, terraza y restaurante en Requena, para que la espera no sea espera.</p>
+                <Link className="servicio-enlace" to="/servicios">Ver el hotel</Link>
+              </Reveal>
+            </div>
           </div>
         </div>
       </section>
@@ -167,29 +177,37 @@ export default function Landing() {
       </section>
 
       {/* ===== CONTACTO ===== */}
+      {/* Otra vez tres tarjetas iguales, y encima con el dato que la gente de
+          verdad usa (el WhatsApp) del mismo tamaño que el resto. Acá manda lo
+          accionable y lo demás acompaña. */}
       <section className="section" id="contacto">
         <div className="wrap">
           <div className="section-head">
             <h2>Estamos para ayudarte</h2>
-            <p>Escríbenos por cualquiera de estos medios o acércate a nuestras oficinas.</p>
           </div>
-          <div className="cards">
-            <Reveal className="card" delay={1}>
-              <div className="icon"><svg className="svg-ic" viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3.1 19.5 19.5 0 01-6-6A19.8 19.8 0 012 4.2 2 2 0 014 2h3a2 2 0 012 1.7c.1 1 .4 1.9.7 2.8a2 2 0 01-.5 2.1L8 9.9a16 16 0 006 6l1.3-1.3a2 2 0 012.1-.4c.9.3 1.8.6 2.8.7A2 2 0 0122 16.9z"/></svg></div>
-              <h3 style={{ fontSize: 18 }}>Teléfono y WhatsApp</h3>
-              <p className="muted contacto-dato">
-                <a href={`tel:+${telefonoInternacional}`}>{telefonoBonito}</a>
-              </p>
-              <p className="muted" style={{ fontSize: 13 }}>
-                <a href={`https://wa.me/${telefonoInternacional}`} target="_blank" rel="noopener">
-                  Escribir por WhatsApp →
+
+          <div className="contacto-comp">
+            <Reveal className="contacto-directo">
+              <p className="contacto-etiqueta">Teléfono y WhatsApp</p>
+              <a className="contacto-numero" href={`tel:+${telefonoInternacional}`}>{telefonoBonito}</a>
+              <div className="contacto-botones">
+                <a className="btn btn-primary" href={`https://wa.me/${telefonoInternacional}`}
+                   target="_blank" rel="noopener">Escribir por WhatsApp</a>
+                <a className="btn btn-ghost" href={`mailto:${EMPRESA.correo}`}>Enviar un correo</a>
+              </div>
+              <p className="contacto-correo">
+                <a href={`mailto:${EMPRESA.correo}`}>{EMPRESA.correo}</a>
+                {" · "}
+                <a href={EMPRESA.redes.facebook} target="_blank" rel="noopener">Facebook</a>
+                {" · "}
+                <a href={EMPRESA.redes.instagram} target="_blank" rel="noopener">
+                  @{EMPRESA.redes.instagramUsuario}
                 </a>
               </p>
             </Reveal>
 
-            <Reveal className="card" delay={2}>
-              <div className="icon"><svg className="svg-ic" viewBox="0 0 24 24"><path d="M12 21s-6-5.7-6-10a6 6 0 1112 0c0 4.3-6 10-6 10z"/><circle cx="12" cy="11" r="2.2"/></svg></div>
-              <h3 style={{ fontSize: 18 }}>Dónde estamos</h3>
+            <Reveal className="contacto-oficinas" delay={2}>
+              <p className="contacto-etiqueta">Dónde estamos</p>
               {EMPRESA.oficinas.map((o) => (
                 <div key={o.ciudad} className="oficina">
                   <div className="oficina-ciudad">
@@ -197,27 +215,12 @@ export default function Landing() {
                     {o.central && <span className="badge-central">Central</span>}
                   </div>
                   {o.puntos.map((pt) => (
-                    <p key={pt.tipo} className="muted oficina-punto">
+                    <p key={pt.tipo} className="oficina-punto">
                       <span className="oficina-tipo">{pt.tipo}</span> {pt.direccion}
                     </p>
                   ))}
                 </div>
               ))}
-            </Reveal>
-
-            <Reveal className="card" delay={3}>
-              <div className="icon"><svg className="svg-ic" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 6l-10 7L2 6"/></svg></div>
-              <h3 style={{ fontSize: 18 }}>Correo y redes</h3>
-              <p className="muted contacto-dato">
-                <a href={`mailto:${EMPRESA.correo}`}>{EMPRESA.correo}</a>
-              </p>
-              <p className="muted" style={{ fontSize: 13.5 }}>
-                <a href={EMPRESA.redes.facebook} target="_blank" rel="noopener">Facebook</a>
-                {" · "}
-                <a href={EMPRESA.redes.instagram} target="_blank" rel="noopener">
-                  @{EMPRESA.redes.instagramUsuario}
-                </a>
-              </p>
             </Reveal>
           </div>
         </div>

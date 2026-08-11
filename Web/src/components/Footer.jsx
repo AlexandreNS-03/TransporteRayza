@@ -16,7 +16,7 @@ export default function Footer() {
               </span>
             </div>
             <p style={{ fontSize: 13, maxWidth: 300, lineHeight: 1.55 }}>
-              {EMPRESA.nombre} — Transporte fluvial de pasajeros y encomiendas en la región Loreto, Perú.
+              {EMPRESA.nombre}. Transporte fluvial de pasajeros y encomiendas en la región Loreto, Perú.
             </p>
             <ul className="footer-contacto">
               <li><a href={`tel:+${telefonoInternacional}`}>{telefonoBonito}</a></li>
@@ -67,7 +67,7 @@ export default function Footer() {
         </div>
         <div className="foot-bottom">
           <span>© {new Date().getFullYear()} Transportes Rayza · Multiservicios Rayza E.I.R.L.</span>
-          <span>Iquitos · Requena — Loreto, Perú</span>
+          <span>Iquitos y Requena, Loreto, Perú</span>
         </div>
       </div>
     </footer>
