@@ -483,12 +483,10 @@ function Pasajes() {
     const ventasFiltradas = ventas.filter(v => {
         if (filtroEstado === "pagado"  && v.estado !== "PAGADO")  return false;
         if (filtroEstado === "anulado" && v.estado !== "ANULADO") return false;
-        // Falta emitir: se cobró pidiendo boleta o factura y todavía no la tiene.
-        // Lo vendido como ticket no cuenta, ese cliente no pidió comprobante.
+        // Falta emitir: venta cobrada que todavía no tiene comprobante electrónico.
+        // No se mira el tipo anotado al vender: se puede emitir el de cualquier venta.
         if (filtroEstado === "sin-comprobante" &&
-            !(v.estado === "PAGADO"
-              && (v.tipoComprobante === "BOLETA" || v.tipoComprobante === "FACTURA")
-              && !comprobantePorVenta(v))) return false;
+            !(v.estado === "PAGADO" && !comprobantePorVenta(v))) return false;
         if (fechaDesde && (v.fechaVenta || "") < fechaDesde) return false;
         if (fechaHasta && (v.fechaVenta || "") > fechaHasta) return false;
         return true;
