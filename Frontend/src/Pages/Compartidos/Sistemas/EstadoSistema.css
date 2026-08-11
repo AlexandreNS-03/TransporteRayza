@@ -49,12 +49,12 @@
     display: flex;
     align-items: center;
     gap: 20px;
-    border-left: 5px solid #d1d5db;
+    box-shadow: var(--sombra-2);
 }
 
-.semaforo-card.luz-verde { border-left-color: #16a34a; background: #f6fef9; }
-.semaforo-card.luz-ambar { border-left-color: #f59e0b; background: #fffbeb; }
-.semaforo-card.luz-rojo  { border-left-color: #dc2626; background: #fef2f2; }
+.semaforo-card.luz-verde { background: #f6fef9; border-color: #bbf7d0; }
+.semaforo-card.luz-ambar { background: #fffbeb; border-color: #fde68a; }
+.semaforo-card.luz-rojo  { background: #fef2f2; border-color: #fecaca; }
 
 /* El semáforo de verdad: tres luces, solo una encendida */
 .semaforo {
@@ -87,7 +87,7 @@
 }
 
 .semaforo-detalle { margin: 6px 0 0; font-size: 13.5px; color: #374151; line-height: 1.5; }
-.semaforo-hora    { margin: 8px 0 0; font-size: 11.5px; color: #9ca3af; }
+.semaforo-hora    { margin: 8px 0 0; font-size: 11.5px; color: var(--txt-3); }
 
 .tarjeta-titulo {
     margin: 0 0 12px; font-size: 12px; font-weight: 700; color: #6b7280;
@@ -128,7 +128,7 @@
 .barra-ping.alta  { background: #ef4444; }
 .barra-ping.sin   { background: repeating-linear-gradient(45deg, #fca5a5, #fca5a5 2px, #fee2e2 2px, #fee2e2 4px); }
 
-.conexion-nota { margin: 8px 0 0; font-size: 11px; color: #9ca3af; }
+.conexion-nota { margin: 8px 0 0; font-size: 11px; color: var(--txt-3); }
 
 /* RESUMEN */
 .estado-resumen {
@@ -176,13 +176,16 @@
 }
 
 .chequeo-luz {
-    width: 8px; border-radius: 20px; flex-shrink: 0;
+    width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+    margin-top: 5px;
     background: #16a34a;
+    box-shadow: 0 0 0 3px #dcfce7;
 }
 
-.chequeo-advertencia .chequeo-luz { background: #f59e0b; }
-.chequeo-critico     .chequeo-luz { background: #dc2626; }
+.chequeo-advertencia .chequeo-luz { background: #f59e0b; box-shadow: 0 0 0 3px #fef3c7; }
+.chequeo-critico     .chequeo-luz { background: #dc2626; box-shadow: 0 0 0 3px #fee2e2; }
 .chequeo-critico     { border-color: #fecaca; background: #fffafa; }
+.chequeo { box-shadow: var(--sombra-1); }
 
 .chequeo-cuerpo { min-width: 0; flex: 1; }
 
@@ -201,7 +204,7 @@
 .crit-media { background: #fef3c7; color: #b45309; }
 .crit-baja  { background: #f1f5f9; color: #64748b; }
 
-.chequeo-ms { font-size: 11px; color: #9ca3af; margin-left: auto; }
+.chequeo-ms { font-size: 11px; color: var(--txt-3); margin-left: auto; }
 
 .chequeo-mensaje { margin: 5px 0 0; font-size: 13px; color: #4b5563; line-height: 1.5; }
 
@@ -217,7 +220,7 @@
 
 .chequeo-cargando {
     background: #fff; border: 1px solid #e5e7eb; border-radius: 10px;
-    padding: 30px; text-align: center; color: #9ca3af; font-size: 13px;
+    padding: 30px; text-align: center; color: var(--txt-3); font-size: 13px;
 }
 
 /* RESPALDO */

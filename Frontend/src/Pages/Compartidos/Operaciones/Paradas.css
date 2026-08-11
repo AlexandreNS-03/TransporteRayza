@@ -67,7 +67,7 @@
     justify-content: center;
     gap: 10px;
     padding: 60px;
-    color: #9ca3af;
+    color: var(--txt-3);
     font-size: 14px;
     background: #fff;
     border: 1px solid #e5e7eb;
@@ -492,7 +492,7 @@
     justify-content: center;
     gap: 10px;
     padding: 40px;
-    color: #9ca3af;
+    color: var(--txt-3);
     font-size: 14px;
 }
 

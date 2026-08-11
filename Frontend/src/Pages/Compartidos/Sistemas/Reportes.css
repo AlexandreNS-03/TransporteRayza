@@ -166,7 +166,7 @@
 .sin-datos {
     padding: 30px;
     text-align: center;
-    color: #9ca3af;
+    color: var(--txt-3);
     font-size: 13px;
 }
 
@@ -273,7 +273,7 @@
 
 .barra-label {
     font-size: 10px;
-    color: #9ca3af;
+    color: var(--txt-3);
 }
 
 /* CHIPS */
@@ -321,7 +321,7 @@
 .ranking-pos {
     font-size: 13px;
     font-weight: 700;
-    color: #9ca3af;
+    color: var(--txt-3);
     width: 30px;
     flex-shrink: 0;
 }

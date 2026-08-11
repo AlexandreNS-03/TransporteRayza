@@ -84,7 +84,7 @@
     justify-content: center;
     gap: 8px;
     padding: 50px;
-    color: #9ca3af;
+    color: var(--txt-3);
     font-size: 14px;
     background: #fff;
     border: 1px solid #e5e7eb;
@@ -118,7 +118,7 @@
 
 .ficha-label {
     font-size: 11px;
-    color: #9ca3af;
+    color: var(--txt-3);
     font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.02em;
@@ -208,7 +208,7 @@
 .manifiesto-tabla tbody tr:last-child td { border-bottom: none; }
 .manifiesto-tabla tbody tr:hover { background: #f8fafc; }
 
-.col-numero { color: #9ca3af; font-size: 12px; }
+.col-numero { color: var(--txt-3); font-size: 12px; }
 
 .manifiesto-tabla thead th.th-orden { cursor: pointer; user-select: none; }
 .th-orden span { margin-right: 4px; }
@@ -224,7 +224,7 @@
     color: #6b7280;
 }
 
-.tramo-info i { font-size: 12px; color: #9ca3af; }
+.tramo-info i { font-size: 12px; color: var(--txt-3); }
 
 .asiento-tipo {
     display: inline-block;

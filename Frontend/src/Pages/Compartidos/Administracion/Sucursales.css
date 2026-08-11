@@ -96,7 +96,7 @@
     background: #fff;
 }
 
-.filtro-buscar i { color: #9ca3af; font-size: 16px; }
+.filtro-buscar i { color: var(--txt-3); font-size: 16px; }
 
 .filtro-buscar input {
     border: none;
@@ -250,7 +250,7 @@
 .tabla-vacia {
     text-align: center;
     padding: 40px !important;
-    color: #9ca3af;
+    color: var(--txt-3);
 }
 
 .tabla-vacia i {
