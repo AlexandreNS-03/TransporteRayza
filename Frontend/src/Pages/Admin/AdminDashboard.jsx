@@ -1,5 +1,6 @@
 import { useState } from "react";
 import {NavLink, Outlet, useNavigate} from "react-router-dom";
+import AvisoComprobantes from "../../Components/AvisoComprobantes.jsx";
 
 function AdminDashboard() {
     const navigate = useNavigate();
@@ -159,6 +160,8 @@ function AdminDashboard() {
                 </main>
 
             </div>
+            {/* Recordatorio de boletas y facturas sin emitir (una vez al día) */}
+            <AvisoComprobantes />
         </div>
     );
 }
