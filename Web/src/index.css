@@ -100,9 +100,16 @@ h1,h2,h3,h4 { font-family: var(--font-head); color: var(--ink); line-height: 1.1
 .reveal { opacity: 0; transform: translateY(26px); transition: opacity .7s var(--ease), transform .7s var(--ease); }
 .reveal.in { opacity: 1; transform: none; }
 .reveal.d1 { transition-delay: .08s; } .reveal.d2 { transition-delay: .16s; } .reveal.d3 { transition-delay: .24s; }
+/* Menos movimiento: se quita el desplazamiento, que es lo que marea, pero no
+   todo. Los indicadores de carga siguen girando —solo que despacio— porque
+   dicen que el sistema está trabajando; apagarlos deja al usuario sin saber si
+   la página se colgó. */
 @media (prefers-reduced-motion: reduce) {
   .reveal { opacity: 1; transform: none; transition: none; }
-  * { animation: none !important; scroll-behavior: auto; }
+  html { scroll-behavior: auto; }
+  .floaty, [class*="floaty"] { animation: none !important; }
+  .btn:hover:not(:disabled) { transform: none; }
+  [class*="spin"], .cargando-giro { animation-duration: 2.4s !important; }
 }
 
 /* ---------- Botones ---------- */
@@ -113,7 +120,14 @@ h1,h2,h3,h4 { font-family: var(--font-head); color: var(--ink); line-height: 1.1
   transition: transform .18s var(--ease), box-shadow .18s var(--ease), background .18s, color .18s, border-color .18s;
   white-space: nowrap;
 }
-.btn:hover:not(:disabled) { transform: translateY(-2px); }
+/* Solo donde hay puntero de verdad: al tocar en un móvil el navegador dispara
+   un hover falso y el botón se queda levantado después de soltarlo. */
+@media (hover: hover) and (pointer: fine) {
+  .btn:hover:not(:disabled) { transform: translateY(-2px); }
+}
+
+/* Respuesta al pulsar, que sí aplica en táctil */
+.btn:not(:disabled):active { transform: scale(0.97); transition-duration: .1s; }
 .btn:disabled { opacity: .5; cursor: not-allowed; }
 .btn-primary { background: var(--accent); color: #fff; box-shadow: var(--sh-red); }
 .btn-primary:hover:not(:disabled) { background: var(--accent-600); }

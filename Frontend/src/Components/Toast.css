@@ -42,3 +42,17 @@
     from { opacity: 0; transform: translateY(12px); }
     to   { opacity: 1; transform: translateY(0); }
 }
+
+/* La salida es una transición, no un keyframe: si llegan varios avisos seguidos
+   una transición retoma desde donde está y un keyframe reinicia de cero. */
+.toast.saliendo {
+    opacity: 0;
+    transform: translateY(6px) scale(0.98);
+    transition: opacity .2s var(--ease-salida, ease-out),
+                transform .2s var(--ease-salida, ease-out);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .toast { animation-duration: .01s; }
+    .toast.saliendo { transform: none; }
+}

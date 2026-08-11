@@ -110,7 +110,11 @@
     font-size: 12px;
     color: #6b7280;
     cursor: pointer;
-    transition: all 0.15s;
+    transition: background-color .15s var(--ease-salida),
+                border-color .15s var(--ease-salida),
+                color .15s var(--ease-salida),
+                box-shadow .15s var(--ease-salida),
+                transform .15s var(--ease-salida);
 }
 
 .btn-limpiar:hover { background: #f1f5f9; color: #1e293b; }
@@ -240,7 +244,11 @@
     font-size: 11px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.15s;
+    transition: background-color .15s var(--ease-salida),
+                border-color .15s var(--ease-salida),
+                color .15s var(--ease-salida),
+                box-shadow .15s var(--ease-salida),
+                transform .15s var(--ease-salida);
     background: none;
 }
 
@@ -299,7 +307,11 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: all 0.15s;
+    transition: background-color .15s var(--ease-salida),
+                border-color .15s var(--ease-salida),
+                color .15s var(--ease-salida),
+                box-shadow .15s var(--ease-salida),
+                transform .15s var(--ease-salida);
 }
 
 .btn-accion.password:hover { background: #fefce8; color: #a16207; border-color: #fde68a; }

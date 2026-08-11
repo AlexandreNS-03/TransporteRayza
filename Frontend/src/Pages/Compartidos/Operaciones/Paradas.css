@@ -162,7 +162,11 @@
     border-radius: 8px;
     font-size: 13px;
     cursor: pointer;
-    transition: all 0.15s;
+    transition: background-color .15s var(--ease-salida),
+                border-color .15s var(--ease-salida),
+                color .15s var(--ease-salida),
+                box-shadow .15s var(--ease-salida),
+                transform .15s var(--ease-salida);
 }
 
 .btn-reordenar:hover { border-color: #1a4db5; color: #1a4db5; }
@@ -462,7 +466,11 @@
     cursor: pointer;
     border-bottom: 2px solid transparent;
     margin-bottom: -1px;
-    transition: all 0.15s;
+    transition: background-color .15s var(--ease-salida),
+                border-color .15s var(--ease-salida),
+                color .15s var(--ease-salida),
+                box-shadow .15s var(--ease-salida),
+                transform .15s var(--ease-salida);
     white-space: nowrap;
 }
 
