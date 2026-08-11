@@ -51,7 +51,7 @@
 
 .comp-ref {
     font-size: 10px;
-    color: #9ca3af;
+    color: var(--txt-3);
     font-style: italic;
 }
 

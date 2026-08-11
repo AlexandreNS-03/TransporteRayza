@@ -88,7 +88,7 @@
     background: #fff;
 }
 
-.filtro-buscar i { color: #9ca3af; font-size: 16px; }
+.filtro-buscar i { color: var(--txt-3); font-size: 16px; }
 
 .filtro-buscar input {
     border: none;
@@ -238,7 +238,7 @@
 .tabla-vacia {
     text-align: center;
     padding: 40px !important;
-    color: #9ca3af;
+    color: var(--txt-3);
 }
 
 .tabla-vacia i { font-size: 32px; display: block; margin-bottom: 8px; }
@@ -282,7 +282,7 @@
 .asientos-titulo {
     font-size: 11px;
     font-weight: 600;
-    color: #9ca3af;
+    color: var(--txt-3);
     text-transform: uppercase;
     margin: 0;
 }
@@ -384,11 +384,11 @@
 }
 
 .form-grupo input:focus { border-color: #2563b0; }
-.form-grupo input:disabled { background: #f9fafb; color: #9ca3af; cursor: not-allowed; }
+.form-grupo input:disabled { background: #f9fafb; color: var(--txt-3); cursor: not-allowed; }
 
 .form-hint {
     font-size: 11px;
-    color: #9ca3af;
+    color: var(--txt-3);
     margin-top: 2px;
 }
 

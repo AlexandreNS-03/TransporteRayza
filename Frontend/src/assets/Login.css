@@ -73,7 +73,7 @@ html, body, #root { width: 100%; height: 100%; }
 .left-footer {
     margin-top: 32px;
     font-size: 12.5px;
-    color: #94a3b8;
+    color: var(--txt-3);
 }
 
 /* ── PANEL DERECHO (formulario) ── */
@@ -147,7 +147,7 @@ html, body, #root { width: 100%; height: 100%; }
 
 .input-wrap > i {
     font-size: 18px;
-    color: #94a3b8;
+    color: var(--txt-3);
     flex-shrink: 0;
 }
 
@@ -163,13 +163,13 @@ html, body, #root { width: 100%; height: 100%; }
     color-scheme: light;
 }
 
-.input-wrap input::placeholder { color: #94a3b8; }
+.input-wrap input::placeholder { color: var(--txt-3); }
 
 .toggle-pass {
     background: none;
     border: none;
     cursor: pointer;
-    color: #94a3b8;
+    color: var(--txt-3);
     font-size: 18px;
     display: flex;
     align-items: center;
@@ -217,7 +217,7 @@ html, body, #root { width: 100%; height: 100%; }
     margin-top: 22px;
     text-align: center;
     font-size: 12.5px;
-    color: #94a3b8;
+    color: var(--txt-3);
 }
 
 /* ── RESPONSIVE (celulares y tablets) ── */

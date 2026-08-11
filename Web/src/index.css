@@ -1145,3 +1145,40 @@ footer.site .logo .mark { width: 34px; height: 34px; }
 
 .pantalla-error-acciones { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 6px; }
 .pantalla-error-ayuda { font-size: 14px; }
+
+/* ---------- Calidad visual: foco, profundidad y ritmo ---------- */
+
+/* Foco de teclado. Había reglas que quitaban el contorno y ninguna que lo
+   devolviera: quien navega con teclado no veía dónde estaba parado. El selector
+   es específico a propósito, para ganarle a esas reglas sin usar !important. */
+html :is(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 8px;
+}
+
+/* Profundidad con desplazamiento y desenfoque: una sombra sin desplazamiento no
+   se lee como elevación, se lee como un halo pegado. */
+:root {
+  --sh-1: 0 1px 2px rgba(15, 23, 42, .05), 0 1px 3px rgba(15, 23, 42, .08);
+  --sh-2: 0 6px 12px -3px rgba(15, 23, 42, .10), 0 2px 5px -2px rgba(15, 23, 42, .06);
+  --sh-3: 0 18px 28px -8px rgba(15, 23, 42, .14), 0 6px 10px -6px rgba(15, 23, 42, .06);
+}
+
+/* Las tarjetas responden al puntero con elevación, no solo con color: el cambio
+   de sombra dice "esto se puede tocar" antes de leer nada. */
+@media (hover: hover) and (pointer: fine) {
+  .card:hover, .destino-card:hover, .servicio-card:hover {
+    box-shadow: var(--sh-2);
+  }
+}
+
+/* Ritmo tipográfico: el aire va encima del título, para que quede pegado a lo
+   que titula y separado de lo anterior. */
+.section-head { margin-block-end: clamp(18px, 3vw, 30px); }
+.section-head h2 { margin-block: 0 .35em; text-wrap: balance; }
+.section-head p  { max-width: 62ch; }
+
+/* Los párrafos largos se cortan en una medida cómoda de leer (65–75 caracteres);
+   una línea de 120 caracteres obliga a buscar dónde sigue el renglón. */
+.section p:not(.section-head p):not([class]) { max-width: 70ch; }

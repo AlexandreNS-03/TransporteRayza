@@ -204,3 +204,37 @@ button:not(:disabled):active,
 
   .spin, [class*="spin"] { animation-duration: 2s !important; }
 }
+
+/* ============================================================
+   CALIDAD VISUAL — escala de texto, foco y profundidad
+   ============================================================ */
+:root {
+  /* Contraste verificado sobre blanco. El gris que había antes (#9ca3af)
+     daba 2.54:1: por debajo del mínimo legible, y en la pantalla del
+     mostrador con luz de día directamente no se leía. */
+  --txt-1: #111827;   /* 16.1:1 — títulos y datos */
+  --txt-2: #4b5563;   /*  7.6:1 — texto normal */
+  --txt-3: #6b7280;   /*  4.8:1 — apoyo; es el más claro admisible */
+
+  /* Profundidad real: desplazamiento + desenfoque. Un halo sin
+     desplazamiento no es sombra, es decoración. */
+  --sombra-1: 0 1px 2px rgba(16, 24, 40, .06), 0 1px 3px rgba(16, 24, 40, .10);
+  --sombra-2: 0 4px 8px -2px rgba(16, 24, 40, .10), 0 2px 4px -2px rgba(16, 24, 40, .06);
+  --sombra-3: 0 12px 16px -4px rgba(16, 24, 40, .08), 0 4px 6px -2px rgba(16, 24, 40, .03);
+}
+
+/* ── Foco de teclado ──
+   Había 31 reglas que quitaban el contorno y ninguna que lo devolviera al
+   navegar con teclado: quien no usa ratón no veía dónde estaba parado. El
+   selector es deliberadamente específico para ganarle a esas reglas sin
+   recurrir a !important. */
+html :is(button, a, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid #1a4db5;
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* Ritmo: más aire encima de un encabezado que debajo, para que el título
+   quede pegado a lo que titula y separado de lo anterior. */
+.pasajes-page h2, .viajes-page h2, .estado-page h2,
+.reportes-page h2, .manifiesto-page h2 { margin-block: 0 4px; }

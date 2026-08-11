@@ -11,9 +11,9 @@
 }
 .selviaje-trigger:hover:not(:disabled) { border-color: #1a4db5; }
 .selviaje-trigger.abierto { border-color: #1a4db5; box-shadow: 0 0 0 3px rgba(26, 77, 181, 0.12); }
-.selviaje-trigger:disabled { background: #f8fafc; color: #9ca3af; cursor: not-allowed; }
+.selviaje-trigger:disabled { background: #f8fafc; color: var(--txt-3); cursor: not-allowed; }
 
-.selviaje-placeholder { color: #9ca3af; }
+.selviaje-placeholder { color: var(--txt-3); }
 .selviaje-elegido { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .selviaje-ruta {
     font-size: 14px; font-weight: 600; color: #0f172a;
@@ -23,7 +23,7 @@
 .selviaje-ruta i { color: #1a4db5; font-size: 15px; }
 .selviaje-meta { font-size: 11.5px; color: #6b7280; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .selviaje-cod {
-    font-family: ui-monospace, monospace; font-size: 10px; color: #94a3b8;
+    font-family: ui-monospace, monospace; font-size: 10px; color: var(--txt-3);
     background: #f1f5f9; border-radius: 4px; padding: 1px 5px;
 }
 .selviaje-flecha { color: #6b7280; font-size: 16px; flex-shrink: 0; }
@@ -42,7 +42,7 @@
     display: flex; align-items: center; gap: 8px;
     padding: 10px 12px; border-bottom: 1px solid #eef2f7; background: #f8fafc;
 }
-.selviaje-buscar i { color: #9ca3af; font-size: 16px; flex: none; }
+.selviaje-buscar i { color: var(--txt-3); font-size: 16px; flex: none; }
 /* Especificidad alta a propósito: los modales tienen una regla genérica
    (.form-grupo input) que le metía borde y alto propios y lo desbordaba. */
 .selviaje .selviaje-buscar input {
@@ -55,7 +55,7 @@
 .selviaje-lista { max-height: min(320px, 42vh); overflow-y: auto; padding: 6px; }
 
 .selviaje-vacio {
-    text-align: center; color: #9ca3af; font-size: 13px;
+    text-align: center; color: var(--txt-3); font-size: 13px;
     padding: 24px 12px; display: flex; flex-direction: column; align-items: center; gap: 6px;
 }
 .selviaje-vacio i { font-size: 24px; }

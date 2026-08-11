@@ -248,7 +248,7 @@
 
 .dash-card-sub {
     font-size: 11px;
-    color: #9ca3af;
+    color: var(--txt-3);
 }
 
 .dash-card-body {
@@ -263,7 +263,7 @@
     align-items: center;
     gap: 8px;
     padding: 30px;
-    color: #9ca3af;
+    color: var(--txt-3);
     font-size: 13px;
 }
 
@@ -304,7 +304,7 @@
 
 .viaje-item-info strong { font-size: 13px; color: #1e293b; }
 .viaje-item-info span   { font-size: 11px; color: #6b7280; }
-.viaje-codigo { font-family: monospace; font-size: 10px !important; color: #9ca3af !important; }
+.viaje-codigo { font-family: monospace; font-size: 10px !important; color: var(--txt-3) !important; }
 
 /* VENTAS */
 .venta-item {
@@ -342,7 +342,7 @@
 
 .venta-item-info strong { font-size: 13px; color: #1e293b; }
 .venta-item-info span   { font-size: 11px; color: #6b7280; }
-.venta-comp { font-size: 10px !important; color: #9ca3af !important; }
+.venta-comp { font-size: 10px !important; color: var(--txt-3) !important; }
 
 .venta-precio {
     font-size: 14px;
@@ -388,7 +388,7 @@
 .dash-cajas-header strong i { color: #1a4db5; }
 .dash-cajas-header span { font-size: 12px; color: #6b7280; }
 .dash-cajas-header b { color: #15803d; }
-.dash-cajas-vacio { display: flex; align-items: center; gap: 8px; color: #9ca3af; font-size: 13px; padding: 10px 0; }
+.dash-cajas-vacio { display: flex; align-items: center; gap: 8px; color: var(--txt-3); font-size: 13px; padding: 10px 0; }
 .dash-cajas-tabla { width: 100%; border-collapse: collapse; font-size: 13px; }
 .dash-cajas-tabla th {
     text-align: left; padding: 8px 10px; font-size: 11px; text-transform: uppercase;
