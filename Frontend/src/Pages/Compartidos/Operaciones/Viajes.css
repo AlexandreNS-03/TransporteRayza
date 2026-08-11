@@ -301,3 +301,128 @@
 }
 .btn-peligro:hover { background: #991b1b; }
 .btn-peligro:disabled { opacity: .6; cursor: not-allowed; }
+
+/* ── Vista por fechas ──
+   La tabla mostraba la fecha repetida fila por fila y el personal tenía que ir
+   leyéndola en cada renglón. Acá el día es un encabezado y debajo van sus viajes,
+   con la hora primero, que es lo que de verdad se busca. */
+
+.vista-selector {
+    display: flex;
+    gap: 0;
+    margin-left: 8px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    overflow: hidden;
+    align-self: flex-end;
+}
+
+.vista-selector button {
+    display: flex; align-items: center; gap: 6px;
+    height: 36px; padding: 0 14px;
+    border: none; background: #fff;
+    font-size: 13px; color: #6b7280; cursor: pointer;
+    white-space: nowrap;
+}
+
+.vista-selector button + button { border-left: 1px solid #e5e7eb; }
+.vista-selector button:hover { background: #f8fafc; color: #1a4db5; }
+.vista-selector button.activo { background: #1a4db5; color: #fff; }
+
+.viajes-dias { display: flex; flex-direction: column; gap: 22px; }
+
+.dia-bloque { display: flex; flex-direction: column; gap: 10px; }
+
+.dia-cabecera {
+    display: flex; align-items: baseline; gap: 10px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #e5e7eb;
+    flex-wrap: wrap;
+}
+
+.dia-cabecera h3 {
+    margin: 0; font-size: 16px; font-weight: 700; color: #1e293b;
+}
+
+.dia-fecha  { font-size: 13px; color: #6b7280; }
+.dia-cuenta {
+    margin-left: auto; font-size: 12px; color: #6b7280;
+    background: #f1f5f9; border-radius: 20px; padding: 3px 12px;
+}
+
+.dia-viajes {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 12px;
+}
+
+.viaje-tarjeta {
+    display: flex;
+    gap: 14px;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-left: 5px solid #2563eb;
+    border-radius: 10px;
+    padding: 14px 16px;
+    min-width: 0;                      /* sin esto una ruta larga desborda la tarjeta */
+}
+
+/* El prefijo t- es a propósito: "estado-programado" ya existe como clase global de
+   otra pantalla y las tarjetas terminaban heredando su color por accidente. */
+.viaje-tarjeta.t-en_curso   { border-left-color: #a16207; background: #fffdf5; }
+.viaje-tarjeta.t-completado { border-left-color: #15803d; }
+.viaje-tarjeta.t-cancelado  { border-left-color: #b91c1c; background: #fffafa; }
+
+/* La hora, lo primero que se lee */
+.tarjeta-hora {
+    font-size: 26px; font-weight: 700; color: #1e293b;
+    line-height: 1.1; flex-shrink: 0;
+    display: flex; align-items: baseline; gap: 2px;
+}
+
+.tarjeta-hora-h { font-size: 12px; font-weight: 500; color: #9ca3af; }
+.viaje-tarjeta.t-cancelado .tarjeta-hora { color: #9ca3af; text-decoration: line-through; }
+
+.tarjeta-cuerpo { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+
+.tarjeta-ruta {
+    margin: 0; font-size: 14px; font-weight: 600; color: #1e293b;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+.tarjeta-datos {
+    margin: 0; display: flex; flex-wrap: wrap; gap: 4px 12px;
+    font-size: 12px; color: #6b7280;
+}
+
+.tarjeta-datos span { display: flex; align-items: center; gap: 4px; min-width: 0; }
+.tarjeta-codigo { font-family: monospace; color: #9ca3af; }
+
+.tarjeta-paradas {
+    margin: 2px 0 0; font-size: 11.5px; color: #94a3b8;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+.tarjeta-motivo {
+    margin: 4px 0 0; font-size: 12px; color: #b91c1c;
+    display: flex; align-items: center; gap: 5px;
+}
+
+.tarjeta-lado {
+    display: flex; flex-direction: column; align-items: flex-end;
+    gap: 8px; flex-shrink: 0;
+}
+
+.viajes-vacio {
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    background: #fff; border: 1px solid #e5e7eb; border-radius: 10px;
+    padding: 44px; color: #9ca3af; font-size: 14px;
+}
+
+.viajes-vacio i { font-size: 34px; }
+
+@media (max-width: 620px) {
+    .dia-viajes { grid-template-columns: 1fr; }
+    .vista-selector { margin-left: 0; width: 100%; }
+    .vista-selector button { flex: 1; justify-content: center; }
+}

@@ -12,6 +12,47 @@ const ESTADO_LABEL = {
     CANCELADO:  "Cancelado",
 };
 
+/**
+ * Etiqueta del día en palabras. La misma que usa el selector de viajes al vender:
+ * el personal ya la reconoce y no tiene que traducir una fecha en su cabeza.
+ */
+function etiquetaDia(iso) {
+    if (!iso) return "Sin fecha";
+    const hoy    = new Date().toLocaleDateString("en-CA");
+    const manana = new Date(Date.now() + 86400000).toLocaleDateString("en-CA");
+    const ayer   = new Date(Date.now() - 86400000).toLocaleDateString("en-CA");
+    if (iso === hoy)    return "Hoy";
+    if (iso === manana) return "Mañana";
+    if (iso === ayer)   return "Ayer";
+    const [a, m, d] = iso.split("-").map(Number);
+    const f = new Date(a, m - 1, d);
+    const txt = f.toLocaleDateString("es-PE", { weekday: "long", day: "numeric", month: "long" });
+    return txt.charAt(0).toUpperCase() + txt.slice(1);
+}
+
+/** Fecha corta para el subtítulo del día (14/08/2026). */
+function fechaCorta(iso) {
+    if (!iso) return "";
+    const [a, m, d] = iso.split("-");
+    return `${d}/${m}/${a}`;
+}
+
+/** Agrupa los viajes por día, con lo más próximo primero. */
+function agruparPorFecha(viajes) {
+    const dias = new Map();
+    for (const v of viajes) {
+        const clave = v.fechaSalida || "";
+        if (!dias.has(clave)) dias.set(clave, []);
+        dias.get(clave).push(v);
+    }
+    return [...dias.entries()]
+        .sort((a, b) => a[0].localeCompare(b[0]))
+        .map(([fecha, lista]) => ({
+            fecha,
+            viajes: lista.sort((x, y) => (x.horaSalida || "").localeCompare(y.horaSalida || "")),
+        }));
+}
+
 function badgeClass(estado) {
     switch (estado) {
         case "PROGRAMADO":  return "badge badge-programado";
@@ -34,6 +75,11 @@ function Viajes() {
     const [motivoCancel, setMotivoCancel]   = useState("");
     const [cancelando, setCancelando]       = useState(false);
     const [errorCancel, setErrorCancel]     = useState(null);
+
+    // La vista elegida se recuerda: cada oficina trabaja distinto y no tiene por qué
+    // volver a cambiarla cada vez que entra.
+    const [vista, setVista] = useState(() => localStorage.getItem("viajes.vista") || "tarjetas");
+    const cambiarVista = (v) => { setVista(v); localStorage.setItem("viajes.vista", v); };
 
     const [viajes, setViajes]         = useState([]);
     const [cargando, setCargando]     = useState(true);
@@ -177,6 +223,8 @@ function Viajes() {
         return true;
     });
 
+    const porDia = agruparPorFecha(viajesFiltrados);
+
     return (
         <div className="viajes-page">
 
@@ -248,6 +296,20 @@ function Viajes() {
                 <button className="btn-limpiar" onClick={limpiarFiltros}>
                     <i className="ti ti-filter-off"></i> Limpiar filtro
                 </button>
+
+                {/* Tarjetas para el día a día; tabla para revisar o comparar muchos */}
+                <div className="vista-selector" role="group" aria-label="Forma de ver los viajes">
+                    <button className={vista === "tarjetas" ? "activo" : ""}
+                            onClick={() => cambiarVista("tarjetas")}
+                            title="Ver por fechas">
+                        <i className="ti ti-layout-grid"></i> Por fechas
+                    </button>
+                    <button className={vista === "tabla" ? "activo" : ""}
+                            onClick={() => cambiarVista("tabla")}
+                            title="Ver en tabla">
+                        <i className="ti ti-table"></i> Tabla
+                    </button>
+                </div>
             </div>
 
             {/* ESTADOS DE CARGA */}
@@ -266,8 +328,78 @@ function Viajes() {
                 </div>
             )}
 
+            {/* POR FECHAS: un bloque por día, y dentro una tarjeta por viaje */}
+            {!cargando && !error && vista === "tarjetas" && (
+                porDia.length === 0 ? (
+                    <div className="viajes-vacio">
+                        <i className="ti ti-ship-off"></i>
+                        <span>No se encontraron viajes</span>
+                    </div>
+                ) : (
+                    <div className="viajes-dias">
+                        {porDia.map(({ fecha, viajes: delDia }) => (
+                            <section key={fecha} className="dia-bloque">
+                                <header className="dia-cabecera">
+                                    <h3>{etiquetaDia(fecha)}</h3>
+                                    <span className="dia-fecha">{fechaCorta(fecha)}</span>
+                                    <span className="dia-cuenta">
+                                        {delDia.length} {delDia.length === 1 ? "viaje" : "viajes"}
+                                    </span>
+                                </header>
+
+                                <div className="dia-viajes">
+                                    {delDia.map(v => (
+                                        <article key={v.id} className={`viaje-tarjeta t-${v.estado?.toLowerCase()}`}>
+                                            {/* La hora primero y grande: es lo que se busca al mirar */}
+                                            <div className="tarjeta-hora">
+                                                {(v.horaSalida || "--:--").slice(0, 5)}
+                                                <span className="tarjeta-hora-h">h</span>
+                                            </div>
+
+                                            <div className="tarjeta-cuerpo">
+                                                <p className="tarjeta-ruta">
+                                                    {v.rutaNombre || `${v.origen} → ${v.destino}`}
+                                                </p>
+                                                <p className="tarjeta-datos">
+                                                    <span><i className="ti ti-ship"></i> {v.embarcacionNombre || "Sin embarcación"}</span>
+                                                    <span><i className="ti ti-building"></i> {v.sucursalNombre || "—"}</span>
+                                                    <span className="tarjeta-codigo">{v.codigoViaje}</span>
+                                                </p>
+                                                {v.paradas?.length > 0 && (
+                                                    <p className="tarjeta-paradas" title={v.paradas.map(p => p.nombre).join(" → ")}>
+                                                        {v.paradas.map(p => p.nombre).join(" → ")}
+                                                    </p>
+                                                )}
+                                                {v.estado === "CANCELADO" && v.motivoCancelacion && (
+                                                    <p className="tarjeta-motivo">
+                                                        <i className="ti ti-alert-circle"></i> {v.motivoCancelacion}
+                                                    </p>
+                                                )}
+                                            </div>
+
+                                            <div className="tarjeta-lado">
+                                                <span className={badgeClass(v.estado)}>
+                                                    {ESTADO_LABEL[v.estado] || v.estado}
+                                                </span>
+                                                {puedeCancelar && (v.estado === "PROGRAMADO" || v.estado === "EN_CURSO") && (
+                                                    <button className="btn-cancelar-viaje"
+                                                            onClick={() => { setViajeCancelar(v); setMotivoCancel(""); setErrorCancel(null); }}
+                                                            title="Cancelar viaje">
+                                                        <i className="ti ti-ban"></i> Cancelar
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </article>
+                                    ))}
+                                </div>
+                            </section>
+                        ))}
+                    </div>
+                )
+            )}
+
             {/* TABLA - todos los roles la ven */}
-            {!cargando && !error && (
+            {!cargando && !error && vista === "tabla" && (
                 <div className="viajes-tabla-wrapper">
                     <table className="viajes-tabla">
                         <thead>
