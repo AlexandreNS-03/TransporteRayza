@@ -21,14 +21,15 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * Ventas que se cobraron pidiendo boleta o factura y todavía no la tienen emitida.
+ * Ventas cobradas a las que todavía no se les emitió su comprobante electrónico.
  *
- * El comprobante electrónico se emite en un segundo paso, y en el mostrador es
- * fácil que quede para después y se olvide: el pasajero ya se fue con su ticket y
- * nada en pantalla recuerda que falta. Después aparecen todas juntas al cierre.
+ * El comprobante se emite en un segundo paso, y en el mostrador es fácil que quede
+ * para después y se olvide: el pasajero ya se fue con su boleto y nada en pantalla
+ * recuerda que falta. Después aparecen todas juntas al cierre.
  *
- * Lo que se vendió como TICKET no cuenta: ese cliente no pidió comprobante
- * electrónico y listarlo solo haría ruido.
+ * Cuenta TODA venta pagada sin comprobante. El tipo que se anota al vender
+ * (ticket, boleta, factura) no cambia nada: el sistema permite emitir el
+ * comprobante de cualquier venta, y el modal de emisión ni siquiera lo mira.
  *
  * Se agrupa por fecha de viaje, que es como el personal ubica su trabajo, y cada
  * oficina ve lo suyo.
@@ -56,7 +57,7 @@ public class ComprobantesPendientesService {
         public String tipo;              // por ahora solo PASAJE
         public String id;                // venta o encomienda
         public String grupoVentaId;      // si el pasaje se vendió junto a otros
-        public String documento;         // BOLETA | FACTURA
+        public String documento;         // lo anotado al vender: TICKET | BOLETA | FACTURA
         public String cliente;
         public String detalle;           // pasajero y asiento
         public String fechaViaje;        // por dónde se agrupa: la fecha del viaje
@@ -84,7 +85,6 @@ public class ComprobantesPendientesService {
 
         for (Venta v : ventaRepository.findAll()) {
             if (v.getEstado() != Venta.EstadoVenta.PAGADO) continue;
-            if (!necesitaComprobante(v.getTipoComprobante())) continue;
             if (misViajes != null && (v.getViajeId() == null || !misViajes.contains(v.getViajeId()))) continue;
             if (yaEmitido(v)) continue;
             if (v.getGrupoVentaId() != null && !gruposVistos.add(v.getGrupoVentaId())) continue;
@@ -93,7 +93,8 @@ public class ComprobantesPendientesService {
             p.tipo = "PASAJE";
             p.id = v.getId();
             p.grupoVentaId = v.getGrupoVentaId();
-            p.documento = v.getTipoComprobante().name();
+            // Lo que se anotó al vender, solo como referencia para quien lo emita.
+            p.documento = v.getTipoComprobante() != null ? v.getTipoComprobante().name() : "—";
             p.cliente = v.getClienteNombre();
             p.detalle = v.getPasajeroNombre()
                     + (v.getAsientoNumero() != null ? " · Asiento #" + v.getAsientoNumero() : "");
@@ -128,18 +129,26 @@ public class ComprobantesPendientesService {
                 })
                 .collect(Collectors.toList());
 
+        // Del resumen se mandan las fechas más recientes: si hay meses sin emitir,
+        // una lista de cien días no ayuda a nadie y engorda la respuesta.
+        int TOPE_FECHAS = 8;
+        List<Map<String, Object>> ultimas = resumen.size() <= TOPE_FECHAS ? resumen
+                : resumen.subList(resumen.size() - TOPE_FECHAS, resumen.size());
+
         Map<String, Object> r = new LinkedHashMap<>();
         r.put("total", lista.size());
-        r.put("porFecha", resumen);
-        r.put("pendientes", lista);
+        r.put("montoTotal", lista.stream()
+                .map(p -> p.monto == null ? BigDecimal.ZERO : p.monto)
+                .reduce(BigDecimal.ZERO, BigDecimal::add));
+        r.put("porFecha", ultimas);
+        r.put("fechasOcultas", resumen.size() - ultimas.size());
+        // La lista completa se corta: la pantalla de Pasajes ya permite verlas todas
+        // con su filtro, y una respuesta enorme es justo lo que rompió "Por resolver".
+        r.put("pendientes", lista.size() > 200 ? lista.subList(0, 200) : lista);
         return r;
     }
 
     // ------------------------------------------------------------------ apoyos
-
-    private boolean necesitaComprobante(Venta.TipoComprobante tipo) {
-        return tipo == Venta.TipoComprobante.BOLETA || tipo == Venta.TipoComprobante.FACTURA;
-    }
 
     /** Emitido por sí misma o dentro del comprobante del grupo con el que se vendió. */
     private boolean yaEmitido(Venta v) {

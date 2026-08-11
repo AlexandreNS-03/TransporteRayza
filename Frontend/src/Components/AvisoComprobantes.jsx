@@ -63,9 +63,9 @@ export default function AvisoComprobantes() {
         navegar(`/${panel}/pasajes?pendientes=1`);
     };
 
-    if (!visible || !datos) return null;
-
     const soles = (n) => `S/ ${Number(n || 0).toFixed(2)}`;
+
+    if (!visible || !datos) return null;
 
     return (
         <div className="aviso-overlay" onClick={cerrar}>
@@ -77,8 +77,9 @@ export default function AvisoComprobantes() {
                         <h3>Faltan comprobantes por emitir</h3>
                         <p>
                             {datos.total === 1
-                                ? "Hay 1 venta con boleta o factura pedida que todavía no se emitió."
-                                : `Hay ${datos.total} ventas con boleta o factura pedida que todavía no se emitieron.`}
+                                ? "Hay 1 venta cobrada sin su comprobante emitido."
+                                : `Hay ${datos.total} ventas cobradas sin su comprobante emitido.`}
+                            {datos.montoTotal != null && ` Suman ${soles(datos.montoTotal)}.`}
                         </p>
                     </div>
                 </div>
@@ -101,8 +102,9 @@ export default function AvisoComprobantes() {
                 </div>
 
                 <p className="aviso-nota">
-                    Son ventas de tu oficina. Los pasajes vendidos como ticket no aparecen acá:
-                    ese cliente no pidió comprobante electrónico.
+                    Son ventas de tu oficina.
+                    {datos.fechasOcultas > 0 &&
+                        ` Se muestran las ${datos.porFecha.length} fechas más recientes; hay ${datos.fechasOcultas} día(s) más con pendientes.`}
                 </p>
 
                 <div className="aviso-acciones">
