@@ -15,6 +15,13 @@ export function useToast() {
     const mostrarToast = useCallback((tipo, mensaje) => {
         const id = Date.now() + Math.random();
         setToasts(prev => [...prev, { id, tipo, mensaje }]);
+
+        // El aviso entraba animado pero desaparecía de golpe, que se lee como un
+        // parpadeo raro. Se marca como saliente un momento antes de quitarlo,
+        // para que se desvanezca.
+        setTimeout(() => {
+            setToasts(prev => prev.map(t => (t.id === id ? { ...t, saliendo: true } : t)));
+        }, 4300);
         setTimeout(() => {
             setToasts(prev => prev.filter(t => t.id !== id));
         }, 4500);
@@ -35,7 +42,7 @@ export function Toasts({ toasts }) {
     return (
         <div className="toasts-container">
             {toasts.map(t => (
-                <div key={t.id} className={`toast toast-${t.tipo}`}>
+                <div key={t.id} className={`toast toast-${t.tipo} ${t.saliendo ? "saliendo" : ""}`}>
                     <i className={`ti ${ICONOS[t.tipo] || ICONOS.info}`}></i>
                     <span>{t.mensaje}</span>
                 </div>

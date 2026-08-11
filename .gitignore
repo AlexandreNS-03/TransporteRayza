@@ -5,3 +5,5 @@
 # Sistema operativo
 .DS_Store
 Thumbs.db
+# Skills de agentes: el contenido se versiona en .agents/skills y .claude/skills
+# son enlaces a esa carpeta. skills-lock.json fija de qué repo y versión salieron.

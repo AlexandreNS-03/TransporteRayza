@@ -128,3 +128,79 @@ code {
 .pantalla-error p { margin: 0; max-width: 52ch; color: #6b7280; line-height: 1.6; font-size: 14px; }
 .pantalla-error-acciones { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 8px; }
 .pantalla-error-acciones a { text-decoration: none; }
+
+/* ============================================================
+   MOVIMIENTO — tokens y reglas comunes
+   Las curvas de CSS (ease, ease-out) son demasiado suaves para que el
+   movimiento se sienta deliberado: estas son más marcadas y se usan en todo
+   el sistema, para que nada se mueva "distinto" según la pantalla.
+   ============================================================ */
+:root {
+  --ease-salida: cubic-bezier(0.23, 1, 0.32, 1);      /* entra y sale: arranca rápido */
+  --ease-mover:  cubic-bezier(0.77, 0, 0.175, 1);     /* se desplaza en pantalla */
+  --dur-rapida:  0.16s;                               /* pulsación, hover */
+  --dur-modal:   0.2s;
+}
+
+/* ── Modales ──
+   Antes aparecían de golpe, en las 20 pantallas que los usan. @starting-style
+   permite animar la entrada sin tocar el JavaScript; donde el navegador no lo
+   soporta, simplemente aparecen como hasta ahora. */
+.modal-overlay,
+.aviso-overlay {
+  transition: opacity var(--dur-modal) var(--ease-salida);
+  opacity: 1;
+}
+
+@starting-style {
+  .modal-overlay,
+  .aviso-overlay { opacity: 0; }
+}
+
+.modal-overlay > *,
+.aviso-overlay > * {
+  transition: opacity var(--dur-modal) var(--ease-salida),
+              transform var(--dur-modal) var(--ease-salida);
+  opacity: 1;
+  transform: scale(1) translateY(0);
+}
+
+@starting-style {
+  .modal-overlay > *,
+  .aviso-overlay > * {
+    /* Nunca desde scale(0): nada en el mundo real aparece de la nada */
+    opacity: 0;
+    transform: scale(0.96) translateY(8px);
+  }
+}
+
+/* ── Respuesta al pulsar ──
+   El mostrador trabaja con tablet y dedo: sin esta respuesta, el botón parece
+   no haber registrado el toque y se pulsa dos veces. */
+button:not(:disabled):active,
+.btn-nuevo:active,
+.btn-guardar:active,
+.btn-primario:active {
+  transform: scale(0.97);
+  transition: transform var(--dur-rapida) var(--ease-salida);
+}
+
+/* ── Menos movimiento ──
+   No es apagarlo todo: se quita el desplazamiento, que es lo que marea, y se
+   conserva lo que ayuda a entender (opacidad, y los indicadores de carga, que
+   dicen que el sistema está trabajando). */
+@media (prefers-reduced-motion: reduce) {
+  .modal-overlay > *,
+  .aviso-overlay > * {
+    transition: opacity var(--dur-modal) var(--ease-salida);
+  }
+
+  @starting-style {
+    .modal-overlay > *,
+    .aviso-overlay > * { transform: none; }
+  }
+
+  button:not(:disabled):active { transform: none; }
+
+  .spin, [class*="spin"] { animation-duration: 2s !important; }
+}
