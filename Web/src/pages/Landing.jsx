@@ -30,7 +30,8 @@ export default function Landing() {
         >
           <div className="hero-mb-overlay">
             <div className="wrap">
-              <span className="hero-mb-eyebrow">Transporte fluvial · Loreto, Perú</span>
+              {/* Sin rótulo encima: el titular se sostiene solo, y ese "Transporte
+                  fluvial · Loreto" ya lo dicen la foto y el buscador de abajo. */}
               <h1>Así se siente viajar en <span className="acento">Rayza</span></h1>
               <p>Elige tu ruta y tu asiento, paga en línea y recibe tu boleto con QR al instante.</p>
             </div>
@@ -60,7 +61,6 @@ export default function Landing() {
       <section className="section section-alt" id="destinos">
         <div className="wrap">
           <div className="section-head">
-            <div className="kicker">Destinos</div>
             <h2>A dónde te llevamos</h2>
             <p>Conectamos Iquitos, Requena y los pueblos del río en la Amazonía peruana.</p>
           </div>
@@ -100,7 +100,6 @@ export default function Landing() {
       <section className="section" id="servicios">
         <div className="wrap">
           <div className="section-head">
-            <div className="kicker">Nuestros servicios</div>
             <h2>Todo para moverte por el río</h2>
             <p>Soluciones de transporte fluvial pensadas para las personas y comunidades de la Amazonía.</p>
           </div>
@@ -128,7 +127,6 @@ export default function Landing() {
       <section className="section section-alt" id="galeria">
         <div className="wrap">
           <div className="section-head">
-            <div className="kicker">Galería</div>
             <h2>Nuestro servicio en imágenes</h2>
             <p>Conoce nuestras embarcaciones y el día a día navegando el río.</p>
           </div>
@@ -138,27 +136,28 @@ export default function Landing() {
 
       {/* ===== NOSOTROS ===== */}
       <section className="section section-alt" id="nosotros">
-        <div className="wrap" style={{ display: "grid", gridTemplateColumns: "1.1fr .9fr", gap: 48, alignItems: "center" }}>
+        <div className="wrap nosotros-grid">
           <Reveal>
-            <div className="kicker">Sobre nosotros</div>
-            <h2 style={{ fontSize: "clamp(26px,4vw,34px)", margin: "0 0 16px" }}>Multiservicios Rayza E.I.R.L.</h2>
-            <p className="muted" style={{ marginBottom: 14 }}>
+            <h2 className="nosotros-titulo">Multiservicios Rayza E.I.R.L.</h2>
+            <p className="muted nosotros-parrafo">
               Empresa amazónica dedicada al transporte fluvial de pasajeros y encomiendas en la región
               Loreto. Nacimos para acortar distancias entre las comunidades del río, con un servicio
               cercano, puntual y seguro. Nuestra central está en <strong>Requena</strong>, con oficina
               de ventas en <strong>Iquitos</strong>.
             </p>
-            <p className="muted" style={{ marginBottom: 24 }}>Conocemos el río porque es nuestra casa.</p>
-            <div style={{ display: "flex", gap: 30, flexWrap: "wrap" }}>
+            <p className="nosotros-cierre">Conocemos el río porque es nuestra casa.</p>
+            {/* Cifras que dicen algo. El "100% servicio fluvial" que había antes
+                no informaba nada: era relleno con forma de dato. */}
+            <dl className="nosotros-cifras">
               {[[`${anios}`, anios === 1 ? "año navegando el río" : "años navegando el río"],
-                ["Loreto", "Requena · Iquitos"],
-                ["100%", "servicio fluvial"]].map(([b, s]) => (
-                <div key={s}>
-                  <div style={{ fontFamily: "var(--font-head)", fontSize: 30, fontWeight: 800, color: "var(--accent)" }}>{b}</div>
-                  <div className="muted" style={{ fontSize: 13.5 }}>{s}</div>
+                [`${DESTINOS.length}`, DESTINOS.length === 1 ? "destino en la ruta" : "destinos en la ruta"],
+                [`${EMPRESA.oficinas.length}`, "oficinas: Requena e Iquitos"]].map(([b, t]) => (
+                <div key={t}>
+                  <dt>{b}</dt>
+                  <dd>{t}</dd>
                 </div>
               ))}
-            </div>
+            </dl>
           </Reveal>
           <Reveal delay={2} className="center">
             <img src="/logo-rayza-marca.png" alt="Multiservicios Rayza"
@@ -171,7 +170,6 @@ export default function Landing() {
       <section className="section" id="contacto">
         <div className="wrap">
           <div className="section-head">
-            <div className="kicker">Contacto</div>
             <h2>Estamos para ayudarte</h2>
             <p>Escríbenos por cualquiera de estos medios o acércate a nuestras oficinas.</p>
           </div>
