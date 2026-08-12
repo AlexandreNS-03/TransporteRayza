@@ -480,6 +480,14 @@ function Pasajes() {
         finally { setCargando(false); }
     };
 
+    // Distinguir "no hay nada" de "tu búsqueda no encontró": son situaciones
+    // distintas y la salida de cada una también.
+    const hayFiltros = filtroEstado !== "todos" || !!fechaDesde || !!fechaHasta || !!busqueda;
+
+    const limpiarFiltros = () => {
+        setFiltro("todos"); setFechaDesde(""); setFechaHasta(""); setBusqueda("");
+    };
+
     const ventasFiltradas = ventas.filter(v => {
         if (filtroEstado === "pagado"  && v.estado !== "PAGADO")  return false;
         if (filtroEstado === "anulado" && v.estado !== "ANULADO") return false;
@@ -662,7 +670,30 @@ function Pasajes() {
                             <tr>
                                 <td colSpan={puedeVender ? 10 : 9} className="tabla-vacia">
                                     <i className="ti ti-ticket-off"></i>
-                                    <span>No se encontraron pasajes</span>
+                                    {hayFiltros ? (
+                                        <>
+                                            <span>Ningún pasaje coincide con lo que buscas</span>
+                                            <p className="vacio-ayuda">
+                                                Prueba con otra fecha o quita los filtros para ver todo.
+                                            </p>
+                                            <button className="btn-limpiar" onClick={limpiarFiltros}>
+                                                <i className="ti ti-filter-off"></i> Quitar filtros
+                                            </button>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <span>Todavía no hay pasajes vendidos</span>
+                                            <p className="vacio-ayuda">
+                                                Acá aparece cada pasaje que vendas, con su boleto y su comprobante.
+                                                {puedeVender && " Empieza por vender el primero."}
+                                            </p>
+                                            {puedeVender && (
+                                                <button className="btn-nuevo" onClick={abrirModal}>
+                                                    <i className="ti ti-plus"></i> Vender pasaje
+                                                </button>
+                                            )}
+                                        </>
+                                    )}
                                 </td>
                             </tr>
                         ) : (

@@ -6,6 +6,7 @@ import Buscador from "../components/Buscador";
 import Carrusel from "../components/Carrusel";
 import Galeria from "../components/Galeria";
 import Reveal from "../components/Reveal";
+import HeroConProfundidad from "../components/HeroConProfundidad";
 import AnuncioAniversario from "../components/AnuncioAniversario";
 import { EMPRESA, telefonoBonito, telefonoInternacional,
          aniosDeAniversario } from "../datos";
@@ -19,6 +20,9 @@ export default function Landing() {
       <Header />
 
       {/* ===== HERO (carrusel a todo el ancho + buscador flotante) ===== */}
+      {/* Único momento de movimiento con autoría de la portada */}
+      <HeroConProfundidad />
+
       <section className="hero-mb" id="inicio">
         <Carrusel
           flechas

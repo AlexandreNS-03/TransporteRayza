@@ -337,7 +337,17 @@ function Encomiendas() {
                         <tbody>
                         {pag.items.length === 0 ? (
                             <tr><td colSpan={puedeOperar ? 8 : 7} className="tabla-vacia">
-                                <i className="ti ti-package-off"></i><span>No se encontraron encomiendas</span>
+                                <i className="ti ti-package-off"></i>
+                                <span>Todavía no hay encomiendas registradas</span>
+                                <p className="vacio-ayuda">
+                                    Acá aparece cada envío con su código de rastreo y su clave de recojo.
+                                    El cliente sigue su paquete desde la web con ese código.
+                                </p>
+                                {puedeOperar && (
+                                    <button className="btn-nuevo" onClick={abrirCrear}>
+                                        <i className="ti ti-plus"></i> Registrar encomienda
+                                    </button>
+                                )}
                             </td></tr>
                         ) : (
                             pag.items.map(e => (
