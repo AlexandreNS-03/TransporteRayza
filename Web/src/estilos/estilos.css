@@ -37,7 +37,12 @@
   --sh:    0 10px 30px -12px rgba(60, 45, 30, .18);
   --sh-lg: 0 30px 60px -28px rgba(60, 45, 30, .30);
 
-  --ease: cubic-bezier(.34, 1.2, .64, 1);   /* con un mínimo rebote */
+  /* Desaceleración limpia, sin rebote. La suavidad de este estilo la dan las
+     esquinas, las sombras difusas y el aire; un rebote en las entradas de scroll
+     de una página de venta de pasajes se ve rápido como un tic, no como calidez.
+     El rebote se guarda para lo que se arrastra con el dedo, que es donde
+     imita algo físico de verdad. */
+  --ease: cubic-bezier(.22, 1, .36, 1);
 }
 
 :root[data-estilo="suave"] .section { padding: clamp(72px, 9vw, 128px) 0; }
