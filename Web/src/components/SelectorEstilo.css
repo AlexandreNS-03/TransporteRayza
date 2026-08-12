@@ -1,0 +1,77 @@
+/* Panel del banco de pruebas. Deliberadamente neutro y con su propia paleta
+   fija: si tomara los tokens de la página, cambiaría de aspecto con cada estilo
+   y dejaría de servir como punto de referencia. */
+
+.lab-estilos {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 2000;
+  width: 260px;
+  background: #14161c;
+  color: #e8eaf0;
+  border: 1px solid #2a2e38;
+  border-radius: 12px;
+  padding: 14px;
+  box-shadow: 0 18px 40px -12px rgba(0, 0, 0, .55);
+  font: 13px/1.45 system-ui, sans-serif;
+}
+
+.lab-cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.lab-cabecera strong { font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: #9aa3b2; }
+
+.lab-cabecera button {
+  background: none; border: none; color: #9aa3b2;
+  font-size: 20px; line-height: 1; cursor: pointer; padding: 0 4px;
+}
+
+.lab-cabecera button:hover { color: #fff; }
+
+.lab-opciones { display: flex; flex-direction: column; gap: 6px; }
+
+.lab-opcion {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: left;
+  background: #1b1e26;
+  border: 1px solid #2a2e38;
+  border-radius: 8px;
+  padding: 9px 11px;
+  color: inherit;
+  cursor: pointer;
+  transition: border-color .15s ease, background .15s ease;
+}
+
+.lab-opcion:hover { border-color: #3d4351; background: #21242d; }
+.lab-opcion.activa { border-color: #4f8ef7; background: #1d2635; }
+
+.lab-nombre { font-weight: 600; }
+.lab-pista { font-size: 11.5px; color: #8d95a5; }
+
+.lab-nota { margin: 10px 0 0; font-size: 11px; color: #767e8d; line-height: 1.5; }
+.lab-nota code { background: #21242d; padding: 1px 5px; border-radius: 4px; }
+
+.lab-abrir {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 2000;
+  background: #14161c;
+  color: #e8eaf0;
+  border: 1px solid #2a2e38;
+  border-radius: 999px;
+  padding: 9px 16px;
+  font: 12px/1 system-ui, sans-serif;
+  cursor: pointer;
+}
+
+@media (max-width: 560px) {
+  .lab-estilos { left: 12px; right: 12px; width: auto; }
+}

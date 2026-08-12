@@ -1,0 +1,193 @@
+/* ============================================================
+   BANCO DE PRUEBAS DE ESTILOS — solo la portada
+   ============================================================
+
+   Tres direcciones visuales completas para comparar en vivo. Cada una redefine
+   el mismo vocabulario —tipografía, espaciado, color, esquinas, sombras y
+   movimiento— porque un estilo no es una paleta: es cómo se comportan todas esas
+   piezas juntas.
+
+   No se activa nunca por su cuenta: hace falta entrar con ?estilos=1. Lo que ven
+   los clientes hoy no cambia.
+
+   Se aplican con [data-estilo] en <html>, así alcanzan también a lo que se
+   dibuja fuera del árbol de la portada.
+   ============================================================ */
+
+/* ─────────────────────────────────────────────────────────────
+   SUAVE — calidez y aire. Formas redondas, sombras difusas,
+   tipografía de peso medio. Es el que más se parece a lo actual,
+   subiendo el aire y bajando el contraste de los bordes.
+   ───────────────────────────────────────────────────────────── */
+:root[data-estilo="suave"] {
+  --bg:          #fbfaf8;
+  --bg-soft:     #f5f2ee;
+  --bg-softer:   #efeae4;
+  --card:        #ffffff;
+  --ink:         #1c1a17;
+  --ink-soft:    #6b6459;
+  --line:        #e8e2da;
+  --line-strong: #d9d1c6;
+
+  --r-sm: 14px;
+  --r:    22px;
+  --r-lg: 34px;
+
+  --sh-sm: 0 2px 6px rgba(60, 45, 30, .05);
+  --sh:    0 10px 30px -12px rgba(60, 45, 30, .18);
+  --sh-lg: 0 30px 60px -28px rgba(60, 45, 30, .30);
+
+  --ease: cubic-bezier(.34, 1.2, .64, 1);   /* con un mínimo rebote */
+}
+
+:root[data-estilo="suave"] .section { padding: clamp(72px, 9vw, 128px) 0; }
+:root[data-estilo="suave"] .section-head h2 { font-weight: 600; letter-spacing: -0.02em; }
+:root[data-estilo="suave"] .card,
+:root[data-estilo="suave"] .servicio-principal { box-shadow: var(--sh); border: none; }
+:root[data-estilo="suave"] .btn { border-radius: 999px; padding: 15px 30px; }
+
+/* ─────────────────────────────────────────────────────────────
+   MINIMALISTA — el contenido manda y el resto desaparece. Sin
+   sombras, sin relleno de color: solo una línea de 1px separa.
+   Contraste alto y mucho blanco.
+   ───────────────────────────────────────────────────────────── */
+:root[data-estilo="minimalista"] {
+  --bg:          #ffffff;
+  --bg-soft:     #ffffff;
+  --bg-softer:   #fafafa;
+  --card:        #ffffff;
+  --ink:         #0a0a0a;
+  --ink-soft:    #5c5c5c;
+  --line:        #e4e4e4;
+  --line-strong: #111111;
+
+  --r-sm: 0px;
+  --r:    0px;
+  --r-lg: 0px;
+
+  --sh-sm: none;
+  --sh:    none;
+  --sh-lg: none;
+
+  --ease: cubic-bezier(.23, 1, .32, 1);
+}
+
+:root[data-estilo="minimalista"] .section { padding: clamp(80px, 10vw, 150px) 0; }
+
+:root[data-estilo="minimalista"] .section-head h2 {
+  font-weight: 400;
+  letter-spacing: -0.045em;
+  font-size: clamp(32px, 6vw, 68px);
+}
+
+:root[data-estilo="minimalista"] .card,
+:root[data-estilo="minimalista"] .servicio-principal,
+:root[data-estilo="minimalista"] .destino-card {
+  box-shadow: none;
+  border: 1px solid var(--line);
+  background: var(--card);
+}
+
+/* Sin fondo de color: el servicio principal se distingue por el trazo */
+:root[data-estilo="minimalista"] .servicio-principal { border: 1px solid var(--line-strong); }
+:root[data-estilo="minimalista"] .servicio-principal h3,
+:root[data-estilo="minimalista"] .servicio-principal p { color: var(--ink); }
+:root[data-estilo="minimalista"] .servicio-principal p { opacity: .72; }
+
+:root[data-estilo="minimalista"] .btn {
+  border-radius: 0;
+  border: 1px solid var(--line-strong);
+  box-shadow: none;
+}
+
+:root[data-estilo="minimalista"] .btn-primary {
+  background: var(--ink);
+  color: #fff;
+  border-color: var(--ink);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   BRUTALISTA — estructura a la vista. Trazo grueso, monoespaciada
+   para los datos, mayúsculas anchas y nada de suavizado. Honesto
+   con el hecho de que esto es una máquina de vender pasajes.
+   ───────────────────────────────────────────────────────────── */
+:root[data-estilo="brutalista"] {
+  --bg:          #f2f0ea;
+  --bg-soft:     #e7e4db;
+  --bg-softer:   #dedac9;
+  --card:        #ffffff;
+  --ink:         #0d0d0d;
+  --ink-soft:    #46443f;
+  --line:        #0d0d0d;
+  --line-strong: #0d0d0d;
+
+  --r-sm: 0px;
+  --r:    0px;
+  --r-lg: 0px;
+
+  --sh-sm: none;
+  --sh:    none;
+  --sh-lg: none;
+
+  --ease: cubic-bezier(.16, 1, .3, 1);
+}
+
+:root[data-estilo="brutalista"] .section { padding: clamp(56px, 7vw, 96px) 0; }
+
+:root[data-estilo="brutalista"] .section-head h2 {
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  text-transform: uppercase;
+  line-height: .95;
+}
+
+:root[data-estilo="brutalista"] .card,
+:root[data-estilo="brutalista"] .servicio-principal,
+:root[data-estilo="brutalista"] .servicio-item,
+:root[data-estilo="brutalista"] .destino-card {
+  border: 2px solid var(--line);
+  box-shadow: none;
+  background: var(--card);
+}
+
+:root[data-estilo="brutalista"] .servicio-principal { background: var(--ink); color: #fff; }
+:root[data-estilo="brutalista"] .servicio-principal h3 { color: #fff; }
+
+/* La monoespaciada solo donde hay datos, que es su razón de ser */
+:root[data-estilo="brutalista"] .contacto-numero,
+:root[data-estilo="brutalista"] .nosotros-cifras dt,
+:root[data-estilo="brutalista"] .oficina-tipo {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  letter-spacing: -0.02em;
+}
+
+:root[data-estilo="brutalista"] .btn {
+  border-radius: 0;
+  border: 2px solid var(--ink);
+  box-shadow: none;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  font-weight: 700;
+}
+
+:root[data-estilo="brutalista"] .btn-primary { background: var(--ink); color: #fff; }
+
+/* ─────────────────────────────────────────────────────────────
+   MOVIMIENTO — común a los tres
+   Las entradas al hacer scroll duraban 700ms con retrasos de hasta
+   240ms: para cuando el bloque terminaba de aparecer, el ojo ya se
+   había ido. Se acortan y el retraso pasa a ser un escalonado corto,
+   que ordena la lectura sin hacer esperar.
+   ───────────────────────────────────────────────────────────── */
+:root[data-estilo] .reveal {
+  transition: opacity .38s var(--ease), transform .38s var(--ease);
+  transform: translateY(14px);
+}
+
+:root[data-estilo] .reveal.d1 { transition-delay: .05s; }
+:root[data-estilo] .reveal.d2 { transition-delay: .10s; }
+:root[data-estilo] .reveal.d3 { transition-delay: .15s; }
+
+@media (prefers-reduced-motion: reduce) {
+  :root[data-estilo] .reveal { transition: none; transform: none; }
+}

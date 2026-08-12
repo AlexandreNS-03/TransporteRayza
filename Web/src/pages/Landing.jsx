@@ -7,6 +7,11 @@ import Carrusel from "../components/Carrusel";
 import Galeria from "../components/Galeria";
 import Reveal from "../components/Reveal";
 import HeroConProfundidad from "../components/HeroConProfundidad";
+import { lazy, Suspense } from "react";
+
+// El banco de pruebas de estilos solo existe si se pide con ?estilos=1: ni el
+// componente ni su hoja llegan al visitante común.
+const SelectorEstilo = lazy(() => import("../components/SelectorEstilo"));
 import AnuncioAniversario from "../components/AnuncioAniversario";
 import { EMPRESA, telefonoBonito, telefonoInternacional,
          aniosDeAniversario } from "../datos";
@@ -14,6 +19,7 @@ import { DESTINOS } from "../destinos";
 
 export default function Landing() {
   const anios = aniosDeAniversario();
+  const probandoEstilos = new URLSearchParams(location.search).has("estilos");
   const [abierto, setAbierto] = useState(null);
   return (
     <>
@@ -22,6 +28,10 @@ export default function Landing() {
       {/* ===== HERO (carrusel a todo el ancho + buscador flotante) ===== */}
       {/* Único momento de movimiento con autoría de la portada */}
       <HeroConProfundidad />
+
+      {probandoEstilos && (
+        <Suspense fallback={null}><SelectorEstilo /></Suspense>
+      )}
 
       <section className="hero-mb" id="inicio">
         <Carrusel
