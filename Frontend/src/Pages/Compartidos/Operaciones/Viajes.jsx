@@ -334,7 +334,17 @@ function Viajes() {
                 porDia.length === 0 ? (
                     <div className="viajes-vacio">
                         <i className="ti ti-ship-off"></i>
-                        <span>No se encontraron viajes</span>
+                        <span>No hay viajes para mostrar</span>
+                        <p className="vacio-ayuda">
+                            Los viajes programados son los que el personal puede vender y a los que
+                            se les asignan encomiendas. Si esperabas ver alguno, revisa los filtros
+                            de fecha de arriba.
+                        </p>
+                        {(esAdmin || esSupervisor || esEmpleado) && (
+                            <button className="btn-nuevo" onClick={abrirModal}>
+                                <i className="ti ti-plus"></i> Programar viaje
+                            </button>
+                        )}
                     </div>
                 ) : (
                     <div className="viajes-dias">

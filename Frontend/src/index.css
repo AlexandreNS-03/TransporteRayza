@@ -289,3 +289,19 @@ html :is(button, a, input, select, textarea, [tabindex]):focus-visible {
   .main-area { width: 100%; margin-left: 0; }
   .menu-toggle { display: inline-flex; }
 }
+
+/* Estados vacíos que enseñan: quien llega por primera vez a una pantalla sin
+   datos no necesita que le confirmen que está vacía, necesita saber para qué
+   sirve y por dónde empezar. */
+.tabla-vacia .vacio-ayuda,
+.viajes-vacio .vacio-ayuda {
+  margin: 6px auto 14px;
+  max-width: 52ch;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--txt-3);
+}
+
+.tabla-vacia .btn-nuevo,
+.tabla-vacia .btn-limpiar,
+.viajes-vacio .btn-nuevo { display: inline-flex; }
