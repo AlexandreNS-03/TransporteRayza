@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import "./Sucursales.css";
+import { motivoDelError } from "../../../Services/api.js";
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8080";
 
@@ -40,7 +41,7 @@ function Sucursales() {
             const res = await fetch(`${API_BASE}/api/sucursales`, {
                 headers: { "Authorization": `Bearer ${token}` }
             });
-            if (!res.ok) throw new Error("Error al obtener sucursales");
+            if (!res.ok) throw new Error(await motivoDelError(res, "Error al obtener sucursales"));
             const data = await res.json();
             setSucursales(data);
         } catch (err) {
@@ -109,7 +110,7 @@ function Sucursales() {
                 body: JSON.stringify(form)
             });
 
-            if (!res.ok) throw new Error("Error al guardar sucursal");
+            if (!res.ok) throw new Error(await motivoDelError(res, "Error al guardar sucursal"));
             cerrarModal();
             fetchSucursales();
         } catch (err) {

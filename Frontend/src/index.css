@@ -238,3 +238,54 @@ html :is(button, a, input, select, textarea, [tabindex]):focus-visible {
    quede pegado a lo que titula y separado de lo anterior. */
 .pasajes-page h2, .viajes-page h2, .estado-page h2,
 .reportes-page h2, .manifiesto-page h2 { margin-block: 0 4px; }
+
+/* ============================================================
+   TABLET — el mostrador trabaja con el dedo, no con ratón
+   Todo va bajo (pointer: coarse) para no cambiar nada en las
+   computadoras de oficina, que siguen con ratón.
+   ============================================================ */
+@media (pointer: coarse) {
+
+  /* Los botones de acción de las tablas medían 32px y hay cuatro o cinco
+     seguidos por fila. Con el dedo eso es una máquina de pulsar el equivocado,
+     y equivocarse ahí puede ser anular una venta. La referencia táctil son
+     44px; 40 más separación llega al mismo objetivo sin romper la fila. */
+  /* El "html" delante es a propósito: el CSS de cada pantalla se carga después
+     que este archivo, así que con la misma especificidad ganaría el de la
+     pantalla y el botón seguiría midiendo 32px. */
+  html .btn-accion {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+  }
+
+  html .acciones-cell { gap: 10px; }
+
+  /* Lo mismo para el resto de controles: alto cómodo de tocar */
+  .btn-nuevo, .btn-guardar, .btn-cancelar, .btn-limpiar,
+  .btn-recargar, .btn-primario, .btn-secundario,
+  .filtro-grupo select, .filtro-grupo input {
+    min-height: 44px;
+  }
+
+  /* Las filas de las tablas, algo más altas: se acierta mejor al tocar */
+  .pasajes-tabla td, .viajes-tabla td, .reportes-tabla td { padding-top: 12px; padding-bottom: 12px; }
+}
+
+/* En una tablet apaisada (1024px) el menú lateral se quedaba abierto comiéndose
+   250px, y las tablas de venta quedaban espachurradas. Se pliega igual que en
+   vertical, pero solo cuando se navega con el dedo: en una laptop chica de
+   oficina el menú sigue a la vista. */
+@media (max-width: 1024px) and (pointer: coarse) {
+  .sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 1100;
+    transform: translateX(-100%);
+    transition: transform .22s var(--ease-salida, ease-out);
+  }
+  .sidebar.abierta { transform: translateX(0); }
+  .sidebar-overlay { display: block; }
+  .main-area { width: 100%; margin-left: 0; }
+  .menu-toggle { display: inline-flex; }
+}

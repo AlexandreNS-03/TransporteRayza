@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import "./Embarque.css";
 import EscanerQR from "./EscanerQR.jsx";
 import SelectorViaje from "../../../Components/SelectorViaje.jsx";
+import { motivoDelError } from "../../../Services/api.js";
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8080";
 
@@ -64,7 +65,7 @@ function Embarque() {
             const res = await fetch(`${API_BASE}/api/ventas/viaje/${viajeId}`, {
                 headers: { "Authorization": `Bearer ${token}` }
             });
-            if (!res.ok) throw new Error("Error al obtener pasajeros");
+            if (!res.ok) throw new Error(await motivoDelError(res, "Error al obtener pasajeros"));
             const data = await res.json();
             setPasajeros(data.filter(v => v.estado !== "ANULADO"));
         } catch (err) {

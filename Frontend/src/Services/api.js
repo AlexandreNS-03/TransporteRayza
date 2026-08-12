@@ -127,6 +127,31 @@ export async function apiBlob(url) {
     return res.blob();
 }
 
+/**
+ * Saca el motivo real de una respuesta fallida.
+ *
+ * El backend explica qué pasó ("El asiento #12 acaba de ser tomado por otra
+ * venta", "Solo puedes vender viajes de tu sucursal"), pero varias pantallas que
+ * usan fetch directo tiraban ese mensaje y mostraban uno genérico. El empleado
+ * quedaba sin saber qué hacer.
+ *
+ * @param res      la respuesta con error
+ * @param respaldo qué decir si el servidor no explicó nada
+ */
+export async function motivoDelError(res, respaldo) {
+    try {
+        const datos = await res.json();
+        const motivo = datos?.message || datos?.mensaje || datos?.error;
+        if (motivo && String(motivo).trim()) return String(motivo);
+    } catch { /* respuesta sin cuerpo legible */ }
+
+    // Sin explicación del servidor, al menos se dice qué se puede hacer.
+    if (res.status === 403) return "No tienes permiso para hacer esto. Consulta con el administrador.";
+    if (res.status === 404) return `${respaldo}: no se encontró lo que se pedía. Actualiza la pantalla e intenta de nuevo.`;
+    if (res.status >= 500)  return `${respaldo}. El servidor tuvo un problema; vuelve a intentarlo en un momento.`;
+    return respaldo;
+}
+
 // Consultas RENIEC/SUNAT vía el proxy del backend
 export async function consultarDni(dni) {
     return apiFetch(`/api/consulta/dni/${dni}`);

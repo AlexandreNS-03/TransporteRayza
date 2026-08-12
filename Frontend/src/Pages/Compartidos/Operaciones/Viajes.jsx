@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import "./Viajes.css";
+import { motivoDelError } from "../../../Services/api.js";
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8080";
 
@@ -119,7 +120,7 @@ function Viajes() {
             const res = await fetch(`${API_BASE}/api/viajes`, {
                 headers: { "Authorization": `Bearer ${token}` }
             });
-            if (!res.ok) throw new Error("Error al obtener viajes");
+            if (!res.ok) throw new Error(await motivoDelError(res, "Error al obtener viajes"));
             const data = await res.json();
             setViajes(data);
             setRutas([...new Set(data.map(v => v.rutaNombre).filter(Boolean))]);
@@ -194,7 +195,7 @@ function Viajes() {
                 },
                 body: JSON.stringify(form)
             });
-            if (!res.ok) throw new Error("Error al crear viaje");
+            if (!res.ok) throw new Error(await motivoDelError(res, "Error al crear viaje"));
             cerrarModal();
             fetchViajes();
         } catch (err) {
