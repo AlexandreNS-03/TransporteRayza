@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import "./Embarcaciones.css";
+import { motivoDelError } from "../../../Services/api.js";
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8080";
 
@@ -40,7 +41,7 @@ function Embarcaciones() {
             const res = await fetch(`${API_BASE}/api/embarcaciones`, {
                 headers: { "Authorization": `Bearer ${token}` }
             });
-            if (!res.ok) throw new Error("Error al obtener embarcaciones");
+            if (!res.ok) throw new Error(await motivoDelError(res, "Error al obtener embarcaciones"));
             setEmbarcaciones(await res.json());
         } catch (err) {
             setError(err.message);
@@ -139,7 +140,7 @@ function Embarcaciones() {
                 })
             });
 
-            if (!res.ok) throw new Error("Error al guardar embarcación");
+            if (!res.ok) throw new Error(await motivoDelError(res, "Error al guardar embarcación"));
             cerrarModal();
             fetchEmbarcaciones();
         } catch (err) {

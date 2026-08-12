@@ -6,6 +6,7 @@ import {
 } from "recharts";
 import "./Reportes.css";
 import { guardarArchivo, CARPETAS } from "../../../Utils/descargas.js";
+import { motivoDelError } from "../../../Services/api.js";
 
 const COLORES = ["#1a4db5", "#15803d", "#a16207", "#7c3aed", "#0891b2", "#db2777"];
 
@@ -68,7 +69,10 @@ function Reportes() {
                     fetch(`${API}/embarcaciones`, { headers: authHeaders() }),
                     fetch(`${API}/encomiendas`, { headers: authHeaders() }),
                 ]);
-                if (!rVentas.ok || !rViajes.ok) throw new Error("Error al cargar los datos de reportes");
+                // Se explica cuál de las dos consultas falló: no es lo mismo que no
+                // carguen las ventas que los viajes.
+                if (!rVentas.ok) throw new Error(await motivoDelError(rVentas, "No se pudieron cargar las ventas del periodo"));
+                if (!rViajes.ok) throw new Error(await motivoDelError(rViajes, "No se pudieron cargar los viajes del periodo"));
                 setVentas(await rVentas.json());
                 setViajes(await rViajes.json());
                 setSucursales(rSucursales.ok ? await rSucursales.json() : []);

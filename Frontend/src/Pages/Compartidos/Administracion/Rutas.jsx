@@ -5,6 +5,7 @@ import {
     descargarPlantillaTarifas, leerTarifas,
     leerFilas
 } from "../../../Utils/rutasExcel";
+import { motivoDelError } from "../../../Services/api.js";
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8080";
 
@@ -59,7 +60,7 @@ function Rutas() {
             const res = await fetch(`${API_BASE}/api/rutas`, {
                 headers: { "Authorization": `Bearer ${token}` }
             });
-            if (!res.ok) throw new Error("Error al obtener rutas");
+            if (!res.ok) throw new Error(await motivoDelError(res, "Error al obtener rutas"));
             setRutas(await res.json());
         } catch (err) {
             setError(err.message);
@@ -303,7 +304,7 @@ function Rutas() {
                 body: JSON.stringify(body)
             });
 
-            if (!res.ok) throw new Error("Error al guardar ruta");
+            if (!res.ok) throw new Error(await motivoDelError(res, "Error al guardar ruta"));
             cerrarModal();
             fetchRutas();
         } catch (err) {
