@@ -18,7 +18,7 @@ export function LogoMark({ size = 42 }) {
 
 export default function Logo({ to = "/" }) {
   return (
-    <Link className="logo" to={to} aria-label="Transportes Rayza — inicio">
+    <Link className="logo" to={to} aria-label="Transportes Rayza, ir al inicio">
       <LogoMark />
       <span className="txt">
         <b>Transportes <span>Rayza</span></b>

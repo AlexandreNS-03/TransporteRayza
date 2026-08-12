@@ -305,17 +305,27 @@ header.site.scrolled::before { background: color-mix(in srgb, var(--bg) 96%, tra
 /* ---------- Hero estilo movilbus (carrusel full-bleed + buscador flotante) ---------- */
 .hero-mb { position: relative; }
 .hero-mb .carrusel { height: clamp(440px, 62vh, 620px); border-radius: 0; }
+/* El velo va donde está el texto, no repartido por igual: la foto de fondo
+   cambia con el carrusel y el titular tiene que leerse sobre todas. Uno vertical
+   solo no alcanzaba —el texto caía sobre edificios claros— así que se suma uno
+   lateral que oscurece el lado donde vive el texto y deja limpia la foto al otro
+   lado. */
 .hero-mb-overlay { position: absolute; inset: 0; z-index: 2; display: flex; align-items: center;
-  background: linear-gradient(180deg, rgba(4,22,35,.5), rgba(4,22,35,.12) 42%, rgba(4,22,35,.66)); }
+  background:
+    linear-gradient(95deg, rgba(4,22,35,.82) 0%, rgba(4,22,35,.62) 34%, rgba(4,22,35,.10) 62%, rgba(4,22,35,0) 100%),
+    linear-gradient(180deg, rgba(4,22,35,.42), rgba(4,22,35,.06) 40%, rgba(4,22,35,.58)); }
 .hero-mb-overlay .wrap { width: 100%; padding-bottom: 40px; }
 .hero-mb-eyebrow { display: inline-block; color: #fff; font-size: 13px; font-weight: 700; letter-spacing: .03em;
   background: rgba(255,255,255,.16); padding: 6px 13px; border-radius: 999px; }
-.hero-mb-overlay h1 { color: #fff; font-size: clamp(30px, 5.2vw, 56px); font-weight: 800; line-height: 1.06;
-  margin: 16px 0 0; max-width: 18ch; text-shadow: 0 2px 20px rgba(0,0,0,.4); }
+.hero-mb-overlay h1 { color: #fff; font-size: clamp(32px, 5.4vw, 60px); font-weight: 800; line-height: 1.04;
+  margin: 0; max-width: 17ch; text-shadow: 0 2px 24px rgba(2,14,24,.55), 0 1px 3px rgba(2,14,24,.4); }
 .hero-mb-overlay h1 .acento { color: #8fd6ff; }
-.hero-mb-overlay p { color: rgba(255,255,255,.92); font-size: clamp(15px, 1.6vw, 18px); line-height: 1.6;
-  margin: 14px 0 0; max-width: 46ch; text-shadow: 0 1px 12px rgba(0,0,0,.45); }
+.hero-mb-overlay p { color: rgba(255,255,255,.94); font-size: clamp(15px, 1.6vw, 18px); line-height: 1.6;
+  margin: 16px 0 0; max-width: 44ch; text-shadow: 0 1px 14px rgba(2,14,24,.6); }
 .hero-mb .carrusel-puntos { bottom: 92px; }
+/* La flecha izquierda caía encima del titular: se corren fuera del texto */
+.hero-mb .carrusel-flecha.izq { left: auto; right: 76px; }
+.hero-mb .carrusel-flecha { bottom: 104px; top: auto; transform: none; }
 .hero-mb-buscador { position: relative; z-index: 5; margin-top: -58px; }
 .hero-mb-buscador .search-tabs { display: none; }
 .hero-mb-buscador .buscador { border-radius: var(--r-lg); box-shadow: var(--sh-lg); }
@@ -1182,3 +1192,195 @@ html :is(a, button, input, select, textarea, [tabindex]):focus-visible {
 /* Los párrafos largos se cortan en una medida cómoda de leer (65–75 caracteres);
    una línea de 120 caracteres obliga a buscar dónde sigue el renglón. */
 .section p:not(.section-head p):not([class]) { max-width: 70ch; }
+
+/* ---------- Landing: jerarquía y aire ---------- */
+
+/* Los títulos ya no llevan rótulo encima, así que tienen que sostenerse solos:
+   más cuerpo, tracking cerrado y corte de línea equilibrado. */
+.section-head h2 {
+  font-size: clamp(28px, 4.4vw, 46px);
+  letter-spacing: -0.03em;
+  line-height: 1.08;
+}
+
+.section-head p { font-size: clamp(15px, 1.5vw, 17.5px); color: var(--ink-soft); }
+
+/* El titular del hero, con el mismo criterio */
+.hero-mb-overlay h1 { letter-spacing: -0.035em; text-wrap: balance; }
+.hero-mb-overlay p  { max-width: 46ch; }
+
+/* Sobre nosotros */
+.nosotros-grid {
+  display: grid;
+  grid-template-columns: 1.1fr .9fr;
+  gap: clamp(28px, 5vw, 56px);
+  align-items: center;
+}
+
+.nosotros-titulo {
+  font-size: clamp(26px, 4vw, 38px);
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  margin: 0 0 18px;
+  text-wrap: balance;
+}
+
+.nosotros-parrafo { margin-bottom: 14px; max-width: 60ch; }
+
+.nosotros-cierre {
+  margin: 0 0 28px;
+  font-size: clamp(17px, 2vw, 21px);
+  line-height: 1.4;
+  color: var(--ink);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  max-width: 26ch;
+}
+
+/* Cifras: el número manda, la etiqueta explica */
+.nosotros-cifras {
+  display: flex;
+  gap: clamp(24px, 4vw, 44px);
+  flex-wrap: wrap;
+  margin: 0;
+}
+
+.nosotros-cifras div { min-width: 0; }
+
+.nosotros-cifras dt {
+  font-family: var(--font-head);
+  font-size: clamp(30px, 4vw, 40px);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  color: var(--accent);
+}
+
+.nosotros-cifras dd {
+  margin: 6px 0 0;
+  font-size: 13.5px;
+  line-height: 1.4;
+  color: var(--ink-soft);
+  max-width: 18ch;
+}
+
+@media (max-width: 860px) {
+  .nosotros-grid { grid-template-columns: 1fr; }
+  .nosotros-grid .center { order: -1; }
+}
+
+/* ---------- Servicios: jerarquía en vez de tres cajas iguales ---------- */
+/* Tres tarjetas del mismo tamaño decían que los tres servicios pesan lo mismo.
+   El pasaje es el negocio: ocupa el doble y es el único con botón. */
+.servicios-comp {
+  display: grid;
+  grid-template-columns: 1.35fr 1fr;
+  gap: clamp(20px, 3vw, 34px);
+  align-items: stretch;
+}
+
+.servicio-principal {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+  padding: clamp(26px, 4vw, 40px);
+  border-radius: var(--r-lg);
+  background: linear-gradient(150deg, var(--brand-900, #0b3a63), var(--brand-700, #12609b));
+  color: #fff;
+  box-shadow: var(--sh-2);
+}
+
+.servicio-principal h3 {
+  margin: 0;
+  font-size: clamp(24px, 3.2vw, 34px);
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  color: #fff;
+}
+
+.servicio-principal p {
+  margin: 0;
+  color: rgba(255, 255, 255, .88);
+  font-size: clamp(15px, 1.5vw, 17px);
+  line-height: 1.6;
+  max-width: 42ch;
+}
+
+.servicio-principal .btn { margin-top: auto; }
+
+.servicios-secundarios {
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  gap: clamp(20px, 3vw, 34px);
+}
+
+/* Sin caja: una línea arriba separa, y el aire hace el resto */
+.servicio-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+
+.servicio-item h3 {
+  margin: 0;
+  font-size: clamp(19px, 2.2vw, 23px);
+  letter-spacing: -0.02em;
+}
+
+.servicio-item p { margin: 0; color: var(--ink-soft); line-height: 1.6; max-width: 44ch; }
+
+.servicio-enlace {
+  margin-top: auto;
+  align-self: flex-start;
+  font-weight: 600;
+  color: var(--accent);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color .18s var(--ease);
+}
+
+.servicio-enlace:hover { border-bottom-color: currentColor; }
+
+/* ---------- Contacto: manda lo que la gente de verdad usa ---------- */
+.contacto-comp {
+  display: grid;
+  grid-template-columns: 1.15fr .85fr;
+  gap: clamp(24px, 5vw, 60px);
+  align-items: start;
+}
+
+.contacto-etiqueta {
+  margin: 0 0 10px;
+  font-size: 13.5px;
+  color: var(--ink-soft);
+}
+
+/* El número, del tamaño que merece: en la región se llama y se escribe */
+.contacto-numero {
+  display: inline-block;
+  font-family: var(--font-head);
+  font-size: clamp(30px, 5vw, 50px);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.contacto-numero:hover { color: var(--accent); }
+
+.contacto-botones { display: flex; gap: 12px; flex-wrap: wrap; margin: 22px 0 16px; }
+.contacto-correo { margin: 0; font-size: 14px; color: var(--ink-soft); }
+.contacto-correo a { color: inherit; }
+.contacto-correo a:hover { color: var(--accent); }
+
+.contacto-oficinas .oficina + .oficina { margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--line); }
+.contacto-oficinas .oficina-punto { margin: 4px 0 0; font-size: 14px; color: var(--ink-soft); line-height: 1.55; }
+
+@media (max-width: 900px) {
+  .servicios-comp, .contacto-comp { grid-template-columns: 1fr; }
+  .servicios-secundarios { grid-template-rows: auto; }
+}
