@@ -201,32 +201,32 @@ function ManifiestoCarga() {
                                 <tbody>
                                 {encomiendas.map((e, i) => (
                                     <tr key={e.id}>
-                                        <td className="col-numero">{i + 1}</td>
-                                        <td className="codigo"><strong>{e.codigoEncomienda}</strong></td>
-                                        <td>
+                                        <td className="col-numero" data-label="#">{i + 1}</td>
+                                        <td className="codigo" data-label="Código"><strong>{e.codigoEncomienda}</strong></td>
+                                        <td data-label="Remitente">
                                             <div className="pasajero-info">
                                                 <strong>{e.remitenteNombre}</strong>
                                                 {e.remitenteTelefono && <span>{e.remitenteTelefono}</span>}
                                             </div>
                                         </td>
-                                        <td>
+                                        <td data-label="Destinatario">
                                             <div className="pasajero-info">
                                                 <strong>{e.destinatarioNombre}</strong>
                                                 {e.destinatarioTelefono && <span>{e.destinatarioTelefono}</span>}
                                             </div>
                                         </td>
-                                        <td className="col-observacion">{e.descripcion || "—"}</td>
-                                        <td>{e.peso ? `${e.peso} kg` : "—"}</td>
-                                        <td>
+                                        <td className="col-observacion" data-label="Contenido">{e.descripcion || "—"}</td>
+                                        <td data-label="Peso">{e.peso ? `${e.peso} kg` : "—"}</td>
+                                        <td data-label="Baja en">
                                             <strong>{e.paradaDestino || e.sucursalDestinoNombre || "—"}</strong>
                                         </td>
-                                        <td><strong>S/ {Number(e.precio || 0).toFixed(2)}</strong></td>
-                                        <td>
+                                        <td data-label="Precio"><strong>S/ {Number(e.precio || 0).toFixed(2)}</strong></td>
+                                        <td data-label="Pago">
                                             <span className={`badge ${e.estadoPago === "PAGADO" ? "badge-embarcado" : "badge-pendiente"}`}>
                                                 {PAGO_LABEL[e.estadoPago] || "Pagado"}
                                             </span>
                                         </td>
-                                        <td>
+                                        <td data-label="Estado">
                                             <span className={`badge ${ESTADO_BADGE[e.estado] || "badge-pendiente"}`}>
                                                 {ESTADO_LABEL[e.estado] || e.estado}
                                             </span>

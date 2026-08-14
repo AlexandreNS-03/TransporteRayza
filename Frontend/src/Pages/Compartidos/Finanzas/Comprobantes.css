@@ -33,7 +33,7 @@
 .comp-stat.monto i   { color: #15803d; background: #f0fdf4; }
 
 .comp-stat strong { display: block; font-size: 18px; color: #1e293b; }
-.comp-stat span   { font-size: 11px; color: #6b7280; }
+.comp-stat span   { font-size: 11px; color: var(--txt-3); }
 
 /* Badge de tipo boleta / factura */
 .comp-tipo {
@@ -74,7 +74,7 @@
 .comp-nota-exoneracion {
     margin: 8px 0 0;
     font-size: 11px;
-    color: #6b7280;
+    color: var(--txt-3);
     font-style: italic;
     line-height: 1.4;
 }
@@ -178,7 +178,7 @@
     flex-wrap: wrap;
 }
 
-.soporte-nota { font-size: 11.5px; color: #6b7280; max-width: 380px; }
+.soporte-nota { font-size: 11.5px; color: var(--txt-3); max-width: 380px; }
 
 .soporte-detalle {
     max-width: 320px;
@@ -211,7 +211,7 @@
 .consulta-empresa { display: flex; align-items: flex-start; gap: 8px; }
 .consulta-empresa i { font-size: 18px; color: #1a4db5; flex-shrink: 0; margin-top: 2px; }
 .consulta-empresa strong { display: block; font-size: 12.5px; color: #1e293b; }
-.consulta-empresa span { display: block; font-size: 11px; color: #6b7280; }
+.consulta-empresa span { display: block; font-size: 11px; color: var(--txt-3); }
 .consulta-estado { color: #15803d !important; font-weight: 600; }
 
 .btn-usar-empresa {
@@ -243,5 +243,5 @@
 .contacto-card.whatsapp i { color: #15803d; background: #f0fdf4; }
 .contacto-card.correo i   { color: #1a4db5; background: #eff6ff; }
 .contacto-card strong { display: block; font-size: 14px; color: #1e293b; }
-.contacto-card span   { display: block; font-size: 11.5px; color: #6b7280; }
+.contacto-card span   { display: block; font-size: 11.5px; color: var(--txt-3); }
 .contacto-card .contacto-dato { font-size: 12.5px; color: #1a4db5; font-weight: 600; margin-top: 2px; }

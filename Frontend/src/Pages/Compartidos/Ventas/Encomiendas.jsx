@@ -94,8 +94,12 @@ function Encomiendas() {
         try {
             setSucursales(await apiFetch("/api/sucursales/activas"));
             setViajes(await apiFetch("/api/viajes?estado=PROGRAMADO"));
-        } catch (err) { console.error(err); }
-        setModalCrear(true);
+            setModalCrear(true);
+        } catch (err) {
+            // Sin sucursales ni viajes los selects quedan vacíos y no se puede
+            // completar el formulario: mejor no abrirlo que abrirlo roto.
+            mostrarToast("error", err.message);
+        }
     };
 
     /** Al elegir viaje se cargan sus paradas, para poder marcar el tramo. */
@@ -108,8 +112,9 @@ function Encomiendas() {
         try {
             const ruta = await apiFetch(`/api/rutas/${viaje.rutaId}`);
             setParadas(ruta.paradas || []);
-        } catch (err) { console.error(err); }
-        finally { setCargandoParadas(false); }
+        } catch (err) {
+            mostrarToast("error", err.message);
+        } finally { setCargandoParadas(false); }
     };
 
     const elegirParada = (cual, nombre) => {

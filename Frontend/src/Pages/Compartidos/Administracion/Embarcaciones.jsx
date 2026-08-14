@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import "./Embarcaciones.css";
 import { motivoDelError } from "../../../Services/api.js";
+import { useToast, Toasts } from "../../../Components/Toast.jsx";
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8080";
 
@@ -25,6 +26,8 @@ function Embarcaciones() {
     const [embSeleccionada, setEmbSeleccionada]   = useState(null);
     const [guardando, setGuardando]               = useState(false);
     const [errorModal, setErrorModal]             = useState(null);
+
+    const { toasts, mostrarToast } = useToast();
 
     const [form, setForm] = useState({
         nombre: "", codigo: "", cantidadVip: "", cantidadNormal: "",
@@ -58,9 +61,13 @@ function Embarcaciones() {
             const res = await fetch(`${API_BASE}/api/embarcaciones/${emb.id}`, {
                 headers: { "Authorization": `Bearer ${token}` }
             });
+            if (!res.ok) throw new Error(await motivoDelError(res, "No se pudo cargar el detalle de la embarcación"));
             setEmbDetalle(await res.json());
         } catch (err) {
-            console.error(err);
+            // Igual que en Rutas: un fallo al ver una fila no debe tapar la lista
+            // completa, así que el aviso va en un toast, no en el banner de error.
+            setEmbDetalle(null);
+            mostrarToast("error", err.message);
         } finally {
             setCargandoDetalle(false);
         }
@@ -153,20 +160,21 @@ function Embarcaciones() {
     const toggleActivo = async (emb) => {
         try {
             const token = localStorage.getItem("token");
-            if (emb.activo) {
-                await fetch(`${API_BASE}/api/embarcaciones/${emb.id}`, {
+            const res = emb.activo
+                ? await fetch(`${API_BASE}/api/embarcaciones/${emb.id}`, {
                     method: "DELETE",
                     headers: { "Authorization": `Bearer ${token}` }
-                });
-            } else {
-                await fetch(`${API_BASE}/api/embarcaciones/${emb.id}`, {
+                })
+                : await fetch(`${API_BASE}/api/embarcaciones/${emb.id}`, {
                     method: "PUT",
                     headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
                     body: JSON.stringify({ ...emb, activo: true })
                 });
-            }
+            if (!res.ok) throw new Error(await motivoDelError(res, "No se pudo cambiar el estado de la embarcación"));
             fetchEmbarcaciones();
-        } catch (err) { console.error(err); }
+        } catch (err) {
+            mostrarToast("error", err.message);
+        }
     };
 
     const limpiarFiltros = () => { setBusqueda(""); setEstado("todos"); };
@@ -191,6 +199,7 @@ function Embarcaciones() {
 
     return (
         <div className="emb-page">
+            <Toasts toasts={toasts} />
 
             {/* ENCABEZADO */}
             <div className="emb-header">
@@ -277,26 +286,26 @@ function Embarcaciones() {
                             embFiltradas.map(emb => (
                                 <>
                                     <tr key={emb.id}>
-                                        <td className="codigo">{emb.id}</td>
-                                        <td><strong>{emb.nombre}</strong></td>
-                                        <td>{emb.codigo}</td>
-                                        <td>
+                                        <td className="codigo" data-label="ID">{emb.id}</td>
+                                        <td data-label="Nombre"><strong>{emb.nombre}</strong></td>
+                                        <td data-label="Código">{emb.codigo}</td>
+                                        <td data-label="VIP">
                                                 <span className="cant-badge vip">
                                                     {emb.cantidadVip} VIP
                                                 </span>
                                         </td>
-                                        <td>
+                                        <td data-label="Normal">
                                                 <span className="cant-badge normal">
                                                     {emb.cantidadNormal} Normal
                                                 </span>
                                         </td>
-                                        <td><strong>{emb.capacidadTotal}</strong></td>
-                                        <td>
+                                        <td data-label="Total"><strong>{emb.capacidadTotal}</strong></td>
+                                        <td data-label="Estado">
                                                 <span className={emb.activo ? "badge badge-activo" : "badge badge-inactivo"}>
                                                     {emb.activo ? "Activo" : "Inactivo"}
                                                 </span>
                                         </td>
-                                        <td>
+                                        <td data-label="Asientos">
                                             <button
                                                 className="btn-accion detalle"
                                                 onClick={() => verDetalle(emb)}
@@ -306,7 +315,7 @@ function Embarcaciones() {
                                             </button>
                                         </td>
                                         {esAdmin && (
-                                            <td className="acciones">
+                                            <td className="acciones" data-label="Acciones">
                                                 <button className="btn-accion editar" onClick={() => abrirModalEditar(emb)}>
                                                     <i className="ti ti-pencil"></i>
                                                 </button>
@@ -438,12 +447,12 @@ function Embarcaciones() {
                                     <button type="button"
                                             className={`comp-btn ${form.vipPosicion === "POPA" ? "activo" : ""}`}
                                             onClick={() => setForm(p => ({ ...p, vipPosicion: "POPA" }))}>
-                                        ⬇ Atrás (popa)
+                                        <i className="ti ti-arrow-down"></i> Atrás (popa)
                                     </button>
                                     <button type="button"
                                             className={`comp-btn ${form.vipPosicion === "PROA" ? "activo" : ""}`}
                                             onClick={() => setForm(p => ({ ...p, vipPosicion: "PROA" }))}>
-                                        ⬆ Adelante (proa)
+                                        <i className="ti ti-arrow-up"></i> Adelante (proa)
                                     </button>
                                 </div>
                                 <span className="form-hint">Así se dibuja el mapa de asientos al vender.</span>

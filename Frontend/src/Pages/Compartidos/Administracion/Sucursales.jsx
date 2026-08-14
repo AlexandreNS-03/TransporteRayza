@@ -248,18 +248,18 @@ function Sucursales() {
                         ) : (
                             sucursalesFiltradas.map(s => (
                                 <tr key={s.id}>
-                                    <td className="codigo">{s.id}</td>
-                                    <td><strong>{s.nombre}</strong></td>
-                                    <td>{s.ciudad}</td>
-                                    <td>{s.direccion || "—"}</td>
-                                    <td>{s.telefono || "—"}</td>
-                                    <td>
+                                    <td className="codigo" data-label="ID">{s.id}</td>
+                                    <td data-label="Nombre"><strong>{s.nombre}</strong></td>
+                                    <td data-label="Ciudad">{s.ciudad}</td>
+                                    <td data-label="Dirección">{s.direccion || "—"}</td>
+                                    <td data-label="Teléfono">{s.telefono || "—"}</td>
+                                    <td data-label="Estado">
                                             <span className={s.activo ? "badge badge-activo" : "badge badge-inactivo"}>
                                                 {s.activo ? "Activo" : "Inactivo"}
                                             </span>
                                     </td>
                                     {esAdmin && (
-                                        <td className="acciones">
+                                        <td className="acciones" data-label="Acciones">
                                             <button
                                                 className="btn-accion editar"
                                                 onClick={() => abrirModalEditar(s)}

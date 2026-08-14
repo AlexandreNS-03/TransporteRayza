@@ -830,7 +830,7 @@ function Reportes() {
                                     donde se registró el envío.
                                 </p>
                                 {cobrosPendientes.length === 0 ? (
-                                    <div className="sin-datos">No hay cobros pendientes en el rango seleccionado 🎉</div>
+                                    <div className="sin-datos"><i className="ti ti-circle-check"></i> No hay cobros pendientes en el rango seleccionado</div>
                                 ) : (
                                     <div className="tabla-wrapper">
                                         <table className="reportes-tabla">

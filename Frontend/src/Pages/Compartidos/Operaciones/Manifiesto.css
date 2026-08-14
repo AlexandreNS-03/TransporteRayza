@@ -20,7 +20,7 @@
 
 .manifiesto-header p {
     font-size: 13px;
-    color: #6b7280;
+    color: var(--txt-3);
     margin: 2px 0 0;
 }
 
@@ -61,7 +61,7 @@
 
 .control-grupo label {
     font-size: 11px;
-    color: #6b7280;
+    color: var(--txt-3);
     font-weight: 500;
 }
 
@@ -160,7 +160,7 @@
 .resumen-label {
     display: block;
     font-size: 12px;
-    color: #6b7280;
+    color: var(--txt-3);
     font-weight: 500;
 }
 
@@ -189,7 +189,7 @@
     font-size: 11px;
     text-transform: uppercase;
     letter-spacing: 0.03em;
-    color: #6b7280;
+    color: var(--txt-3);
     font-weight: 600;
     padding: 12px 14px;
     background: #f8fafc;
@@ -221,7 +221,7 @@
     align-items: center;
     gap: 6px;
     font-size: 12px;
-    color: #6b7280;
+    color: var(--txt-3);
 }
 
 .tramo-info i { font-size: 12px; color: var(--txt-3); }
