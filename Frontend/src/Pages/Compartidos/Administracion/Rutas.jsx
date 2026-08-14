@@ -6,6 +6,7 @@ import {
     leerFilas
 } from "../../../Utils/rutasExcel";
 import { motivoDelError } from "../../../Services/api.js";
+import { useToast, Toasts } from "../../../Components/Toast.jsx";
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8080";
 
@@ -33,6 +34,8 @@ function Rutas() {
     const [guardando, setGuardando]           = useState(false);
     const [errorModal, setErrorModal]         = useState(null);
     const [sucursales, setSucursales]         = useState([]);
+
+    const { toasts, mostrarToast } = useToast();
 
     // Form principal
     const [form, setForm] = useState({
@@ -80,9 +83,15 @@ function Rutas() {
             const res = await fetch(`${API_BASE}/api/rutas/${ruta.id}`, {
                 headers: { "Authorization": `Bearer ${token}` }
             });
+            if (!res.ok) throw new Error(await motivoDelError(res, "No se pudo cargar el detalle de la ruta"));
             setRutaDetalle(await res.json());
         } catch (err) {
-            console.error(err);
+            // Sin el detalle no se expande la fila: mejor no mostrar nada que
+            // mostrar paradas y tarifas vacías como si la ruta no las tuviera.
+            // El aviso va en un toast, no en el banner de la lista: un fallo al
+            // ver el detalle de UNA fila no debe tapar toda la tabla de rutas.
+            setRutaDetalle(null);
+            mostrarToast("error", err.message);
         } finally {
             setCargandoDetalle(false);
         }
@@ -98,8 +107,14 @@ function Rutas() {
         setModoEditar(false);
         setRutaSeleccionada(null);
         setErrorModal(null);
-        await cargarSucursales();
-        setModalAbierto(true);
+        try {
+            await cargarSucursales();
+            setModalAbierto(true);
+        } catch (err) {
+            // Sin sucursales no hay a quién asignar la ruta: se avisa en vez de
+            // abrir un formulario que no se puede completar.
+            mostrarToast("error", err.message);
+        }
     };
 
     const abrirModalEditar = async (r) => {
@@ -113,31 +128,37 @@ function Rutas() {
             activo: r.activo
         });
 
-        // Cargar detalle para tener paradas y tarifas
-        const token = localStorage.getItem("token");
-        const res = await fetch(`${API_BASE}/api/rutas/${r.id}`, {
-            headers: { "Authorization": `Bearer ${token}` }
-        });
-        const detalle = await res.json();
-
-        setParadas(detalle.paradas?.length > 0
-            ? detalle.paradas.map(p => ({ nombre: p.nombre, orden: p.orden, minutosDesdeSalida: p.minutosDesdeSalida ?? "" }))
-            : [{ nombre: "", orden: 1, minutosDesdeSalida: 0 }]
-        );
-        setTarifas(detalle.tarifas?.length > 0
-            ? detalle.tarifas.map(t => ({
-                origenTramo: t.origenTramo, destinoTramo: t.destinoTramo,
-                ordenOrigen: t.ordenOrigen, ordenDestino: t.ordenDestino,
-                precioNormal: t.precioNormal, precioVip: t.precioVip
-            }))
-            : [{ origenTramo: "", destinoTramo: "", ordenOrigen: "", ordenDestino: "", precioNormal: "", precioVip: "" }]
-        );
-
-        setModoEditar(true);
-        setRutaSeleccionada(r);
         setErrorModal(null);
-        await cargarSucursales();
-        setModalAbierto(true);
+        try {
+            // Cargar detalle para tener paradas y tarifas
+            const token = localStorage.getItem("token");
+            const res = await fetch(`${API_BASE}/api/rutas/${r.id}`, {
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+            if (!res.ok) throw new Error(await motivoDelError(res, "No se pudo cargar el detalle de la ruta"));
+            const detalle = await res.json();
+
+            setParadas(detalle.paradas?.length > 0
+                ? detalle.paradas.map(p => ({ nombre: p.nombre, orden: p.orden, minutosDesdeSalida: p.minutosDesdeSalida ?? "" }))
+                : [{ nombre: "", orden: 1, minutosDesdeSalida: 0 }]
+            );
+            setTarifas(detalle.tarifas?.length > 0
+                ? detalle.tarifas.map(t => ({
+                    origenTramo: t.origenTramo, destinoTramo: t.destinoTramo,
+                    ordenOrigen: t.ordenOrigen, ordenDestino: t.ordenDestino,
+                    precioNormal: t.precioNormal, precioVip: t.precioVip
+                }))
+                : [{ origenTramo: "", destinoTramo: "", ordenOrigen: "", ordenDestino: "", precioNormal: "", precioVip: "" }]
+            );
+
+            setModoEditar(true);
+            setRutaSeleccionada(r);
+            await cargarSucursales();
+            setModalAbierto(true);
+        } catch (err) {
+            // No se abre el modal a medias: sin el detalle no hay qué editar.
+            mostrarToast("error", err.message);
+        }
     };
 
     const cargarSucursales = async () => {
@@ -145,6 +166,7 @@ function Rutas() {
         const res = await fetch(`${API_BASE}/api/sucursales/activas`, {
             headers: { "Authorization": `Bearer ${token}` }
         });
+        if (!res.ok) throw new Error(await motivoDelError(res, "No se pudieron cargar las sucursales"));
         setSucursales(await res.json());
     };
 
@@ -317,20 +339,21 @@ function Rutas() {
     const toggleActivo = async (r) => {
         try {
             const token = localStorage.getItem("token");
-            if (r.activo) {
-                await fetch(`${API_BASE}/api/rutas/${r.id}`, {
+            const res = r.activo
+                ? await fetch(`${API_BASE}/api/rutas/${r.id}`, {
                     method: "DELETE",
                     headers: { "Authorization": `Bearer ${token}` }
-                });
-            } else {
-                await fetch(`${API_BASE}/api/rutas/${r.id}`, {
+                })
+                : await fetch(`${API_BASE}/api/rutas/${r.id}`, {
                     method: "PUT",
                     headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
                     body: JSON.stringify({ ...r, activo: true })
                 });
-            }
+            if (!res.ok) throw new Error(await motivoDelError(res, "No se pudo cambiar el estado de la ruta"));
             fetchRutas();
-        } catch (err) { console.error(err); }
+        } catch (err) {
+            mostrarToast("error", err.message);
+        }
     };
 
     const limpiarFiltros = () => { setBusqueda(""); setEstado("todos"); };
@@ -345,6 +368,7 @@ function Rutas() {
 
     return (
         <div className="rutas-page">
+            <Toasts toasts={toasts} />
 
             {/* ENCABEZADO */}
             <div className="rutas-header">
@@ -432,19 +456,19 @@ function Rutas() {
                             rutasFiltradas.map(r => (
                                 <>
                                     <tr key={r.id}>
-                                        <td className="codigo">{r.id}</td>
-                                        <td><strong>{r.origen}</strong></td>
-                                        <td><strong>{r.destino}</strong></td>
-                                        <td>{r.sucursalAdministradoraNombre || "—"}</td>
-                                        <td>S/ {r.precioNormal}</td>
-                                        <td>S/ {r.precioVip}</td>
-                                        <td>{r.duracionAproximada || "—"}</td>
-                                        <td>
+                                        <td className="codigo" data-label="ID">{r.id}</td>
+                                        <td data-label="Origen"><strong>{r.origen}</strong></td>
+                                        <td data-label="Destino"><strong>{r.destino}</strong></td>
+                                        <td data-label="Sucursal">{r.sucursalAdministradoraNombre || "—"}</td>
+                                        <td data-label="Precio Normal">S/ {r.precioNormal}</td>
+                                        <td data-label="Precio VIP">S/ {r.precioVip}</td>
+                                        <td data-label="Duración">{r.duracionAproximada || "—"}</td>
+                                        <td data-label="Estado">
                                                 <span className={r.activo ? "badge badge-activo" : "badge badge-inactivo"}>
                                                     {r.activo ? "Activo" : "Inactivo"}
                                                 </span>
                                         </td>
-                                        <td>
+                                        <td data-label="Detalle">
                                             <button
                                                 className="btn-accion detalle"
                                                 onClick={() => verDetalle(r)}
@@ -454,7 +478,7 @@ function Rutas() {
                                             </button>
                                         </td>
                                         {esAdmin && (
-                                            <td className="acciones">
+                                            <td className="acciones" data-label="Acciones">
                                                 <button className="btn-accion editar" onClick={() => abrirModalEditar(r)}>
                                                     <i className="ti ti-pencil"></i>
                                                 </button>

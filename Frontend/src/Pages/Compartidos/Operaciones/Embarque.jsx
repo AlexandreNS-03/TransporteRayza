@@ -49,9 +49,12 @@ function Embarque() {
             const res = await fetch(`${API_BASE}/api/viajes?estado=PROGRAMADO,EN_CURSO`, {
                 headers: { "Authorization": `Bearer ${token}` }
             });
+            if (!res.ok) throw new Error(await motivoDelError(res, "No se pudo cargar la lista de viajes"));
             setViajes(await res.json());
         } catch (err) {
-            console.error(err);
+            // Sin viajes cargados el selector queda vacío: se avisa, porque si no
+            // parece que simplemente no hay viajes programados.
+            setToast({ tipo: "error", mensaje: err.message });
         } finally {
             setCargandoViajes(false);
         }

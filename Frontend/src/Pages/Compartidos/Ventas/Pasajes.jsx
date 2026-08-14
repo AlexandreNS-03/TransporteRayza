@@ -51,7 +51,7 @@ function Pasajes() {
     const usuario      = JSON.parse(localStorage.getItem("usuario"));
     const esAdmin      = usuario?.rol === "ADMIN";
     const esSupervisor = usuario?.rol === "SUPERVISOR";
-    const esEmpleado = usuario.rol === "EMPLEADO";
+    const esEmpleado = usuario?.rol === "EMPLEADO";
     const puedeVender  = esAdmin || esSupervisor || esEmpleado;
     const { toasts, mostrarToast } = useToast();
 
@@ -91,6 +91,10 @@ function Pasajes() {
     const [modalAbierto, setModal]    = useState(false);
     const [paso, setPaso]             = useState(1);
     const [guardando, setGuardando]   = useState(false);
+    // Evita el doble toque en tablet: sin esto, dos toques seguidos en "Siguiente"
+    // disparan dos tandas de peticiones (asientos/tarifa) que pueden llegar
+    // desordenadas y dejar en pantalla datos de la petición vieja.
+    const [avanzando, setAvanzando]   = useState(false);
     const [errorModal, setErrorModal] = useState(null);
     const [consultandoDni, setConsultandoDni] = useState(null);   // índice del pasajero consultado
 
@@ -176,6 +180,7 @@ function Pasajes() {
     const resetForm = () => {
         setPaso(1);
         setErrorModal(null);
+        setAvanzando(false);
         setParadas([]);
         setAsientos([]);
         setTarifa(null);
@@ -217,12 +222,14 @@ function Pasajes() {
     const confirmarViaje = async () => {
         if (!form.viajeId) { setErrorModal("Selecciona un viaje"); return; }
         const viaje = viajes.find(v => v.id === form.viajeId);
+        setAvanzando(true);
         try {
             const data = await apiFetch(`/api/rutas/${viaje.rutaId}`);
             setParadas(data.paradas || []);
             setErrorModal(null);
             setPaso(2);
-        } catch (err) { setErrorModal("Error al cargar paradas del viaje"); }
+        } catch (err) { setErrorModal(err.message || "Error al cargar paradas del viaje"); }
+        finally { setAvanzando(false); }
     };
 
     // ── Pasajeros ──
@@ -282,6 +289,7 @@ function Pasajes() {
             return;
         }
         const viaje = viajes.find(v => v.id === form.viajeId);
+        setAvanzando(true);
         try {
             const todosAsientos = await apiFetch(`/api/viajes/${form.viajeId}/asientos`);
 
@@ -303,7 +311,8 @@ function Pasajes() {
             setTarifa(t);
             setErrorModal(null);
             setPaso(4);
-        } catch (err) { setErrorModal("Error al cargar asientos o tarifas"); }
+        } catch (err) { setErrorModal(err.message || "Error al cargar asientos o tarifas"); }
+        finally { setAvanzando(false); }
     };
 
     // ── PASO 4: seleccionar asientos (uno por pasajero) ──
@@ -1290,13 +1299,15 @@ function Pasajes() {
                                 </button>
                             )}
                             {paso < 5 && (
-                                <button className="btn-guardar" onClick={
+                                <button className="btn-guardar" disabled={avanzando} onClick={
                                     paso === 1 ? confirmarViaje :
                                         paso === 2 ? confirmarPasajero :
                                             paso === 3 ? confirmarTramo :
                                                 confirmarAsiento
                                 }>
-                                    Siguiente <i className="ti ti-arrow-right"></i>
+                                    {avanzando
+                                        ? <><i className="ti ti-loader-2 spin"></i> Cargando...</>
+                                        : <>Siguiente <i className="ti ti-arrow-right"></i></>}
                                 </button>
                             )}
                             {paso === 5 && (

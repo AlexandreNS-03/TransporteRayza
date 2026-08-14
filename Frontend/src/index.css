@@ -259,7 +259,7 @@ html :is(button, a, input, select, textarea, [tabindex]):focus-visible {
     font-size: 18px;
   }
 
-  html .acciones-cell { gap: 10px; }
+  html .acciones-cell, html .acciones, html .parada-btns { gap: 10px; }
 
   /* Lo mismo para el resto de controles: alto cómodo de tocar */
   .btn-nuevo, .btn-guardar, .btn-cancelar, .btn-limpiar,
@@ -269,7 +269,9 @@ html :is(button, a, input, select, textarea, [tabindex]):focus-visible {
   }
 
   /* Las filas de las tablas, algo más altas: se acierta mejor al tocar */
-  .pasajes-tabla td, .viajes-tabla td, .reportes-tabla td { padding-top: 12px; padding-bottom: 12px; }
+  .pasajes-tabla td, .viajes-tabla td, .reportes-tabla td,
+  .rutas-tabla td, .sucursales-tabla td, .emb-tabla td,
+  .roles-tabla td, .manifiesto-tabla td { padding-top: 12px; padding-bottom: 12px; }
 }
 
 /* En una tablet apaisada (1024px) el menú lateral se quedaba abierto comiéndose
@@ -305,3 +307,81 @@ html :is(button, a, input, select, textarea, [tabindex]):focus-visible {
 .tabla-vacia .btn-nuevo,
 .tabla-vacia .btn-limpiar,
 .viajes-vacio .btn-nuevo { display: inline-flex; }
+
+/* ══════════ Tablas → tarjetas en móvil ══════════
+   Mismo patrón que .pasajes-tabla (Pasajes.css), compartido aquí para no
+   duplicarlo en Rutas, Sucursales, Embarcaciones, Roles y Manifiesto. */
+@media (max-width: 720px) {
+  .rutas-tabla-wrapper, .sucursales-tabla-wrapper, .emb-tabla-wrapper,
+  .roles-tabla-wrapper, .manifiesto-tabla-wrapper {
+    border: none; background: transparent; overflow: visible;
+  }
+  .rutas-tabla thead, .sucursales-tabla thead, .emb-tabla thead,
+  .roles-tabla thead, .manifiesto-tabla thead { display: none; }
+
+  .rutas-tabla, .rutas-tabla tbody, .rutas-tabla tr, .rutas-tabla td,
+  .sucursales-tabla, .sucursales-tabla tbody, .sucursales-tabla tr, .sucursales-tabla td,
+  .emb-tabla, .emb-tabla tbody, .emb-tabla tr, .emb-tabla td,
+  .roles-tabla, .roles-tabla tbody, .roles-tabla tr, .roles-tabla td,
+  .manifiesto-tabla, .manifiesto-tabla tbody, .manifiesto-tabla tr, .manifiesto-tabla td {
+    display: block; width: 100%;
+  }
+
+  .rutas-tabla tr, .sucursales-tabla tr, .emb-tabla tr, .roles-tabla tr, .manifiesto-tabla tr {
+    margin-bottom: 12px;
+    border: 1px solid var(--color-borde, #e2e8f0);
+    border-radius: var(--radio-md, 10px);
+    background: var(--color-blanco, #fff);
+    box-shadow: var(--sombra-sm, 0 1px 3px rgba(0, 0, 0, .06));
+    overflow: hidden;
+  }
+  .rutas-tabla tbody tr:hover, .sucursales-tabla tbody tr:hover, .emb-tabla tbody tr:hover,
+  .roles-tabla tbody tr:hover, .manifiesto-tabla tbody tr:hover { background: var(--color-blanco, #fff); }
+
+  .rutas-tabla td, .sucursales-tabla td, .emb-tabla td, .roles-tabla td, .manifiesto-tabla td {
+    display: flex; justify-content: space-between; align-items: center;
+    gap: 14px; padding: 10px 14px; border: none; border-bottom: 1px solid #f1f5f9;
+    text-align: right;
+  }
+  .rutas-tabla tr td:last-child, .sucursales-tabla tr td:last-child, .emb-tabla tr td:last-child,
+  .roles-tabla tr td:last-child, .manifiesto-tabla tr td:last-child { border-bottom: none; }
+
+  .rutas-tabla td::before, .sucursales-tabla td::before, .emb-tabla td::before,
+  .roles-tabla td::before, .manifiesto-tabla td::before {
+    content: attr(data-label); font-weight: 600; color: var(--color-texto-suave, #64748b);
+    font-size: 11px; text-transform: uppercase; letter-spacing: .3px; text-align: left; flex-shrink: 0;
+  }
+
+  .rutas-tabla td.acciones, .rutas-tabla td.acciones-cell,
+  .sucursales-tabla td.acciones, .sucursales-tabla td.acciones-cell,
+  .emb-tabla td.acciones, .emb-tabla td.acciones-cell,
+  .roles-tabla td.acciones, .roles-tabla td.acciones-cell,
+  .manifiesto-tabla td.acciones, .manifiesto-tabla td.acciones-cell {
+    justify-content: flex-end; flex-wrap: wrap; background: #f8fafc;
+  }
+  .rutas-tabla td.acciones::before, .rutas-tabla td.acciones-cell::before,
+  .sucursales-tabla td.acciones::before, .sucursales-tabla td.acciones-cell::before,
+  .emb-tabla td.acciones::before, .emb-tabla td.acciones-cell::before,
+  .roles-tabla td.acciones::before, .roles-tabla td.acciones-cell::before,
+  .manifiesto-tabla td.acciones::before, .manifiesto-tabla td.acciones-cell::before {
+    content: "Acciones";
+  }
+
+  .rutas-tabla td.tabla-vacia, .sucursales-tabla td.tabla-vacia, .emb-tabla td.tabla-vacia,
+  .roles-tabla td.tabla-vacia, .manifiesto-tabla td.tabla-vacia { justify-content: center; }
+  .rutas-tabla td.tabla-vacia::before, .sucursales-tabla td.tabla-vacia::before, .emb-tabla td.tabla-vacia::before,
+  .roles-tabla td.tabla-vacia::before, .manifiesto-tabla td.tabla-vacia::before { display: none; }
+
+  /* Las filas de detalle expandible (paradas/tarifas en Rutas, asientos en
+     Embarcaciones) no son filas de datos: se dejan como bloque simple en vez
+     de heredar el layout de tarjeta. */
+  .rutas-tabla tr.fila-detalle, .rutas-tabla tr.fila-detalle td,
+  .emb-tabla tr.fila-detalle, .emb-tabla tr.fila-detalle td { display: block; padding: 12px 14px; }
+  .rutas-tabla tr.fila-detalle td::before, .emb-tabla tr.fila-detalle td::before { content: none; }
+
+  /* Celdas de Roles que ya traen su propio contenido en fila (avatar+nombre,
+     badge+select): se alinean al lado del valor, como .pasajero-info en Pasajes. */
+  .roles-tabla td .usuario-info, .roles-tabla td .rol-selector { flex-direction: row-reverse; }
+
+  .manifiesto-tabla td .pasajero-info, .manifiesto-tabla td .tramo-info { align-items: flex-end; }
+}

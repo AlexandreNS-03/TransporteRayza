@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, Outlet, NavLink } from "react-router-dom";
-import "./EmpleadoDashboard.css";
+import "../../Components/DashboardLayout.css";
 import AvisoComprobantes from "../../Components/AvisoComprobantes.jsx";
 
 function EmpleadoDashboard() {

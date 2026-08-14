@@ -265,28 +265,28 @@ function Manifiesto() {
                                 <tbody>
                                 {pasajerosOrdenados.map((p, i) => (
                                     <tr key={p.id}>
-                                        <td className="col-numero">{i + 1}</td>
-                                        <td><strong>{p.pasajeroNombre}</strong></td>
-                                        <td>{p.tipoDocumento}: {p.pasajeroDocumento}</td>
-                                        <td>{p.edad ?? "—"}</td>
-                                        <td>{p.sexo || "—"}</td>
-                                        <td>{p.procedencia || "—"}</td>
-                                        <td>{p.pasajeroTelefono || "—"}</td>
-                                        <td>
+                                        <td className="col-numero" data-label="#">{i + 1}</td>
+                                        <td data-label="Nombre Completo"><strong>{p.pasajeroNombre}</strong></td>
+                                        <td data-label="Documento">{p.tipoDocumento}: {p.pasajeroDocumento}</td>
+                                        <td data-label="Edad">{p.edad ?? "—"}</td>
+                                        <td data-label="Sexo">{p.sexo || "—"}</td>
+                                        <td data-label="Procedencia">{p.procedencia || "—"}</td>
+                                        <td data-label="Teléfono">{p.pasajeroTelefono || "—"}</td>
+                                        <td data-label="Tramo">
                                             <div className="tramo-info">
                                                 <span>{p.paradaOrigen}</span>
                                                 <i className="ti ti-arrow-right"></i>
                                                 <span>{p.paradaDestino}</span>
                                             </div>
                                         </td>
-                                        <td>
+                                        <td data-label="Asiento">
                                             <span className={`asiento-tipo ${p.asientoTipo?.toLowerCase()}`}>
                                                 {p.asientoTipo}
                                             </span>
                                             <strong> #{p.asientoNumero}</strong>
                                         </td>
-                                        <td className="col-observacion">{p.observacion || "—"}</td>
-                                        <td>
+                                        <td className="col-observacion" data-label="Observación">{p.observacion || "—"}</td>
+                                        <td data-label="Estado">
                                             <span className={`badge ${p.embarqueEstado === "EMBARCADO" ? "badge-embarcado" : "badge-pendiente"}`}>
                                                 {p.embarqueEstado === "EMBARCADO" ? "Embarcado" : "Pendiente"}
                                             </span>

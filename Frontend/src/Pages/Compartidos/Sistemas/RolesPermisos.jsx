@@ -270,7 +270,7 @@ function Roles() {
                         ) : (
                             usuariosFiltrados.map(u => (
                                 <tr key={u.id} className={!u.activo ? "fila-inactiva" : ""}>
-                                    <td>
+                                    <td data-label="Usuario">
                                         <div className="usuario-info">
                                             <div className="usuario-avatar">{iniciales(u.nombre)}</div>
                                             <div className="usuario-info-texto">
@@ -279,10 +279,10 @@ function Roles() {
                                             </div>
                                         </div>
                                     </td>
-                                    <td>
+                                    <td data-label="Contacto">
                                         <span className="usuario-email">{u.email || "—"}</span>
                                     </td>
-                                    <td>
+                                    <td data-label="Rol">
                                         <div className="rol-selector">
                                             <span className={badgeRol(u.rol)}>{ROL_LABEL[u.rol] || u.rol}</span>
                                             <select
@@ -296,7 +296,7 @@ function Roles() {
                                             </select>
                                         </div>
                                     </td>
-                                    <td>
+                                    <td data-label="Sucursal">
                                         <select
                                             className="sucursal-select"
                                             value={u.sucursalId || ""}
@@ -310,7 +310,7 @@ function Roles() {
                                             ))}
                                         </select>
                                     </td>
-                                    <td>
+                                    <td data-label="Estado">
                                         <button
                                             className={`estado-toggle ${u.activo ? "activo" : "inactivo"}`}
                                             onClick={() => toggleActivo(u)}
@@ -321,12 +321,12 @@ function Roles() {
                                             {u.activo ? "Activo" : "Inactivo"}
                                         </button>
                                     </td>
-                                    <td className="usuario-fecha">
+                                    <td className="usuario-fecha" data-label="Último acceso">
                                         {u.ultimoLogin ? new Date(u.ultimoLogin).toLocaleString("es-PE", {
                                             day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit"
                                         }) : "Nunca"}
                                     </td>
-                                    <td className="acciones-cell">
+                                    <td className="acciones-cell" data-label="Acciones">
                                         <button
                                             className="btn-accion password"
                                             onClick={() => abrirModalReset(u)}

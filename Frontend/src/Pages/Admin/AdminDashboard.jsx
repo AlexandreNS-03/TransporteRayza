@@ -1,6 +1,7 @@
 import { useState } from "react";
 import {NavLink, Outlet, useNavigate} from "react-router-dom";
 import AvisoComprobantes from "../../Components/AvisoComprobantes.jsx";
+import "../../Components/DashboardLayout.css";
 
 function AdminDashboard() {
     const navigate = useNavigate();
