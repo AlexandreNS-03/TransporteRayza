@@ -447,12 +447,12 @@ function Embarcaciones() {
                                     <button type="button"
                                             className={`comp-btn ${form.vipPosicion === "POPA" ? "activo" : ""}`}
                                             onClick={() => setForm(p => ({ ...p, vipPosicion: "POPA" }))}>
-                                        ⬇ Atrás (popa)
+                                        <i className="ti ti-arrow-down"></i> Atrás (popa)
                                     </button>
                                     <button type="button"
                                             className={`comp-btn ${form.vipPosicion === "PROA" ? "activo" : ""}`}
                                             onClick={() => setForm(p => ({ ...p, vipPosicion: "PROA" }))}>
-                                        ⬆ Adelante (proa)
+                                        <i className="ti ti-arrow-up"></i> Adelante (proa)
                                     </button>
                                 </div>
                                 <span className="form-hint">Así se dibuja el mapa de asientos al vender.</span>

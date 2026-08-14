@@ -436,7 +436,7 @@ function Dashboard() {
                             data.ultimasVentas.map((v, i) => (
                                 <div key={i} className="venta-item">
                                     <div className={`venta-tipo ${v.asientoTipo?.toLowerCase()}`}>
-                                        {v.asientoTipo === "VIP" ? "⭐" : "💺"}
+                                        <i className={`ti ${v.asientoTipo === "VIP" ? "ti-star" : "ti-armchair"}`}></i>
                                     </div>
                                     <div className="venta-item-info">
                                         <strong>{v.pasajeroNombre}</strong>

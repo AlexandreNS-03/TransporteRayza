@@ -562,7 +562,9 @@ function Pasajes() {
 
         const esVip   = tipo === "VIP";
         const precio  = esVip ? tarifa?.precioVip : tarifa?.precioNormal;
-        const etiqueta = esVip ? "⭐ VIP" : "💺 Normal";
+        const etiqueta = esVip
+            ? <><i className="ti ti-star"></i> VIP</>
+            : <><i className="ti ti-armchair"></i> Normal</>;
 
         const boton = (a) => {
             // Al vender para varias personas, el asiento muestra a qué pasajero le tocó.
@@ -1103,7 +1105,7 @@ function Pasajes() {
                                         <div className="ley-item"><div className="ley-box ley-sel"></div> Seleccionado</div>
                                     </div>
 
-                                    <div className="proa-label">⬆ proa (adelante)</div>
+                                    <div className="proa-label"><i className="ti ti-arrow-up"></i> proa (adelante)</div>
 
                                     <div className="barco-contenedor">
 
@@ -1128,7 +1130,7 @@ function Pasajes() {
                                         </div>
                                     </div>
 
-                                    <div className="popa-label">⬇ popa (atrás)</div>
+                                    <div className="popa-label"><i className="ti ti-arrow-down"></i> popa (atrás)</div>
 
                                     {elegidos.length > 0 && (
                                         <div className="asiento-seleccionado-info">
