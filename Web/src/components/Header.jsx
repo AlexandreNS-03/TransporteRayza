@@ -96,8 +96,18 @@ export default function Header() {
           <div className="nav-actions">
             <ThemeToggle />
             {logueado ? (
-              <Link className="btn btn-ghost" to="/mi-cuenta">
-                {cliente?.nombres ? `Hola, ${cliente.nombres.split(" ")[0]}` : "Mi cuenta"}
+              <Link
+                className="btn btn-ghost btn-cuenta"
+                to="/mi-cuenta"
+                aria-label={cliente?.nombres ? `Hola, ${cliente.nombres.split(" ")[0]}` : "Mi cuenta"}
+              >
+                <svg className="btn-cuenta-ico" width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="1.8"/>
+                  <path d="M4 20c1.5-4 5-6 8-6s6.5 2 8 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+                </svg>
+                <span className="btn-cuenta-texto">
+                  {cliente?.nombres ? `Hola, ${cliente.nombres.split(" ")[0]}` : "Mi cuenta"}
+                </span>
               </Link>
             ) : (
               <Link className="btn btn-ghost hide-sm" to="/ingresar">Ingresar</Link>

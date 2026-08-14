@@ -33,7 +33,7 @@ export default function Servicios() {
         <div className="wrap">
           <div className="cards">
             {SERVICIOS.map((s, i) => (
-              <Reveal className="card hoverable" delay={(i % 3) + 1} key={s.t}>
+              <Reveal className={`card hoverable${i === 0 ? " card-destacada" : ""}`} delay={(i % 3) + 1} key={s.t}>
                 <div className="icon" style={{ fontSize: 26 }}>{s.ic}</div>
                 <h3 style={{ fontSize: 20 }}>{s.t}</h3>
                 <p className="muted">{s.d}</p>
@@ -48,7 +48,6 @@ export default function Servicios() {
 
       <section className="section section-alt">
         <div className="wrap center" style={{ maxWidth: "min(720px, 100%)" }}>
-          <div className="kicker">Antes de viajar</div>
           <h2 style={{ fontSize: "clamp(24px,4vw,34px)", margin: "10px 0 14px" }}>Conoce las condiciones del viaje</h2>
           <p className="muted">Equipaje, horarios de embarque, cambios y devoluciones: todo está en nuestras cláusulas.</p>
           <Link className="btn btn-ghost" to="/clausulas" style={{ marginTop: 18 }}>Ver cláusulas del viaje</Link>

@@ -56,7 +56,8 @@
 }
 
 .rastreo-tab {
-    flex: 1;
+    flex: 1 1 0;
+    min-width: 0;
     height: 44px;
     border: none;
     background: transparent;
@@ -67,8 +68,10 @@
     align-items: center;
     justify-content: center;
     gap: 6px;
+    padding: 0 6px;
+    text-align: center;
     border-bottom: 2px solid transparent;
-    transition: all 0.15s;
+    transition: color 0.15s, background 0.15s, border-color 0.15s;
 }
 
 .rastreo-tab:hover { color: #1a4db5; }

@@ -191,7 +191,7 @@ export default function Comprar() {
   };
 
   useEffect(() => {
-    if (paso === 3 && !metodos) metodosDePago().then(setMetodos).catch(() => {});
+    if (paso === 3 && !metodos) metodosDePago().then(setMetodos).catch((e) => console.warn("[Comprar] no se pudo cargar métodos de pago:", e));
   }, [paso, metodos]);
 
   /**
@@ -299,7 +299,6 @@ export default function Comprar() {
       <section className="section">
         <div className="wrap">
           <div className="section-head" style={{ marginBottom: 8 }}>
-            <div className="kicker">Compra de pasajes</div>
             <h2>Reserva tu viaje{esRedondo ? " (ida y vuelta)" : ""}</h2>
           </div>
 

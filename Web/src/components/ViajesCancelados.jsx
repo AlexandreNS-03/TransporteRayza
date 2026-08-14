@@ -12,6 +12,7 @@ export default function ViajesCancelados() {
   const [movs, setMovs] = useState([]);
   const [pendientes, setPendientes] = useState([]);
   const [cargando, setCargando] = useState(true);
+  const [errorCarga, setErrorCarga] = useState(false);
 
   // Cambio de fecha
   const [eligiendo, setEligiendo] = useState(null);
@@ -24,11 +25,17 @@ export default function ViajesCancelados() {
 
   const cargar = async () => {
     setCargando(true);
-    const [s, p] = await Promise.all([getSaldo(), getPorResolver()]);
-    setSaldo(Number(s?.saldo) || 0);
-    setMovs(s?.movimientos || []);
-    setPendientes(p || []);
-    setCargando(false);
+    setErrorCarga(false);
+    try {
+      const [s, p] = await Promise.all([getSaldo(), getPorResolver()]);
+      setSaldo(Number(s?.saldo) || 0);
+      setMovs(s?.movimientos || []);
+      setPendientes(p || []);
+    } catch {
+      setErrorCarga(true);
+    } finally {
+      setCargando(false);
+    }
   };
 
   const abrirOpciones = async (v) => {
@@ -66,6 +73,14 @@ export default function ViajesCancelados() {
   };
 
   if (cargando) return <p className="vc-cargando">Cargando…</p>;
+  if (errorCarga) {
+    return (
+      <div className="vc-aviso error">
+        No pudimos cargar tu saldo ni tus viajes cancelados.
+        <button className="vc-reintentar" onClick={cargar}>Reintentar</button>
+      </div>
+    );
+  }
   if (saldo <= 0 && pendientes.length === 0) return null;
 
   return (

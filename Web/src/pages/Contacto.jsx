@@ -61,7 +61,6 @@ export default function Contacto() {
       <section className="section section-alt">
         <div className="wrap">
           <div className="section-head center">
-            <div className="kicker">Nuestras agencias</div>
             <h2>Dónde encontrarnos</h2>
             <p className="muted">Central en Requena y agencia en Iquitos.</p>
           </div>

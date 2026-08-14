@@ -10,14 +10,20 @@ export default function MiCuenta() {
   const navigate = useNavigate();
   const [perfil, setPerfil] = useState(clienteActual());
   const [viajes, setViajes] = useState([]);
+  const [errorViajes, setErrorViajes] = useState(false);
   const [tab, setTab] = useState("proximos");
   const [guardando, setGuardando] = useState(false);
   const [msg, setMsg] = useState(null);
 
+  const cargarViajes = () => {
+    setErrorViajes(false);
+    getMisViajes().then(setViajes).catch(() => setErrorViajes(true));
+  };
+
   useEffect(() => {
     if (!estaLogueado()) { navigate("/ingresar?next=/mi-cuenta"); return; }
     getPerfil().then(setPerfil).catch(() => {});
-    getMisViajes().then(setViajes).catch(() => {});
+    cargarViajes();
   }, [navigate]);
 
   const salir = () => { cerrarSesion(); navigate("/"); };
@@ -43,7 +49,6 @@ export default function MiCuenta() {
         <div className="wrap">
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
             <div>
-              <div className="kicker">Mi cuenta</div>
               <h2 style={{ fontSize: 30 }}>Hola, {perfil.nombres || "viajero"} 👋</h2>
             </div>
             <button className="btn btn-ghost" onClick={salir}>Cerrar sesión</button>
@@ -61,8 +66,15 @@ export default function MiCuenta() {
             ))}
           </div>
 
-          {tab === "proximos" && <ListaViajes viajes={proximos} vacio="No tienes viajes próximos. ¡Compra tu pasaje!" />}
-          {tab === "historial" && <ListaViajes viajes={historial} vacio="Aún no tienes viajes en tu historial." />}
+          {(tab === "proximos" || tab === "historial") && errorViajes && (
+            <div className="alert alert-warn" style={{ marginTop: 24 }}>
+              No pudimos cargar tus viajes. <button className="btn-link" onClick={cargarViajes}>Reintentar</button>
+            </div>
+          )}
+          {tab === "proximos" && !errorViajes &&
+            <ListaViajes viajes={proximos} vacio="No tienes viajes próximos. ¡Compra tu pasaje!" />}
+          {tab === "historial" && !errorViajes &&
+            <ListaViajes viajes={historial} vacio="Aún no tienes viajes en tu historial." />}
 
           {tab === "datos" && (
             <div className="card" style={{ maxWidth: 660, marginTop: 24 }}>

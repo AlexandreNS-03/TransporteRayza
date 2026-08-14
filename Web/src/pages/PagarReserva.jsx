@@ -41,7 +41,7 @@ export default function PagarReserva() {
       .then(setDatos)
       .catch((e) => setError(e.message))
       .finally(() => setCargando(false));
-    metodosDePago().then(setMetodos).catch(() => {});
+    metodosDePago().then(setMetodos).catch((e) => console.warn("[PagarReserva] no se pudo cargar métodos de pago:", e));
   }, [ids]);
 
   // Cuenta atrás: cuando llega a cero el asiento ya se liberó, así que no dejamos pagar.
@@ -111,7 +111,6 @@ export default function PagarReserva() {
       <section className="section">
         <div className="wrap" style={{ maxWidth: "min(100%, 720px)" }}>
           <div className="section-head" style={{ marginBottom: 12 }}>
-            <div className="kicker">Pago pendiente</div>
             <h2>Termina tu compra</h2>
           </div>
 
