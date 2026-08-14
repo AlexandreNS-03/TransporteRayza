@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import QRCode from "qrcode";
 import { Link } from "react-router-dom";
 import { soles, getTicket } from "../services/publicApi";
+import { IconCheckCircle } from "./Icons";
 
 /** Un boleto con su QR (uno por pasajero). El botón descarga el ticket de embarque 80mm. */
 function Boleto({ b }) {
@@ -68,7 +69,7 @@ export default function Confirmacion({ data }) {
 
   return (
     <div className="card" style={{ maxWidth: 640, margin: "0 auto", textAlign: "center" }}>
-      <div style={{ fontSize: 46 }}>✅</div>
+      <div style={{ color: "var(--brand, #16a34a)" }}><IconCheckCircle width={46} height={46} /></div>
       <h3 style={{ fontSize: 24, marginBottom: 6 }}>{data.mensaje || "¡Pago realizado!"}</h3>
       <p className="muted">
         {data.correoEnviado

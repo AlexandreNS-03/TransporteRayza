@@ -49,7 +49,7 @@ export default function MiCuenta() {
         <div className="wrap">
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
             <div>
-              <h2 style={{ fontSize: 30 }}>Hola, {perfil.nombres || "viajero"} 👋</h2>
+              <h2 style={{ fontSize: 30 }}>Hola, {perfil.nombres || "viajero"}</h2>
             </div>
             <button className="btn btn-ghost" onClick={salir}>Cerrar sesión</button>
           </div>

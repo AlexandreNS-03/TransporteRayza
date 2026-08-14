@@ -2,7 +2,7 @@ import { useState } from "react";
 
 /**
  * Logo de la pasarela (Izipay / Yape) en los botones de método de pago.
- * Si la imagen no carga, cae al emoji para que el botón no quede vacío.
+ * Si la imagen no carga, cae al ícono de respaldo para que el botón no quede vacío.
  */
 export default function LogoPasarela({ archivo, alt, respaldo }) {
   const [falla, setFalla] = useState(false);

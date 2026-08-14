@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { IconSun, IconMoon } from "./Icons";
 
 /**
  * Botón claro/oscuro. Guarda la preferencia en el navegador y la aplica con
@@ -43,7 +44,7 @@ export default function ThemeToggle() {
       aria-label={oscuro ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
       title={oscuro ? "Modo claro" : "Modo oscuro"}
     >
-      {oscuro ? "☀️" : "🌙"}
+      {oscuro ? <IconSun /> : <IconMoon />}
     </button>
   );
 }

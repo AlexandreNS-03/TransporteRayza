@@ -4,6 +4,7 @@ import Footer from "../components/Footer";
 import Reveal from "../components/Reveal";
 import { buscarDestino } from "../destinos";
 import { embedMapa, enlaceMapa } from "../datos";
+import { IconBoat } from "../components/Icons";
 
 export default function DestinoDetalle() {
   const { slug } = useParams();
@@ -29,7 +30,7 @@ export default function DestinoDetalle() {
           <Reveal>
             <h2>{destino.intro}</h2>
             <p className="detalle-texto">{destino.descripcion}</p>
-            <div className="detalle-ruta"><span>🛥️</span>{destino.ruta}</div>
+            <div className="detalle-ruta"><span><IconBoat width={18} height={18} /></span>{destino.ruta}</div>
           </Reveal>
           <Reveal delay={1} className="detalle-foto">
             <img src={`/destinos/${destino.imagen2}`} alt={`Paisaje de ${destino.nombre}`} />

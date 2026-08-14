@@ -2,18 +2,19 @@ import { Link } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import Reveal from "../components/Reveal";
+import { IconBoat, IconStar, IconSeat, IconPackage, IconHotel, IconTicket } from "../components/Icons";
 
 /**
  * Página "Nuestros servicios": reúne lo que ofrece la empresa (pasajes, asientos
  * VIP/normal, encomiendas, hotel y bar), como referencia estilo movilbus.pe.
  */
 const SERVICIOS = [
-  { ic: "🛥️", t: "Pasajes fluviales", d: "Viajes en deslizador entre Requena, Iquitos, Nauta y los puertos del río, con horarios y precios claros." },
-  { ic: "⭐", t: "Asientos VIP", d: "Los más cómodos del bote, con mejor ubicación. Ideales para viajes largos por el río." },
-  { ic: "💺", t: "Asientos normales", d: "La opción económica para llegar a tu destino con la misma seguridad y puntualidad." },
-  { ic: "📦", t: "Encomiendas", d: "Envío de carga puerta a puerto entre nuestras sucursales, con guía y comprobante electrónico." },
-  { ic: "🏨", t: "Hotel y Bar Karaoke Rayza", d: "Descansa en Requena y celebra con nosotros: karaoke, bebidas y buen ambiente en la terraza." },
-  { ic: "🎫", t: "Compra en línea", d: "Elige tu asiento y paga con tarjeta o Yape desde el celular. Recibe tu boleto con QR al instante." },
+  { Ic: IconBoat, t: "Pasajes fluviales", d: "Viajes en deslizador entre Requena, Iquitos, Nauta y los puertos del río, con horarios y precios claros." },
+  { Ic: IconStar, t: "Asientos VIP", d: "Los más cómodos del bote, con mejor ubicación. Ideales para viajes largos por el río." },
+  { Ic: IconSeat, t: "Asientos normales", d: "La opción económica para llegar a tu destino con la misma seguridad y puntualidad." },
+  { Ic: IconPackage, t: "Encomiendas", d: "Envío de carga puerta a puerto entre nuestras sucursales, con guía y comprobante electrónico." },
+  { Ic: IconHotel, t: "Hotel y Bar Karaoke Rayza", d: "Descansa en Requena y celebra con nosotros: karaoke, bebidas y buen ambiente en la terraza." },
+  { Ic: IconTicket, t: "Compra en línea", d: "Elige tu asiento y paga con tarjeta o Yape desde el celular. Recibe tu boleto con QR al instante." },
 ];
 
 export default function Servicios() {
@@ -34,7 +35,7 @@ export default function Servicios() {
           <div className="cards">
             {SERVICIOS.map((s, i) => (
               <Reveal className={`card hoverable${i === 0 ? " card-destacada" : ""}`} delay={(i % 3) + 1} key={s.t}>
-                <div className="icon" style={{ fontSize: 26 }}>{s.ic}</div>
+                <div className="icon" style={{ fontSize: 26 }}><s.Ic width={26} height={26} /></div>
                 <h3 style={{ fontSize: 20 }}>{s.t}</h3>
                 <p className="muted">{s.d}</p>
               </Reveal>

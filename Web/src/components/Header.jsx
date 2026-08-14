@@ -3,6 +3,7 @@ import { Link, NavLink, useLocation } from "react-router-dom";
 import Logo from "./Logo";
 import AnnouncementBar from "./AnnouncementBar";
 import ThemeToggle from "./ThemeToggle";
+import { IconPackage, IconCard } from "./Icons";
 import { estaLogueado, clienteActual } from "../services/authCliente";
 
 // "Comprar pasaje" no va acá: ya está como botón principal a la derecha.
@@ -14,8 +15,8 @@ const LINKS = [
   { to: "/servicios", label: "Servicios" },
 ];
 const ENCOMIENDAS = [
-  { to: "/rastreo", label: "Rastrear encomienda", icono: "📦", ayuda: "Mira dónde va tu paquete" },
-  { to: "/paga-tu-carga", label: "Pagar carga", icono: "💳", ayuda: "Paga tu envío en línea" },
+  { to: "/rastreo", label: "Rastrear encomienda", Icono: IconPackage, ayuda: "Mira dónde va tu paquete" },
+  { to: "/paga-tu-carga", label: "Pagar carga", Icono: IconCard, ayuda: "Paga tu envío en línea" },
 ];
 const LINKS_FIN = [{ to: "/contacto", label: "Contacto" }];
 
@@ -77,7 +78,7 @@ export default function Header() {
                 <div className="nav-drop-menu">
                   {ENCOMIENDAS.map((l) => (
                     <Link key={l.to} to={l.to} onClick={cerrar}>
-                      <span className="nav-drop-ico" aria-hidden="true">{l.icono}</span>
+                      <span className="nav-drop-ico" aria-hidden="true"><l.Icono /></span>
                       <span>
                         <strong>{l.label}</strong>
                         <small>{l.ayuda}</small>
@@ -131,7 +132,7 @@ export default function Header() {
             <p className="nav-mobile-sec">Encomiendas</p>
             {ENCOMIENDAS.map((l) => (
               <Link key={l.to} to={l.to} onClick={cerrar}>
-                <span aria-hidden="true" style={{ marginRight: 8 }}>{l.icono}</span>{l.label}
+                <span aria-hidden="true" style={{ marginRight: 8, display: "inline-flex", verticalAlign: "-4px" }}><l.Icono width={16} height={16} /></span>{l.label}
               </Link>
             ))}
             {LINKS_FIN.map((l) => <Link key={l.to} to={l.to} onClick={cerrar}>{l.label}</Link>)}
