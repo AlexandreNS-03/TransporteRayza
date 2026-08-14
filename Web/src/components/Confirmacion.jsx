@@ -69,7 +69,7 @@ export default function Confirmacion({ data }) {
 
   return (
     <div className="card" style={{ maxWidth: 640, margin: "0 auto", textAlign: "center" }}>
-      <div style={{ color: "var(--brand, #16a34a)" }}><IconCheckCircle width={46} height={46} /></div>
+      <div style={{ color: "#15803d" }}><IconCheckCircle width={46} height={46} /></div>
       <h3 style={{ fontSize: 24, marginBottom: 6 }}>{data.mensaje || "¡Pago realizado!"}</h3>
       <p className="muted">
         {data.correoEnviado
