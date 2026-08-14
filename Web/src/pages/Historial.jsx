@@ -4,6 +4,7 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { buscarBoletos, getTicket, soles } from "../services/publicApi";
 import { estaLogueado } from "../services/authCliente";
+import { IconLock } from "../components/Icons";
 
 /** Una fila de boleto con su botón de descarga del ticket A4. */
 function BoletoRow({ b }) {
@@ -86,14 +87,13 @@ export default function Historial() {
       <section className="section">
         <div className="wrap" style={{ maxWidth: "min(720px, 100%)" }}>
           <div className="section-head" style={{ marginBottom: 28 }}>
-            <div className="kicker">Mis boletos</div>
             <h2>Consulta tus pasajes</h2>
             <p>Descarga tu ticket de embarque para presentarlo al abordar.</p>
           </div>
 
           {!logueado ? (
             <div className="card" style={{ textAlign: "center" }}>
-              <div style={{ fontSize: 40 }}>🔒</div>
+              <div style={{ color: "var(--ink-soft)" }}><IconLock width={40} height={40} /></div>
               <h3 style={{ margin: "8px 0 6px" }}>Ingresa para ver tus boletos</h3>
               <p className="muted" style={{ marginBottom: 18 }}>
                 Regístrate o inicia sesión para consultar tus pasajes y descargar tus tickets de embarque.

@@ -11,7 +11,6 @@ export default function Destinos() {
       <Header />
       <section className="destinos-hero">
         <div className="wrap destinos-hero-contenido">
-          <div className="kicker">Destinos Rayza</div>
           <h1>Navega hacia lo mejor de <em>Loreto</em></h1>
           <p>Conoce los puertos principales de nuestra ruta y elige el próximo lugar que quieres descubrir.</p>
         </div>
@@ -22,7 +21,6 @@ export default function Destinos() {
       <section className="section destinos-catalogo">
         <div className="wrap">
           <div className="section-head">
-            <div className="kicker">Explora la ruta</div>
             <h2>Destinos principales</h2>
             <p>Cuatro lugares unidos por los ríos de la Amazonía peruana.</p>
           </div>
@@ -47,7 +45,6 @@ export default function Destinos() {
       <section className="section section-alt">
         <div className="wrap destinos-cta">
           <div>
-            <div className="kicker">Tu próximo viaje</div>
             <h2>El río te lleva más lejos</h2>
             <p className="muted">Elige tu origen, destino y fecha para ver las salidas disponibles.</p>
           </div>

@@ -9,6 +9,7 @@ import SelectorPasajeros from "../components/SelectorPasajeros";
 import FormularioPasajero, { FormularioContacto } from "../components/FormularioPasajero";
 import Confirmacion from "../components/Confirmacion";
 import LogoPasarela from "../components/LogoPasarela";
+import { IconCard, IconPhone } from "../components/Icons";
 import { buscarViajes, crearReservaGrupo, pagarGrupo, formularioDePagoGrupo,
          metodosDePago, pagarConYapeGrupo, avisarAbandono, soles } from "../services/publicApi";
 import { tokenizarYape } from "../services/yape";
@@ -191,7 +192,7 @@ export default function Comprar() {
   };
 
   useEffect(() => {
-    if (paso === 3 && !metodos) metodosDePago().then(setMetodos).catch(() => {});
+    if (paso === 3 && !metodos) metodosDePago().then(setMetodos).catch((e) => console.warn("[Comprar] no se pudo cargar métodos de pago:", e));
   }, [paso, metodos]);
 
   /**
@@ -299,7 +300,6 @@ export default function Comprar() {
       <section className="section">
         <div className="wrap">
           <div className="section-head" style={{ marginBottom: 8 }}>
-            <div className="kicker">Compra de pasajes</div>
             <h2>Reserva tu viaje{esRedondo ? " (ida y vuelta)" : ""}</h2>
           </div>
 
@@ -402,13 +402,13 @@ export default function Comprar() {
                       <div className="metodos-pago">
                         <button type="button" className={`metodo ${metodo === "tarjeta" ? "activo" : ""}`}
                                 onClick={() => { setMetodo("tarjeta"); setErrorPago(null); }} disabled={pagando}>
-                          <LogoPasarela archivo="izipay.png" alt="Izipay" respaldo="💳" />
+                          <LogoPasarela archivo="izipay.png" alt="Izipay" respaldo={<IconCard />} />
                           <span className="metodo-nombre">Tarjeta</span>
                           <span className="metodo-detalle">Débito o crédito</span>
                         </button>
                         <button type="button" className={`metodo ${metodo === "yape" ? "activo" : ""}`}
                                 onClick={() => { setMetodo("yape"); setErrorPago(null); }} disabled={pagando}>
-                          <LogoPasarela archivo="yape.png" alt="Yape" respaldo="📱" />
+                          <LogoPasarela archivo="yape.png" alt="Yape" respaldo={<IconPhone />} />
                           <span className="metodo-nombre">Yape</span>
                           <span className="metodo-detalle">Con tu celular</span>
                         </button>

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { IconSun, IconMoon } from "./Icons";
 
 /**
  * Botón claro/oscuro. Guarda la preferencia en el navegador y la aplica con
@@ -20,21 +21,30 @@ export default function ThemeToggle() {
     return window.matchMedia?.("(prefers-color-scheme: dark)").matches ?? false;
   });
 
+  // Aplica el tema en cada render, pero no guarda nada: así el modo "seguir
+  // al sistema" (sin valor en localStorage) no se pierde solo por cargar la
+  // página. Guardar es cosa del clic explícito, no de este efecto reactivo.
   useEffect(() => {
-    const t = oscuro ? "dark" : "light";
-    document.documentElement.setAttribute("data-theme", t);
-    localStorage.setItem("tema", t);
+    document.documentElement.setAttribute("data-theme", oscuro ? "dark" : "light");
   }, [oscuro]);
+
+  const elegir = () => {
+    setOscuro((v) => {
+      const nuevo = !v;
+      localStorage.setItem("tema", nuevo ? "dark" : "light");
+      return nuevo;
+    });
+  };
 
   return (
     <button
       type="button"
       className="tema-btn"
-      onClick={() => setOscuro((v) => !v)}
+      onClick={elegir}
       aria-label={oscuro ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
       title={oscuro ? "Modo claro" : "Modo oscuro"}
     >
-      {oscuro ? "☀️" : "🌙"}
+      {oscuro ? <IconSun /> : <IconMoon />}
     </button>
   );
 }

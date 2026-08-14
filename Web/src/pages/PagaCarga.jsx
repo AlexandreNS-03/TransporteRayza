@@ -36,7 +36,12 @@ function PagaCarga() {
     const [yapeDatos, setYapeDatos]       = useState({ otp: "", phoneNumber: "" });
     const [pagado, setPagado]             = useState(false);
 
-    useEffect(() => { metodosDePago().then(setMetodos).catch(() => setMetodos(null)); }, []);
+    useEffect(() => {
+        metodosDePago().then(setMetodos).catch((e) => {
+            console.warn("[PagaCarga] no se pudo cargar métodos de pago:", e);
+            setMetodos(null);
+        });
+    }, []);
 
     const buscar = async (valor = codigo) => {
         if (!String(valor).trim()) return;

@@ -4,6 +4,7 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import Confirmacion from "../components/Confirmacion";
 import LogoPasarela from "../components/LogoPasarela";
+import { IconCard, IconPhone } from "../components/Icons";
 import { reservasPendientes, formularioDePagoGrupo, pagarGrupo,
          pagarConYapeGrupo, metodosDePago, soles } from "../services/publicApi";
 import { tokenizarYape } from "../services/yape";
@@ -41,7 +42,7 @@ export default function PagarReserva() {
       .then(setDatos)
       .catch((e) => setError(e.message))
       .finally(() => setCargando(false));
-    metodosDePago().then(setMetodos).catch(() => {});
+    metodosDePago().then(setMetodos).catch((e) => console.warn("[PagarReserva] no se pudo cargar métodos de pago:", e));
   }, [ids]);
 
   // Cuenta atrás: cuando llega a cero el asiento ya se liberó, así que no dejamos pagar.
@@ -111,7 +112,6 @@ export default function PagarReserva() {
       <section className="section">
         <div className="wrap" style={{ maxWidth: "min(100%, 720px)" }}>
           <div className="section-head" style={{ marginBottom: 12 }}>
-            <div className="kicker">Pago pendiente</div>
             <h2>Termina tu compra</h2>
           </div>
 
@@ -177,13 +177,13 @@ export default function PagarReserva() {
                     <div className="metodos-pago">
                       <button type="button" className={`metodo ${metodo === "tarjeta" ? "activo" : ""}`}
                               onClick={() => { setMetodo("tarjeta"); setErrorPago(null); }} disabled={pagando}>
-                        <LogoPasarela archivo="izipay.png" alt="Izipay" respaldo="💳" />
+                        <LogoPasarela archivo="izipay.png" alt="Izipay" respaldo={<IconCard />} />
                         <span className="metodo-nombre">Tarjeta</span>
                         <span className="metodo-detalle">Débito o crédito</span>
                       </button>
                       <button type="button" className={`metodo ${metodo === "yape" ? "activo" : ""}`}
                               onClick={() => { setMetodo("yape"); setErrorPago(null); }} disabled={pagando}>
-                        <LogoPasarela archivo="yape.png" alt="Yape" respaldo="📱" />
+                        <LogoPasarela archivo="yape.png" alt="Yape" respaldo={<IconPhone />} />
                         <span className="metodo-nombre">Yape</span>
                         <span className="metodo-detalle">Con tu celular</span>
                       </button>

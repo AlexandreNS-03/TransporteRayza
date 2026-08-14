@@ -4,6 +4,7 @@ import Footer from "../components/Footer";
 import Reveal from "../components/Reveal";
 import { buscarDestino } from "../destinos";
 import { embedMapa, enlaceMapa } from "../datos";
+import { IconBoat } from "../components/Icons";
 
 export default function DestinoDetalle() {
   const { slug } = useParams();
@@ -19,7 +20,6 @@ export default function DestinoDetalle() {
         <div className="detalle-hero-sombra" />
         <div className="wrap detalle-hero-contenido">
           <Link className="detalle-volver" to="/destinos">← Todos los destinos</Link>
-          <div className="kicker">Destino Rayza</div>
           <h1>{destino.nombre}</h1>
           <p>{destino.etiqueta}</p>
         </div>
@@ -28,10 +28,9 @@ export default function DestinoDetalle() {
       <section className="section">
         <div className="wrap detalle-intro">
           <Reveal>
-            <div className="kicker">Descubre {destino.nombre}</div>
             <h2>{destino.intro}</h2>
             <p className="detalle-texto">{destino.descripcion}</p>
-            <div className="detalle-ruta"><span>🛥️</span>{destino.ruta}</div>
+            <div className="detalle-ruta"><span><IconBoat width={18} height={18} /></span>{destino.ruta}</div>
           </Reveal>
           <Reveal delay={1} className="detalle-foto">
             <img src={`/destinos/${destino.imagen2}`} alt={`Paisaje de ${destino.nombre}`} />
@@ -42,7 +41,6 @@ export default function DestinoDetalle() {
       <section className="section section-alt">
         <div className="wrap detalle-destacados">
           <div className="section-head">
-            <div className="kicker">Para disfrutar</div>
             <h2>Atractivos del destino</h2>
           </div>
           <div className="detalle-destacados-grid">
@@ -61,7 +59,6 @@ export default function DestinoDetalle() {
           <div className="wrap">
             <div className="calendario">
               <div className="calendario-panel">
-                <div className="kicker" style={{ color: "rgba(255,255,255,.85)" }}>Calendario festivo</div>
                 <h2>Vive {destino.nombre} en sus fechas</h2>
                 <p className="calendario-sub">Planifica tu viaje para coincidir con las celebraciones más importantes.</p>
                 <ul className="calendario-lista">
@@ -95,7 +92,6 @@ export default function DestinoDetalle() {
         <section className="section section-alt">
           <div className="wrap">
             <div className="section-head">
-              <div className="kicker">Para tu viaje</div>
               <h2>Antes de ir a {destino.nombre}</h2>
             </div>
             <div className="detalle-info-grid">
@@ -141,7 +137,6 @@ export default function DestinoDetalle() {
           <div className="wrap">
             <div className="detalle-mapa">
               <div className="detalle-mapa-info">
-                <div className="kicker">Ubicación</div>
                 <h2>{destino.nombre} en el mapa</h2>
                 <p className="muted">{destino.ruta}</p>
                 <a className="btn btn-ghost" href={enlaceMapa(destino.coord)} target="_blank" rel="noreferrer">Ver en Google Maps</a>
@@ -161,7 +156,6 @@ export default function DestinoDetalle() {
       <section className="section">
         <div className="wrap detalle-reserva">
           <div>
-            <div className="kicker">Planifica tu viaje</div>
             <h2>¿Listo para navegar a {destino.nombre}?</h2>
             <p className="muted">{destino.viaje}</p>
           </div>

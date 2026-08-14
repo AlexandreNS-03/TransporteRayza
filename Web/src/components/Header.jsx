@@ -3,6 +3,7 @@ import { Link, NavLink, useLocation } from "react-router-dom";
 import Logo from "./Logo";
 import AnnouncementBar from "./AnnouncementBar";
 import ThemeToggle from "./ThemeToggle";
+import { IconPackage, IconCard } from "./Icons";
 import { estaLogueado, clienteActual } from "../services/authCliente";
 
 // "Comprar pasaje" no va acá: ya está como botón principal a la derecha.
@@ -14,8 +15,8 @@ const LINKS = [
   { to: "/servicios", label: "Servicios" },
 ];
 const ENCOMIENDAS = [
-  { to: "/rastreo", label: "Rastrear encomienda", icono: "📦", ayuda: "Mira dónde va tu paquete" },
-  { to: "/paga-tu-carga", label: "Pagar carga", icono: "💳", ayuda: "Paga tu envío en línea" },
+  { to: "/rastreo", label: "Rastrear encomienda", Icono: IconPackage, ayuda: "Mira dónde va tu paquete" },
+  { to: "/paga-tu-carga", label: "Pagar carga", Icono: IconCard, ayuda: "Paga tu envío en línea" },
 ];
 const LINKS_FIN = [{ to: "/contacto", label: "Contacto" }];
 
@@ -77,7 +78,7 @@ export default function Header() {
                 <div className="nav-drop-menu">
                   {ENCOMIENDAS.map((l) => (
                     <Link key={l.to} to={l.to} onClick={cerrar}>
-                      <span className="nav-drop-ico" aria-hidden="true">{l.icono}</span>
+                      <span className="nav-drop-ico" aria-hidden="true"><l.Icono /></span>
                       <span>
                         <strong>{l.label}</strong>
                         <small>{l.ayuda}</small>
@@ -96,8 +97,18 @@ export default function Header() {
           <div className="nav-actions">
             <ThemeToggle />
             {logueado ? (
-              <Link className="btn btn-ghost" to="/mi-cuenta">
-                {cliente?.nombres ? `Hola, ${cliente.nombres.split(" ")[0]}` : "Mi cuenta"}
+              <Link
+                className="btn btn-ghost btn-cuenta"
+                to="/mi-cuenta"
+                aria-label={cliente?.nombres ? `Hola, ${cliente.nombres.split(" ")[0]}` : "Mi cuenta"}
+              >
+                <svg className="btn-cuenta-ico" width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="1.8"/>
+                  <path d="M4 20c1.5-4 5-6 8-6s6.5 2 8 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+                </svg>
+                <span className="btn-cuenta-texto">
+                  {cliente?.nombres ? `Hola, ${cliente.nombres.split(" ")[0]}` : "Mi cuenta"}
+                </span>
               </Link>
             ) : (
               <Link className="btn btn-ghost hide-sm" to="/ingresar">Ingresar</Link>
@@ -121,7 +132,7 @@ export default function Header() {
             <p className="nav-mobile-sec">Encomiendas</p>
             {ENCOMIENDAS.map((l) => (
               <Link key={l.to} to={l.to} onClick={cerrar}>
-                <span aria-hidden="true" style={{ marginRight: 8 }}>{l.icono}</span>{l.label}
+                <span aria-hidden="true" style={{ marginRight: 8, display: "inline-flex", verticalAlign: "-4px" }}><l.Icono width={16} height={16} /></span>{l.label}
               </Link>
             ))}
             {LINKS_FIN.map((l) => <Link key={l.to} to={l.to} onClick={cerrar}>{l.label}</Link>)}

@@ -9,6 +9,9 @@
 .vc-aviso.ok    { background: #f0fdf4; border: 1px solid #bbf7d0; color: #15803d; }
 .vc-aviso.error { background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; }
 .vc-aviso button { background: none; border: 0; font-size: 20px; line-height: 1; cursor: pointer; color: inherit; }
+.vc-aviso button.vc-reintentar {
+  font-size: 13px; font-weight: 600; text-decoration: underline; flex-shrink: 0;
+}
 
 /* Saldo a favor */
 .vc-saldo {

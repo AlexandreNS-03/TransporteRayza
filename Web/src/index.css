@@ -133,6 +133,9 @@ h1,h2,h3,h4 { font-family: var(--font-head); color: var(--ink); line-height: 1.1
 .btn-primary:hover:not(:disabled) { background: var(--accent-600); }
 .btn-ghost { background: transparent; color: var(--ink); border-color: var(--line-strong); }
 .btn-ghost:hover:not(:disabled) { border-color: var(--sky); color: var(--sky); background: var(--sky-soft); }
+
+.btn-cuenta { display: inline-flex; align-items: center; gap: 8px; }
+.btn-cuenta-ico { display: none; flex-shrink: 0; }
 .btn-block { width: 100%; }
 .btn-lg { padding: 16px 30px; font-size: 16px; }
 
@@ -445,6 +448,12 @@ header.site.scrolled::before { background: color-mix(in srgb, var(--bg) 96%, tra
 .card p { margin: 0; }
 .svg-ic { width: 26px; height: 26px; stroke: currentColor; stroke-width: 1.7; fill: none; }
 
+/* Una grilla pareja de seis tarjetas iguales se lee como relleno, no como
+   jerarquía: el servicio principal se destaca ocupando dos columnas. */
+.card-destacada { grid-column: span 2; background: var(--sky-soft); border-color: transparent; }
+.card-destacada .icon { background: var(--card); }
+@media (max-width: 820px) { .card-destacada { grid-column: span 1; } }
+
 /* ---------- Destinos ---------- */
 .destinos { display: grid; grid-template-columns: repeat(4,1fr); gap: 18px; }
 @media (max-width: 900px) { .destinos { grid-template-columns: repeat(2,1fr); } }
@@ -556,6 +565,10 @@ header.site.scrolled::before { background: color-mix(in srgb, var(--bg) 96%, tra
 @media (prefers-color-scheme: dark) {
   .alert-info { background: #10273d; color: #bfe0f4; border-color: #1c4a6b; }
   .alert-warn { background: #2c2410; color: #f0d38a; border-color: #5a4a1a; }
+}
+.btn-link {
+  background: none; border: 0; padding: 0; font: inherit; font-weight: 600;
+  color: inherit; text-decoration: underline; cursor: pointer;
 }
 .spinner { width: 36px; height: 36px; border: 3px solid var(--line); border-top-color: var(--sky); border-radius: 50%; animation: spin .8s linear infinite; margin: 34px auto; }
 .skel { border-radius: 12px; background: linear-gradient(90deg, var(--bg-soft) 25%, var(--bg-softer) 37%, var(--bg-soft) 63%); background-size: 200% 100%; animation: shimmer 1.3s infinite; }
@@ -754,10 +767,6 @@ footer.site .logo .mark { width: 34px; height: 34px; }
 .agencia-info { padding: 18px 20px; }
 .agencia-info h3 { font-size: 18px; margin: 0 0 6px; display: flex; align-items: center; gap: 10px; }
 .agencia-info .muted { margin: 0 0 12px; }
-.badge-central {
-  font-size: 11px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase;
-  background: var(--brand, #1ea6dd); color: #fff; padding: 3px 8px; border-radius: 999px;
-}
 .agencia-mapa { width: 100%; height: 240px; border: 0; border-top: 1px solid var(--line, #e2e8f0); }
 @media (max-width: 860px) { .contacto-datos { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 480px) { .contacto-datos { grid-template-columns: 1fr; } }
@@ -1017,6 +1026,13 @@ footer.site .logo .mark { width: 34px; height: 34px; }
   /* CTA compacto para que quepa junto al logo */
   .nav-actions { gap: 8px; }
   .nav-actions .btn-primary { padding: 10px 15px; font-size: 13.5px; }
+
+  /* "Hola, {nombre}" no tenía hide-sm como Ingresar/Comprar porque en móvil
+     es la única entrada a Mi cuenta (no está duplicada en el menú hamburguesa):
+     no se oculta, se reduce a un botón-ícono para no desbordar la barra. */
+  .btn-cuenta { width: 40px; height: 40px; padding: 0; justify-content: center; border-radius: 50%; }
+  .btn-cuenta-ico { display: inline-flex; }
+  .btn-cuenta-texto { display: none; }
 
   /* Hero más ajustado en alto */
   .hero .wrap { padding: 40px 20px 118px; }

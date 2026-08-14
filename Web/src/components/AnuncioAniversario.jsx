@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { EMPRESA } from "../datos";
+import { IconConfetti, IconMusic, IconBoat, IconFood, IconMapPin } from "./Icons";
 
 /**
  * Anuncio grande: Aniversario de Requena (18–23 de agosto).
@@ -43,14 +44,14 @@ export default function AnuncioAniversario() {
               </p>
 
               <div className="aniversario-iconos">
-                <span>🎉 Desfiles cívicos</span>
-                <span>🎶 Música y danzas</span>
-                <span>🛶 Fiesta en el río</span>
-                <span>🍲 Feria y gastronomía</span>
+                <span><IconConfetti width={16} height={16} style={{ verticalAlign: "-3px" }} /> Desfiles cívicos</span>
+                <span><IconMusic width={16} height={16} style={{ verticalAlign: "-3px" }} /> Música y danzas</span>
+                <span><IconBoat width={16} height={16} style={{ verticalAlign: "-3px" }} /> Fiesta en el río</span>
+                <span><IconFood width={16} height={16} style={{ verticalAlign: "-3px" }} /> Feria y gastronomía</span>
               </div>
 
               <p className="aniversario-lugar">
-                📍 Requena, Loreto · a orillas del río Ucayali
+                <IconMapPin width={14} height={14} style={{ verticalAlign: "-2px" }} /> Requena, Loreto · a orillas del río Ucayali
               </p>
             </div>
           </div>

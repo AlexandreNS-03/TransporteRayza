@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { getAsientos } from "../services/publicApi";
+import { IconStar, IconSeat, IconArrowUp, IconArrowDown } from "./Icons";
 
 /**
  * Mapa de asientos con forma de embarcación, igual que el sistema de ventas:
@@ -77,7 +78,9 @@ export default function MapaAsientos({ viaje, seleccionados = [], onToggle, max 
     if (deTipo.length === 0) return null;
     return (
       <div key={tipo}>
-        <p className="barco-seccion-label">{tipo === "VIP" ? "⭐ VIP" : "💺 Normal"}</p>
+        <p className="barco-seccion-label">
+          {tipo === "VIP" ? <><IconStar width={14} height={14} /> VIP</> : <><IconSeat width={14} height={14} /> Normal</>}
+        </p>
         {chunk(deTipo, 4).map((fila, i) => (
           <div className="fila" key={i}>
             {fila.slice(0, 2).map(Boton)}
@@ -94,7 +97,7 @@ export default function MapaAsientos({ viaje, seleccionados = [], onToggle, max 
   return (
     <div>
       <p className="muted center" style={{ marginBottom: 2 }}>Selecciona tu asiento</p>
-      <div className="proa-label">⬆ proa (adelante)</div>
+      <div className="proa-label"><IconArrowUp width={14} height={14} style={{ verticalAlign: "-2px" }} /> proa (adelante)</div>
       <div className="barco">
         <div className="barco-proa">
           <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 4v4M12 16v4M4 12h4M16 12h4"/></svg>
@@ -113,7 +116,7 @@ export default function MapaAsientos({ viaje, seleccionados = [], onToggle, max 
           <span>Motor</span>
         </div>
       </div>
-      <div className="popa-label">⬇ popa (atrás)</div>
+      <div className="popa-label"><IconArrowDown width={14} height={14} style={{ verticalAlign: "-2px" }} /> popa (atrás)</div>
       <div className="leyenda">
         <span><i className="chip" /> Disponible</span>
         <span><i className="chip" style={{ borderColor: "var(--gold)" }} /> VIP</span>

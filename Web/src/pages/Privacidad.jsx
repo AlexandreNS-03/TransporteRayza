@@ -48,7 +48,6 @@ export default function Privacidad() {
       <Header />
       <section className="section">
         <div className="wrap" style={{ maxWidth: "min(820px, 100%)" }}>
-          <div className="kicker">Privacidad</div>
           <h1 style={{ fontSize: "clamp(28px,5vw,40px)", margin: "8px 0 10px" }}>Política de privacidad y cookies</h1>
           <p className="muted" style={{ marginBottom: 30 }}>
             Cómo tratamos tus datos cuando usas nuestra web y compras tus pasajes.
