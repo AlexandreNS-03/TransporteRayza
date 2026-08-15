@@ -59,7 +59,7 @@ se configuran por **variables de entorno**, sin tocar el código.
    - **Framework Preset**: Vite (se detecta solo)
 3. En **Environment Variables** agrega:
    | Variable | Valor |
-   |---|---|
+   |---|---|.
    | `VITE_API_URL` | la URL del backend de Railway (paso 2.4, **sin** barra final) |
 4. Deploy. Vercel te da una URL, ej. `https://transporte-rayza.vercel.app`.
 5. **Vuelve a Railway** → variable `APP_FRONTEND_URL` = esa URL de Vercel → redeploy del backend
