@@ -48,6 +48,10 @@ public class Ruta {
     @OrderBy("ordenOrigen ASC")
     private List<RutaTarifaTramo> tarifas;
 
+    @OneToMany(mappedBy = "ruta", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OrderBy("ordenOrigen ASC")
+    private List<RutaTramoBloqueado> tramosBloqueados;
+
     // Getters y Setters
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
@@ -84,4 +88,7 @@ public class Ruta {
 
     public List<RutaTarifaTramo> getTarifas() { return tarifas; }
     public void setTarifas(List<RutaTarifaTramo> tarifas) { this.tarifas = tarifas; }
+
+    public List<RutaTramoBloqueado> getTramosBloqueados() { return tramosBloqueados; }
+    public void setTramosBloqueados(List<RutaTramoBloqueado> tramosBloqueados) { this.tramosBloqueados = tramosBloqueados; }
 }

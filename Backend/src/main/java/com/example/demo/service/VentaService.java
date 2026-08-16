@@ -30,6 +30,7 @@ public class VentaService {
     private final EmailService emailService;
     private final CajaService cajaService;
     private final AuditoriaService auditoriaService;
+    private final PublicService publicService;
 
     public VentaDTO embarcarPasajero(String id, String usuarioNombre) {
         Venta venta = ventaRepository.findById(id)
@@ -232,6 +233,13 @@ public class VentaService {
                     + viaje.getSucursalNombre());
         }
 
+        // Mismo criterio que la venta web: una ruta puede bloquear un tramo puntual
+        // (ej. el que se salta una parada intermedia nueva), y eso aplica también
+        // al mostrador, no solo a la compra en línea.
+        if (req.getOrdenOrigen() != null && req.getOrdenDestino() != null
+                && publicService.tramoBloqueadoEnRuta(viaje.getRutaId(), req.getOrdenOrigen(), req.getOrdenDestino()))
+            throw new RuntimeException("Ese tramo no está disponible para esta ruta.");
+
         Venta venta = new Venta();
         venta.setId(UUID.randomUUID().toString());
         venta.setGrupoVentaId(grupoVentaId);
@@ -422,7 +430,8 @@ public class VentaService {
                         AsientoService asientoService,
                         EmailService emailService,
                         CajaService cajaService,
-                        AuditoriaService auditoriaService) {
+                        AuditoriaService auditoriaService,
+                        PublicService publicService) {
         this.ventaRepository      = ventaRepository;
         this.tramoUsadoRepository = tramoUsadoRepository;
         this.viajeRepository      = viajeRepository;
@@ -431,6 +440,7 @@ public class VentaService {
         this.emailService         = emailService;
         this.cajaService          = cajaService;
         this.auditoriaService     = auditoriaService;
+        this.publicService        = publicService;
     }
 
     /**

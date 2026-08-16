@@ -5,9 +5,11 @@ import com.example.demo.dto.RutaRequest;
 import com.example.demo.model.Ruta;
 import com.example.demo.model.RutaParada;
 import com.example.demo.model.RutaTarifaTramo;
+import com.example.demo.model.RutaTramoBloqueado;
 import com.example.demo.repository.RutaParadaRepository;
 import com.example.demo.repository.RutaRepository;
 import com.example.demo.repository.RutaTarifaTramoRepository;
+import com.example.demo.repository.RutaTramoBloqueadoRepository;
 import com.example.demo.repository.SucursalRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,15 +27,18 @@ public class RutaService {
     private final RutaRepository rutaRepository;
     private final RutaParadaRepository paradaRepository;
     private final RutaTarifaTramoRepository tarifaRepository;
+    private final RutaTramoBloqueadoRepository tramoBloqueadoRepository;
     private final SucursalRepository sucursalRepository;
 
     public RutaService(RutaRepository rutaRepository,
                        RutaParadaRepository paradaRepository,
                        RutaTarifaTramoRepository tarifaRepository,
+                       RutaTramoBloqueadoRepository tramoBloqueadoRepository,
                        SucursalRepository sucursalRepository) {
         this.rutaRepository    = rutaRepository;
         this.paradaRepository  = paradaRepository;
         this.tarifaRepository  = tarifaRepository;
+        this.tramoBloqueadoRepository = tramoBloqueadoRepository;
         this.sucursalRepository = sucursalRepository;
     }
 
@@ -73,6 +78,7 @@ public class RutaService {
 
         guardarParadas(r, req);
         guardarTarifas(r, req);
+        guardarTramosBloqueados(r, req);
 
         return toDTO(r, true);
     }
@@ -99,11 +105,14 @@ public class RutaService {
         // choca con uq_ruta_parada_orden ("Duplicate entry 'rut_x-1'").
         paradaRepository.deleteByRutaId(id);
         tarifaRepository.deleteByRutaId(id);
+        tramoBloqueadoRepository.deleteByRutaId(id);
         paradaRepository.flush();
         tarifaRepository.flush();
+        tramoBloqueadoRepository.flush();
 
         guardarParadas(r, req);
         guardarTarifas(r, req);
+        guardarTramosBloqueados(r, req);
 
         return toDTO(r, true);
     }
@@ -144,6 +153,27 @@ public class RutaService {
             return rt;
         }).collect(Collectors.toList());
         tarifaRepository.saveAll(tarifas);
+    }
+
+    private void guardarTramosBloqueados(Ruta r, RutaRequest req) {
+        if (req.getTramosBloqueados() == null) return;
+        List<RutaTramoBloqueado> bloqueados = req.getTramosBloqueados().stream().map(b -> {
+            RutaTramoBloqueado rb = new RutaTramoBloqueado();
+            rb.setId(UUID.randomUUID().toString());
+            rb.setRuta(r);
+            rb.setOrigenTramo(b.getOrigenTramo());
+            rb.setDestinoTramo(b.getDestinoTramo());
+            rb.setOrdenOrigen(b.getOrdenOrigen());
+            rb.setOrdenDestino(b.getOrdenDestino());
+            return rb;
+        }).collect(Collectors.toList());
+        tramoBloqueadoRepository.saveAll(bloqueados);
+    }
+
+    /** ¿Esta ruta bloquea explícitamente la venta de este tramo exacto? */
+    public boolean tramoBloqueadoEnRuta(String rutaId, int ordenOrigen, int ordenDestino) {
+        return tramoBloqueadoRepository.findByRutaId(rutaId).stream()
+                .anyMatch(b -> b.getOrdenOrigen() == ordenOrigen && b.getOrdenDestino() == ordenDestino);
     }
 
     private String generarId(String origen, String destino) {
@@ -223,6 +253,13 @@ public class RutaService {
                                 t.getId(), t.getOrigenTramo(), t.getDestinoTramo(),
                                 t.getOrdenOrigen(), t.getOrdenDestino(),
                                 t.getPrecioNormal(), t.getPrecioVip()))
+                        .collect(Collectors.toList()));
+            }
+            if (r.getTramosBloqueados() != null) {
+                dto.setTramosBloqueados(r.getTramosBloqueados().stream()
+                        .map(b -> new RutaDTO.TramoBloqueadoDTO(
+                                b.getId(), b.getOrigenTramo(), b.getDestinoTramo(),
+                                b.getOrdenOrigen(), b.getOrdenDestino()))
                         .collect(Collectors.toList()));
             }
         }

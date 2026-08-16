@@ -14,6 +14,7 @@ public class RutaRequest {
     private Boolean activo;
     private List<ParadaRequest> paradas;
     private List<TarifaTramoRequest> tarifas;
+    private List<TramoBloqueadoRequest> tramosBloqueados;
 
     public static class ParadaRequest {
         private Integer minutosDesdeSalida;   // minutos estimados desde la salida
@@ -57,6 +58,25 @@ public class RutaRequest {
         public void setPrecioVip(BigDecimal precioVip) { this.precioVip = precioVip; }
     }
 
+    public static class TramoBloqueadoRequest {
+        private String origenTramo;
+        private String destinoTramo;
+        private Integer ordenOrigen;
+        private Integer ordenDestino;
+
+        public String getOrigenTramo() { return origenTramo; }
+        public void setOrigenTramo(String origenTramo) { this.origenTramo = origenTramo; }
+
+        public String getDestinoTramo() { return destinoTramo; }
+        public void setDestinoTramo(String destinoTramo) { this.destinoTramo = destinoTramo; }
+
+        public Integer getOrdenOrigen() { return ordenOrigen; }
+        public void setOrdenOrigen(Integer ordenOrigen) { this.ordenOrigen = ordenOrigen; }
+
+        public Integer getOrdenDestino() { return ordenDestino; }
+        public void setOrdenDestino(Integer ordenDestino) { this.ordenDestino = ordenDestino; }
+    }
+
     // Getters y Setters
     public String getOrigen() { return origen; }
     public void setOrigen(String origen) { this.origen = origen; }
@@ -84,4 +104,7 @@ public class RutaRequest {
 
     public List<TarifaTramoRequest> getTarifas() { return tarifas; }
     public void setTarifas(List<TarifaTramoRequest> tarifas) { this.tarifas = tarifas; }
+
+    public List<TramoBloqueadoRequest> getTramosBloqueados() { return tramosBloqueados; }
+    public void setTramosBloqueados(List<TramoBloqueadoRequest> tramosBloqueados) { this.tramosBloqueados = tramosBloqueados; }
 }
