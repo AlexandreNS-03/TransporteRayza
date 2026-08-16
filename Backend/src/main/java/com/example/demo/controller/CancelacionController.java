@@ -2,7 +2,6 @@ package com.example.demo.controller;
 
 import com.example.demo.dto.VentaDTO;
 import com.example.demo.model.SaldoMovimiento;
-import com.example.demo.model.Venta;
 import com.example.demo.model.Viaje;
 import com.example.demo.service.CancelacionService;
 import com.example.demo.service.VentaService;
@@ -43,23 +42,23 @@ public class CancelacionController {
     }
 
     @PatchMapping("/ventas/{id}/devolver")
-    public ResponseEntity<Venta> devolver(@PathVariable String id, Authentication auth) {
-        return ResponseEntity.ok(cancelacionService.devolver(id, auth.getName()));
+    public ResponseEntity<VentaDTO> devolver(@PathVariable String id, Authentication auth) {
+        return ResponseEntity.ok(ventaService.aDTO(cancelacionService.devolver(id, auth.getName())));
     }
 
     @PatchMapping("/ventas/{id}/saldo-favor")
-    public ResponseEntity<Venta> saldoAFavor(@PathVariable String id, Authentication auth) {
-        return ResponseEntity.ok(cancelacionService.dejarSaldoAFavor(id, auth.getName()));
+    public ResponseEntity<VentaDTO> saldoAFavor(@PathVariable String id, Authentication auth) {
+        return ResponseEntity.ok(ventaService.aDTO(cancelacionService.dejarSaldoAFavor(id, auth.getName())));
     }
 
     @PatchMapping("/ventas/{id}/reprogramar")
-    public ResponseEntity<Venta> reprogramar(@PathVariable String id,
+    public ResponseEntity<VentaDTO> reprogramar(@PathVariable String id,
                                              @RequestBody Map<String, Object> body,
                                              Authentication auth) {
         Object a = body.get("asientoNumero");
         Integer asiento = a == null ? null : Integer.valueOf(String.valueOf(a));
-        return ResponseEntity.ok(cancelacionService.reprogramar(
-                id, String.valueOf(body.get("viajeId")), asiento, auth.getName()));
+        return ResponseEntity.ok(ventaService.aDTO(cancelacionService.reprogramar(
+                id, String.valueOf(body.get("viajeId")), asiento, auth.getName())));
     }
 
     /** Saldo a favor de un cliente (por correo). */
