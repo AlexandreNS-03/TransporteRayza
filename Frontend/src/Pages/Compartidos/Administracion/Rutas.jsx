@@ -53,6 +53,9 @@ function Rutas() {
         { origenTramo: "", destinoTramo: "", ordenOrigen: "", ordenDestino: "", precioNormal: "", precioVip: "" }
     ]);
 
+    // Tramos que esta ruta no vende (ej. el que se salta una parada intermedia nueva)
+    const [tramosBloqueados, setTramosBloqueados] = useState([]);
+
     useEffect(() => { fetchRutas(); }, []);
 
     const fetchRutas = async () => {
@@ -104,6 +107,7 @@ function Rutas() {
         });
         setParadas([{ nombre: "", orden: 1, minutosDesdeSalida: 0 }]);
         setTarifas([{ origenTramo: "", destinoTramo: "", ordenOrigen: "", ordenDestino: "", precioNormal: "", precioVip: "" }]);
+        setTramosBloqueados([]);
         setModoEditar(false);
         setRutaSeleccionada(null);
         setErrorModal(null);
@@ -150,6 +154,10 @@ function Rutas() {
                 }))
                 : [{ origenTramo: "", destinoTramo: "", ordenOrigen: "", ordenDestino: "", precioNormal: "", precioVip: "" }]
             );
+            setTramosBloqueados(detalle.tramosBloqueados?.map(b => ({
+                origenTramo: b.origenTramo, destinoTramo: b.destinoTramo,
+                ordenOrigen: b.ordenOrigen, ordenDestino: b.ordenDestino
+            })) || []);
 
             setModoEditar(true);
             setRutaSeleccionada(r);
@@ -221,6 +229,29 @@ function Rutas() {
     // Con n paradas hay n·(n-1)/2 tramos posibles: 7 paradas = 21
     const totalCombinaciones = (paradasValidas.length * (paradasValidas.length - 1)) / 2;
 
+    // Mismos pares que la plantilla de tarifas (Utils/rutasExcel.js), pero para
+    // marcar cuáles NO se venden en vez de ponerles precio.
+    const paresPosibles = [];
+    for (let i = 0; i < paradasValidas.length; i++) {
+        for (let j = i + 1; j < paradasValidas.length; j++) {
+            paresPosibles.push({
+                origenTramo: paradasValidas[i].nombre, destinoTramo: paradasValidas[j].nombre,
+                ordenOrigen: paradasValidas[i].orden, ordenDestino: paradasValidas[j].orden
+            });
+        }
+    }
+
+    const estaBloqueado = (ordenOrigen, ordenDestino) =>
+        tramosBloqueados.some(b => b.ordenOrigen === ordenOrigen && b.ordenDestino === ordenDestino);
+
+    const toggleTramoBloqueado = (par) => {
+        setTramosBloqueados(prev =>
+            estaBloqueado(par.ordenOrigen, par.ordenDestino)
+                ? prev.filter(b => !(b.ordenOrigen === par.ordenOrigen && b.ordenDestino === par.ordenDestino))
+                : [...prev, par]
+        );
+    };
+
     // ---- Carga por Excel. Todo se arma en el navegador y se guarda recién al
     // presionar Guardar, así el mismo flujo sirve para crear y para editar.
 
@@ -233,7 +264,8 @@ function Rutas() {
                 setMensajeImport({ error: true, texto: errores.join(" · ") });
             } else {
                 setParadas(leidas);
-                setTarifas([]);   // los precios viejos ya no corresponden a estas paradas
+                setTarifas([]);           // los precios viejos ya no corresponden a estas paradas
+                setTramosBloqueados([]);  // ídem: el orden de las paradas cambió
                 setMensajeImport({
                     error: false,
                     texto: `${leidas.length} paradas cargadas: ${leidas[0].nombre} → ${leidas[leidas.length - 1].nombre}. ` +
@@ -314,7 +346,12 @@ function Rutas() {
                     ordenDestino: parseInt(t.ordenDestino),
                     precioNormal: parseFloat(t.precioNormal),
                     precioVip: parseFloat(t.precioVip)
-                }))
+                })),
+                // Si se borró una parada después de bloquear un tramo, ese par ya no
+                // existe entre las paradas actuales: no se guarda un bloqueo huérfano.
+                tramosBloqueados: tramosBloqueados.filter(b =>
+                    paresPosibles.some(p => p.ordenOrigen === b.ordenOrigen && p.ordenDestino === b.ordenDestino)
+                )
             };
 
             const res = await fetch(url, {
@@ -540,6 +577,20 @@ function Rutas() {
                                                                 </tbody>
                                                             </table>
                                                         </div>
+
+                                                        {/* TRAMOS BLOQUEADOS */}
+                                                        {rutaDetalle.tramosBloqueados?.length > 0 && (
+                                                            <div className="detalle-seccion">
+                                                                <h4><i className="ti ti-ban"></i> Tramos que no se venden</h4>
+                                                                <div className="paradas-lista">
+                                                                    {rutaDetalle.tramosBloqueados.map((b, i) => (
+                                                                        <div key={i} className="parada-item">
+                                                                            <span>{b.origenTramo} → {b.destinoTramo}</span>
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+                                                        )}
 
                                                     </div>
                                                 )}
@@ -779,6 +830,43 @@ function Rutas() {
                             <button className="btn-agregar-fila" onClick={agregarTarifa}>
                                 <i className="ti ti-plus"></i> Agregar Tarifa
                             </button>
+
+                            {/* TRAMOS BLOQUEADOS */}
+                            <div className="modal-separador"></div>
+                            <p className="modal-seccion-titulo">
+                                <i className="ti ti-ban"></i> Paso 3 · Tramos que no se venden
+                            </p>
+
+                            {paradasValidas.length < 2 ? (
+                                <p className="carga-excel-ayuda">
+                                    Primero carga las paradas para poder elegir qué tramos bloquear.
+                                </p>
+                            ) : (
+                                <>
+                                    <p className="carga-excel-ayuda">
+                                        Útil cuando se agrega una parada intermedia nueva y el tramo directo
+                                        que se la salta no debe venderse. Marca los tramos que{" "}
+                                        <strong>no</strong> se deben vender; el resto queda disponible como siempre.
+                                    </p>
+                                    <div className="tramos-bloqueados-grid">
+                                        {paresPosibles.map((par) => {
+                                            const bloqueado = estaBloqueado(par.ordenOrigen, par.ordenDestino);
+                                            return (
+                                                <button
+                                                    type="button"
+                                                    key={`${par.ordenOrigen}-${par.ordenDestino}`}
+                                                    className={`tramo-bloqueado-chip${bloqueado ? " activo" : ""}`}
+                                                    onClick={() => toggleTramoBloqueado(par)}
+                                                    aria-pressed={bloqueado}
+                                                >
+                                                    <i className={`ti ${bloqueado ? "ti-ban" : "ti-circle-check"}`}></i>
+                                                    {par.origenTramo} → {par.destinoTramo}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </>
+                            )}
 
                             {errorModal && (
                                 <div className="modal-error">

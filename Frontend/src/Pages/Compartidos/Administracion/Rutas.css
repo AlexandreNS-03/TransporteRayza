@@ -474,6 +474,21 @@
 .tarifa-fila { display: flex; flex-direction: column; gap: 8px; }
 .tarifa-separador { height: 1px; background: #f1f5f9; margin: 4px 0; }
 
+.tramos-bloqueados-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+.tramo-bloqueado-chip {
+    display: flex; align-items: center; gap: 6px;
+    height: 32px; padding: 0 12px;
+    background: #f0fdf4; border: 1px solid #bbf7d0;
+    border-radius: 999px; color: #15803d;
+    font-size: 12px; cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.tramo-bloqueado-chip:hover { border-color: #86efac; }
+.tramo-bloqueado-chip.activo {
+    background: #fef2f2; border-color: #fecaca; color: #b91c1c;
+}
+.tramo-bloqueado-chip.activo:hover { border-color: #fca5a5; }
+
 .modal-error {
     display: flex;
     align-items: center;

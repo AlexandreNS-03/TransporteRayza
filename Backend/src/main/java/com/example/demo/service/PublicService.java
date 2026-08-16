@@ -11,6 +11,7 @@ import com.example.demo.model.ViajeParada;
 import com.example.demo.repository.EmbarcacionRepository;
 import com.example.demo.repository.RutaRepository;
 import com.example.demo.repository.RutaTarifaTramoRepository;
+import com.example.demo.repository.RutaTramoBloqueadoRepository;
 import com.example.demo.repository.ViajeAsientoEstadoRepository;
 import com.example.demo.repository.ViajeRepository;
 import org.springframework.stereotype.Service;
@@ -43,6 +44,7 @@ public class PublicService {
     private final ViajeRepository viajeRepository;
     private final RutaRepository rutaRepository;
     private final RutaTarifaTramoRepository tarifaRepository;
+    private final RutaTramoBloqueadoRepository tramoBloqueadoRepository;
     private final ViajeAsientoEstadoRepository asientoEstadoRepo;
     private final EmbarcacionRepository embarcacionRepository;
     private final AsientoService asientoService;
@@ -84,6 +86,17 @@ public class PublicService {
         return paresBloqueadosLista;
     }
 
+    /**
+     * ¿Esta ruta bloquea explícitamente la venta de este tramo exacto? A diferencia
+     * de tramoBloqueado() (una lista fija por config, global a todas las rutas), esto
+     * lo administra cada ruta por separado — para el caso de una parada intermedia
+     * nueva donde solo deben venderse los tramos adyacentes, no el que se la salta.
+     */
+    public boolean tramoBloqueadoEnRuta(String rutaId, int ordenOrigen, int ordenDestino) {
+        return tramoBloqueadoRepository.findByRutaId(rutaId).stream()
+                .anyMatch(b -> b.getOrdenOrigen() == ordenOrigen && b.getOrdenDestino() == ordenDestino);
+    }
+
     /** Clave sin orden: {Nauta,Iquitos} y {Iquitos,Nauta} dan la misma. */
     private String clave(String a, String b) {
         a = a.trim().toLowerCase();
@@ -94,12 +107,14 @@ public class PublicService {
     public PublicService(ViajeRepository viajeRepository,
                          RutaRepository rutaRepository,
                          RutaTarifaTramoRepository tarifaRepository,
+                         RutaTramoBloqueadoRepository tramoBloqueadoRepository,
                          ViajeAsientoEstadoRepository asientoEstadoRepo,
                          EmbarcacionRepository embarcacionRepository,
                          AsientoService asientoService) {
         this.viajeRepository = viajeRepository;
         this.rutaRepository = rutaRepository;
         this.tarifaRepository = tarifaRepository;
+        this.tramoBloqueadoRepository = tramoBloqueadoRepository;
         this.asientoEstadoRepo = asientoEstadoRepo;
         this.embarcacionRepository = embarcacionRepository;
         this.asientoService = asientoService;
@@ -130,6 +145,10 @@ public class PublicService {
                             t.getPrecioNormal(), t.getPrecioVip()))
                     .sorted(Comparator.comparing((PublicRutaDTO.Tramo t) -> t.getOrdenOrigen() == null ? 0 : t.getOrdenOrigen())
                             .thenComparing(t -> t.getOrdenDestino() == null ? 0 : t.getOrdenDestino()))
+                    .collect(Collectors.toList()));
+
+            dto.setTramosBloqueados(tramoBloqueadoRepository.findByRutaId(r.getId()).stream()
+                    .map(b -> new PublicRutaDTO.TramoBloqueado(b.getOrdenOrigen(), b.getOrdenDestino()))
                     .collect(Collectors.toList()));
 
             resultado.add(dto);

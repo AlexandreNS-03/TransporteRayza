@@ -15,6 +15,7 @@ public class PublicRutaDTO {
     private String duracionAproximada;
     private List<Parada> paradas;
     private List<Tramo> tramos;
+    private List<TramoBloqueado> tramosBloqueados;
 
     public static class Parada {
         private String nombre;
@@ -50,6 +51,17 @@ public class PublicRutaDTO {
         public BigDecimal getPrecioVip() { return precioVip; }
     }
 
+    /** Solo el par de paradas (por orden), no hace falta más para ocultarlo del buscador. */
+    public static class TramoBloqueado {
+        private Integer ordenOrigen;
+        private Integer ordenDestino;
+        public TramoBloqueado(Integer ordenOrigen, Integer ordenDestino) {
+            this.ordenOrigen = ordenOrigen; this.ordenDestino = ordenDestino;
+        }
+        public Integer getOrdenOrigen() { return ordenOrigen; }
+        public Integer getOrdenDestino() { return ordenDestino; }
+    }
+
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
 
@@ -67,4 +79,7 @@ public class PublicRutaDTO {
 
     public List<Tramo> getTramos() { return tramos; }
     public void setTramos(List<Tramo> tramos) { this.tramos = tramos; }
+
+    public List<TramoBloqueado> getTramosBloqueados() { return tramosBloqueados; }
+    public void setTramosBloqueados(List<TramoBloqueado> tramosBloqueados) { this.tramosBloqueados = tramosBloqueados; }
 }

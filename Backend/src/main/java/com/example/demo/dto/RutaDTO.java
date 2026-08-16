@@ -17,6 +17,7 @@ public class RutaDTO {
     private String createdAt;
     private List<ParadaDTO> paradas;
     private List<TarifaTramoDTO> tarifas;
+    private List<TramoBloqueadoDTO> tramosBloqueados;
 
     public static class ParadaDTO {
         private String id;
@@ -68,6 +69,29 @@ public class RutaDTO {
         public BigDecimal getPrecioVip() { return precioVip; }
     }
 
+    public static class TramoBloqueadoDTO {
+        private String id;
+        private String origenTramo;
+        private String destinoTramo;
+        private Integer ordenOrigen;
+        private Integer ordenDestino;
+
+        public TramoBloqueadoDTO(String id, String origenTramo, String destinoTramo,
+                                 Integer ordenOrigen, Integer ordenDestino) {
+            this.id = id;
+            this.origenTramo = origenTramo;
+            this.destinoTramo = destinoTramo;
+            this.ordenOrigen = ordenOrigen;
+            this.ordenDestino = ordenDestino;
+        }
+
+        public String getId() { return id; }
+        public String getOrigenTramo() { return origenTramo; }
+        public String getDestinoTramo() { return destinoTramo; }
+        public Integer getOrdenOrigen() { return ordenOrigen; }
+        public Integer getOrdenDestino() { return ordenDestino; }
+    }
+
     // Getters y Setters
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
@@ -104,4 +128,7 @@ public class RutaDTO {
 
     public List<TarifaTramoDTO> getTarifas() { return tarifas; }
     public void setTarifas(List<TarifaTramoDTO> tarifas) { this.tarifas = tarifas; }
+
+    public List<TramoBloqueadoDTO> getTramosBloqueados() { return tramosBloqueados; }
+    public void setTramosBloqueados(List<TramoBloqueadoDTO> tramosBloqueados) { this.tramosBloqueados = tramosBloqueados; }
 }

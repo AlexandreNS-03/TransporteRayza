@@ -33,8 +33,17 @@ export default function Buscador({ onBuscar, valorInicial = {} }) {
     };
     for (const r of rutas) {
       const paradas = (r.paradas || []).slice().sort((a, b) => (a.orden ?? 0) - (b.orden ?? 0));
+      // Tramos que esta ruta en particular no vende (ej. el que se salta una
+      // parada intermedia nueva), además del bloqueo global de `bloqueados`.
+      const tramosRuta = new Set(
+        (r.tramosBloqueados || []).map((t) => `${t.ordenOrigen}-${t.ordenDestino}`)
+      );
       for (let i = 0; i < paradas.length; i++)
-        for (let j = i + 1; j < paradas.length; j++) agregar(paradas[i].nombre, paradas[j].nombre);
+        for (let j = i + 1; j < paradas.length; j++) {
+          const key = `${paradas[i].orden}-${paradas[j].orden}`;
+          if (tramosRuta.has(key)) continue;
+          agregar(paradas[i].nombre, paradas[j].nombre);
+        }
 
       // El par suelto origen→destino solo hace falta si la ruta no tiene paradas
       // cargadas; con paradas, los puertos terminales ya están en la lista y
