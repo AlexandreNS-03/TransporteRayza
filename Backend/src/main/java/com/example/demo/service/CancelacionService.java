@@ -171,6 +171,20 @@ public class CancelacionService {
         v.setResolucion(Venta.Resolucion.REPROGRAMADO);
         ventaRepository.save(v);
 
+        // Sin esto el asiento del viaje nuevo nunca queda marcado como ocupado: el
+        // manifiesto muestra bien al pasajero (lee directo de Venta), pero al vender
+        // ese asiento aparecía libre porque nadie le avisaba a AsientoService del
+        // cambio de viaje.
+        asientoService.marcarVendido(
+                destino.getId(),
+                v.getAsientoNumero(),
+                v.getId(),
+                v.getPasajeroNombre(),
+                v.getPasajeroDocumento(),
+                v.getPasajeroTelefono(),
+                v.getOrdenOrigen(),
+                v.getOrdenDestino());
+
         auditoriaService.registrar("REPROGRAMAR", "VENTAS", v.getId(),
                 "Pasaje de " + v.getPasajeroNombre() + " reprogramado a "
                         + destino.getCodigoViaje() + " (" + destino.getFechaSalida() + ")");
