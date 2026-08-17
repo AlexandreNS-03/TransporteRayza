@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import Logo from "./Logo";
 import AnnouncementBar from "./AnnouncementBar";
+import AnuncioModal from "./AnuncioModal";
 import ThemeToggle from "./ThemeToggle";
 import { IconPackage, IconCard } from "./Icons";
 import { estaLogueado, clienteActual } from "../services/authCliente";
@@ -55,6 +56,7 @@ export default function Header() {
   return (
     <>
       <AnnouncementBar />
+      <AnuncioModal />
       <header className={`site${scrolled ? " scrolled" : ""}`}>
         <div className="wrap nav">
           <Logo />

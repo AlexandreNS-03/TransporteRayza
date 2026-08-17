@@ -42,8 +42,14 @@ public class PublicViajeDTO {
     private String horaSalida;
     private String duracionAproximada;
 
+    /** Precio final (el que se cobra): el de oferta si la ruta lo tiene activo, si no el normal. */
     private BigDecimal precioNormal;
     private BigDecimal precioVip;
+
+    /** Precio sin descuento, solo para mostrar tachado cuando enOferta es true. */
+    private BigDecimal precioNormalRegular;
+    private BigDecimal precioVipRegular;
+    private boolean enOferta;
 
     private int asientosLibres;
 
@@ -88,6 +94,15 @@ public class PublicViajeDTO {
 
     public BigDecimal getPrecioVip() { return precioVip; }
     public void setPrecioVip(BigDecimal precioVip) { this.precioVip = precioVip; }
+
+    public BigDecimal getPrecioNormalRegular() { return precioNormalRegular; }
+    public void setPrecioNormalRegular(BigDecimal precioNormalRegular) { this.precioNormalRegular = precioNormalRegular; }
+
+    public BigDecimal getPrecioVipRegular() { return precioVipRegular; }
+    public void setPrecioVipRegular(BigDecimal precioVipRegular) { this.precioVipRegular = precioVipRegular; }
+
+    public boolean isEnOferta() { return enOferta; }
+    public void setEnOferta(boolean enOferta) { this.enOferta = enOferta; }
 
     public int getAsientosLibres() { return asientosLibres; }
     public void setAsientosLibres(int asientosLibres) { this.asientosLibres = asientosLibres; }

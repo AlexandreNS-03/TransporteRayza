@@ -145,8 +145,35 @@ h1,h2,h3,h4 { font-family: var(--font-head); color: var(--ink); line-height: 1.1
 .announce .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 0 4px rgba(224,169,59,.25); flex: none; }
 .announce p { margin: 0; flex: 1; }
 .announce b { color: #fff; }
+.announce-enlace { color: #fff; text-decoration: underline; margin-left: 6px; white-space: nowrap; }
 .announce button { background: none; border: 0; color: #cfe0f7; cursor: pointer; font-size: 18px; line-height: 1; padding: 2px 6px; border-radius: 6px; }
 .announce button:hover { background: rgba(255,255,255,.12); color: #fff; }
+
+/* Anuncio modal (tipo MODAL): mismo overlay que el resto del sitio, contenido centrado */
+.anuncio-modal-overlay {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(10, 18, 32, .55);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+}
+.anuncio-modal {
+  position: relative;
+  background: var(--card); color: var(--ink);
+  border-radius: var(--r); box-shadow: var(--sh-lg);
+  max-width: 420px; width: 100%;
+  padding: 32px 28px 28px;
+  animation: pop .25s var(--ease, ease-out) both;
+}
+.anuncio-modal h3 { font-size: 21px; margin: 0 0 10px; }
+.anuncio-modal p { color: var(--ink-soft); margin: 0 0 18px; line-height: 1.55; }
+.anuncio-modal-cerrar {
+  position: absolute; top: 12px; right: 12px;
+  width: 32px; height: 32px; border-radius: 50%;
+  background: var(--bg-soft); border: 1px solid var(--line);
+  color: var(--ink-soft); font-size: 18px; line-height: 1;
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+}
+.anuncio-modal-cerrar:hover { background: var(--bg-softer); color: var(--ink); }
 
 /* El header es fijo: al saltar a una sección con ancla (#destinos, #nosotros)
    este margen evita que el título quede tapado debajo del header. */
@@ -406,6 +433,13 @@ header.site.scrolled::before { background: color-mix(in srgb, var(--bg) 96%, tra
 .resumen-leg { padding: 10px 0; border-bottom: 1px dashed var(--line); }
 .resumen-leg:last-of-type { border-bottom: 0; }
 .resumen-leg-tit { font-weight: 700; margin-bottom: 6px; font-size: 14px; }
+
+.badge-oferta {
+  display: inline-block; font-size: 10.5px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase;
+  background: var(--accent); color: #fff; padding: 2px 8px; border-radius: 999px; vertical-align: middle; margin-left: 6px;
+}
+.precio-regular { color: var(--ink-soft); font-weight: 500; margin-right: 6px; }
+.viaje-row .precio-regular { display: block; font-size: 14px; text-decoration: line-through; margin: 2px 0 0; }
 .field { display: flex; flex-direction: column; gap: 7px; text-align: left; }
 .field label { font-size: 11.5px; font-weight: 700; color: var(--ink-soft); text-transform: uppercase; letter-spacing: .06em; }
 .field .control { position: relative; }

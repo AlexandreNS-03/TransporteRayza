@@ -31,6 +31,16 @@ public class Ruta {
     @Column(name = "precio_vip", precision = 10, scale = 2)
     private BigDecimal precioVip;
 
+    /** Precio para la web cuando la ruta está en oferta; el mostrador nunca lo usa. */
+    @Column(name = "precio_normal_oferta", precision = 10, scale = 2)
+    private BigDecimal precioNormalOferta;
+
+    @Column(name = "precio_vip_oferta", precision = 10, scale = 2)
+    private BigDecimal precioVipOferta;
+
+    @Column(name = "oferta_activa")
+    private Boolean ofertaActiva;
+
     @Column(name = "duracion_aproximada", length = 50)
     private String duracionAproximada;
 
@@ -73,6 +83,15 @@ public class Ruta {
 
     public BigDecimal getPrecioVip() { return precioVip; }
     public void setPrecioVip(BigDecimal precioVip) { this.precioVip = precioVip; }
+
+    public BigDecimal getPrecioNormalOferta() { return precioNormalOferta; }
+    public void setPrecioNormalOferta(BigDecimal precioNormalOferta) { this.precioNormalOferta = precioNormalOferta; }
+
+    public BigDecimal getPrecioVipOferta() { return precioVipOferta; }
+    public void setPrecioVipOferta(BigDecimal precioVipOferta) { this.precioVipOferta = precioVipOferta; }
+
+    public Boolean getOfertaActiva() { return ofertaActiva; }
+    public void setOfertaActiva(Boolean ofertaActiva) { this.ofertaActiva = ofertaActiva; }
 
     public String getDuracionAproximada() { return duracionAproximada; }
     public void setDuracionAproximada(String d) { this.duracionAproximada = d; }

@@ -27,6 +27,8 @@ import Encomiendas from "./Pages/Compartidos/Ventas/Encomiendas.jsx";
 import Auditorias from "./Pages/Compartidos/Sistemas/Auditorias.jsx";
 import Soporte from "./Pages/Compartidos/Sistemas/Soporte.jsx";
 import EstadoSistema from "./Pages/Compartidos/Sistemas/EstadoSistema.jsx";
+import Anuncios from "./Pages/Compartidos/Sistemas/Anuncios.jsx";
+import PreciosWeb from "./Pages/Compartidos/Sistemas/PreciosWeb.jsx";
 
 function App() {
     return (
@@ -62,6 +64,8 @@ function App() {
                     <Route path="manifiesto-carga" element={<ManifiestoCarga />} />
                     <Route path="por-resolver" element={<PorResolver />} />
                     <Route path="auditoria" element={<Auditorias />} />
+                    <Route path="anuncios" element={<Anuncios />} />
+                    <Route path="precios-web" element={<PreciosWeb />} />
                 </Route>
 
                 <Route

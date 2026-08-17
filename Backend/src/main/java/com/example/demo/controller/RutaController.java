@@ -2,6 +2,7 @@ package com.example.demo.controller;
 
 import com.example.demo.dto.RutaDTO;
 import com.example.demo.dto.RutaRequest;
+import com.example.demo.dto.RutaPrecioOfertaRequest;
 import com.example.demo.service.RutaService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -49,6 +50,12 @@ public class RutaController {
     public ResponseEntity<Void> desactivar(@PathVariable String id) {
         rutaService.desactivar(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{id}/precio-oferta")
+    public ResponseEntity<RutaDTO> actualizarPrecioOferta(@PathVariable String id,
+                                                           @RequestBody RutaPrecioOfertaRequest req) {
+        return ResponseEntity.ok(rutaService.actualizarPrecioOferta(id, req));
     }
 
     @GetMapping("/{id}/tarifa")

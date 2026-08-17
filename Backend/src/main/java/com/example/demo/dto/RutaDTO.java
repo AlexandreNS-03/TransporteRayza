@@ -12,6 +12,9 @@ public class RutaDTO {
     private String sucursalAdministradoraNombre;
     private BigDecimal precioNormal;
     private BigDecimal precioVip;
+    private BigDecimal precioNormalOferta;
+    private BigDecimal precioVipOferta;
+    private Boolean ofertaActiva;
     private String duracionAproximada;
     private Boolean activo;
     private String createdAt;
@@ -113,6 +116,15 @@ public class RutaDTO {
 
     public BigDecimal getPrecioVip() { return precioVip; }
     public void setPrecioVip(BigDecimal precioVip) { this.precioVip = precioVip; }
+
+    public BigDecimal getPrecioNormalOferta() { return precioNormalOferta; }
+    public void setPrecioNormalOferta(BigDecimal precioNormalOferta) { this.precioNormalOferta = precioNormalOferta; }
+
+    public BigDecimal getPrecioVipOferta() { return precioVipOferta; }
+    public void setPrecioVipOferta(BigDecimal precioVipOferta) { this.precioVipOferta = precioVipOferta; }
+
+    public Boolean getOfertaActiva() { return ofertaActiva; }
+    public void setOfertaActiva(Boolean ofertaActiva) { this.ofertaActiva = ofertaActiva; }
 
     public String getDuracionAproximada() { return duracionAproximada; }
     public void setDuracionAproximada(String d) { this.duracionAproximada = d; }

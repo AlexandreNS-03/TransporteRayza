@@ -271,7 +271,8 @@ html :is(button, a, input, select, textarea, [tabindex]):focus-visible {
   /* Las filas de las tablas, algo más altas: se acierta mejor al tocar */
   .pasajes-tabla td, .viajes-tabla td, .reportes-tabla td,
   .rutas-tabla td, .sucursales-tabla td, .emb-tabla td,
-  .roles-tabla td, .manifiesto-tabla td { padding-top: 12px; padding-bottom: 12px; }
+  .roles-tabla td, .manifiesto-tabla td,
+  .anuncios-tabla td, .preciosweb-tabla td { padding-top: 12px; padding-bottom: 12px; }
 }
 
 /* En una tablet apaisada (1024px) el menú lateral se quedaba abierto comiéndose
@@ -313,21 +314,26 @@ html :is(button, a, input, select, textarea, [tabindex]):focus-visible {
    duplicarlo en Rutas, Sucursales, Embarcaciones, Roles y Manifiesto. */
 @media (max-width: 720px) {
   .rutas-tabla-wrapper, .sucursales-tabla-wrapper, .emb-tabla-wrapper,
-  .roles-tabla-wrapper, .manifiesto-tabla-wrapper {
+  .roles-tabla-wrapper, .manifiesto-tabla-wrapper,
+  .anuncios-tabla-wrapper, .preciosweb-tabla-wrapper {
     border: none; background: transparent; overflow: visible;
   }
   .rutas-tabla thead, .sucursales-tabla thead, .emb-tabla thead,
-  .roles-tabla thead, .manifiesto-tabla thead { display: none; }
+  .roles-tabla thead, .manifiesto-tabla thead,
+  .anuncios-tabla thead, .preciosweb-tabla thead { display: none; }
 
   .rutas-tabla, .rutas-tabla tbody, .rutas-tabla tr, .rutas-tabla td,
   .sucursales-tabla, .sucursales-tabla tbody, .sucursales-tabla tr, .sucursales-tabla td,
   .emb-tabla, .emb-tabla tbody, .emb-tabla tr, .emb-tabla td,
   .roles-tabla, .roles-tabla tbody, .roles-tabla tr, .roles-tabla td,
-  .manifiesto-tabla, .manifiesto-tabla tbody, .manifiesto-tabla tr, .manifiesto-tabla td {
+  .manifiesto-tabla, .manifiesto-tabla tbody, .manifiesto-tabla tr, .manifiesto-tabla td,
+  .anuncios-tabla, .anuncios-tabla tbody, .anuncios-tabla tr, .anuncios-tabla td,
+  .preciosweb-tabla, .preciosweb-tabla tbody, .preciosweb-tabla tr, .preciosweb-tabla td {
     display: block; width: 100%;
   }
 
-  .rutas-tabla tr, .sucursales-tabla tr, .emb-tabla tr, .roles-tabla tr, .manifiesto-tabla tr {
+  .rutas-tabla tr, .sucursales-tabla tr, .emb-tabla tr, .roles-tabla tr, .manifiesto-tabla tr,
+  .anuncios-tabla tr, .preciosweb-tabla tr {
     margin-bottom: 12px;
     border: 1px solid var(--color-borde, #e2e8f0);
     border-radius: var(--radio-md, 10px);
@@ -336,18 +342,22 @@ html :is(button, a, input, select, textarea, [tabindex]):focus-visible {
     overflow: hidden;
   }
   .rutas-tabla tbody tr:hover, .sucursales-tabla tbody tr:hover, .emb-tabla tbody tr:hover,
-  .roles-tabla tbody tr:hover, .manifiesto-tabla tbody tr:hover { background: var(--color-blanco, #fff); }
+  .roles-tabla tbody tr:hover, .manifiesto-tabla tbody tr:hover,
+  .anuncios-tabla tbody tr:hover, .preciosweb-tabla tbody tr:hover { background: var(--color-blanco, #fff); }
 
-  .rutas-tabla td, .sucursales-tabla td, .emb-tabla td, .roles-tabla td, .manifiesto-tabla td {
+  .rutas-tabla td, .sucursales-tabla td, .emb-tabla td, .roles-tabla td, .manifiesto-tabla td,
+  .anuncios-tabla td, .preciosweb-tabla td {
     display: flex; justify-content: space-between; align-items: center;
     gap: 14px; padding: 10px 14px; border: none; border-bottom: 1px solid #f1f5f9;
     text-align: right;
   }
   .rutas-tabla tr td:last-child, .sucursales-tabla tr td:last-child, .emb-tabla tr td:last-child,
-  .roles-tabla tr td:last-child, .manifiesto-tabla tr td:last-child { border-bottom: none; }
+  .roles-tabla tr td:last-child, .manifiesto-tabla tr td:last-child,
+  .anuncios-tabla tr td:last-child, .preciosweb-tabla tr td:last-child { border-bottom: none; }
 
   .rutas-tabla td::before, .sucursales-tabla td::before, .emb-tabla td::before,
-  .roles-tabla td::before, .manifiesto-tabla td::before {
+  .roles-tabla td::before, .manifiesto-tabla td::before,
+  .anuncios-tabla td::before, .preciosweb-tabla td::before {
     content: attr(data-label); font-weight: 600; color: var(--color-texto-suave, #64748b);
     font-size: 11px; text-transform: uppercase; letter-spacing: .3px; text-align: left; flex-shrink: 0;
   }
@@ -356,21 +366,27 @@ html :is(button, a, input, select, textarea, [tabindex]):focus-visible {
   .sucursales-tabla td.acciones, .sucursales-tabla td.acciones-cell,
   .emb-tabla td.acciones, .emb-tabla td.acciones-cell,
   .roles-tabla td.acciones, .roles-tabla td.acciones-cell,
-  .manifiesto-tabla td.acciones, .manifiesto-tabla td.acciones-cell {
+  .manifiesto-tabla td.acciones, .manifiesto-tabla td.acciones-cell,
+  .anuncios-tabla td.acciones, .anuncios-tabla td.acciones-cell,
+  .preciosweb-tabla td.acciones, .preciosweb-tabla td.acciones-cell {
     justify-content: flex-end; flex-wrap: wrap; background: #f8fafc;
   }
   .rutas-tabla td.acciones::before, .rutas-tabla td.acciones-cell::before,
   .sucursales-tabla td.acciones::before, .sucursales-tabla td.acciones-cell::before,
   .emb-tabla td.acciones::before, .emb-tabla td.acciones-cell::before,
   .roles-tabla td.acciones::before, .roles-tabla td.acciones-cell::before,
-  .manifiesto-tabla td.acciones::before, .manifiesto-tabla td.acciones-cell::before {
+  .manifiesto-tabla td.acciones::before, .manifiesto-tabla td.acciones-cell::before,
+  .anuncios-tabla td.acciones::before, .anuncios-tabla td.acciones-cell::before,
+  .preciosweb-tabla td.acciones::before, .preciosweb-tabla td.acciones-cell::before {
     content: "Acciones";
   }
 
   .rutas-tabla td.tabla-vacia, .sucursales-tabla td.tabla-vacia, .emb-tabla td.tabla-vacia,
-  .roles-tabla td.tabla-vacia, .manifiesto-tabla td.tabla-vacia { justify-content: center; }
+  .roles-tabla td.tabla-vacia, .manifiesto-tabla td.tabla-vacia,
+  .anuncios-tabla td.tabla-vacia, .preciosweb-tabla td.tabla-vacia { justify-content: center; }
   .rutas-tabla td.tabla-vacia::before, .sucursales-tabla td.tabla-vacia::before, .emb-tabla td.tabla-vacia::before,
-  .roles-tabla td.tabla-vacia::before, .manifiesto-tabla td.tabla-vacia::before { display: none; }
+  .roles-tabla td.tabla-vacia::before, .manifiesto-tabla td.tabla-vacia::before,
+  .anuncios-tabla td.tabla-vacia::before, .preciosweb-tabla td.tabla-vacia::before { display: none; }
 
   /* Las filas de detalle expandible (paradas/tarifas en Rutas, asientos en
      Embarcaciones) no son filas de datos: se dejan como bloque simple en vez

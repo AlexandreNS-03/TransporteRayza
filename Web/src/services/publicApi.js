@@ -28,6 +28,13 @@ export async function buscarViajes({ origen, destino, fecha } = {}) {
   catch (e) { throw desempaquetarError(e); }
 }
 
+// Anuncios activos y vigentes de un tipo (BARRA, MODAL o LANDING).
+// Si falla, se devuelve vacío: un anuncio caído no debe tumbar la página.
+export async function getAnuncios(tipo) {
+  try { const { data } = await http.get("/anuncios", { params: { tipo } }); return data; }
+  catch (e) { return []; }
+}
+
 // Mapa completo de asientos del viaje (incluye ocupados) para el tramo elegido.
 export async function getAsientos(viajeId, ordenOrigen, ordenDestino) {
   try {

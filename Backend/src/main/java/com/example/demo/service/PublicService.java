@@ -97,6 +97,17 @@ public class PublicService {
                 .anyMatch(b -> b.getOrdenOrigen() == ordenOrigen && b.getOrdenDestino() == ordenDestino);
     }
 
+    /**
+     * Ruta con oferta activa (con ambos precios de oferta cargados), o vacío si no
+     * aplica. La oferta es solo para la web: el mostrador nunca la usa.
+     */
+    public java.util.Optional<Ruta> ofertaActivaDeRuta(String rutaId) {
+        if (rutaId == null) return java.util.Optional.empty();
+        return rutaRepository.findById(rutaId)
+                .filter(r -> Boolean.TRUE.equals(r.getOfertaActiva())
+                        && r.getPrecioNormalOferta() != null && r.getPrecioVipOferta() != null);
+    }
+
     /** Clave sin orden: {Nauta,Iquitos} y {Iquitos,Nauta} dan la misma. */
     private String clave(String a, String b) {
         a = a.trim().toLowerCase();
@@ -231,8 +242,17 @@ public class PublicService {
             dto.setHoraSalida(v.getHoraSalida() != null ? v.getHoraSalida().toString() : null);
 
             BigDecimal[] precios = calcularPrecioTramo(v, ordenOrigen, ordenDestino);
-            dto.setPrecioNormal(precios[0]);
-            dto.setPrecioVip(precios[1]);
+            java.util.Optional<Ruta> oferta = ofertaActivaDeRuta(v.getRutaId());
+            if (oferta.isPresent()) {
+                dto.setPrecioNormalRegular(precios[0]);
+                dto.setPrecioVipRegular(precios[1]);
+                dto.setPrecioNormal(oferta.get().getPrecioNormalOferta());
+                dto.setPrecioVip(oferta.get().getPrecioVipOferta());
+                dto.setEnOferta(true);
+            } else {
+                dto.setPrecioNormal(precios[0]);
+                dto.setPrecioVip(precios[1]);
+            }
 
             rutaRepository.findById(v.getRutaId())
                     .ifPresent(r -> dto.setDuracionAproximada(r.getDuracionAproximada()));

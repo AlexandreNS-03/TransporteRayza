@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
@@ -8,13 +8,34 @@ import Galeria from "../components/Galeria";
 import Reveal from "../components/Reveal";
 import HeroConProfundidad from "../components/HeroConProfundidad";
 import AnuncioAniversario from "../components/AnuncioAniversario";
+import { getAnuncios } from "../services/publicApi";
 import { EMPRESA, telefonoBonito, telefonoInternacional,
          aniosDeAniversario } from "../datos";
 import { DESTINOS } from "../destinos";
 
+// Tarjetas de respaldo si todavía no se cargó ningún anuncio de tipo LANDING
+// desde el sistema: la sección nunca queda vacía.
+const PROMOS_RESPALDO = [
+  { titulo: "Aniversario de Requena", mensaje: "Acompáñanos a celebrar el aniversario de Requena. Asegura tu asiento a los principales puertos.", tag: "Del 18 al 23 de agosto" },
+  { titulo: "Compra en línea", mensaje: "Sin colas: reserva y paga desde tu celular.", tag: "Nuevo" },
+  { titulo: "Encomiendas", mensaje: "Puerta a puerto, con comprobante electrónico.", tag: "Encomiendas" },
+];
+
 export default function Landing() {
   const anios = aniosDeAniversario();
   const [abierto, setAbierto] = useState(null);
+  const [promos, setPromos] = useState(PROMOS_RESPALDO);
+
+  useEffect(() => {
+    getAnuncios("LANDING").then((lista) => {
+      if (lista.length > 0) {
+        setPromos(lista.slice(0, 3).map((a) => ({
+          titulo: a.titulo, mensaje: a.mensaje, tag: a.textoEnlace || "Anuncio",
+          urlEnlace: a.urlEnlace,
+        })));
+      }
+    });
+  }, []);
   return (
     <>
       <Header />
@@ -48,13 +69,24 @@ export default function Landing() {
       <section className="section" style={{ paddingTop: 56 }}>
         <div className="wrap">
           <div className="promos">
-            <Reveal className="promo p2">
-              <span className="tagline">Aniversario de Requena</span>
-              <h3>Del 18 al 23 de agosto</h3>
-              <p>Acompáñanos a celebrar el aniversario de Requena. Asegura tu asiento a los principales puertos.</p>
-            </Reveal>
-            <Reveal className="promo p1" delay={1}><span className="tagline">Nuevo</span><h3>Compra en línea</h3><p>Sin colas: reserva y paga desde tu celular.</p></Reveal>
-            <Reveal className="promo p3" delay={2}><span className="tagline">Encomiendas</span><h3>Envía tu carga</h3><p>Puerta a puerto, con comprobante electrónico.</p></Reveal>
+            {promos.map((p, i) => {
+              const contenido = (
+                <>
+                  <span className="tagline">{p.tag}</span>
+                  <h3>{p.titulo}</h3>
+                  <p>{p.mensaje}</p>
+                </>
+              );
+              return p.urlEnlace ? (
+                <Reveal as={Link} to={p.urlEnlace} className={`promo p${(i % 3) + 1}`} delay={i} key={p.titulo}>
+                  {contenido}
+                </Reveal>
+              ) : (
+                <Reveal className={`promo p${(i % 3) + 1}`} delay={i} key={p.titulo}>
+                  {contenido}
+                </Reveal>
+              );
+            })}
           </div>
         </div>
       </section>

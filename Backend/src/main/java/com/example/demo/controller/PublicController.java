@@ -1,8 +1,11 @@
 package com.example.demo.controller;
 
+import com.example.demo.dto.AnuncioDTO;
 import com.example.demo.dto.PublicAsientoDTO;
 import com.example.demo.dto.PublicRutaDTO;
 import com.example.demo.dto.PublicViajeDTO;
+import com.example.demo.model.Anuncio;
+import com.example.demo.service.AnuncioService;
 import com.example.demo.service.ClienteService;
 import com.example.demo.service.PublicService;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -24,10 +27,25 @@ public class PublicController {
 
     private final PublicService publicService;
     private final ClienteService clienteService;
+    private final AnuncioService anuncioService;
 
-    public PublicController(PublicService publicService, ClienteService clienteService) {
+    public PublicController(PublicService publicService, ClienteService clienteService,
+                            AnuncioService anuncioService) {
         this.publicService = publicService;
         this.clienteService = clienteService;
+        this.anuncioService = anuncioService;
+    }
+
+    /** Anuncios activos y vigentes de un tipo (BARRA, MODAL o LANDING). */
+    @GetMapping("/anuncios")
+    public ResponseEntity<List<AnuncioDTO>> anuncios(@RequestParam String tipo) {
+        Anuncio.Tipo t;
+        try {
+            t = Anuncio.Tipo.valueOf(tipo);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        }
+        return ResponseEntity.ok(anuncioService.listarActivosPorTipo(t));
     }
 
     /** Rutas activas con paradas y tramos (para los combos Desde/Hacia). */
