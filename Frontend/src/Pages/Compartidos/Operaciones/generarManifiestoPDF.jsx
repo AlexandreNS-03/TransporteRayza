@@ -5,17 +5,21 @@ import { guardarPdf, CARPETAS } from "../../../Utils/descargas.js";
 // ── Columnas de la tabla (ancho en mm, deben sumar el ancho de contenido) ──
 const COLUMNAS = [
     { titulo: "#",               ancho: 8,  align: "left" },
-    { titulo: "Nombre Completo", ancho: 42, align: "left" },
-    { titulo: "Documento",       ancho: 30, align: "left" },
-    { titulo: "Edad",            ancho: 11, align: "center" },
-    { titulo: "Sexo",            ancho: 14, align: "left" },
-    { titulo: "Procedencia",     ancho: 22, align: "left" },
-    { titulo: "Teléfono",        ancho: 22, align: "left" },
-    { titulo: "Tramo",           ancho: 34, align: "left" },
-    { titulo: "Asiento",         ancho: 18, align: "left" },
-    { titulo: "Observación",     ancho: 48, align: "left" },
+    { titulo: "Nombre Completo", ancho: 38, align: "left" },
+    { titulo: "Documento",       ancho: 28, align: "left" },
+    { titulo: "Edad",            ancho: 10, align: "center" },
+    { titulo: "Sexo",            ancho: 12, align: "left" },
+    { titulo: "Procedencia",     ancho: 20, align: "left" },
+    { titulo: "Teléfono",        ancho: 20, align: "left" },
+    { titulo: "Tramo",           ancho: 32, align: "left" },
+    { titulo: "Asiento",         ancho: 16, align: "left" },
+    { titulo: "Precio",          ancho: 18, align: "right" },
+    { titulo: "Observación",     ancho: 51, align: "left" },
     { titulo: "Estado",          ancho: 20, align: "left" },
 ];
+
+// Formatea el precio del pasaje para la columna y el total (ej. "S/ 90.00").
+const soles = (v) => (v == null || v === "" || isNaN(Number(v))) ? "—" : `S/ ${Number(v).toFixed(2)}`;
 
 // jsPDF (fuentes estándar) no tiene el glifo "→"; lo cambiamos por "-" para que
 // el texto de la ruta y otros no salga roto.
@@ -152,8 +156,10 @@ export async function generarManifiestoPDF(viaje, pasajeros, capacidadTotal) {
         doc.setFont("helvetica", "bold");
         let x = margen;
         COLUMNAS.forEach(col => {
-            const tx = col.align === "center" ? x + col.ancho / 2 : x + 2.5;
-            doc.text(col.titulo, tx, y + 5.3, { align: col.align === "center" ? "center" : "left" });
+            const tx = col.align === "center" ? x + col.ancho / 2
+                     : col.align === "right"  ? x + col.ancho - 2.5
+                     : x + 2.5;
+            doc.text(col.titulo, tx, y + 5.3, { align: col.align === "center" ? "center" : col.align === "right" ? "right" : "left" });
             x += col.ancho;
         });
         y += 8;
@@ -201,9 +207,11 @@ export async function generarManifiestoPDF(viaje, pasajeros, capacidadTotal) {
                 doc.setTextColor(...negro);
                 doc.setFont("helvetica", i === 1 ? "bold" : "normal");
                 doc.setFontSize(7.5);
-                const tx = col.align === "center" ? x + col.ancho / 2 : x + 2.5;
+                const tx = col.align === "center" ? x + col.ancho / 2
+                         : col.align === "right"  ? x + col.ancho - 2.5
+                         : x + 2.5;
                 doc.text(lineasPorCelda[i], tx, textoY - (lineasPorCelda[i].length - 1) * 1.7,
-                    { align: col.align === "center" ? "center" : "left" });
+                    { align: col.align === "center" ? "center" : col.align === "right" ? "right" : "left" });
             }
             x += col.ancho;
         });
@@ -225,6 +233,7 @@ export async function generarManifiestoPDF(viaje, pasajeros, capacidadTotal) {
         p.pasajeroTelefono || "—",
         tramo(p.paradaOrigen, p.paradaDestino),
         `${p.asientoTipo || ""} #${p.asientoNumero ?? "—"}`,
+        soles(p.precio),
         p.observacion || "—",
         p.embarqueEstado === "EMBARCADO" ? "Embarcado" : "Pendiente",
     ]);
@@ -238,6 +247,22 @@ export async function generarManifiestoPDF(viaje, pasajeros, capacidadTotal) {
     } else {
         filas.forEach((fila, i) => dibujarFila(fila, i));
     }
+
+    // ── TOTAL RECAUDADO ──
+    // Suma de los pasajes del manifiesto (ya excluye anulados: se filtran antes de
+    // llegar acá). Da al patrón/oficina el monto que debería estar cuadrado por este viaje.
+    const totalRecaudado = pasajeros.reduce((acc, p) => acc + (Number(p.precio) || 0), 0);
+    if (y + 12 > alto - 24) { doc.addPage(); dibujarEncabezadoPaginaExtra(); }
+    y += 4;
+    const totalTxt = `Total recaudado: ${soles(totalRecaudado)}`;
+    const totalW = doc.getTextWidth(totalTxt) + 12;
+    doc.setFillColor(...azulBg);
+    doc.roundedRect(ancho - margen - totalW, y, totalW, 9, 2, 2, "F");
+    doc.setTextColor(...azul);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    doc.text(totalTxt, ancho - margen - 6, y + 6, { align: "right" });
+    y += 12;
 
     // ── FIRMAS ──
     let finalY = y + 22;

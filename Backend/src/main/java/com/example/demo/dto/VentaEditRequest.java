@@ -1,10 +1,11 @@
 package com.example.demo.dto;
 
 /**
- * Campos editables de una venta ya registrada. Solo datos del pasajero y del
- * comprobante interno: NO se puede cambiar viaje, asiento, tramo ni precio
- * (eso afectaría la ocupación del asiento y el saldo de caja; para eso se anula
- * y se vuelve a vender).
+ * Campos editables de una venta ya registrada: datos del pasajero, del
+ * comprobante interno y del pago (método, lugar y observación). NO se puede
+ * cambiar viaje, asiento, tramo ni precio (eso afectaría la ocupación del
+ * asiento y el monto de caja; para eso se anula y se vuelve a vender). El monto
+ * no cambia; si cambia el método de pago, el movimiento de caja se sincroniza.
  */
 public class VentaEditRequest {
 
@@ -20,6 +21,9 @@ public class VentaEditRequest {
     private String clienteTipoDoc;
     private String clienteDocumento;
     private String detalleComprobante;
+    private String metodoPago;
+    private String lugarPago;
+    private String observacion;
 
     public String getTipoDocumento() { return tipoDocumento; }
     public void setTipoDocumento(String tipoDocumento) { this.tipoDocumento = tipoDocumento; }
@@ -56,4 +60,13 @@ public class VentaEditRequest {
 
     public String getDetalleComprobante() { return detalleComprobante; }
     public void setDetalleComprobante(String detalleComprobante) { this.detalleComprobante = detalleComprobante; }
+
+    public String getMetodoPago() { return metodoPago; }
+    public void setMetodoPago(String metodoPago) { this.metodoPago = metodoPago; }
+
+    public String getLugarPago() { return lugarPago; }
+    public void setLugarPago(String lugarPago) { this.lugarPago = lugarPago; }
+
+    public String getObservacion() { return observacion; }
+    public void setObservacion(String observacion) { this.observacion = observacion; }
 }

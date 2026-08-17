@@ -312,7 +312,8 @@ public class VentaService {
                 venta.getPrecio(),
                 "Venta pasaje " + venta.getSerieComprobante() + "-" + venta.getNumeroComprobante()
                         + " — " + venta.getPasajeroNombre(),
-                venta.getMetodoPago());
+                venta.getMetodoPago(),
+                venta.getId());
 
         auditoriaService.registrar("CREAR", "VENTAS", venta.getId(),
                 "Venta " + venta.getSerieComprobante() + "-" + venta.getNumeroComprobante()
@@ -355,7 +356,23 @@ public class VentaService {
         venta.setClienteTipoDoc(req.getClienteTipoDoc());
         venta.setClienteDocumento(req.getClienteDocumento());
         venta.setDetalleComprobante(req.getDetalleComprobante());
+
+        // Datos del pago: método (yape/plin/efectivo…), lugar (oficina/Iquitos) y
+        // observación. El monto NO cambia. Si cambia el método, se sincroniza el
+        // movimiento de caja para que el cuadre (efectivo físico vs. digital) quede
+        // coherente con cómo se cobró realmente.
+        String metodoAnterior = venta.getMetodoPago();
+        if (req.getMetodoPago() != null && !req.getMetodoPago().isBlank())
+            venta.setMetodoPago(req.getMetodoPago());
+        if (req.getLugarPago() != null)
+            venta.setLugarPago(req.getLugarPago());
+        venta.setObservacion(req.getObservacion());
         ventaRepository.save(venta);
+
+        boolean cambioMetodo = venta.getMetodoPago() != null
+                && !venta.getMetodoPago().equals(metodoAnterior);
+        if (cambioMetodo)
+            cajaService.actualizarMetodoPagoDeVenta(venta.getId(), venta.getMetodoPago());
 
         // Mantener sincronizados los datos del pasajero en el mapa de asientos
         asientoService.actualizarDatosPasajero(id,
@@ -390,7 +407,8 @@ public class VentaService {
                 venta.getPrecio(),
                 "Anulación venta " + venta.getSerieComprobante() + "-" + venta.getNumeroComprobante()
                         + " — " + venta.getPasajeroNombre(),
-                venta.getMetodoPago());
+                venta.getMetodoPago(),
+                venta.getId());
 
         auditoriaService.registrar("ANULAR", "VENTAS", venta.getId(),
                 "Venta " + venta.getSerieComprobante() + "-" + venta.getNumeroComprobante()

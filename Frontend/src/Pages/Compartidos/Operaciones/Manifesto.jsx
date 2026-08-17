@@ -258,6 +258,7 @@ function Manifiesto() {
                                     <th>Teléfono</th>
                                     <th>Tramo</th>
                                     <ThOrden label="Asiento" ordKey="asientoNumero" />
+                                    <th>Precio</th>
                                     <th>Observación</th>
                                     <th>Estado</th>
                                 </tr>
@@ -285,6 +286,7 @@ function Manifiesto() {
                                             </span>
                                             <strong> #{p.asientoNumero}</strong>
                                         </td>
+                                        <td data-label="Precio">{p.precio != null ? `S/ ${Number(p.precio).toFixed(2)}` : "—"}</td>
                                         <td className="col-observacion" data-label="Observación">{p.observacion || "—"}</td>
                                         <td data-label="Estado">
                                             <span className={`badge ${p.embarqueEstado === "EMBARCADO" ? "badge-embarcado" : "badge-pendiente"}`}>

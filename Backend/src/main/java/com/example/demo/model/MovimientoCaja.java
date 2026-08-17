@@ -27,6 +27,11 @@ public class MovimientoCaja {
     @Column(name = "motivo", length = 200)
     private String motivo;
 
+    /** Venta que originó el movimiento (si aplica). Permite corregir el método de
+     *  pago del movimiento cuando se edita el pago de la venta, sin adivinar por texto. */
+    @Column(name = "venta_id", length = 36)
+    private String ventaId;
+
     /** Cómo se pagó: EFECTIVO / YAPE / PLIN / TARJETA / TRANSFERENCIA. Null = efectivo. */
     @Column(name = "metodo_pago", length = 20)
     private String metodoPago;
@@ -72,6 +77,9 @@ public class MovimientoCaja {
 
     public String getMotivo() { return motivo; }
     public void setMotivo(String motivo) { this.motivo = motivo; }
+
+    public String getVentaId() { return ventaId; }
+    public void setVentaId(String ventaId) { this.ventaId = ventaId; }
 
     public String getMetodoPago() { return metodoPago; }
     public void setMetodoPago(String metodoPago) { this.metodoPago = metodoPago; }
