@@ -1,10 +1,25 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { getAnuncios } from "../services/publicApi";
+
+// Mensaje de respaldo si no hay ningún anuncio de tipo BARRA cargado (o si la
+// petición falla): la barra nunca queda vacía sin explicación.
+const RESPALDO = {
+  mensaje: "Compra 100% en línea: elige tu asiento y paga seguro con tarjeta o Yape. Recibe tu boleto con QR al instante.",
+};
 
 // Barra de anuncios superior, descartable (estilo aerolínea).
 export default function AnnouncementBar() {
+  const [anuncio, setAnuncio] = useState(RESPALDO);
   const [visible, setVisible] = useState(
     () => sessionStorage.getItem("rayza_announce_off") !== "1"
   );
+
+  useEffect(() => {
+    getAnuncios("BARRA").then((lista) => {
+      if (lista.length > 0) setAnuncio(lista[0]);
+    });
+  }, []);
+
   if (!visible) return null;
 
   const cerrar = () => {
@@ -16,7 +31,13 @@ export default function AnnouncementBar() {
     <div className="announce">
       <div className="wrap">
         <span className="dot" />
-        <p><b>Compra 100% en línea:</b> elige tu asiento y paga seguro con tarjeta o Yape. Recibe tu boleto con QR al instante.</p>
+        <p>
+          {anuncio.titulo && <b>{anuncio.titulo}: </b>}
+          {anuncio.mensaje}
+          {anuncio.urlEnlace && (
+            <a className="announce-enlace" href={anuncio.urlEnlace}>{anuncio.textoEnlace || "Ver más"}</a>
+          )}
+        </p>
         <button onClick={cerrar} aria-label="Cerrar aviso">×</button>
       </div>
     </div>

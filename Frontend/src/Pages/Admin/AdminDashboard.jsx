@@ -121,6 +121,14 @@ function AdminDashboard() {
                             <NavLink to="/admin/auditoria" className={({ isActive }) => isActive ? "sb-item active" : "sb-item"}>
                                 <i className="ti ti-clipboard-check"></i> Auditoría
                             </NavLink>
+
+                            <p className="sb-section">WEB PÚBLICA</p>
+                            <NavLink to="/admin/anuncios" className={({ isActive }) => isActive ? "sb-item active" : "sb-item"}>
+                                <i className="ti ti-speakerphone"></i> Anuncios
+                            </NavLink>
+                            <NavLink to="/admin/precios-web" className={({ isActive }) => isActive ? "sb-item active" : "sb-item"}>
+                                <i className="ti ti-tag"></i> Precios Web
+                            </NavLink>
                         </>
                     )}
 

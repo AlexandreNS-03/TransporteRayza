@@ -99,7 +99,14 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET,    "/api/rutas/**").hasAnyRole("ADMIN", "SUPERVISOR", "EMPLEADO")
                         .requestMatchers(HttpMethod.POST,   "/api/rutas").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT,    "/api/rutas/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PATCH,  "/api/rutas/*/precio-oferta").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/rutas/**").hasRole("ADMIN")
+
+                        /*ANUNCIOS*/
+                        .requestMatchers(HttpMethod.GET,    "/api/anuncios/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST,   "/api/anuncios").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT,    "/api/anuncios/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/anuncios/**").hasRole("ADMIN")
 
                         /*VENTAS*/
                         .requestMatchers(HttpMethod.GET,   "/api/ventas/**").hasAnyRole("ADMIN", "SUPERVISOR", "EMPLEADO")

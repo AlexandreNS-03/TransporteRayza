@@ -28,6 +28,7 @@ const CONTACTO_INICIAL = {
 };
 
 const precioAsiento = (viaje, a) => Number(((a?.tipo === "VIP" ? viaje?.precioVip : viaje?.precioNormal) ?? viaje?.precioNormal) || 0);
+const precioAsientoRegular = (viaje, a) => Number(((a?.tipo === "VIP" ? viaje?.precioVipRegular : viaje?.precioNormalRegular) ?? viaje?.precioNormalRegular) || 0);
 const totalLeg = (viaje, asientos) => asientos.reduce((s, a) => s + precioAsiento(viaje, a), 0);
 
 /** Resumen lateral: muestra la ida y, si es ida y vuelta, también la vuelta. */
@@ -39,10 +40,19 @@ function ResumenCompra({ ida, vuelta, esRedondo, bebes }) {
 
   const Bloque = ({ tag, leg }) => leg.viaje && (
     <div className="resumen-leg">
-      <div className="resumen-leg-tit"><span className="leg-tag">{tag}</span> {leg.viaje.origen} → {leg.viaje.destino}</div>
+      <div className="resumen-leg-tit">
+        <span className="leg-tag">{tag}</span> {leg.viaje.origen} → {leg.viaje.destino}
+        {leg.viaje.enOferta && <span className="badge-oferta">OFERTA</span>}
+      </div>
       <div className="linea"><span>Fecha</span><span>{leg.viaje.fechaSalida} · {leg.viaje.horaSalida ? leg.viaje.horaSalida.slice(0,5) : "—"} h</span></div>
       {leg.asientos.map((a) => (
-        <div className="linea" key={a.numero}><span>Asiento #{a.numero} · {a.tipo}</span><span>{soles(precioAsiento(leg.viaje, a))}</span></div>
+        <div className="linea" key={a.numero}>
+          <span>Asiento #{a.numero} · {a.tipo}</span>
+          <span>
+            {leg.viaje.enOferta && <s className="precio-regular">{soles(precioAsientoRegular(leg.viaje, a))}</s>}
+            {soles(precioAsiento(leg.viaje, a))}
+          </span>
+        </div>
       ))}
     </div>
   );

@@ -43,6 +43,8 @@ export default function Resultados({ viajes, cargando, error, onElegir }) {
           </div>
           <div className="center">
             <div className="meta">Desde</div>
+            {v.enOferta && <span className="badge-oferta">OFERTA</span>}
+            {v.enOferta && <div className="precio-regular">{soles(v.precioNormalRegular)}</div>}
             <div className="precio">{soles(v.precioNormal)}</div>
           </div>
           <button className="btn btn-primary" disabled={v.asientosLibres === 0} onClick={() => onElegir(v)}>

@@ -124,6 +124,26 @@ public class RutaService {
         rutaRepository.save(r);
     }
 
+    /**
+     * Solo el precio de oferta web de la ruta — no toca paradas, tarifas ni el
+     * precio normal que sigue cobrando el mostrador.
+     */
+    @Transactional
+    public RutaDTO actualizarPrecioOferta(String id, com.example.demo.dto.RutaPrecioOfertaRequest req) {
+        Ruta r = rutaRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Ruta no encontrada"));
+
+        boolean activa = Boolean.TRUE.equals(req.getOfertaActiva());
+        if (activa && (req.getPrecioNormalOferta() == null || req.getPrecioVipOferta() == null))
+            throw new RuntimeException("Ingresa el precio normal y VIP de oferta antes de activarla");
+
+        r.setPrecioNormalOferta(req.getPrecioNormalOferta());
+        r.setPrecioVipOferta(req.getPrecioVipOferta());
+        r.setOfertaActiva(activa);
+        rutaRepository.save(r);
+        return toDTO(r, false);
+    }
+
     private void guardarParadas(Ruta r, RutaRequest req) {
         if (req.getParadas() == null) return;
         List<RutaParada> paradas = req.getParadas().stream().map(p -> {
@@ -233,6 +253,9 @@ public class RutaService {
         dto.setSucursalAdministradoraNombre(r.getSucursalAdministradoraNombre());
         dto.setPrecioNormal(r.getPrecioNormal());
         dto.setPrecioVip(r.getPrecioVip());
+        dto.setPrecioNormalOferta(r.getPrecioNormalOferta());
+        dto.setPrecioVipOferta(r.getPrecioVipOferta());
+        dto.setOfertaActiva(r.getOfertaActiva());
         dto.setDuracionAproximada(r.getDuracionAproximada());
         dto.setActivo(r.getActivo());
         dto.setCreatedAt(r.getCreatedAt() != null ? r.getCreatedAt().toString() : null);

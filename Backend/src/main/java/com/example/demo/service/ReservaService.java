@@ -9,6 +9,7 @@ import com.example.demo.dto.ReservaGrupoResponse;
 import com.example.demo.dto.ReservaRequest;
 import com.example.demo.dto.ReservaResponse;
 import com.example.demo.dto.TicketDTO;
+import com.example.demo.model.Ruta;
 import com.example.demo.model.RutaTarifaTramo;
 import com.example.demo.model.Venta;
 import com.example.demo.model.VentaTramoUsado;
@@ -746,6 +747,10 @@ public class ReservaService {
     }
 
     private BigDecimal calcularPrecio(Viaje viaje, int ordenOrigen, int ordenDestino, boolean vip) {
+        java.util.Optional<Ruta> oferta = publicService.ofertaActivaDeRuta(viaje.getRutaId());
+        if (oferta.isPresent())
+            return vip ? oferta.get().getPrecioVipOferta() : oferta.get().getPrecioNormalOferta();
+
         if (viaje.getRutaId() != null) {
             for (RutaTarifaTramo t : tarifaRepository.findByRutaId(viaje.getRutaId())) {
                 if (t.getOrdenOrigen() != null && t.getOrdenDestino() != null
