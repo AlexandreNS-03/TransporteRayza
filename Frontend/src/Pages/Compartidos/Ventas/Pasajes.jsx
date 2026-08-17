@@ -440,7 +440,10 @@ function Pasajes() {
             clienteNombre:     v.clienteNombre || "",
             clienteTipoDoc:    v.clienteTipoDoc || "DNI",
             clienteDocumento:  v.clienteDocumento || "",
-            detalleComprobante: v.detalleComprobante || ""
+            detalleComprobante: v.detalleComprobante || "",
+            metodoPago:        v.metodoPago || "EFECTIVO",
+            lugarPago:         v.lugarPago || lugarPagoDefault,
+            observacion:       v.observacion || ""
         });
     };
 
@@ -1353,8 +1356,9 @@ function Pasajes() {
                             <div className="wizard-contenido">
                                 <div className="edit-nota">
                                     <i className="ti ti-info-circle"></i>
-                                    Puedes corregir los datos del pasajero y del comprobante. El viaje, asiento,
-                                    tramo y precio no se editan (para eso anula y vuelve a vender).
+                                    Puedes corregir los datos del pasajero, el comprobante y el pago (método,
+                                    lugar y observación). El viaje, asiento, tramo y precio no se editan
+                                    (para eso anula y vuelve a vender).
                                 </div>
 
                                 <p className="wizard-titulo">Datos del pasajero</p>
@@ -1421,6 +1425,43 @@ function Pasajes() {
                                 <div className="form-grupo">
                                     <label>Detalle</label>
                                     <input type="text" name="detalleComprobante" value={formEdit.detalleComprobante} onChange={handleEditChange} />
+                                </div>
+
+                                <p className="wizard-titulo">Pago</p>
+                                <div className="form-grupo">
+                                    <label>Lugar de pago</label>
+                                    <div className="comp-selector">
+                                        {["IQUITOS", "REQUENA"].map(l => (
+                                            <button
+                                                key={l}
+                                                type="button"
+                                                className={`comp-btn ${formEdit.lugarPago === l ? "activo" : ""}`}
+                                                onClick={() => setFormEdit(prev => ({ ...prev, lugarPago: l }))}
+                                            >
+                                                {l === "IQUITOS" ? "Iquitos" : "Oficina Requena"}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div className="form-grupo">
+                                    <label>Método de pago</label>
+                                    <div className="comp-selector metodo-selector">
+                                        {METODOS_PAGO.map(m => (
+                                            <button
+                                                key={m.key}
+                                                type="button"
+                                                className={`comp-btn ${formEdit.metodoPago === m.key ? "activo" : ""}`}
+                                                onClick={() => setFormEdit(prev => ({ ...prev, metodoPago: m.key }))}
+                                            >
+                                                {m.label}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div className="form-grupo">
+                                    <label>Observación</label>
+                                    <input type="text" name="observacion" value={formEdit.observacion} onChange={handleEditChange}
+                                           placeholder="Ej: pagó en oficina, pagó por Yape, adelanto, etc." />
                                 </div>
 
                                 {errorEdit && <div className="modal-error"><i className="ti ti-alert-circle"></i> {errorEdit}</div>}

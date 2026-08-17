@@ -171,26 +171,60 @@ public class CajaService {
     public void registrarMovimientoAutomatico(String usuarioNombre,
                                               MovimientoCaja.TipoMovimiento tipo,
                                               BigDecimal monto, String motivo, String metodoPago) {
+        registrarMovimientoAutomatico(usuarioNombre, tipo, monto, motivo, metodoPago, null);
+    }
+
+    /** Variante que además vincula el movimiento con la venta que lo originó. */
+    @Transactional
+    public void registrarMovimientoAutomatico(String usuarioNombre,
+                                              MovimientoCaja.TipoMovimiento tipo,
+                                              BigDecimal monto, String motivo, String metodoPago,
+                                              String ventaId) {
         Caja caja = miCajaAbierta(usuarioNombre);
         if (caja == null || monto == null) return;
-        guardarMovimiento(caja, tipo, monto, motivo, null, usuarioNombre, metodoPago);
+        guardarMovimiento(caja, tipo, monto, motivo, null, usuarioNombre, metodoPago, ventaId);
+    }
+
+    /**
+     * Corrige el método de pago del movimiento de INGRESO de una venta cuando se
+     * edita su pago (p. ej. de PLIN a EFECTIVO). Best-effort: si la venta no tiene
+     * un movimiento vinculado (ventas viejas o vendidas sin caja abierta) no hace
+     * nada. Mantiene el cuadre de caja (efectivo físico vs. digital) coherente con
+     * cómo se cobró realmente.
+     */
+    @Transactional
+    public void actualizarMetodoPagoDeVenta(String ventaId, String nuevoMetodo) {
+        if (ventaId == null) return;
+        for (MovimientoCaja m : movimientoRepository
+                .findByVentaIdAndTipo(ventaId, MovimientoCaja.TipoMovimiento.INGRESO)) {
+            m.setMetodoPago(nuevoMetodo);
+            movimientoRepository.save(m);
+        }
     }
 
     private MovimientoCaja guardarMovimiento(Caja caja, MovimientoCaja.TipoMovimiento tipo,
                                              BigDecimal monto, String motivo,
                                              String observacion, String usuarioNombre) {
-        return guardarMovimiento(caja, tipo, monto, motivo, observacion, usuarioNombre, null);
+        return guardarMovimiento(caja, tipo, monto, motivo, observacion, usuarioNombre, null, null);
     }
 
     private MovimientoCaja guardarMovimiento(Caja caja, MovimientoCaja.TipoMovimiento tipo,
                                              BigDecimal monto, String motivo,
                                              String observacion, String usuarioNombre, String metodoPago) {
+        return guardarMovimiento(caja, tipo, monto, motivo, observacion, usuarioNombre, metodoPago, null);
+    }
+
+    private MovimientoCaja guardarMovimiento(Caja caja, MovimientoCaja.TipoMovimiento tipo,
+                                             BigDecimal monto, String motivo,
+                                             String observacion, String usuarioNombre, String metodoPago,
+                                             String ventaId) {
         MovimientoCaja m = new MovimientoCaja();
         m.setId(UUID.randomUUID().toString());
         m.setCajaId(caja.getId());
         m.setTipo(tipo);
         m.setMonto(monto);
         m.setMotivo(motivo);
+        m.setVentaId(ventaId);
         m.setMetodoPago(metodoPago);
         m.setObservacion(observacion);
         m.setUsuarioId(caja.getUsuarioId());

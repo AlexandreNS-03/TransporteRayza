@@ -8,4 +8,6 @@ import java.util.List;
 public interface MovimientoCajaRepository extends JpaRepository<MovimientoCaja, String> {
 
     List<MovimientoCaja> findByCajaIdOrderByCreatedAtDesc(String cajaId);
+
+    List<MovimientoCaja> findByVentaIdAndTipo(String ventaId, MovimientoCaja.TipoMovimiento tipo);
 }
