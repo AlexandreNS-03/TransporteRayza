@@ -1,6 +1,7 @@
 import jsPDF from "jspdf";
 import QRCode from "qrcode";
 import { cargarLogo, ajustarLogo } from "./logo.js";
+import { RUC_EMPRESA } from "./empresa.js";
 
 const DOC_LABEL = { DNI: "DNI", CE: "CE", PASAPORTE: "PASAPORTE", RUC: "RUC" };
 
@@ -44,7 +45,7 @@ export async function generarTicketA4(venta) {
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9);
     doc.setTextColor(148, 163, 184);
-    doc.text("Transporte Fluvial de Pasajeros  ·  RUC: 20123456789", tX, 22);
+    doc.text(`Transporte Fluvial de Pasajeros  ·  RUC: ${RUC_EMPRESA}`, tX, 22);
     doc.text("Sucursales Iquitos · Requena — Región Loreto, Perú", tX, 27);
 
     // recuadro tipo/número

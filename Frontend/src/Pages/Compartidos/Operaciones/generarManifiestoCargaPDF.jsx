@@ -1,5 +1,6 @@
 import jsPDF from "jspdf";
 import { cargarLogo, ajustarLogo } from "../../../Utils/logo.js";
+import { RUC_EMPRESA } from "../../../Utils/empresa.js";
 import { guardarPdf, CARPETAS } from "../../../Utils/descargas.js";
 
 // Columnas del manifiesto de carga (ancho en mm; suman el ancho de contenido).
@@ -66,7 +67,7 @@ export async function generarManifiestoCargaPDF(viaje, encomiendas) {
         doc.setFontSize(8.5);
         doc.setFont("helvetica", "normal");
         doc.setTextColor(190, 200, 215);
-        doc.text("Transporte Fluvial de Carga  ·  RUC: 20123456789", textoX, 18);
+        doc.text(`Transporte Fluvial de Carga  ·  RUC: ${RUC_EMPRESA}`, textoX, 18);
         doc.text("Sucursales Iquitos · Requena — Loreto, Perú", textoX, 22.5);
 
         doc.setTextColor(255, 255, 255);
