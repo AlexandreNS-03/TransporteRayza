@@ -1,6 +1,7 @@
 import jsPDF from "jspdf";
 import QRCode from "qrcode";
 import { cargarLogo, ajustarLogo } from "./logo.js";
+import { RUC_EMPRESA } from "./empresa.js";
 import { qrSunat } from "./generarComprobantePDF.jsx";
 import { guardarPdf, CARPETAS } from "./descargas.js";
 
@@ -57,7 +58,7 @@ export async function generarComprobante80mm(c) {
     doc.setFontSize(6.5);
     doc.setTextColor(148, 163, 184);
     doc.text("Transporte Fluvial de Pasajeros y Encomiendas", tx, 15, { align: al });
-    doc.text("RUC: 20123456789", tx, 19, { align: al });
+    doc.text(`RUC: ${RUC_EMPRESA}`, tx, 19, { align: al });
 
     y = 31;
 

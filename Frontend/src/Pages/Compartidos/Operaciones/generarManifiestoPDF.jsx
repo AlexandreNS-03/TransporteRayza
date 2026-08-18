@@ -1,5 +1,6 @@
 import jsPDF from "jspdf";
 import { cargarLogo, ajustarLogo } from "../../../Utils/logo.js";
+import { RUC_EMPRESA } from "../../../Utils/empresa.js";
 import { guardarPdf, CARPETAS } from "../../../Utils/descargas.js";
 
 // ── Columnas de la tabla (ancho en mm, deben sumar el ancho de contenido) ──
@@ -71,7 +72,7 @@ export async function generarManifiestoPDF(viaje, pasajeros, capacidadTotal) {
         doc.setFontSize(8.5);
         doc.setFont("helvetica", "normal");
         doc.setTextColor(190, 200, 215);
-        doc.text("Transporte Fluvial de Pasajeros  ·  RUC: 20123456789", textoX, 18);
+        doc.text(`Transporte Fluvial de Pasajeros  ·  RUC: ${RUC_EMPRESA}`, textoX, 18);
         doc.text("Sucursales Iquitos · Requena — Loreto, Perú", textoX, 22.5);
 
         doc.setTextColor(255, 255, 255);

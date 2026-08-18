@@ -2,12 +2,12 @@ import jsPDF from "jspdf";
 import QRCode from "qrcode";
 import { cargarLogo, ajustarLogo } from "./logo.js";
 import { guardarPdf, CARPETAS } from "./descargas.js";
+import { RUC_EMPRESA } from "./empresa.js";
 
 const DOC_LABEL = { "1": "DNI", "4": "CE", "6": "RUC", "7": "PASAPORTE" };
 
 // Código SUNAT del tipo de comprobante para el QR: 01=factura, 03=boleta, 07=nota de crédito
 const COD_SUNAT = { FACTURA: "01", BOLETA: "03", NOTA_CREDITO: "07" };
-const RUC_EMPRESA = "20123456789";
 
 /** Cadena del QR según el formato que exige SUNAT. */
 export function qrSunat(c) {
@@ -68,7 +68,7 @@ export async function generarComprobantePDF(c) {
     doc.setTextColor(...azul);
     doc.setFontSize(10);
     doc.setFont("helvetica", "bold");
-    doc.text("RUC: 20123456789", 162.5, 19, { align: "center" });
+    doc.text(`RUC: ${RUC_EMPRESA}`, 162.5, 19, { align: "center" });
     doc.setFontSize(9);
     doc.text(titulo, 162.5, 26, { align: "center" });
     doc.setFontSize(11);

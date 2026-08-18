@@ -1,6 +1,7 @@
 import jsPDF from "jspdf";
 import QRCode from "qrcode";
 import { cargarLogo, ajustarLogo } from "./logo.js";
+import { RUC_EMPRESA } from "./empresa.js";
 
 /**
  * Ticket de embarque (80mm) con estilo "boarding pass":
@@ -55,7 +56,7 @@ export async function generarTicket80mm(venta) {
     doc.setFontSize(6.5);
     doc.setTextColor(148, 163, 184);
     doc.text("Transporte Fluvial de Pasajeros", tx, 15, { align: alinear });
-    doc.text("RUC: 20123456789", tx, 19, { align: alinear });
+    doc.text(`RUC: ${RUC_EMPRESA}`, tx, 19, { align: alinear });
 
     y = 30;
 
