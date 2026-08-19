@@ -264,6 +264,12 @@ public class PublicService {
             // Tramos que no se venden (orden de gerencia), p. ej. Nauta↔Iquitos.
             if (tramoBloqueado(nombreOrigen, nombreDestino)) continue;
 
+            // Y los que bloquea esta ruta en particular. Sin esto el viaje aparecía en
+            // la búsqueda y recién lo rechazaba la venta: el pasajero elegía asiento,
+            // llenaba sus datos y se enteraba en el paso de pago. Pasaba sobre todo
+            // cuando dos rutas cubren el mismo par y solo una lo tiene bloqueado.
+            if (tramoBloqueadoEnRuta(v.getRutaId(), ordenOrigen, ordenDestino)) continue;
+
             PublicViajeDTO dto = new PublicViajeDTO();
             dto.setId(v.getId());
             dto.setCodigoViaje(v.getCodigoViaje());
