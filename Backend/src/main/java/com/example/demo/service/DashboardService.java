@@ -98,8 +98,11 @@ public class DashboardService {
         for (String m : java.util.List.of("EFECTIVO", "YAPE", "PLIN", "TARJETA", "TRANSFERENCIA"))
             porMetodo.put(m, BigDecimal.ZERO);
         for (Venta v : ventasHoy) {
+            // Una venta web sin método registrado (compras viejas) no es efectivo:
+            // se agrupa aparte en vez de inflar la gaveta.
             String m = (v.getMetodoPago() == null || v.getMetodoPago().isBlank())
-                    ? "EFECTIVO" : v.getMetodoPago().toUpperCase();
+                    ? (esWeb(v) ? "WEB SIN REGISTRAR" : "EFECTIVO")
+                    : v.getMetodoPago().toUpperCase();
             BigDecimal monto = v.getPrecio() != null ? v.getPrecio() : BigDecimal.ZERO;
             porMetodo.merge(m, monto, BigDecimal::add);
         }
@@ -112,6 +115,23 @@ public class DashboardService {
                 .map(v -> v.getPrecio() != null ? v.getPrecio() : BigDecimal.ZERO)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         BigDecimal efectivoHoy = ingresosHoy.subtract(digitalHoy);
+
+        // Compras por la web, separadas del mostrador.
+        List<Venta> ventasWebHoy = ventasHoy.stream().filter(this::esWeb).collect(Collectors.toList());
+        BigDecimal ingresosWebHoy = ventasWebHoy.stream()
+                .map(v -> v.getPrecio() != null ? v.getPrecio() : BigDecimal.ZERO)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal ingresosMostradorHoy = ingresosHoy.subtract(ingresosWebHoy);
+
+        // Y por qué pasarela entró cada sol (Izipay o Mercado Pago).
+        java.util.LinkedHashMap<String, BigDecimal> porPasarela = new java.util.LinkedHashMap<>();
+        for (Venta v : ventasWebHoy)
+            porPasarela.merge(pasarelaDe(v),
+                    v.getPrecio() != null ? v.getPrecio() : BigDecimal.ZERO, BigDecimal::add);
+        List<DashboardDTO.CobroMetodoDTO> cobrosWebHoy = porPasarela.entrySet().stream()
+                .filter(e -> e.getValue().signum() > 0)
+                .map(e -> new DashboardDTO.CobroMetodoDTO(e.getKey(), e.getValue()))
+                .collect(Collectors.toList());
 
         // SEMANA
         LocalDate finSemana = inicioSemana.plusDays(6);
@@ -133,6 +153,11 @@ public class DashboardService {
                 .collect(Collectors.toList());
 
         BigDecimal ingresosMes = ventasMes.stream()
+                .map(v -> v.getPrecio() != null ? v.getPrecio() : BigDecimal.ZERO)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        List<Venta> ventasWebMes = ventasMes.stream().filter(this::esWeb).collect(Collectors.toList());
+        BigDecimal ingresosWebMes = ventasWebMes.stream()
                 .map(v -> v.getPrecio() != null ? v.getPrecio() : BigDecimal.ZERO)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
@@ -240,6 +265,12 @@ public class DashboardService {
         dto.setIngresosSemana(ingresosSemana);
         dto.setTotalVentasMes(ventasMes.size());
         dto.setIngresosMes(ingresosMes);
+        dto.setTotalVentasWebHoy(ventasWebHoy.size());
+        dto.setIngresosWebHoy(ingresosWebHoy);
+        dto.setTotalVentasWebMes(ventasWebMes.size());
+        dto.setIngresosWebMes(ingresosWebMes);
+        dto.setIngresosMostradorHoy(ingresosMostradorHoy);
+        dto.setCobrosWebHoy(cobrosWebHoy);
         dto.setViajesProximos(viajesProximos);
         dto.setUltimasVentas(ultimasVentas);
         dto.setVentasPorDia(ventasPorDia);
@@ -249,9 +280,30 @@ public class DashboardService {
         return dto;
     }
 
-    /** Es efectivo físico si el método es EFECTIVO o si no se registró (ventas antiguas). */
+    /**
+     * Efectivo físico, el que de verdad está en la gaveta. Una compra en línea nunca
+     * lo es: esa plata entra a la cuenta de la pasarela (Izipay o Mercado Pago), no a
+     * la oficina. Antes se contaba como efectivo porque las ventas web quedaban sin
+     * método registrado y el "sin método" se asumía efectivo, así que el arqueo pedía
+     * un dinero que nadie había recibido en caja.
+     */
     private boolean esEfectivo(Venta v) {
+        if (esWeb(v)) return false;
         String m = v.getMetodoPago();
         return m == null || m.isBlank() || "EFECTIVO".equalsIgnoreCase(m);
+    }
+
+    /** Compra hecha por el cliente en la web, no en el mostrador. */
+    private boolean esWeb(Venta v) {
+        return "WEB".equalsIgnoreCase(v.getCanal());
+    }
+
+    /** Pasarela por la que entró una compra web: TARJETA la cobra Izipay, YAPE Mercado Pago. */
+    private String pasarelaDe(Venta v) {
+        String m = v.getMetodoPago();
+        if (m == null || m.isBlank()) return "SIN REGISTRAR";
+        if ("TARJETA".equalsIgnoreCase(m)) return "IZIPAY";
+        if ("YAPE".equalsIgnoreCase(m)) return "MERCADO PAGO";
+        return m.toUpperCase();
     }
 }

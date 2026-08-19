@@ -179,6 +179,33 @@ function Reportes() {
 
     // ---------- Reporte: FORMAS DE PAGO ----------
     const norm = (s) => (s || "").toUpperCase();
+    // Compras por la web separadas del mostrador, y por qué pasarela entró cada sol.
+    // El dinero de la web está en la cuenta de Izipay o Mercado Pago, no en la gaveta.
+    const reporteCanal = useMemo(() => {
+        const fila = (etiqueta, detalle) => ({ etiqueta, detalle, i: 0, c: 0 });
+        const r = {
+            mostrador: fila("Mostrador", "Cobrado en oficina"),
+            izipay:    fila("Web · Izipay", "Tarjeta de crédito o débito"),
+            mp:        fila("Web · Mercado Pago", "Yape desde la web"),
+            webSin:    fila("Web · sin registrar", "Compras anteriores al registro de la pasarela"),
+        };
+        ventasFiltradas.forEach(v => {
+            const val = Number(v.precio) || 0;
+            const esWeb = norm(v.canal) === "WEB";
+            let k;
+            if (!esWeb) k = "mostrador";
+            else {
+                const met = norm(v.metodoPago);
+                k = met === "TARJETA" ? "izipay" : met === "YAPE" ? "mp" : "webSin";
+            }
+            r[k].i += val; r[k].c += 1;
+        });
+        const filas = Object.values(r).filter(f => f.c > 0);
+        const totalWeb = r.izipay.i + r.mp.i + r.webSin.i;
+        const cantWeb  = r.izipay.c + r.mp.c + r.webSin.c;
+        return { filas, totalWeb, cantWeb, mostrador: r.mostrador };
+    }, [ventasFiltradas]);
+
     const reportePagos = useMemo(() => {
         const filas = [...METODOS_PAGO, "SIN"];
         const m = {};
@@ -742,6 +769,42 @@ function Reportes() {
                                                 ))}
                                                 <td><strong>{moneda(reportePagos.totalCol.total.i)}</strong></td>
                                                 <td><strong>{reportePagos.totalCol.total.c}</strong></td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="reporte-panel">
+                                <h3>Ventas por canal y pasarela</h3>
+                                {reporteCanal.filas.length === 0 ? (
+                                    <div className="sin-datos">Sin ventas en el rango seleccionado</div>
+                                ) : (
+                                    <div className="tabla-wrapper">
+                                        <table className="reportes-tabla">
+                                            <thead>
+                                            <tr>
+                                                <th>Canal</th>
+                                                <th>Dónde entra el dinero</th>
+                                                <th>Total</th>
+                                                <th>N° pasajes</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            {reporteCanal.filas.map(f => (
+                                                <tr key={f.etiqueta}>
+                                                    <td><strong>{f.etiqueta}</strong></td>
+                                                    <td>{f.detalle}</td>
+                                                    <td>{moneda(f.i)}</td>
+                                                    <td>{f.c}</td>
+                                                </tr>
+                                            ))}
+                                            <tr className="fila-total">
+                                                <td><strong>TOTAL WEB</strong></td>
+                                                <td>No está en caja: entra a la pasarela</td>
+                                                <td><strong>{moneda(reporteCanal.totalWeb)}</strong></td>
+                                                <td><strong>{reporteCanal.cantWeb}</strong></td>
                                             </tr>
                                             </tbody>
                                         </table>

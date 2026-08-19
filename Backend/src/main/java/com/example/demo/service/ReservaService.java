@@ -45,6 +45,11 @@ public class ReservaService {
     /** Tope de pasajes por compra en línea (una familia; no acapara medio bote). */
     private static final int MAX_PASAJEROS = 5;
 
+    /** Con qué se pagó en línea. Junto a canal=WEB dice también por qué pasarela
+     *  entró la plata: TARJETA la cobra Izipay y YAPE la cobra Mercado Pago. */
+    private static final String METODO_IZIPAY = "TARJETA";
+    private static final String METODO_YAPE   = "YAPE";
+
     /**
      * Si es false, la venta web no emite boleta/factura en Nubefact (solo ticket con QR).
      * Útil en pruebas para no consumir correlativos reales. Se controla por entorno.
@@ -405,7 +410,7 @@ public class ReservaService {
         if (!pago.pagado)
             throw new RuntimeException(pago.motivo != null ? pago.motivo : "El pago no se pudo confirmar");
 
-        return confirmarPago(v, pago.referencia);
+        return confirmarPago(v, pago.referencia, METODO_IZIPAY);
     }
 
     /**
@@ -429,7 +434,7 @@ public class ReservaService {
         if (!pago.pagado)
             throw new RuntimeException(pago.motivo != null ? pago.motivo : "El pago con Yape no se pudo confirmar");
 
-        return confirmarPago(v, pago.referencia);
+        return confirmarPago(v, pago.referencia, METODO_YAPE);
     }
 
     // ----------------------------------------------------------------------------
@@ -466,13 +471,13 @@ public class ReservaService {
     public ConfirmacionGrupoDTO pagarGrupo(List<String> reservaIds, String krAnswer, String krHash) {
         List<Venta> pendientes = grupoPendiente(reservaIds);
         if (pendientes.isEmpty())
-            return confirmarPagoGrupo(reservaIds, pendientes, null);   // ya estaba pagado (reintento)
+            return confirmarPagoGrupo(reservaIds, pendientes, null, null);   // ya estaba pagado (reintento)
 
         IzipayService.Resultado pago = izipayService.verificarPago(krAnswer, krHash);
         if (!pago.pagado)
             throw new RuntimeException(pago.motivo != null ? pago.motivo : "El pago no se pudo confirmar");
 
-        return confirmarPagoGrupo(reservaIds, pendientes, pago.referencia);
+        return confirmarPagoGrupo(reservaIds, pendientes, pago.referencia, METODO_IZIPAY);
     }
 
     /** Pago del grupo con Yape: un solo cobro por el total, con idempotencia por grupo. */
@@ -480,7 +485,7 @@ public class ReservaService {
     public ConfirmacionGrupoDTO pagarGrupoYape(List<String> reservaIds, String token) {
         List<Venta> pendientes = grupoPendiente(reservaIds);
         if (pendientes.isEmpty())
-            return confirmarPagoGrupo(reservaIds, pendientes, null);
+            return confirmarPagoGrupo(reservaIds, pendientes, null, null);
 
         BigDecimal total = BigDecimal.ZERO;
         for (Venta v : pendientes) total = total.add(v.getPrecio());
@@ -496,7 +501,7 @@ public class ReservaService {
         if (!pago.pagado)
             throw new RuntimeException(pago.motivo != null ? pago.motivo : "El pago con Yape no se pudo confirmar");
 
-        return confirmarPagoGrupo(reservaIds, pendientes, pago.referencia);
+        return confirmarPagoGrupo(reservaIds, pendientes, pago.referencia, METODO_YAPE);
     }
 
     private List<Venta> cargarGrupo(List<String> reservaIds) {
@@ -534,6 +539,7 @@ public class ReservaService {
         for (Venta v : pendientes) {
             v.setEstado(Venta.EstadoVenta.PAGADO);
             v.setPasarelaReferencia(referencia);
+            v.setMetodoPago(METODO_IZIPAY);   // el IPN solo lo manda Izipay
             v.setReservaExpira(null);
             ventaRepository.save(v);
             asientoService.confirmarAsiento(v.getId());
@@ -548,7 +554,8 @@ public class ReservaService {
     }
 
     private ConfirmacionGrupoDTO confirmarPagoGrupo(List<String> reservaIds,
-                                                    List<Venta> pendientes, String referencia) {
+                                                    List<Venta> pendientes, String referencia,
+                                                    String metodo) {
         Set<String> pendIds = new HashSet<>();
         for (Venta v : pendientes) pendIds.add(v.getId());
 
@@ -557,6 +564,7 @@ public class ReservaService {
         for (Venta v : pendientes) {
             v.setEstado(Venta.EstadoVenta.PAGADO);
             v.setPasarelaReferencia(referencia);
+            if (metodo != null) v.setMetodoPago(metodo);
             v.setReservaExpira(null);
             ventaRepository.save(v);
             asientoService.confirmarAsiento(v.getId());
@@ -628,9 +636,13 @@ public class ReservaService {
      * siendo válida: se avisa en la respuesta y el comprobante se puede reintentar
      * desde el sistema, sin volver a cobrar.
      */
-    private ConfirmacionDTO confirmarPago(Venta v, String referenciaPasarela) {
+    private ConfirmacionDTO confirmarPago(Venta v, String referenciaPasarela, String metodo) {
         v.setEstado(Venta.EstadoVenta.PAGADO);
         v.setPasarelaReferencia(referenciaPasarela);
+        // Con qué se pagó en línea. Junto con canal=WEB identifica la pasarela:
+        // TARJETA = Izipay, YAPE = Mercado Pago. Sin esto la venta quedaba con
+        // método nulo y los reportes la contaban como efectivo de caja.
+        if (metodo != null) v.setMetodoPago(metodo);
         v.setReservaExpira(null);
         ventaRepository.save(v);
 
