@@ -30,6 +30,8 @@ function PreciosWeb() {
                 ofertaActiva: r.ofertaActiva || false,
                 precioNormalOferta: r.precioNormalOferta ?? "",
                 precioVipOferta: r.precioVipOferta ?? "",
+                ofertaDesde: r.ofertaDesde ?? "",
+                ofertaHasta: r.ofertaHasta ?? "",
             }])));
         } catch (err) {
             setError(err.message);
@@ -58,6 +60,8 @@ function PreciosWeb() {
                     ofertaActiva: b.ofertaActiva,
                     precioNormalOferta: b.precioNormalOferta === "" ? null : parseFloat(b.precioNormalOferta),
                     precioVipOferta: b.precioVipOferta === "" ? null : parseFloat(b.precioVipOferta),
+                    ofertaDesde: b.ofertaDesde || null,
+                    ofertaHasta: b.ofertaHasta || null,
                 })
             });
             if (!res.ok) throw new Error(await motivoDelError(res, "No se pudo guardar la oferta"));
@@ -108,13 +112,14 @@ function PreciosWeb() {
                             <th>En oferta</th>
                             <th>Oferta Normal</th>
                             <th>Oferta VIP</th>
+                            <th>Vigencia <span className="th-nota">(fechas de viaje)</span></th>
                             <th>Acciones</th>
                         </tr>
                         </thead>
                         <tbody>
                         {rutas.length === 0 ? (
                             <tr>
-                                <td colSpan={7} className="tabla-vacia">
+                                <td colSpan={8} className="tabla-vacia">
                                     <i className="ti ti-route-off"></i>
                                     <span>No hay rutas activas</span>
                                 </td>
@@ -124,7 +129,9 @@ function PreciosWeb() {
                                 const b = borradores[r.id] || {};
                                 const cambio = b.ofertaActiva !== (r.ofertaActiva || false)
                                     || String(b.precioNormalOferta ?? "") !== String(r.precioNormalOferta ?? "")
-                                    || String(b.precioVipOferta ?? "") !== String(r.precioVipOferta ?? "");
+                                    || String(b.precioVipOferta ?? "") !== String(r.precioVipOferta ?? "")
+                                    || String(b.ofertaDesde ?? "") !== String(r.ofertaDesde ?? "")
+                                    || String(b.ofertaHasta ?? "") !== String(r.ofertaHasta ?? "");
                                 return (
                                     <tr key={r.id}>
                                         <td data-label="Ruta">
@@ -160,6 +167,29 @@ function PreciosWeb() {
                                                 onChange={e => cambiarBorrador(r.id, "precioVipOferta", e.target.value)}
                                                 disabled={!b.ofertaActiva}
                                             />
+                                        </td>
+                                        <td data-label="Vigencia">
+                                            <div className="rango-fechas">
+                                                <input
+                                                    type="date"
+                                                    aria-label="Oferta desde (fecha de viaje)"
+                                                    value={b.ofertaDesde ?? ""}
+                                                    onChange={e => cambiarBorrador(r.id, "ofertaDesde", e.target.value)}
+                                                    disabled={!b.ofertaActiva}
+                                                />
+                                                <span className="rango-sep" aria-hidden="true">→</span>
+                                                <input
+                                                    type="date"
+                                                    aria-label="Oferta hasta (fecha de viaje)"
+                                                    value={b.ofertaHasta ?? ""}
+                                                    min={b.ofertaDesde || undefined}
+                                                    onChange={e => cambiarBorrador(r.id, "ofertaHasta", e.target.value)}
+                                                    disabled={!b.ofertaActiva}
+                                                />
+                                            </div>
+                                            {b.ofertaActiva && !b.ofertaDesde && !b.ofertaHasta && (
+                                                <span className="rango-nota">Sin fechas: la oferta corre siempre</span>
+                                            )}
                                         </td>
                                         <td className="acciones" data-label="Acciones">
                                             <button

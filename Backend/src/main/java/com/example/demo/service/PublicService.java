@@ -98,14 +98,14 @@ public class PublicService {
     }
 
     /**
-     * Ruta con oferta activa (con ambos precios de oferta cargados), o vacío si no
-     * aplica. La oferta es solo para la web: el mostrador nunca la usa.
+     * Ruta con oferta vigente para un viaje que sale en `fechaViaje`, o vacío si no
+     * aplica. La oferta es solo para la web: el mostrador nunca la usa. El rango de
+     * fechas se mide contra la fecha de SALIDA del viaje, no contra la de compra:
+     * la promoción abarata ciertos días de viaje, no cierta ventana para comprar.
      */
-    public java.util.Optional<Ruta> ofertaActivaDeRuta(String rutaId) {
+    public java.util.Optional<Ruta> ofertaActivaDeRuta(String rutaId, LocalDate fechaViaje) {
         if (rutaId == null) return java.util.Optional.empty();
-        return rutaRepository.findById(rutaId)
-                .filter(r -> Boolean.TRUE.equals(r.getOfertaActiva())
-                        && r.getPrecioNormalOferta() != null && r.getPrecioVipOferta() != null);
+        return rutaRepository.findById(rutaId).filter(r -> r.ofertaVigenteEn(fechaViaje));
     }
 
     /** Clave sin orden: {Nauta,Iquitos} y {Iquitos,Nauta} dan la misma. */
@@ -190,6 +190,41 @@ public class PublicService {
     }
 
     /**
+     * Precio más bajo por día para un tramo, en un rango de fechas. Alimenta la tira
+     * de fechas de la web: deja ver de un vistazo qué día conviene sin repetir la
+     * búsqueda a mano. Reutiliza `buscarViajes` a propósito — así el precio que
+     * anuncia la tira es exactamente el que verá el pasajero al elegir ese día,
+     * incluidos tramos bloqueados y ofertas por rango.
+     */
+    @Transactional(readOnly = true)
+    public List<com.example.demo.dto.PrecioFechaDTO> preciosPorFecha(
+            String origen, String destino, LocalDate desde, LocalDate hasta) {
+
+        List<com.example.demo.dto.PrecioFechaDTO> salida = new ArrayList<>();
+        if (desde == null || hasta == null || hasta.isBefore(desde)) return salida;
+
+        // Tope defensivo: la tira muestra ~1 semana; evita barridos enormes.
+        final int MAX_DIAS = 21;
+        LocalDate tope = desde.plusDays(MAX_DIAS - 1L);
+        if (hasta.isAfter(tope)) hasta = tope;
+
+        for (LocalDate d = desde; !d.isAfter(hasta); d = d.plusDays(1)) {
+            BigDecimal menor = null;
+            boolean enOferta = false;
+            for (PublicViajeDTO v : buscarViajes(origen, destino, d)) {
+                BigDecimal p = v.getPrecioNormal();
+                if (p == null) continue;
+                if (menor == null || p.compareTo(menor) < 0) {
+                    menor = p;
+                    enOferta = v.isEnOferta();
+                }
+            }
+            salida.add(new com.example.demo.dto.PrecioFechaDTO(d.toString(), menor, enOferta));
+        }
+        return salida;
+    }
+
+    /**
      * Busca viajes PROGRAMADOS. Si se indican origen/destino, filtra a los viajes que
      * pasan por ambas paradas en orden y calcula precio y asientos libres del tramo.
      */
@@ -242,7 +277,11 @@ public class PublicService {
             dto.setHoraSalida(v.getHoraSalida() != null ? v.getHoraSalida().toString() : null);
 
             BigDecimal[] precios = calcularPrecioTramo(v, ordenOrigen, ordenDestino);
-            java.util.Optional<Ruta> oferta = ofertaActivaDeRuta(v.getRutaId());
+            java.util.Optional<Ruta> oferta = ofertaActivaDeRuta(v.getRutaId(), v.getFechaSalida())
+                    // La oferta es por ruta completa: en un tramo corto puede quedar por
+                    // encima de su tarifa normal. Solo se anuncia cuando abarata de verdad.
+                    .filter(r -> precios[0] == null
+                            || r.getPrecioNormalOferta().compareTo(precios[0]) < 0);
             if (oferta.isPresent()) {
                 dto.setPrecioNormalRegular(precios[0]);
                 dto.setPrecioVipRegular(precios[1]);

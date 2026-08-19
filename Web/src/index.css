@@ -533,14 +533,61 @@ header.site.scrolled::before { background: color-mix(in srgb, var(--bg) 96%, tra
 .step.done .num { background: #178a55; color: #fff; border-color: #178a55; }
 .step .sep { width: 26px; height: 2px; background: var(--line); }
 
+/* ── Resultado de búsqueda ──────────────────────────────────────────────────
+   Se lee de izquierda a derecha como el viaje: hora de salida, cuánto dura,
+   hora de llegada. El precio y la acción quedan a la derecha, alineados. */
+.viajes-lista { display: grid; gap: 14px; }
 .viaje-row { display: grid; grid-template-columns: 1fr auto auto; gap: 22px; align-items: center;
-  background: var(--card); border: 1px solid var(--line); border-radius: var(--r); padding: 22px 24px; margin-bottom: 14px;
-  box-shadow: var(--sh-sm); transition: transform .2s var(--ease), box-shadow .2s var(--ease); animation: fadeUp .5s var(--ease) both; }
-.viaje-row:hover { transform: translateY(-3px); box-shadow: var(--sh); }
-@media (max-width: 700px) { .viaje-row { grid-template-columns: 1fr; text-align: left; } }
-.viaje-row .ruta { font-family: var(--font-head); font-weight: 700; font-size: 18px; }
-.viaje-row .meta { color: var(--ink-soft); font-size: 14px; margin-top: 5px; }
-.viaje-row .precio { font-family: var(--font-head); font-size: 24px; font-weight: 800; color: var(--accent); }
+  background: var(--card); border: 1px solid var(--line); border-radius: var(--r); padding: 20px 22px;
+  transition: transform .2s var(--ease), box-shadow .2s var(--ease), border-color .2s var(--ease);
+  animation: fadeUp .5s var(--ease) both; }
+.viaje-row:hover { transform: translateY(-2px); box-shadow: var(--sh); border-color: var(--line-strong); }
+.viaje-row.agotado { opacity: .72; }
+.viaje-row.agotado:hover { transform: none; box-shadow: none; }
+
+.viaje-datos { min-width: 0; }
+.viaje-trayecto { display: flex; align-items: baseline; gap: 14px; }
+.viaje-punta { min-width: 0; }
+.viaje-hora { display: block; font-family: var(--font-head); font-size: 25px; font-weight: 700;
+  line-height: 1.1; font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
+.viaje-lugar { display: block; margin-top: 2px; font-size: 13.5px; font-weight: 600; color: var(--ink-soft); }
+.viaje-medio { flex: 1 1 0; min-width: 54px; display: flex; align-items: center; gap: 8px;
+  align-self: center; transform: translateY(-6px); }
+.viaje-linea { flex: 1; height: 1px; background: var(--line-strong); }
+.viaje-duracion { flex: none; font-size: 12.5px; font-weight: 600; color: var(--ink-soft); white-space: nowrap; }
+.viaje-meta { margin: 10px 0 0; color: var(--ink-soft); font-size: 13.5px; }
+
+.viaje-precio-bloque { display: flex; flex-direction: column; align-items: flex-end; gap: 1px; }
+.viaje-desde { font-size: 12.5px; color: var(--ink-soft); }
+.viaje-row .precio { font-family: var(--font-head); font-size: 25px; font-weight: 800;
+  color: var(--accent); font-variant-numeric: tabular-nums; line-height: 1.15; }
+.viaje-elegir { align-self: center; }
+
+/* Paradas del recorrido: cerradas por defecto, se abren con la altura en grid
+   (no se anima height, que provoca reflow en cada cuadro). */
+.viaje-tramos-btn { display: inline-flex; align-items: center; gap: 5px; margin-top: 10px;
+  padding: 4px 0; border: 0; background: none; color: var(--brand-700); font: inherit;
+  font-size: 13.5px; font-weight: 700; cursor: pointer; transition: color .18s var(--ease); }
+.viaje-tramos-btn:hover { color: var(--brand-800); text-decoration: underline; text-underline-offset: 3px; }
+.viaje-tramos-btn:focus-visible { outline: 2px solid var(--brand); outline-offset: 3px; border-radius: 4px; }
+.viaje-chevron { transition: transform .22s var(--ease); }
+.viaje-chevron.abierto { transform: rotate(180deg); }
+
+.viaje-tramos { display: grid; grid-template-rows: 0fr; opacity: 0;
+  transition: grid-template-rows .26s var(--ease), opacity .2s var(--ease); }
+.viaje-tramos > * { overflow: hidden; min-height: 0; }
+.viaje-tramos.abierto { grid-template-rows: 1fr; opacity: 1; }
+
+@media (max-width: 700px) {
+  .viaje-row { grid-template-columns: 1fr; gap: 14px; text-align: left; }
+  .viaje-precio-bloque { flex-direction: row; align-items: baseline; gap: 8px; }
+  .viaje-hora { font-size: 22px; }
+  .viaje-elegir { width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .viaje-row, .viaje-chevron, .viaje-tramos { transition: none; animation: none; }
+  .viaje-row:hover { transform: none; }
+}
 .tag { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; padding: 4px 11px; border-radius: 999px; background: var(--sky-soft); color: var(--sky); }
 
 /* ---------- Mapa de asientos (embarcación) ---------- */
@@ -662,29 +709,19 @@ footer.site .logo .mark { width: 34px; height: 34px; }
 }
 
 /* ---- Itinerario del tramo: guía de llegada por parada ---- */
-.itinerario { margin-top: 10px; }
-.itinerario > summary {
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--azul, #1e3a8a);
-  list-style: none;
-}
-.itinerario > summary::-webkit-details-marker { display: none; }
-.itinerario > summary::before { content: "🕑 "; }
-.itinerario > summary:hover { text-decoration: underline; }
-
+/* Recorrido del bote. Usa los tokens del tema: antes tiraba de --azul y --rojo,
+   que no existen en esta app, y caía a colores fijos ilegibles en modo oscuro. */
 .itinerario-lista {
   list-style: none;
-  margin: 10px 0 0;
+  margin: 12px 0 0;
   padding: 0 0 0 4px;
-  border-left: 2px solid #e2e8f0;
+  border-left: 2px solid var(--line-strong);
 }
 .itinerario-lista li {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 5px 0 5px 12px;
+  padding: 5px 0 5px 14px;
   position: relative;
   font-size: 13px;
 }
@@ -693,11 +730,13 @@ footer.site .logo .mark { width: 34px; height: 34px; }
   left: -5px;
   width: 8px; height: 8px;
   border-radius: 50%;
-  background: var(--rojo, #dc2626);
+  background: var(--brand);
 }
-.itinerario-nombre { flex: 1; color: #334155; }
-.itinerario-hora { font-variant-numeric: tabular-nums; font-weight: 600; color: #0f172a; }
-.itinerario-nota { margin: 8px 0 0; font-size: 12px; color: #64748b; }
+.itinerario-lista li:first-child .itinerario-punto,
+.itinerario-lista li:last-child  .itinerario-punto { background: var(--accent); }
+.itinerario-nombre { flex: 1; color: var(--ink); }
+.itinerario-hora { font-variant-numeric: tabular-nums; font-weight: 600; color: var(--ink); }
+.itinerario-nota { margin: 9px 0 0; font-size: 12px; color: var(--ink-soft); }
 
 /* ---- Elegir medio de pago (tarjeta o Yape) ---- */
 .metodos-pago { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
@@ -1434,3 +1473,223 @@ html :is(a, button, input, select, textarea, [tabindex]):focus-visible {
   .servicios-comp, .contacto-comp { grid-template-columns: 1fr; }
   .servicios-secundarios { grid-template-rows: auto; }
 }
+
+/* ═══ Tira de fechas del buscador ═══════════════════════════════════════════
+   Los días vecinos con su precio más bajo, para comparar sin repetir la
+   búsqueda. La fecha activa se marca con relleno de marca; el día más barato
+   de la ventana, con el precio en color de acento y algo más de peso. */
+.tira-fechas {
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+  margin: 14px 0 2px;
+  padding: 6px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  box-shadow: var(--sh-sm);
+}
+.tira-nav {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: background .18s var(--ease), color .18s var(--ease);
+}
+.tira-nav:hover:not(:disabled) { background: var(--bg-soft); color: var(--ink); }
+.tira-nav:active:not(:disabled) { transform: scale(.94); }
+.tira-nav:disabled { opacity: .32; cursor: not-allowed; }
+
+.tira-dias {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 4px;
+  flex: 1 1 0;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.tira-dia {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  width: 100%;
+  padding: 9px 4px 8px;
+  border: 1px solid transparent;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  line-height: 1.15;
+  cursor: pointer;
+  transition: background .18s var(--ease), color .18s var(--ease),
+              border-color .18s var(--ease), transform .12s var(--ease);
+}
+.tira-dia:hover { background: var(--bg-soft); }
+.tira-dia:active { transform: scale(.97); }
+.tira-dia-nombre {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  text-transform: capitalize;
+}
+.tira-dia-fecha { font-size: 14.5px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.tira-dia-precio {
+  min-height: 17px;
+  font-size: 12.5px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-soft);
+}
+
+.tira-dia.activo {
+  /* --brand-700 y no --brand: el cian de marca con texto blanco da 2.78:1 y no
+     llega a AA. Este tono conserva la identidad y sube a 5.4:1. */
+  background: var(--brand-700);
+  border-color: var(--brand-700);
+  color: #fff;
+  box-shadow: 0 4px 10px -4px rgba(11,44,94,.34);
+}
+.tira-dia.activo .tira-dia-nombre,
+.tira-dia.activo .tira-dia-precio { color: rgba(255,255,255,.92); }
+.tira-dia.activo:hover { background: var(--brand-800); }
+
+.tira-dia.menor .tira-dia-precio { color: var(--accent); font-weight: 800; }
+.tira-dia.sin-viajes { color: var(--ink-soft); }
+.tira-sin { font-size: 11.5px; font-weight: 500; opacity: .85; }
+
+.tira-dia:focus-visible,
+.tira-nav:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+
+/* Esqueleto mientras cargan los precios: ocupa el mismo alto que el precio
+   real, así la tira no da un salto cuando llegan los datos. */
+.tira-skel {
+  display: block;
+  width: 38px;
+  height: 11px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--bg-softer) 25%, var(--line) 37%, var(--bg-softer) 63%);
+  background-size: 320% 100%;
+  animation: tiraBrillo 1.3s ease-in-out infinite;
+}
+@keyframes tiraBrillo { from { background-position: 100% 0; } to { background-position: 0 0; } }
+
+@media (max-width: 700px) {
+  .tira-dias {
+    grid-auto-columns: minmax(72px, 1fr);
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: var(--line-strong) transparent;
+  }
+  .tira-dia { scroll-snap-align: center; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tira-skel { animation: none; }
+  .tira-dia, .tira-nav { transition: none; }
+  .tira-dia:active, .tira-nav:active { transform: none; }
+}
+
+/* ═══ Aviso de precio sobre los resultados ══════════════════════════════════
+   Solo sale cuando es cierto: o la fecha elegida es la más barata de la
+   ventana, o hay otra que sí lo es y conviene ofrecerla. */
+.aviso-precio {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  margin: 12px 0 4px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: var(--sky-soft);
+  color: var(--brand-800);
+  font-size: 14.5px;
+  animation: avisoEntra .28s var(--ease) both;
+}
+.aviso-precio .aviso-ico { flex: none; display: grid; place-items: center; color: var(--brand-700); }
+.aviso-precio p { margin: 0; }
+.aviso-precio strong { font-weight: 700; }
+.aviso-precio .aviso-accion {
+  margin-left: auto;
+  flex: none;
+  padding: 7px 13px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--brand-700);
+  color: #fff;
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .18s var(--ease), transform .12s var(--ease);
+}
+.aviso-precio .aviso-accion:hover { background: var(--brand-800); }
+.aviso-precio .aviso-accion:active { transform: scale(.97); }
+.aviso-precio .aviso-accion:focus-visible { outline: 2px solid var(--brand-800); outline-offset: 2px; }
+.aviso-precio .aviso-cerrar {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 28px; height: 28px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--brand-700);
+  cursor: pointer;
+  transition: background .18s var(--ease);
+}
+.aviso-precio .aviso-cerrar:hover { background: rgba(11,44,94,.09); }
+.aviso-precio .aviso-cerrar:focus-visible { outline: 2px solid var(--brand-800); outline-offset: 1px; }
+
+@keyframes avisoEntra {
+  from { opacity: 0; transform: translateY(-5px); }
+  to   { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .aviso-precio { animation: none; }
+}
+@media (max-width: 620px) {
+  .aviso-precio { flex-wrap: wrap; }
+  .aviso-precio .aviso-accion { margin-left: 0; width: 100%; }
+}
+
+/* ── Tira de fechas y aviso en tema oscuro ──────────────────────────────────
+   Los tonos --brand-700/-800 y --accent son oscuros por diseño: sobre fondo
+   oscuro no llegan a AA. Acá se sustituyen por sus versiones claras. Se cubren
+   las dos formas en que esta app entra en oscuro: la preferencia del sistema y
+   el interruptor manual (data-theme). */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --tira-texto-aviso: #cfe7f7;
+    --tira-borde-aviso: #1c4a6b;
+    --tira-enlace:      #6fc8ee;
+    --tira-menor:       #ff9aa3;
+  }
+}
+:root[data-theme="dark"] {
+  --tira-texto-aviso: #cfe7f7;
+  --tira-borde-aviso: #1c4a6b;
+  --tira-enlace:      #6fc8ee;
+  --tira-menor:       #ff9aa3;
+}
+
+.aviso-precio { color: var(--tira-texto-aviso, var(--brand-800)); }
+.aviso-precio .aviso-ico,
+.aviso-precio .aviso-cerrar { color: var(--tira-enlace, var(--brand-700)); }
+.aviso-precio { border-color: var(--tira-borde-aviso, var(--line)); }
+.viaje-tramos-btn { color: var(--tira-enlace, var(--brand-700)); }
+.viaje-tramos-btn:hover { color: var(--tira-enlace, var(--brand-800)); }
+.tira-dia.menor .tira-dia-precio { color: var(--tira-menor, var(--accent)); }

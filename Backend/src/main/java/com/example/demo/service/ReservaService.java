@@ -747,10 +747,24 @@ public class ReservaService {
     }
 
     private BigDecimal calcularPrecio(Viaje viaje, int ordenOrigen, int ordenDestino, boolean vip) {
-        java.util.Optional<Ruta> oferta = publicService.ofertaActivaDeRuta(viaje.getRutaId());
-        if (oferta.isPresent())
-            return vip ? oferta.get().getPrecioVipOferta() : oferta.get().getPrecioNormalOferta();
+        BigDecimal regular = precioRegular(viaje, ordenOrigen, ordenDestino, vip);
 
+        java.util.Optional<Ruta> oferta = publicService.ofertaActivaDeRuta(
+                viaje.getRutaId(), viaje.getFechaSalida());
+        if (oferta.isPresent()) {
+            BigDecimal precioOferta = vip ? oferta.get().getPrecioVipOferta()
+                                          : oferta.get().getPrecioNormalOferta();
+            // La oferta es por ruta completa, así que en un tramo corto puede quedar
+            // por encima de su tarifa normal. Cobrar de más bajo el rótulo "OFERTA"
+            // sería engañar al pasajero: se aplica solo cuando de verdad abarata.
+            if (precioOferta != null && (regular == null || precioOferta.compareTo(regular) < 0))
+                return precioOferta;
+        }
+        return regular;
+    }
+
+    /** Precio sin oferta: tarifa del tramo si existe, si no la del viaje. */
+    private BigDecimal precioRegular(Viaje viaje, int ordenOrigen, int ordenDestino, boolean vip) {
         if (viaje.getRutaId() != null) {
             for (RutaTarifaTramo t : tarifaRepository.findByRutaId(viaje.getRutaId())) {
                 if (t.getOrdenOrigen() != null && t.getOrdenDestino() != null

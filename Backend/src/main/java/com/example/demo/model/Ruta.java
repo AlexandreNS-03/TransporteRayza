@@ -41,6 +41,13 @@ public class Ruta {
     @Column(name = "oferta_activa")
     private Boolean ofertaActiva;
 
+    /** Rango de FECHAS DE VIAJE en que corre la oferta. Null = sin ese límite. */
+    @Column(name = "oferta_desde")
+    private java.time.LocalDate ofertaDesde;
+
+    @Column(name = "oferta_hasta")
+    private java.time.LocalDate ofertaHasta;
+
     @Column(name = "duracion_aproximada", length = 50)
     private String duracionAproximada;
 
@@ -92,6 +99,22 @@ public class Ruta {
 
     public Boolean getOfertaActiva() { return ofertaActiva; }
     public void setOfertaActiva(Boolean ofertaActiva) { this.ofertaActiva = ofertaActiva; }
+
+    public java.time.LocalDate getOfertaDesde() { return ofertaDesde; }
+    public void setOfertaDesde(java.time.LocalDate ofertaDesde) { this.ofertaDesde = ofertaDesde; }
+
+    public java.time.LocalDate getOfertaHasta() { return ofertaHasta; }
+    public void setOfertaHasta(java.time.LocalDate ofertaHasta) { this.ofertaHasta = ofertaHasta; }
+
+    /** ¿La oferta corre para un viaje que sale en esta fecha? */
+    public boolean ofertaVigenteEn(java.time.LocalDate fechaViaje) {
+        if (!Boolean.TRUE.equals(ofertaActiva)) return false;
+        if (precioNormalOferta == null || precioVipOferta == null) return false;
+        if (fechaViaje == null) return ofertaDesde == null && ofertaHasta == null;
+        if (ofertaDesde != null && fechaViaje.isBefore(ofertaDesde)) return false;
+        if (ofertaHasta != null && fechaViaje.isAfter(ofertaHasta)) return false;
+        return true;
+    }
 
     public String getDuracionAproximada() { return duracionAproximada; }
     public void setDuracionAproximada(String d) { this.duracionAproximada = d; }

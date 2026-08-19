@@ -70,6 +70,16 @@ public class PublicController {
         return ResponseEntity.ok(publicService.buscarViajes(origen, destino, fecha));
     }
 
+    /** Precio más bajo por día en un rango, para la tira de fechas de la web. */
+    @GetMapping("/viajes/precios")
+    public ResponseEntity<List<com.example.demo.dto.PrecioFechaDTO>> preciosPorFecha(
+            @RequestParam String origen,
+            @RequestParam String destino,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta) {
+        return ResponseEntity.ok(publicService.preciosPorFecha(origen, destino, desde, hasta));
+    }
+
     /** Mapa completo de asientos del viaje, marcando cuáles están libres en el tramo. */
     @GetMapping("/viajes/{viajeId}/asientos")
     public ResponseEntity<List<PublicAsientoDTO>> asientos(

@@ -4,6 +4,7 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import Buscador from "../components/Buscador";
 import Resultados from "../components/Resultados";
+import TiraFechas from "../components/TiraFechas";
 import MapaAsientos from "../components/MapaAsientos";
 import SelectorPasajeros from "../components/SelectorPasajeros";
 import FormularioPasajero, { FormularioContacto } from "../components/FormularioPasajero";
@@ -109,6 +110,23 @@ export default function Comprar() {
     try { setViajes(await buscarViajes({ origen, destino, fecha })); }
     catch (e) { setError(e.message); }
     finally { setCargando(false); }
+  };
+
+  // Tramo que se está eligiendo: en la vuelta se invierten origen y destino.
+  const legOrigen  = leg === "ida" ? criterio.origen : criterio.destino;
+  const legDestino = leg === "ida" ? criterio.destino : criterio.origen;
+  const legFecha   = leg === "ida" ? criterio.fecha : criterio.fechaRetorno;
+
+  /** Saltar a otro día desde la tira de fechas, sin rehacer toda la búsqueda a mano. */
+  const cambiarFecha = (nuevaFecha) => {
+    if (!nuevaFecha || nuevaFecha === legFecha) return;
+    setCriterio((prev) => leg === "ida"
+      ? { ...prev, fecha: nuevaFecha }
+      : { ...prev, fechaRetorno: nuevaFecha });
+    // Cambiar de día invalida lo ya elegido en este tramo: el viaje ya no existe.
+    setLegSel({ viaje: null, asientos: [] });
+    invalidarReservas();
+    buscarLeg(legOrigen, legDestino, nuevaFecha);
   };
 
   const iniciarBusqueda = (params) => {
@@ -336,7 +354,14 @@ export default function Comprar() {
                   <button className="btn btn-ghost btn-sm" onClick={volverAIda}>Volver a la ida</button>
                 </div>
               )}
-              <div style={{ marginTop: 28 }}>
+              <TiraFechas
+                origen={legOrigen}
+                destino={legDestino}
+                fecha={legFecha}
+                onElegirFecha={cambiarFecha}
+              />
+
+              <div style={{ marginTop: 20 }}>
                 <Resultados viajes={viajes} cargando={cargando} error={error} onElegir={elegirViaje} />
               </div>
             </>
