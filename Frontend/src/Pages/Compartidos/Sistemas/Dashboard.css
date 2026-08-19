@@ -400,3 +400,15 @@
 /* Color cyan para las tarjetas de encomiendas */
 .stat-cyan  { background: #ecfeff; border-color: #a5f3fc; }
 .stat-cyan .stat-icono { background: #cffafe; color: #0891b2; }
+
+/* Aclaración bajo el título de compras web: recuerda que ese dinero no está en
+   la gaveta, para que nadie lo busque al cuadrar la caja. */
+.dash-nota-web {
+    display: block;
+    margin-top: 3px;
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--txt-3, #6b7280);
+    letter-spacing: 0;
+    text-transform: none;
+}

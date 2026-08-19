@@ -20,11 +20,39 @@ public class DashboardDTO {
     private BigDecimal efectivoHoy;
     private BigDecimal digitalHoy;
     private List<CobroMetodoDTO> cobrosMetodoHoy;
+
+    // Compras por la web, separadas del mostrador: esta plata entra a la cuenta de
+    // la pasarela, no a la caja de la oficina, y confundirlas descuadra el arqueo.
+    private int totalVentasWebHoy;
+    private BigDecimal ingresosWebHoy;
+    private int totalVentasWebMes;
+    private BigDecimal ingresosWebMes;
+    private BigDecimal ingresosMostradorHoy;
+    /** Desglose de lo cobrado hoy en la web por pasarela (Izipay / Mercado Pago). */
+    private List<CobroMetodoDTO> cobrosWebHoy;
     private List<ViajeProximoDTO> viajesProximos;
     private List<UltimaVentaDTO> ultimasVentas;
     private List<VentaPorDiaDTO> ventasPorDia;
     private List<TopRutaDTO> topRutas;
     private List<OcupacionTipoDTO> ocupacionPorTipo;
+
+    public int getTotalVentasWebHoy() { return totalVentasWebHoy; }
+    public void setTotalVentasWebHoy(int v) { this.totalVentasWebHoy = v; }
+
+    public BigDecimal getIngresosWebHoy() { return ingresosWebHoy; }
+    public void setIngresosWebHoy(BigDecimal v) { this.ingresosWebHoy = v; }
+
+    public int getTotalVentasWebMes() { return totalVentasWebMes; }
+    public void setTotalVentasWebMes(int v) { this.totalVentasWebMes = v; }
+
+    public BigDecimal getIngresosWebMes() { return ingresosWebMes; }
+    public void setIngresosWebMes(BigDecimal v) { this.ingresosWebMes = v; }
+
+    public BigDecimal getIngresosMostradorHoy() { return ingresosMostradorHoy; }
+    public void setIngresosMostradorHoy(BigDecimal v) { this.ingresosMostradorHoy = v; }
+
+    public List<CobroMetodoDTO> getCobrosWebHoy() { return cobrosWebHoy; }
+    public void setCobrosWebHoy(List<CobroMetodoDTO> v) { this.cobrosWebHoy = v; }
 
     public static class ViajeProximoDTO {
         private String codigoViaje;

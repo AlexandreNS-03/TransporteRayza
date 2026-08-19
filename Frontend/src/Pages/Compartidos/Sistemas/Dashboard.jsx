@@ -17,7 +17,17 @@ function badgeViaje(estado) {
 }
 
 const COLORES = { azul: "#1a4db5", verde: "#15803d", amarillo: "#a16207", morado: "#7c3aed", cyan: "#0891b2" };
-const METODO_LABEL = { EFECTIVO: "Efectivo", YAPE: "Yape", PLIN: "Plin", TARJETA: "Tarjeta", TRANSFERENCIA: "Transferencia" };
+const METODO_LABEL = {
+    EFECTIVO: "Efectivo", YAPE: "Yape", PLIN: "Plin", TARJETA: "Tarjeta", TRANSFERENCIA: "Transferencia",
+    "WEB SIN REGISTRAR": "Web (sin registrar)",
+};
+// Cómo entró la plata de una compra en línea. El método dice la pasarela:
+// la tarjeta la cobra Izipay y el Yape de la web lo cobra Mercado Pago.
+const PASARELA_LABEL = {
+    IZIPAY: "Izipay (tarjeta)",
+    "MERCADO PAGO": "Mercado Pago (Yape)",
+    "SIN REGISTRAR": "Sin registrar",
+};
 
 /* ---------- Hook: animación de conteo para las tarjetas de stats ---------- */
 function useCountUp(valor, duracion = 700) {
@@ -247,6 +257,47 @@ function Dashboard() {
                                              cx="50%" cy="50%" innerRadius={55} outerRadius={85} paddingAngle={3}
                                              label={({ metodo, percent }) => `${METODO_LABEL[metodo] || metodo} ${(percent * 100).toFixed(0)}%`}>
                                             {data.cobrosMetodoHoy.map((_, i) => (
+                                                <Cell key={i} fill={Object.values(COLORES)[i % 5]} />
+                                            ))}
+                                        </Pie>
+                                        <Tooltip content={<ChartTooltip />} />
+                                    </PieChart>
+                                </ResponsiveContainer>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* COMPRAS POR LA WEB */}
+            {data && (
+                <div className="dash-efectivo">
+                    <div className="dash-efectivo-titulo">
+                        <i className="ti ti-world"></i> Compras por la web
+                        <span className="dash-nota-web">
+                            Esta plata entra a la cuenta de la pasarela, no a la caja de la oficina.
+                        </span>
+                    </div>
+                    <div className="dash-efectivo-cards">
+                        <StatCard label="Ventas web hoy" valorRaw={data.totalVentasWebHoy || 0} icono="ti-shopping-cart" color="cyan" />
+                        <StatCard label="Ingresos web hoy" valorRaw={data.ingresosWebHoy || 0} formato="moneda" icono="ti-world" color="cyan" />
+                        <StatCard label="Cobrado en mostrador hoy" valorRaw={data.ingresosMostradorHoy || 0} formato="moneda" icono="ti-building-store" color="azul" />
+                        <StatCard label="Ventas web del mes" valorRaw={data.totalVentasWebMes || 0} icono="ti-calendar" color="verde" />
+                        <StatCard label="Ingresos web del mes" valorRaw={data.ingresosWebMes || 0} formato="moneda" icono="ti-report-money" color="verde" />
+                    </div>
+
+                    {data.cobrosWebHoy?.length > 0 && (
+                        <div className="dash-card chart-card" style={{ marginTop: 12 }}>
+                            <div className="dash-card-header">
+                                <h3><i className="ti ti-credit-card"></i> Cobros web de hoy por pasarela</h3>
+                            </div>
+                            <div className="dash-card-body chart-body">
+                                <ResponsiveContainer width="100%" height={240}>
+                                    <PieChart>
+                                        <Pie data={data.cobrosWebHoy} dataKey="monto" nameKey="metodo"
+                                             cx="50%" cy="50%" innerRadius={55} outerRadius={85} paddingAngle={3}
+                                             label={({ metodo, percent }) => `${PASARELA_LABEL[metodo] || metodo} ${(percent * 100).toFixed(0)}%`}>
+                                            {data.cobrosWebHoy.map((_, i) => (
                                                 <Cell key={i} fill={Object.values(COLORES)[i % 5]} />
                                             ))}
                                         </Pie>
