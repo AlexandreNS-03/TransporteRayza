@@ -233,12 +233,9 @@ public class VentaService {
                     + viaje.getSucursalNombre());
         }
 
-        // Mismo criterio que la venta web: una ruta puede bloquear un tramo puntual
-        // (ej. el que se salta una parada intermedia nueva), y eso aplica también
-        // al mostrador, no solo a la compra en línea.
-        if (req.getOrdenOrigen() != null && req.getOrdenDestino() != null
-                && publicService.tramoBloqueadoEnRuta(viaje.getRutaId(), req.getOrdenOrigen(), req.getOrdenDestino()))
-            throw new RuntimeException("Ese tramo no está disponible para esta ruta.");
+        // Los tramos bloqueados de una ruta son SOLO para la compra en línea: cierran
+        // la venta desatendida de un tramo, no la del mostrador, donde hay personal
+        // que puede evaluar el caso. Por eso acá no se comprueban a propósito.
 
         Venta venta = new Venta();
         venta.setId(UUID.randomUUID().toString());

@@ -581,7 +581,7 @@ function Rutas() {
                                                         {/* TRAMOS BLOQUEADOS */}
                                                         {rutaDetalle.tramosBloqueados?.length > 0 && (
                                                             <div className="detalle-seccion">
-                                                                <h4><i className="ti ti-ban"></i> Tramos que no se venden</h4>
+                                                                <h4><i className="ti ti-ban"></i> Tramos que no se venden por la web</h4>
                                                                 <div className="paradas-lista">
                                                                     {rutaDetalle.tramosBloqueados.map((b, i) => (
                                                                         <div key={i} className="parada-item">
@@ -844,9 +844,10 @@ function Rutas() {
                             ) : (
                                 <>
                                     <p className="carga-excel-ayuda">
-                                        Útil cuando se agrega una parada intermedia nueva y el tramo directo
-                                        que se la salta no debe venderse. Marca los tramos que{" "}
-                                        <strong>no</strong> se deben vender; el resto queda disponible como siempre.
+                                        Marca los tramos que <strong>no</strong> se venden por la web;
+                                        el resto queda disponible como siempre. En el sistema (mostrador)
+                                        se siguen vendiendo todos: esto solo cierra la venta en línea,
+                                        donde no hay quien evalúe el caso.
                                     </p>
                                     <div className="tramos-bloqueados-grid">
                                         {paresPosibles.map((par) => {
