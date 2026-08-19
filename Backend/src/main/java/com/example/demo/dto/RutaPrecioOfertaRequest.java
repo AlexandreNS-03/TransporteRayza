@@ -8,6 +8,9 @@ public class RutaPrecioOfertaRequest {
     private BigDecimal precioNormalOferta;
     private BigDecimal precioVipOferta;
     private Boolean ofertaActiva;
+    /** Rango de fechas de VIAJE (ISO yyyy-MM-dd). Vacío = sin ese límite. */
+    private String ofertaDesde;
+    private String ofertaHasta;
 
     public BigDecimal getPrecioNormalOferta() { return precioNormalOferta; }
     public void setPrecioNormalOferta(BigDecimal precioNormalOferta) { this.precioNormalOferta = precioNormalOferta; }
@@ -17,4 +20,10 @@ public class RutaPrecioOfertaRequest {
 
     public Boolean getOfertaActiva() { return ofertaActiva; }
     public void setOfertaActiva(Boolean ofertaActiva) { this.ofertaActiva = ofertaActiva; }
+
+    public String getOfertaDesde() { return ofertaDesde; }
+    public void setOfertaDesde(String ofertaDesde) { this.ofertaDesde = ofertaDesde; }
+
+    public String getOfertaHasta() { return ofertaHasta; }
+    public void setOfertaHasta(String ofertaHasta) { this.ofertaHasta = ofertaHasta; }
 }

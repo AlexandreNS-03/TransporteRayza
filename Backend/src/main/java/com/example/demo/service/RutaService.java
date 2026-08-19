@@ -137,11 +137,27 @@ public class RutaService {
         if (activa && (req.getPrecioNormalOferta() == null || req.getPrecioVipOferta() == null))
             throw new RuntimeException("Ingresa el precio normal y VIP de oferta antes de activarla");
 
+        java.time.LocalDate desde = fechaOpcional(req.getOfertaDesde(), "inicio");
+        java.time.LocalDate hasta = fechaOpcional(req.getOfertaHasta(), "fin");
+        if (desde != null && hasta != null && hasta.isBefore(desde))
+            throw new RuntimeException("La fecha de fin de la oferta no puede ser anterior a la de inicio");
+
         r.setPrecioNormalOferta(req.getPrecioNormalOferta());
         r.setPrecioVipOferta(req.getPrecioVipOferta());
         r.setOfertaActiva(activa);
+        r.setOfertaDesde(desde);
+        r.setOfertaHasta(hasta);
         rutaRepository.save(r);
         return toDTO(r, false);
+    }
+
+    /** Fecha ISO opcional: vacío o null => sin límite por ese lado. */
+    private java.time.LocalDate fechaOpcional(String valor, String cual) {
+        if (valor == null || valor.isBlank()) return null;
+        try { return java.time.LocalDate.parse(valor.trim()); }
+        catch (java.time.format.DateTimeParseException e) {
+            throw new RuntimeException("La fecha de " + cual + " de la oferta no es válida");
+        }
     }
 
     private void guardarParadas(Ruta r, RutaRequest req) {
@@ -256,6 +272,8 @@ public class RutaService {
         dto.setPrecioNormalOferta(r.getPrecioNormalOferta());
         dto.setPrecioVipOferta(r.getPrecioVipOferta());
         dto.setOfertaActiva(r.getOfertaActiva());
+        dto.setOfertaDesde(r.getOfertaDesde() != null ? r.getOfertaDesde().toString() : null);
+        dto.setOfertaHasta(r.getOfertaHasta() != null ? r.getOfertaHasta().toString() : null);
         dto.setDuracionAproximada(r.getDuracionAproximada());
         dto.setActivo(r.getActivo());
         dto.setCreatedAt(r.getCreatedAt() != null ? r.getCreatedAt().toString() : null);

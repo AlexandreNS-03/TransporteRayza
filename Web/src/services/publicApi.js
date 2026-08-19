@@ -171,6 +171,21 @@ export function soles(n) {
   return "S/ " + Number(n || 0).toFixed(2);
 }
 
+/**
+ * Precio más bajo por día en un rango, para la tira de fechas. Si falla, devuelve
+ * lista vacía: la tira sigue sirviendo para saltar de día, solo que sin precios.
+ */
+export async function preciosPorFecha({ origen, destino, desde, hasta } = {}) {
+  if (!origen || !destino || !desde || !hasta) return [];
+  try {
+    const { data } = await http.get("/viajes/precios", { params: { origen, destino, desde, hasta } });
+    return data;
+  } catch (e) {
+    console.warn("[preciosPorFecha] no se pudieron cargar los precios por día:", e?.message || e);
+    return [];
+  }
+}
+
 // ── Pago en línea de una encomienda ──
 export async function formularioPagoEncomienda(codigo) {
   try { const { data } = await http.post(`/encomiendas/${encodeURIComponent(codigo)}/pago/formulario`); return data; }

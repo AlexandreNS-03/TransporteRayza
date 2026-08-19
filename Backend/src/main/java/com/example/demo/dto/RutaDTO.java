@@ -15,6 +15,8 @@ public class RutaDTO {
     private BigDecimal precioNormalOferta;
     private BigDecimal precioVipOferta;
     private Boolean ofertaActiva;
+    private String ofertaDesde;
+    private String ofertaHasta;
     private String duracionAproximada;
     private Boolean activo;
     private String createdAt;
@@ -125,6 +127,12 @@ public class RutaDTO {
 
     public Boolean getOfertaActiva() { return ofertaActiva; }
     public void setOfertaActiva(Boolean ofertaActiva) { this.ofertaActiva = ofertaActiva; }
+
+    public String getOfertaDesde() { return ofertaDesde; }
+    public void setOfertaDesde(String ofertaDesde) { this.ofertaDesde = ofertaDesde; }
+
+    public String getOfertaHasta() { return ofertaHasta; }
+    public void setOfertaHasta(String ofertaHasta) { this.ofertaHasta = ofertaHasta; }
 
     public String getDuracionAproximada() { return duracionAproximada; }
     public void setDuracionAproximada(String d) { this.duracionAproximada = d; }
