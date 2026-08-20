@@ -76,7 +76,7 @@ export default function Buscador({ onBuscar, valorInicial = {} }) {
   return (
     <form className="buscador buscador-barra" onSubmit={submit}>
       <div className="bus-fields">
-        <div className="field bus-field">
+        <div className="field bus-field" data-tour="origen">
           <label>Desde</label>
           <div className="control">
             <IconPin />
@@ -96,7 +96,7 @@ export default function Buscador({ onBuscar, valorInicial = {} }) {
           <svg viewBox="0 0 24 24"><path d="M7 4L4 7l3 3M4 7h13M17 20l3-3-3-3M20 17H7"/></svg>
         </button>
 
-        <div className="field bus-field">
+        <div className="field bus-field" data-tour="destino">
           <label>Hacia</label>
           <div className="control">
             <IconPin />
@@ -111,7 +111,7 @@ export default function Buscador({ onBuscar, valorInicial = {} }) {
           </div>
         </div>
 
-        <div className="field bus-field">
+        <div className="field bus-field" data-tour="fecha">
           <label>Ida</label>
           <DatePicker value={fecha} onChange={setFecha} min={hoy} />
         </div>
@@ -122,7 +122,7 @@ export default function Buscador({ onBuscar, valorInicial = {} }) {
         </div>
       </div>
 
-      <button className="btn btn-primary bus-btn" type="submit">Buscar</button>
+      <button className="btn btn-primary bus-btn" type="submit" data-tour="buscar">Buscar</button>
     </form>
   );
 }
