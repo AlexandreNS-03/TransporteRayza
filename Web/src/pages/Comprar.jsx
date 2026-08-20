@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
@@ -93,6 +93,7 @@ export default function Comprar() {
   const [errorPago, setErrorPago] = useState(null);
   const [confirmacion, setConfirmacion] = useState(null);
   const [formularioVisible, setFormularioVisible] = useState(false);
+  const cancelarIzipayRef = useRef(null);
   const [metodo, setMetodo] = useState("tarjeta");
   const [metodos, setMetodos] = useState(null);
   const [yapeDatos, setYapeDatos] = useState({ phoneNumber: "", otp: "" });
@@ -309,14 +310,25 @@ export default function Comprar() {
       const respuesta = await pagarConIzipay({
         ...form, contenedor: "#izipay-form",
         alMostrarFormulario: () => setFormularioVisible(true),
+        registrarCancelacion: (fn) => { cancelarIzipayRef.current = fn; },
       });
       setFormularioVisible(false);
       const conf = await pagarGrupo(ids, respuesta);
       limpiarIzipay("#izipay-form");
       terminar(conf);
     } catch (e) {
-      setErrorPago(e.message); setFormularioVisible(false); limpiarIzipay("#izipay-form");
-    } finally { setPagando(false); }
+      // Arrepentirse no es un error: se vuelve a la elección de método sin
+      // mostrarle a la persona un aviso de que algo salió mal.
+      setErrorPago(e.cancelado ? null : e.message);
+      setFormularioVisible(false);
+      limpiarIzipay("#izipay-form");
+    } finally { setPagando(false); cancelarIzipayRef.current = null; }
+  };
+
+  /** Cierra el formulario de Izipay y devuelve a la elección de método. */
+  const cancelarPagoTarjeta = () => {
+    if (cancelarIzipayRef.current) cancelarIzipayRef.current();
+    else { setFormularioVisible(false); limpiarIzipay("#izipay-form"); setPagando(false); }
   };
 
   const faltan = asientos - legSel.asientos.length;
@@ -483,7 +495,20 @@ export default function Comprar() {
                     <div id="izipay-form" style={{ marginTop: 16 }} />
                     {errorPago && <div className="alert alert-warn" style={{ marginTop: 12 }}>{errorPago}</div>}
                     <div style={{ display: "flex", justifyContent: "space-between", marginTop: 22 }}>
-                      <button className="btn btn-ghost" onClick={() => volverAlPagoDesde(2)} disabled={pagando}>Volver</button>
+                      {/* Con el formulario de Izipay abierto, "Volver" quedaba deshabilitado
+                          porque el pago figura en curso hasta que la pasarela responda, y
+                          la pasarela no responde si la persona se arrepiente. Acá se le da
+                          una salida: cierra el formulario y vuelve a la elección de método,
+                          sin perder los asientos ya retenidos. */}
+                      {formularioVisible ? (
+                        <button className="btn btn-ghost" onClick={cancelarPagoTarjeta}>
+                          Cancelar y elegir otro método
+                        </button>
+                      ) : (
+                        <button className="btn btn-ghost" onClick={() => volverAlPagoDesde(2)} disabled={pagando}>
+                          Volver
+                        </button>
+                      )}
                       {!formularioVisible && (
                         <button className="btn btn-primary" disabled={pagando}
                                 onClick={metodo === "yape" ? pagarConYape : pagar}>

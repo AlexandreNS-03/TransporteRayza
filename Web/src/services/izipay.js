@@ -37,12 +37,20 @@ function cargarKrypton(publicKey) {
   return cargando;
 }
 
+/** Error con el que se corta el pago cuando la persona decide no seguir. */
+export class PagoCancelado extends Error {
+  constructor() { super("Pago cancelado"); this.cancelado = true; }
+}
+
 /**
  * Dibuja el formulario dentro de `contenedor` y espera a que el cliente pague.
+ * `registrarCancelacion` recibe una función para abortar desde fuera: sin ella
+ * la promesa queda colgada si la persona se arrepiente.
  *
  * @returns {Promise<{krAnswer: string, krHash: string} | {simulado: true}>}
  */
-export async function pagarConIzipay({ formToken, publicKey, simulado, contenedor, alMostrarFormulario }) {
+export async function pagarConIzipay({ formToken, publicKey, simulado, contenedor,
+                                       alMostrarFormulario, registrarCancelacion }) {
   if (simulado) return { simulado: true };
 
   const KR = await cargarKrypton(publicKey);
@@ -54,6 +62,12 @@ export async function pagarConIzipay({ formToken, publicKey, simulado, contenedo
   });
 
   return new Promise((resolve, reject) => {
+    // El formulario de Izipay solo avisa si cobró, si lo rechazaron o si falló:
+    // no avisa cuando la persona se arrepiente. Sin esta salida, la promesa se
+    // quedaba colgada para siempre y la página seguía creyendo que el pago
+    // estaba en curso, dejando el botón de volver deshabilitado.
+    registrarCancelacion?.(() => reject(new PagoCancelado()));
+
     // onSubmit corre cuando Izipay ya cobró; devuelve la respuesta firmada que el
     // servidor tiene que verificar antes de dar la venta por buena.
     kr.onSubmit((respuesta) => {
