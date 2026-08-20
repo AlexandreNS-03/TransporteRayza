@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import Buscador from "../components/Buscador";
+import TourCompra, { tourPendiente } from "../components/TourCompra";
 import Carrusel from "../components/Carrusel";
 import Galeria from "../components/Galeria";
 import Reveal from "../components/Reveal";
@@ -25,6 +26,16 @@ export default function Landing() {
   const anios = aniosDeAniversario();
   const [abierto, setAbierto] = useState(null);
   const [promos, setPromos] = useState(PROMOS_RESPALDO);
+  const [tourAbierto, setTourAbierto] = useState(false);
+
+  // Se abre solo en la primera visita, con un respiro para que la página se
+  // asiente. Quien ya lo vio (o lo cerró) no lo vuelve a encontrar encima:
+  // queda el botón bajo el buscador para pedirlo cuando quiera.
+  useEffect(() => {
+    if (!tourPendiente()) return;
+    const t = setTimeout(() => setTourAbierto(true), 1200);
+    return () => clearTimeout(t);
+  }, []);
 
   useEffect(() => {
     getAnuncios("LANDING").then((lista) => {
@@ -44,6 +55,8 @@ export default function Landing() {
       {/* Único momento de movimiento con autoría de la portada */}
       <HeroConProfundidad />
 
+      <TourCompra abierto={tourAbierto} onCerrar={() => setTourAbierto(false)} />
+
       <section className="hero-mb" id="inicio">
         <Carrusel
           flechas
@@ -62,7 +75,20 @@ export default function Landing() {
             </div>
           </div>
         </Carrusel>
-        <div className="wrap hero-mb-buscador"><Buscador /></div>
+        <div className="wrap hero-mb-buscador">
+          <Buscador />
+          <div className="tour-invitacion-fila">
+            <button type="button" className="tour-invitacion" onClick={() => setTourAbierto(true)}>
+              <svg viewBox="0 0 24 24" width="17" height="17" fill="none" aria-hidden="true">
+                <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.8" />
+                <path d="M9.6 9.3a2.4 2.4 0 1 1 3.2 2.3c-.5.2-.8.7-.8 1.2v.4" stroke="currentColor"
+                      strokeWidth="1.8" strokeLinecap="round" />
+                <circle cx="12" cy="16.6" r="1" fill="currentColor" />
+              </svg>
+              ¿Primera vez? Te guío para comprar
+            </button>
+          </div>
+        </div>
       </section>
 
       {/* ===== PROMOS ===== */}
@@ -92,6 +118,40 @@ export default function Landing() {
       </section>
 
       <AnuncioAniversario />
+
+      {/* ===== CÓMO COMPRAR ===== */}
+      <section className="section" id="como-comprar">
+        <div className="wrap">
+          <div className="section-head">
+            <h2>Comprar es así de simple</h2>
+            <p>Todo desde el celular, sin ir a la oficina.</p>
+          </div>
+
+          <ol className="pasos-compra">
+            {[
+              { t: "Busca tu viaje", d: "Elige de dónde sales, a dónde vas y el día. Verás los horarios con su precio." },
+              { t: "Escoge tu asiento", d: "Ves el mapa del bote y eliges dónde sentarte, normal o VIP." },
+              { t: "Paga en línea", d: "Con tarjeta o Yape. El cobro es seguro y te llega la confirmación al instante." },
+              { t: "Sube con tu QR", d: "Tu boleto llega al correo. Lo muestras en el puerto desde el celular." },
+            ].map((p, i) => (
+              <li className="paso-compra" key={p.t}>
+                <span className="paso-numero" aria-hidden="true">{i + 1}</span>
+                <div>
+                  <h3>{p.t}</h3>
+                  <p>{p.d}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+
+          <div className="pasos-compra-cta">
+            <Link className="btn btn-primary" to="/comprar">Comprar mi pasaje</Link>
+            <button type="button" className="tour-invitacion" onClick={() => setTourAbierto(true)}>
+              Mejor guíame paso a paso
+            </button>
+          </div>
+        </div>
+      </section>
 
       {/* ===== DESTINOS ===== */}
       <section className="section section-alt" id="destinos">

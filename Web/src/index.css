@@ -1693,3 +1693,234 @@ html :is(a, button, input, select, textarea, [tabindex]):focus-visible {
 .viaje-tramos-btn { color: var(--tira-enlace, var(--brand-700)); }
 .viaje-tramos-btn:hover { color: var(--tira-enlace, var(--brand-800)); }
 .tira-dia.menor .tira-dia-precio { color: var(--tira-menor, var(--accent)); }
+
+/* ═══ Tutorial guiado de compra ═════════════════════════════════════════════
+   Oscurece la página y deja iluminado el control del paso. El recorte no
+   captura clics (pointer-events: none), así el visitante puede ir eligiendo su
+   viaje mientras avanza: termina con la búsqueda hecha, no con una lección. */
+.tour { position: fixed; inset: 0; z-index: 120; pointer-events: none; }
+
+/* El velo con su hueco. Al no capturar clics, el visitante puede ir eligiendo
+   su viaje mientras lo guiamos: termina con la búsqueda hecha, no con una
+   lección. Se cierra con Saltar, Entendido o la tecla Escape. */
+.tour-mascara {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  animation: tourVelo .22s var(--ease) both;
+}
+/* El hueco y su aro se deslizan de un campo al siguiente. Son atributos de
+   geometría SVG: se animan sin reflujo de la página. */
+.tour-hueco-rect,
+.tour-aro {
+  transition: x .3s var(--ease), y .3s var(--ease),
+              width .3s var(--ease), height .3s var(--ease);
+}
+.tour-aro { fill: none; stroke: var(--brand); stroke-width: 2; }
+
+@keyframes tourVelo { from { opacity: 0; } to { opacity: 1; } }
+
+.tour-tarjeta {
+  position: fixed;
+  z-index: 1;
+  pointer-events: auto;
+  padding: 18px 18px 14px;
+  background: var(--card);
+  color: var(--ink);
+  border-radius: var(--r);
+  box-shadow: var(--sh-lg);
+  animation: tourEntra .24s var(--ease) both;
+}
+.tour-tarjeta:focus { outline: none; }
+.tour-tarjeta.centrada {
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(380px, calc(100vw - 32px));
+}
+.tour-tarjeta h3 {
+  margin: 0 0 6px;
+  font-family: var(--font-head);
+  font-size: 19px;
+  line-height: 1.25;
+}
+.tour-tarjeta p { margin: 0 0 16px; color: var(--ink-soft); font-size: 14.5px; line-height: 1.55; }
+
+.tour-progreso { display: flex; gap: 5px; margin-bottom: 12px; }
+.tour-punto {
+  width: 18px; height: 4px;
+  border-radius: 999px;
+  background: var(--line-strong);
+  transition: background .22s var(--ease);
+}
+.tour-punto.hecho  { background: var(--brand-600); }
+.tour-punto.activo { background: var(--brand); }
+
+.tour-acciones { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.tour-navegacion { display: flex; align-items: center; gap: 8px; }
+
+.tour-saltar, .tour-atras {
+  border: 0; background: none; padding: 8px 4px;
+  font: inherit; font-size: 14px; font-weight: 600;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: color .18s var(--ease);
+}
+.tour-saltar:hover, .tour-atras:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+.tour-siguiente { padding: 9px 18px; font-size: 14.5px; }
+.tour-siguiente:active { transform: scale(.97); }
+
+.tour-saltar:focus-visible, .tour-atras:focus-visible, .tour-siguiente:focus-visible {
+  outline: 2px solid var(--brand); outline-offset: 2px; border-radius: 8px;
+}
+
+.tour-conteo {
+  display: block;
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+@keyframes tourEntra {
+  from { opacity: 0; transform: translateY(6px) scale(.98); }
+  to   { opacity: 1; transform: none; }
+}
+/* La variante centrada ya usa transform para centrarse: animarla con otro
+   transform la descolocaría, así que solo se desvanece. */
+.tour-tarjeta.centrada { animation-name: tourEntraCentrada; }
+@keyframes tourEntraCentrada {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* En pantallas chicas la tarjeta vive abajo: flotarla junto a un campo angosto
+   la dejaría ilegible o fuera de pantalla. */
+@media (max-width: 720px) {
+  .tour-tarjeta,
+  .tour-tarjeta.anclada,
+  .tour-tarjeta.centrada {
+    top: auto; bottom: 14px;
+    left: 14px; right: 14px;
+    width: auto;
+    transform: none;
+    animation-name: tourEntraPie;
+  }
+  /* Cuando el campo señalado está en la mitad inferior, la tarjeta se va arriba:
+     de lo contrario se pararía justo encima de lo que está explicando. */
+  .tour-tarjeta.techo {
+    top: 78px; bottom: auto;
+    animation-name: tourEntraTecho;
+  }
+  @keyframes tourEntraPie {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: none; }
+  }
+  @keyframes tourEntraTecho {
+    from { opacity: 0; transform: translateY(-12px); }
+    to   { opacity: 1; transform: none; }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tour-mascara, .tour-tarjeta { animation: none; }
+  .tour-hueco-rect, .tour-aro { transition: none; }
+  .tour-siguiente:active { transform: none; }
+}
+
+/* Invitación bajo el buscador, para quien ya cerró el tutorial o llega de nuevo. */
+.tour-invitacion {
+  display: inline-flex; align-items: center; gap: 7px;
+  margin: 12px auto 0;
+  padding: 9px 16px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--card);
+  /* --brand-700 es oscuro por diseño y no llega a AA sobre fondo oscuro; la
+     variante clara ya está definida para la tira de fechas. */
+  color: var(--tira-enlace, var(--brand-700));
+  font: inherit; font-size: 14px; font-weight: 700;
+  cursor: pointer;
+  box-shadow: var(--sh-sm);
+  transition: background .18s var(--ease), color .18s var(--ease), transform .12s var(--ease);
+}
+.tour-invitacion:hover { background: var(--sky-soft); color: var(--tira-enlace, var(--brand-800)); }
+.tour-invitacion:active { transform: scale(.98); }
+.tour-invitacion:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.tour-invitacion-fila { display: flex; justify-content: center; }
+
+@media (prefers-reduced-motion: reduce) {
+  .tour-invitacion { transition: none; }
+  .tour-invitacion:active { transform: none; }
+}
+
+/* ═══ Cómo comprar ══════════════════════════════════════════════════════════
+   Es una secuencia, no cuatro funciones sueltas: los pasos van numerados y
+   unidos por una línea, para que se lea como un recorrido de principio a fin. */
+.pasos-compra {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 26px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: paso;
+}
+.paso-compra { position: relative; padding-top: 6px; }
+.paso-compra h3 {
+  margin: 14px 0 6px;
+  font-family: var(--font-head);
+  font-size: 17.5px;
+  line-height: 1.3;
+}
+.paso-compra p { margin: 0; color: var(--ink-soft); font-size: 14.5px; line-height: 1.6; }
+
+.paso-numero {
+  display: grid;
+  place-items: center;
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  background: var(--brand-700);
+  color: #fff;
+  font-family: var(--font-head);
+  font-size: 17px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  box-shadow: 0 4px 10px -4px rgba(11, 44, 94, .4);
+}
+/* La línea que une un paso con el siguiente. El último no la lleva. */
+.paso-compra:not(:last-child) .paso-numero::after {
+  content: "";
+  position: absolute;
+  top: 25px; left: 46px; right: -26px;
+  height: 2px;
+  background: var(--line-strong);
+}
+
+.pasos-compra-cta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 34px;
+}
+.pasos-compra-cta .tour-invitacion { margin: 0; }
+
+@media (max-width: 900px) {
+  .pasos-compra { grid-template-columns: repeat(2, 1fr); gap: 24px 20px; }
+  .paso-compra:not(:last-child) .paso-numero::after { display: none; }
+}
+@media (max-width: 560px) {
+  /* En una columna la secuencia se lee vertical, con la línea al costado. */
+  .pasos-compra { grid-template-columns: 1fr; gap: 0; }
+  .paso-compra { display: flex; gap: 14px; padding: 0 0 22px; }
+  .paso-compra h3 { margin: 6px 0 4px; }
+  .paso-numero { flex: none; }
+  .paso-compra:not(:last-child) .paso-numero::after {
+    display: block;
+    top: 44px; bottom: -4px; left: 18px;
+    right: auto; width: 2px; height: auto;
+  }
+}
