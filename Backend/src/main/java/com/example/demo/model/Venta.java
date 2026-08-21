@@ -155,6 +155,10 @@ public class Venta {
     @Column(name = "grupo_venta_id", length = 36)
     private String grupoVentaId;
 
+    /** Con varios pasajes en una compra: un solo comprobante por el total, o uno por pasajero. */
+    @Column(name = "comprobante_unico")
+    private Boolean comprobanteUnico;
+
     @Column(name = "reserva_expira")
     private LocalDateTime reservaExpira;   // hasta cuándo se sostiene el asiento sin pagar
 
@@ -327,6 +331,9 @@ public class Venta {
 
     public String getGrupoVentaId() { return grupoVentaId; }
     public void setGrupoVentaId(String grupoVentaId) { this.grupoVentaId = grupoVentaId; }
+
+    public Boolean getComprobanteUnico() { return comprobanteUnico; }
+    public void setComprobanteUnico(Boolean comprobanteUnico) { this.comprobanteUnico = comprobanteUnico; }
 
     public LocalDateTime getReservaExpira() { return reservaExpira; }
     public void setReservaExpira(LocalDateTime reservaExpira) { this.reservaExpira = reservaExpira; }

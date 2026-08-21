@@ -47,7 +47,7 @@ export default function FormularioPasajero({ pasajero, setPasajero, titulo }) {
 }
 
 /** Correo de contacto y comprobante: comunes a toda la compra. */
-export function FormularioContacto({ contacto, setContacto }) {
+export function FormularioContacto({ contacto, setContacto, cantidadPasajes = 1 }) {
   const set = (campo) => (e) => setContacto({ ...contacto, [campo]: e.target.value });
 
   return (
@@ -71,6 +71,31 @@ export function FormularioContacto({ contacto, setContacto }) {
             <div className="field"><label>RUC</label><input value={contacto.clienteDocumento} onChange={set("clienteDocumento")} placeholder="RUC de la empresa" /></div>
             <div className="field"><label>Razón social</label><input value={contacto.clienteNombre} onChange={set("clienteNombre")} placeholder="Nombre de la empresa" /></div>
           </>
+        )}
+
+        {/* Con un solo pasaje no hay nada que decidir, así que ni se pregunta. */}
+        {cantidadPasajes > 1 && (
+          <div className="field full">
+            <label>¿Cómo quieres el comprobante?</label>
+            <div className="comprobante-opciones">
+              <button type="button"
+                      className={"comprobante-opcion" + (contacto.comprobanteUnico !== false ? " activo" : "")}
+                      onClick={() => setContacto({ ...contacto, comprobanteUnico: true })}>
+                <span className="comprobante-opcion-tit">Uno solo</span>
+                <span className="comprobante-opcion-det">
+                  Un {contacto.tipoComprobante === "FACTURA" ? "a factura" : "a boleta"} por los {cantidadPasajes} pasajes
+                </span>
+              </button>
+              <button type="button"
+                      className={"comprobante-opcion" + (contacto.comprobanteUnico === false ? " activo" : "")}
+                      onClick={() => setContacto({ ...contacto, comprobanteUnico: false })}>
+                <span className="comprobante-opcion-tit">Uno por pasajero</span>
+                <span className="comprobante-opcion-det">
+                  {cantidadPasajes} documentos, uno a nombre de cada quien
+                </span>
+              </button>
+            </div>
+          </div>
         )}
       </div>
     </div>

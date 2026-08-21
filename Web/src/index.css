@@ -1924,3 +1924,27 @@ html :is(a, button, input, select, textarea, [tabindex]):focus-visible {
     right: auto; width: 2px; height: auto;
   }
 }
+
+/* ── Elegir cómo sale el comprobante (solo con varios pasajes) ── */
+.comprobante-opciones { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.comprobante-opcion {
+  display: flex; flex-direction: column; gap: 3px;
+  padding: 12px 14px; text-align: left;
+  border: 1px solid var(--line); border-radius: var(--r-sm);
+  background: var(--card); color: var(--ink);
+  font: inherit; cursor: pointer;
+  transition: border-color .18s var(--ease), background .18s var(--ease), transform .12s var(--ease);
+}
+.comprobante-opcion:hover { border-color: var(--line-strong); }
+.comprobante-opcion:active { transform: scale(.99); }
+.comprobante-opcion.activo { border-color: var(--brand-700); background: var(--sky-soft); }
+.comprobante-opcion:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.comprobante-opcion-tit { font-weight: 700; font-size: 14.5px; }
+.comprobante-opcion-det { font-size: 12.5px; color: var(--ink-soft); line-height: 1.4; }
+.comprobante-opcion.activo .comprobante-opcion-tit { color: var(--tira-enlace, var(--brand-800)); }
+
+@media (max-width: 560px) { .comprobante-opciones { grid-template-columns: 1fr; } }
+@media (prefers-reduced-motion: reduce) {
+  .comprobante-opcion { transition: none; }
+  .comprobante-opcion:active { transform: none; }
+}

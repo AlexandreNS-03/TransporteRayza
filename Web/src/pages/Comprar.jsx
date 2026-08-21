@@ -26,6 +26,7 @@ const PASAJERO_INICIAL = {
 };
 const CONTACTO_INICIAL = {
   clienteEmail: "", tipoComprobante: "BOLETA", clienteDocumento: "", clienteNombre: "",
+  comprobanteUnico: true,
 };
 
 const precioAsiento = (viaje, a) => Number(((a?.tipo === "VIP" ? viaje?.precioVip : viaje?.precioNormal) ?? viaje?.precioNormal) || 0);
@@ -261,6 +262,8 @@ export default function Comprar() {
     tipoComprobante: contacto.tipoComprobante,
     clienteNombre: contacto.clienteNombre,
     clienteDocumento: contacto.clienteDocumento,
+    // Un solo comprobante por la compra salvo que pidan uno por pasajero.
+    comprobanteUnico: contacto.comprobanteUnico !== false,
     pasajeros: asientosLeg.map((a, i) => ({
       asientoNumero: a.numero, asientoTipo: a.tipo, ...pasajeroData(i),
     })),
@@ -430,7 +433,7 @@ export default function Comprar() {
                         />
                       </div>
                     ))}
-                    <FormularioContacto contacto={contacto} setContacto={setContacto} />
+                    <FormularioContacto contacto={contacto} setContacto={setContacto} cantidadPasajes={asientos} />
                     <div style={{ display: "flex", justifyContent: "space-between", marginTop: 22 }}>
                       <button className="btn btn-ghost" onClick={() => { setLeg(esRedondo ? "vuelta" : "ida"); setPaso(1); }}>Volver</button>
                       <button className="btn btn-primary" onClick={continuarDatos}>Continuar al pago</button>
