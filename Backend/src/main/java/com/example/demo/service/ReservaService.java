@@ -303,6 +303,7 @@ public class ReservaService {
             viajeRepository.findById(v.getViajeId()).ifPresent(viaje -> {
                 t.fechaSalida = viaje.getFechaSalida() != null ? viaje.getFechaSalida().toString() : null;
                 t.horaSalida = viaje.getHoraSalida() != null ? viaje.getHoraSalida().toString() : null;
+                t.embarcacionNombre = viaje.getEmbarcacionNombre();
             });
         }
         return t;

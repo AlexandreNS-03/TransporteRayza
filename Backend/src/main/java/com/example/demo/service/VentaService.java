@@ -513,6 +513,9 @@ public class VentaService {
             viajeRepository.findById(v.getViajeId()).ifPresent(viaje -> {
                 dto.setFechaSalida(viaje.getFechaSalida() != null ? viaje.getFechaSalida().toString() : null);
                 dto.setHoraSalida(viaje.getHoraSalida() != null ? viaje.getHoraSalida().toString() : null);
+                // La nave sale del viaje: la venta no la guarda, y en el puerto es
+                // el dato que le dice al pasajero a cuál bote subir.
+                dto.setEmbarcacionNombre(viaje.getEmbarcacionNombre());
             });
         }
         dto.setTipoDocumento(v.getTipoDocumento() != null ? v.getTipoDocumento().name() : null);
