@@ -2,6 +2,7 @@ import { lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Landing from "./pages/Landing";
 import IrArriba from "./components/IrArriba";
+import Seo from "./components/Seo";
 import CookieBanner from "./components/CookieBanner";
 
 /**
@@ -38,6 +39,7 @@ function Cargando() {
 export default function App() {
   return (
     <BrowserRouter>
+      <Seo />
       <IrArriba />
       <Suspense fallback={<Cargando />}>
         <Routes>

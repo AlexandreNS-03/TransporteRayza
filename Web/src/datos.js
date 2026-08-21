@@ -9,6 +9,14 @@
 export const EMPRESA = {
   nombre: "Multiservicios Rayza E.I.R.L.",
   nombreCorto: "Transportes Rayza",
+
+  /**
+   * Dirección pública del sitio, sin barra final. La usan la etiqueta canonical
+   * y las de vista previa al compartir, que necesitan direcciones absolutas.
+   * Para Google, con www y sin www son sitios distintos: este es el registrado
+   * en Search Console.
+   */
+  sitio: "https://transporterayza.com",
   telefono: "947012436",
   correo: "transprayza@gmail.com",
 
