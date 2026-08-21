@@ -68,6 +68,7 @@ public class ReservaService {
     private final VentaService ventaService;
     private final ComprobanteService comprobanteService;
     private final PublicService publicService;
+    private final CierrePagoWebService cierrePagoWebService;
 
     public ReservaService(ViajeRepository viajeRepository,
                           VentaRepository ventaRepository,
@@ -79,9 +80,11 @@ public class ReservaService {
                           MercadoPagoService mercadoPagoService,
                           VentaService ventaService,
                           ComprobanteService comprobanteService,
-                          PublicService publicService) {
+                          PublicService publicService,
+                          CierrePagoWebService cierrePagoWebService) {
         this.comprobanteService = comprobanteService;
         this.publicService = publicService;
+        this.cierrePagoWebService = cierrePagoWebService;
         this.viajeRepository = viajeRepository;
         this.ventaRepository = ventaRepository;
         this.tramoUsadoRepository = tramoUsadoRepository;
@@ -139,6 +142,13 @@ public class ReservaService {
                 throw new RuntimeException("El asiento #" + p.getAsientoNumero() + " está repetido");
         }
 
+        // Los pasajes de una misma compra comparten grupo. Sin esto quedaban sueltos
+        // en la base: el sistema no sabía que eran una sola compra, no podía emitir
+        // un comprobante por el total, y en la pantalla de ventas aparecían como
+        // operaciones sin relación entre sí.
+        String grupoVentaId = UUID.randomUUID().toString();
+        boolean unico = !Boolean.FALSE.equals(req.getComprobanteUnico());
+
         List<String> ids = new ArrayList<>();
         BigDecimal total = BigDecimal.ZERO;
         LocalDateTime expira = null;
@@ -155,6 +165,9 @@ public class ReservaService {
             p.setClienteDocumento(req.getClienteDocumento());
 
             Venta v = reservarUno(viaje, p, clienteEmailAutenticado);
+            v.setGrupoVentaId(grupoVentaId);
+            v.setComprobanteUnico(unico);
+            ventaRepository.save(v);
             ids.add(v.getId());
             total = total.add(v.getPrecio());
             expira = v.getReservaExpira();
@@ -398,7 +411,10 @@ public class ReservaService {
                 v.getPasajeroDocumento(), v.getPasajeroTelefono());
     }
 
-    @Transactional
+    /* Sin @Transactional a propósito: el pago se cierra en su propia transacción
+       (CierrePagoWebService) y el comprobante se emite después. Envolver todo en
+       una sola transacción hacía que la emisión esperara por candados que esa
+       misma transacción tenía tomados sobre las ventas. */
     public ConfirmacionDTO pagarReserva(String reservaId, String krAnswer, String krHash) {
         Venta v = reservaLista(reservaId);
         if (v == null) return confirmacion(ventaRepository.findById(reservaId).orElseThrow(),
@@ -418,7 +434,10 @@ public class ReservaService {
      * este servidor con el token que generó el navegador a partir del celular y el
      * código de aprobación.
      */
-    @Transactional
+    /* Sin @Transactional a propósito: el pago se cierra en su propia transacción
+       (CierrePagoWebService) y el comprobante se emite después. Envolver todo en
+       una sola transacción hacía que la emisión esperara por candados que esa
+       misma transacción tenía tomados sobre las ventas. */
     public ConfirmacionDTO pagarConYape(String reservaId, String token) {
         Venta v = reservaLista(reservaId);
         if (v == null) return confirmacion(ventaRepository.findById(reservaId).orElseThrow(),
@@ -467,7 +486,10 @@ public class ReservaService {
     }
 
     /** Confirma el pago con tarjeta del grupo (Izipay) y cierra todas las reservas. */
-    @Transactional
+    /* Sin @Transactional a propósito: el pago se cierra en su propia transacción
+       (CierrePagoWebService) y el comprobante se emite después. Envolver todo en
+       una sola transacción hacía que la emisión esperara por candados que esa
+       misma transacción tenía tomados sobre las ventas. */
     public ConfirmacionGrupoDTO pagarGrupo(List<String> reservaIds, String krAnswer, String krHash) {
         List<Venta> pendientes = grupoPendiente(reservaIds);
         if (pendientes.isEmpty())
@@ -481,7 +503,10 @@ public class ReservaService {
     }
 
     /** Pago del grupo con Yape: un solo cobro por el total, con idempotencia por grupo. */
-    @Transactional
+    /* Sin @Transactional a propósito: el pago se cierra en su propia transacción
+       (CierrePagoWebService) y el comprobante se emite después. Envolver todo en
+       una sola transacción hacía que la emisión esperara por candados que esa
+       misma transacción tenía tomados sobre las ventas. */
     public ConfirmacionGrupoDTO pagarGrupoYape(List<String> reservaIds, String token) {
         List<Venta> pendientes = grupoPendiente(reservaIds);
         if (pendientes.isEmpty())
@@ -534,7 +559,10 @@ public class ReservaService {
      * navegador). Hace lo mismo que el pago normal: marca pagado, confirma el
      * asiento, emite el comprobante y manda el boleto por correo.
      */
-    @Transactional
+    /* Sin @Transactional a propósito: el pago se cierra en su propia transacción
+       (CierrePagoWebService) y el comprobante se emite después. Envolver todo en
+       una sola transacción hacía que la emisión esperara por candados que esa
+       misma transacción tenía tomados sobre las ventas. */
     public void confirmarDesdeIpn(List<Venta> pendientes, String referencia) {
         for (Venta v : pendientes) {
             v.setEstado(Venta.EstadoVenta.PAGADO);
@@ -561,17 +589,38 @@ public class ReservaService {
 
         java.util.Map<String, ComprobanteDTO> comprobantes = new java.util.HashMap<>();
         boolean correoOk = true;
+
+        // Un solo comprobante por toda la compra, salvo que el cliente pida uno por
+        // pasajero. Antes se emitía siempre uno por pasaje: quien compraba 3 pasajes
+        // recibía 3 boletas y gastaba 3 correlativos por una sola operación.
+        Venta primera = pendientes.isEmpty() ? null : pendientes.get(0);
+        boolean unoSolo = primera != null
+                && primera.getGrupoVentaId() != null
+                && !Boolean.FALSE.equals(primera.getComprobanteUnico())
+                && pendientes.size() > 1;
+
+        // PRIMERO se cierra el pago y se confirman los asientos, en su propia
+        // transacción. Emitir el comprobante dentro de ella se bloqueaba solo:
+        // insertar en `comprobantes` necesita un candado sobre la fila de la venta
+        // (clave foránea fk_comprobante_venta) que esa misma transacción acababa de
+        // tomar al marcarla pagada. Según si Hibernate ya había volcado el UPDATE,
+        // unos comprobantes entraban y otros morían por "lock wait timeout": el
+        // documento ya estaba emitido en SUNAT pero no quedaba registrado acá.
+        cierrePagoWebService.marcarPagadas(pendientes, referencia, metodo);
+
+        // Ya con la transacción del pago cerrada, se emite sin pelear por candados.
+        if (unoSolo) {
+            ComprobanteDTO c = emitirComprobanteDelGrupo(primera);
+            if (c != null) for (Venta v : pendientes) comprobantes.put(v.getId(), c);
+        } else {
+            for (Venta v : pendientes) {
+                ComprobanteDTO c = emitirComprobanteElectronico(v);
+                if (c != null) comprobantes.put(v.getId(), c);
+            }
+        }
+
+        // El boleto con QR va al final: así lleva el comprobante ya emitido.
         for (Venta v : pendientes) {
-            v.setEstado(Venta.EstadoVenta.PAGADO);
-            v.setPasarelaReferencia(referencia);
-            if (metodo != null) v.setMetodoPago(metodo);
-            v.setReservaExpira(null);
-            ventaRepository.save(v);
-            asientoService.confirmarAsiento(v.getId());
-
-            ComprobanteDTO c = emitirComprobanteElectronico(v);
-            if (c != null) comprobantes.put(v.getId(), c);
-
             try {
                 ventaService.enviarComprobante(v.getId());
             } catch (Exception e) {
@@ -582,6 +631,7 @@ public class ReservaService {
         }
 
         List<ConfirmacionDTO> boletos = new ArrayList<>();
+
         BigDecimal total = BigDecimal.ZERO;
         for (String id : reservaIds) {
             Venta v = ventaRepository.findById(id)
@@ -673,6 +723,43 @@ public class ReservaService {
      * Emite la boleta o factura en Nubefact usando el mismo camino que el mostrador.
      * Devuelve null si la venta es solo ticket o si la emisión falló.
      */
+    /**
+     * Un solo comprobante por toda la compra. Reutiliza el camino que ya existía
+     * para el mostrador (grupoVentaId), que suma los importes del grupo y emite un
+     * documento; acá solo se le pasa a quién facturar.
+     */
+    private ComprobanteDTO emitirComprobanteDelGrupo(Venta v) {
+        if (!emitirComprobanteWeb) return null;
+        if (!esElectronico(v.getTipoComprobante())) return null;
+
+        boolean factura = v.getTipoComprobante() == Venta.TipoComprobante.FACTURA;
+
+        ComprobanteRequest req = new ComprobanteRequest();
+        req.setGrupoVentaId(v.getGrupoVentaId());
+        req.setTipoDeComprobante(factura ? "FACTURA" : "BOLETA");
+        req.setClienteEmail(v.getClienteEmail());
+
+        if (factura) {
+            req.setClienteTipoDeDocumento("6");                 // 6 = RUC
+            req.setClienteNumeroDeDocumento(v.getClienteDocumento());
+            req.setClienteDenominacion(v.getClienteNombre());
+        } else {
+            // La boleta sale a nombre de quien compró (el primer pasajero), que es
+            // quien pagó y a quien le llega el documento al correo.
+            req.setClienteTipoDeDocumento(codigoSunat(v.getTipoDocumento()));
+            req.setClienteNumeroDeDocumento(v.getPasajeroDocumento());
+            req.setClienteDenominacion(v.getPasajeroNombre());
+        }
+
+        try {
+            return comprobanteService.generarAislado(req, "Venta web");
+        } catch (Exception e) {
+            System.err.println("[Reserva] No se pudo emitir el comprobante del grupo "
+                    + v.getGrupoVentaId() + ": " + e.getMessage());
+            return null;
+        }
+    }
+
     private ComprobanteDTO emitirComprobanteElectronico(Venta v) {
         if (!emitirComprobanteWeb) return null;   // apagado en pruebas: solo ticket con QR
         if (!esElectronico(v.getTipoComprobante())) return null;

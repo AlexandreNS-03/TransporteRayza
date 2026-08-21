@@ -20,8 +20,18 @@ public class ReservaGrupoRequest {
     private String clienteNombre;      // razón social (factura)
     private String clienteDocumento;   // RUC (factura)
 
+    /**
+     * Con varios pasajes: un solo comprobante por el total (true, lo normal) o
+     * uno por pasajero (false). Si no viene, se asume uno solo: es lo que espera
+     * quien compra para su familia y paga una vez.
+     */
+    private Boolean comprobanteUnico;
+
     /** Cada pasajero: asientoNumero, asientoTipo y sus datos personales. */
     private List<ReservaRequest> pasajeros;
+
+    public Boolean getComprobanteUnico() { return comprobanteUnico; }
+    public void setComprobanteUnico(Boolean comprobanteUnico) { this.comprobanteUnico = comprobanteUnico; }
 
     public String getViajeId() { return viajeId; }
     public void setViajeId(String viajeId) { this.viajeId = viajeId; }
