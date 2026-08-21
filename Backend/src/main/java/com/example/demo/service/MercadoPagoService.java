@@ -143,8 +143,35 @@ public class MercadoPagoService {
             case "cc_rejected_bad_filled_security_code",
                  "cc_rejected_bad_filled_other"    -> "El código de aprobación no es correcto";
             case "cc_rejected_max_attempts"        -> "Demasiados intentos. Genera un código nuevo en Yape";
+            // Lo rechaza el control antifraude de Mercado Pago, no Yape ni el saldo:
+            // reintentar con el mismo dato vuelve a fallar, así que se ofrece salida.
+            case "cc_rejected_high_risk",
+                 "rejected_high_risk"              -> "Mercado Pago no aprobó este pago por seguridad. "
+                                                    + "Intenta con tarjeta o paga en la oficina.";
+            case "cc_rejected_blacklist"           -> "Mercado Pago no permite este pago. "
+                                                    + "Intenta con tarjeta o paga en la oficina.";
             default -> "El pago con Yape fue rechazado";
         };
+    }
+
+    /**
+     * Errores de la API que sí conviene explicar en castellano. El resto se
+     * registra crudo en el log pero al cliente se le da un mensaje genérico:
+     * "Invalid value for transaction_amount" no le dice nada a quien está
+     * comprando un pasaje, y llegaba tal cual a la pantalla.
+     */
+    private String enCastellano(String mensajeApi) {
+        if (mensajeApi == null) return null;
+        String m = mensajeApi.toLowerCase();
+        if (m.contains("transaction_amount"))
+            return "Yape no acepta este monto. Si el pasaje cuesta muy poco, "
+                 + "prueba con la tarjeta o paga en la oficina.";
+        if (m.contains("token") && (m.contains("invalid") || m.contains("not found")))
+            return "El código de aprobación no es válido o ya venció. "
+                 + "Genera uno nuevo en tu app de Yape e intenta otra vez.";
+        if (m.contains("payer") || m.contains("email"))
+            return "Revisa el correo que ingresaste y vuelve a intentar.";
+        return null;   // desconocido: se responde el genérico
     }
 
     private String extraerMensaje(String cuerpo) {
@@ -152,7 +179,11 @@ public class MercadoPagoService {
         try {
             JsonNode n = json.readTree(cuerpo);
             String m = n.path("message").asText("");
-            if (!m.isBlank()) return m;
+            if (!m.isBlank()) {
+                System.out.println("[MercadoPago] error de la API: " + m);
+                String traducido = enCastellano(m);
+                return traducido != null ? traducido : "El pago con Yape no se pudo procesar";
+            }
             JsonNode causas = n.path("cause");
             if (causas.isArray() && causas.size() > 0) {
                 String d = causas.get(0).path("description").asText("");

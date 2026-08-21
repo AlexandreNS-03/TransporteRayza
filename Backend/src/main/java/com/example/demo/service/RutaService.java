@@ -6,11 +6,13 @@ import com.example.demo.model.Ruta;
 import com.example.demo.model.RutaParada;
 import com.example.demo.model.RutaTarifaTramo;
 import com.example.demo.model.RutaTramoBloqueado;
+import com.example.demo.model.Viaje;
 import com.example.demo.repository.RutaParadaRepository;
 import com.example.demo.repository.RutaRepository;
 import com.example.demo.repository.RutaTarifaTramoRepository;
 import com.example.demo.repository.RutaTramoBloqueadoRepository;
 import com.example.demo.repository.SucursalRepository;
+import com.example.demo.repository.ViajeRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,17 +31,23 @@ public class RutaService {
     private final RutaTarifaTramoRepository tarifaRepository;
     private final RutaTramoBloqueadoRepository tramoBloqueadoRepository;
     private final SucursalRepository sucursalRepository;
+    private final ViajeRepository viajeRepository;
+    private final AuditoriaService auditoriaService;
 
     public RutaService(RutaRepository rutaRepository,
                        RutaParadaRepository paradaRepository,
                        RutaTarifaTramoRepository tarifaRepository,
                        RutaTramoBloqueadoRepository tramoBloqueadoRepository,
-                       SucursalRepository sucursalRepository) {
+                       SucursalRepository sucursalRepository,
+                       ViajeRepository viajeRepository,
+                       AuditoriaService auditoriaService) {
         this.rutaRepository    = rutaRepository;
         this.paradaRepository  = paradaRepository;
         this.tarifaRepository  = tarifaRepository;
         this.tramoBloqueadoRepository = tramoBloqueadoRepository;
         this.sucursalRepository = sucursalRepository;
+        this.viajeRepository = viajeRepository;
+        this.auditoriaService = auditoriaService;
     }
 
     public List<RutaDTO> listarTodas() {
@@ -95,11 +103,16 @@ public class RutaService {
         r.setDestino(req.getDestino());
         r.setSucursalAdministradoraId(sucursal.getId());
         r.setSucursalAdministradoraNombre(sucursal.getNombre());
+        java.math.BigDecimal normalAntes = r.getPrecioNormal();
+        java.math.BigDecimal vipAntes = r.getPrecioVip();
+
         r.setPrecioNormal(req.getPrecioNormal());
         r.setPrecioVip(req.getPrecioVip());
         r.setDuracionAproximada(req.getDuracionAproximada());
         if (req.getActivo() != null) r.setActivo(req.getActivo());
         rutaRepository.save(r);
+
+        propagarPrecioAViajesFuturos(r, normalAntes, vipAntes);
 
         // El flush es obligatorio: sin él el borrado queda pendiente y al reinsertar
         // choca con uq_ruta_parada_orden ("Duplicate entry 'rut_x-1'").
@@ -157,6 +170,43 @@ public class RutaService {
         try { return java.time.LocalDate.parse(valor.trim()); }
         catch (java.time.format.DateTimeParseException e) {
             throw new RuntimeException("La fecha de " + cual + " de la oferta no es válida");
+        }
+    }
+
+    /**
+     * Lleva el precio nuevo de la ruta a los viajes que todavía no han salido.
+     *
+     * Cada viaje guarda su propio precio, copiado de la ruta al crearlo, y es ese
+     * el que usa la web. Sin esto, cambiar el precio de la ruta no se notaba en
+     * ningún viaje ya creado y no había manera de corregirlo: la pantalla de
+     * Viajes no tiene campo de precio.
+     *
+     * Solo alcanza a los PROGRAMADOS de hoy en adelante. Los viajes pasados
+     * quedan con lo que costaron, y las ventas ya hechas nunca se tocan: cada
+     * venta guarda el precio que se cobró.
+     */
+    private void propagarPrecioAViajesFuturos(Ruta r, java.math.BigDecimal normalAntes,
+                                              java.math.BigDecimal vipAntes) {
+        boolean cambio = !java.util.Objects.equals(normalAntes, r.getPrecioNormal())
+                      || !java.util.Objects.equals(vipAntes, r.getPrecioVip());
+        if (!cambio) return;
+
+        java.time.LocalDate hoy = java.time.LocalDate.now();
+        List<Viaje> futuros = viajeRepository.findByRutaId(r.getId()).stream()
+                .filter(v -> v.getEstado() == Viaje.EstadoViaje.PROGRAMADO)
+                .filter(v -> v.getFechaSalida() != null && !v.getFechaSalida().isBefore(hoy))
+                .collect(Collectors.toList());
+
+        for (Viaje v : futuros) {
+            v.setPrecioNormal(r.getPrecioNormal());
+            v.setPrecioVip(r.getPrecioVip());
+        }
+        if (!futuros.isEmpty()) {
+            viajeRepository.saveAll(futuros);
+            auditoriaService.registrar("EDITAR", "RUTAS", r.getId(),
+                    "Precio actualizado a S/ " + r.getPrecioNormal() + " normal y S/ "
+                    + r.getPrecioVip() + " VIP; se aplicó a " + futuros.size()
+                    + " viaje(s) programado(s)");
         }
     }
 
