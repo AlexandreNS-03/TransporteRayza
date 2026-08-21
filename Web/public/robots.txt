@@ -1,0 +1,12 @@
+# Transportes Rayza
+User-agent: *
+Allow: /
+
+# Páginas de cuenta y de pago: no aportan nada en un resultado de búsqueda y
+# dependen de una sesión o de un código de compra.
+Disallow: /mi-cuenta
+Disallow: /historial
+Disallow: /ingresar
+Disallow: /pagar-reserva
+
+Sitemap: https://transporterayza.com/sitemap.xml
