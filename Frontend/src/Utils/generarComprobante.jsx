@@ -97,8 +97,12 @@ export async function generarComprobante(venta) {
     y += 11;
 
     // fecha y hora de salida
+    // La nave va junto a la salida: es lo que el pasajero necesita leer de un
+    // vistazo en el puerto para saber a qué bote subir.
+    const nave = venta.embarcacionNombre;
+    const altoBanda = nave ? 12 : 8;
     doc.setFillColor(...azulBg);
-    doc.roundedRect(m, y, ancho - m * 2, 8, 1.5, 1.5, "F");
+    doc.roundedRect(m, y, ancho - m * 2, altoBanda, 1.5, 1.5, "F");
     doc.setTextColor(...azul);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(8);
@@ -106,7 +110,11 @@ export async function generarComprobante(venta) {
         ? `Salida: ${venta.fechaSalida}  ·  ${(venta.horaSalida || "").slice(0, 5)} h`
         : `Viaje: ${venta.viajeCodigo || "—"}`;
     doc.text(salida, ancho / 2, y + 5.2, { align: "center" });
-    y += 13;
+    if (nave) {
+        doc.setFontSize(8.5);
+        doc.text(`Nave: ${nave}`, ancho / 2, y + 9.8, { align: "center" });
+    }
+    y += altoBanda + 5;
 
     // ══ ASIENTO ══
     const cajaW = (ancho - m * 2 - 3) / 2;

@@ -12,6 +12,8 @@ public class TicketDTO {
     public String serieComprobante;
     public String numeroComprobante;
     public String viajeCodigo;
+    /** Nave en la que viaja, para que en el puerto sepan a cuál subir. */
+    public String embarcacionNombre;
     public String paradaOrigen;
     public String paradaDestino;
     public String fechaSalida;

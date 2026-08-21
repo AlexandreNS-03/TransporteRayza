@@ -85,6 +85,17 @@ export async function generarTicketA4(venta) {
         ? `Salida: ${venta.fechaSalida}  a las  ${(venta.horaSalida || "").slice(0, 5)} h`
         : `Viaje: ${venta.viajeCodigo || "—"}`;
     doc.text(salida, W / 2, y + 26, { align: "center" });
+    // La nave, junto a la salida: es lo que se mira en el puerto para saber a
+    // qué bote subir.
+    if (venta.embarcacionNombre) {
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(10);
+        doc.setTextColor(...navy);
+        doc.text(`Nave: ${venta.embarcacionNombre}`, W / 2, y + 33, { align: "center" });
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(...gris);
+        y += 7;
+    }
     y += 40;
 
     // ── ASIENTO + CATEGORÍA ──

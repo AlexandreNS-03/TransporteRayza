@@ -9,6 +9,7 @@ public class VentaDTO {
     private String viajeId;
     private String viajeCodigo;
     private String viajeDescripcion;
+    private String embarcacionNombre;
     private String fechaSalida;
     private String horaSalida;
     private String tipoDocumento;
@@ -65,6 +66,9 @@ public class VentaDTO {
 
     public String getViajeDescripcion() { return viajeDescripcion; }
     public void setViajeDescripcion(String viajeDescripcion) { this.viajeDescripcion = viajeDescripcion; }
+
+    public String getEmbarcacionNombre() { return embarcacionNombre; }
+    public void setEmbarcacionNombre(String embarcacionNombre) { this.embarcacionNombre = embarcacionNombre; }
 
     public String getFechaSalida() { return fechaSalida; }
     public void setFechaSalida(String fechaSalida) { this.fechaSalida = fechaSalida; }
