@@ -14,6 +14,8 @@ public interface ViajeRepository extends JpaRepository<Viaje, String> {
 
     List<Viaje> findBySucursalId(String sucursalId);
 
+    List<Viaje> findByRutaId(String rutaId);
+
     boolean existsByCodigoViaje(String codigoViaje);
 
     List<Viaje> findByFechaSalidaBetween(LocalDate inicio, LocalDate fin);
