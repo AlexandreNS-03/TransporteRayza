@@ -4,12 +4,39 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/logo-tr.png?v=20260725" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Transportes Rayza — Compra tus pasajes de transporte fluvial en la Amazonía peruana. Iquitos, Requena y más." />
+    <meta name="description" content="Compra tu pasaje en línea entre Requena, Iquitos, Nauta y los puertos del río. Eliges tu asiento, pagas con tarjeta o Yape y recibes tu boleto con QR al instante." />
     <meta name="theme-color" content="#0b2c5e" />
+
+    <!--
+      Vista previa al compartir el enlace (WhatsApp, Facebook, X).
+
+      Va escrita acá y no desde JavaScript porque esos rastreadores NO ejecutan
+      JavaScript: leen el HTML tal como llega y se quedan con esto. Por eso es la
+      tarjeta general del sitio y no la de cada página.
+
+      El canonical y el título por página sí se ponen desde la aplicación
+      (components/Seo.jsx), porque Google sí ejecuta JavaScript. Un canonical
+      fijo acá diría que todas las direcciones son copias del inicio.
+    -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Transportes Rayza" />
+    <meta property="og:locale" content="es_PE" />
+    <meta property="og:title" content="Transportes Rayza — Pasajes en lancha rápida por la Amazonía" />
+    <meta property="og:description" content="Compra tu pasaje en línea entre Requena, Iquitos, Nauta y los puertos del río. Recibe tu boleto con QR al instante." />
+    <meta property="og:url" content="https://transporterayza.com/" />
+    <meta property="og:image" content="https://transporterayza.com/og-rayza.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="La lancha Rayza I navegando por el río en la Amazonía peruana" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Transportes Rayza — Pasajes en lancha rápida por la Amazonía" />
+    <meta name="twitter:description" content="Compra tu pasaje en línea entre Requena, Iquitos, Nauta y los puertos del río. Recibe tu boleto con QR al instante." />
+    <meta name="twitter:image" content="https://transporterayza.com/og-rayza.jpg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet" />
-    <title>Transportes Rayza — Pasajes Requena a Iquitos</title>
+    <title>Transportes Rayza — Pasajes en lancha rápida por la Amazonía</title>
   </head>
   <body>
     <div id="root"></div>
