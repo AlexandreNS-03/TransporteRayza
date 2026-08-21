@@ -112,7 +112,7 @@ export async function generarComprobante(venta) {
     doc.text(salida, ancho / 2, y + 5.2, { align: "center" });
     if (nave) {
         doc.setFontSize(8.5);
-        doc.text(`Nave: ${nave}`, ancho / 2, y + 9.8, { align: "center" });
+        doc.text(`Embarcación: ${nave}`, ancho / 2, y + 9.8, { align: "center" });
     }
     y += altoBanda + 5;
 

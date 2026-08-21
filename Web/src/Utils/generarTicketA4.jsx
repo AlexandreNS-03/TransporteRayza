@@ -90,7 +90,7 @@ export async function generarTicketA4(venta) {
         doc.setFont("helvetica", "bold");
         doc.setFontSize(10);
         doc.setTextColor(...navy);
-        doc.text(`Nave: ${venta.embarcacionNombre}`, W / 2, y + 33, { align: "center" });
+        doc.text(`Embarcación: ${venta.embarcacionNombre}`, W / 2, y + 33, { align: "center" });
         doc.setFont("helvetica", "normal");
         doc.setTextColor(...gris);
         y += 7;
