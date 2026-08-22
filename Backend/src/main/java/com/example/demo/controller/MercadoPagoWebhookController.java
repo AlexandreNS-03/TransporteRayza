@@ -87,7 +87,21 @@ public class MercadoPagoWebhookController {
     }
 
     private void procesar(String tipo, String pagoId) {
-        if (!"payment".equals(tipo) || pagoId == null) return;
+        if (tipo == null || pagoId == null) return;
+
+        // Los contracargos vienen por un evento aparte, no por el del pago, y el id
+        // que traen es el del contracargo: preguntarle a la API por un pago con ese
+        // id no devolvería nada. Se deja el aviso para revisarlo en el panel, que es
+        // donde está el detalle y desde donde se disputa.
+        if (tipo.toLowerCase().contains("chargeback")) {
+            System.out.println("[MercadoPago aviso] contracargo " + pagoId);
+            auditoriaService.registrar("CONTRACARGO", "VENTAS", null,
+                    "Mercado Pago informó un contracargo (" + pagoId + "). "
+                            + "Revisar el detalle en el panel de Mercado Pago.");
+            return;
+        }
+
+        if (!"payment".equals(tipo)) return;
 
         Map<String, Object> pago = mercadoPagoService.consultarPago(pagoId);
         if (pago == null) return;

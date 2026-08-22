@@ -136,6 +136,20 @@ class MercadoPagoWebhookControllerTest {
     }
 
     @Test
+    @DisplayName("Un contracargo queda avisado sin preguntarle a la API por un pago")
+    void contracargoAvisa() throws Exception {
+        mvc.perform(post("/api/public/mercadopago")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"type\":\"chargebacks\",\"data\":{\"id\":\"cb-77\"}}"))
+                .andExpect(status().isOk());
+
+        assertEquals(1, auditoria.registros.size());
+        assertTrue(auditoria.registros.get(0).contains("cb-77"), auditoria.registros.get(0));
+        // El id de un contracargo no es el de un pago: preguntar por él no daría nada.
+        assertTrue(mercadoPago.consultados.isEmpty(), "no debe consultarse como pago");
+    }
+
+    @Test
     @DisplayName("Un aviso roto responde 200 igual, para que no lo reintenten sin fin")
     void avisoRotoNoRompe() throws Exception {
         mvc.perform(post("/api/public/mercadopago")
