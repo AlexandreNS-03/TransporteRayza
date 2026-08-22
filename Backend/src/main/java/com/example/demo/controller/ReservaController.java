@@ -102,7 +102,7 @@ public class ReservaController {
     @PostMapping("/grupo/pagar/yape")
     public ResponseEntity<ConfirmacionGrupoDTO> pagarGrupoYape(@RequestBody Map<String, Object> body) {
         return ResponseEntity.ok(reservaService.pagarGrupoYape(
-                reservaIds(body), (String) body.get("token")));
+                reservaIds(body), (String) body.get("token"), (String) body.get("deviceId")));
     }
 
     @SuppressWarnings("unchecked")
@@ -138,7 +138,7 @@ public class ReservaController {
     @PostMapping("/{id}/pagar/yape")
     public ResponseEntity<ConfirmacionDTO> pagarYape(@PathVariable String id,
                                                      @RequestBody Map<String, String> body) {
-        return ResponseEntity.ok(reservaService.pagarConYape(id, body.get("token")));
+        return ResponseEntity.ok(reservaService.pagarConYape(id, body.get("token"), body.get("deviceId")));
     }
 
     @PostMapping("/{id}/pagar")

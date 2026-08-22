@@ -1,5 +1,6 @@
 // Acceso a la API pública del backend (sin login).
 import axios from "axios";
+import { huellaDispositivo, prepararHuellaDispositivo } from "./yape";
 
 const API = (import.meta.env.VITE_API_URL || "http://localhost:8080") + "/api/public";
 const http = axios.create({ baseURL: API, timeout: 15000 });
@@ -114,7 +115,8 @@ export async function pagarGrupo(reservaIds, { krAnswer, krHash } = {}) {
 /** Confirma el pago con Yape del grupo. */
 export async function pagarConYapeGrupo(reservaIds, token) {
   try {
-    const { data } = await http.post("/reservas/grupo/pagar/yape", { reservaIds, token });
+    const deviceId = await huellaDispositivo();
+    const { data } = await http.post("/reservas/grupo/pagar/yape", { reservaIds, token, deviceId });
     return data;
   } catch (e) { throw desempaquetarError(e); }
 }
@@ -122,6 +124,10 @@ export async function pagarConYapeGrupo(reservaIds, token) {
 
 /** Medios de pago configurados y sus claves públicas. Se consulta antes de elegir. */
 export async function metodosDePago() {
+  // Consultar los medios de pago es la señal de que se abrió una pantalla de pago:
+  // se aprovecha para ir calculando la huella del dispositivo que pide Mercado Pago,
+  // así está lista antes de cobrar y no se carga ese script en el resto de la web.
+  prepararHuellaDispositivo();
   try {
     const { data } = await http.get("/reservas/metodos-de-pago");
     return data;
@@ -131,7 +137,8 @@ export async function metodosDePago() {
 /** Confirma el pago con Yape enviando el token que generó el SDK de Mercado Pago. */
 export async function pagarConYape(reservaId, token) {
   try {
-    const { data } = await http.post(`/reservas/${reservaId}/pagar/yape`, { token });
+    const deviceId = await huellaDispositivo();
+    const { data } = await http.post(`/reservas/${reservaId}/pagar/yape`, { token, deviceId });
     return data;
   } catch (e) { throw desempaquetarError(e); }
 }
@@ -198,7 +205,11 @@ export async function pagarEncomienda(codigo, { krAnswer, krHash } = {}) {
 }
 
 export async function pagarEncomiendaYape(codigo, token) {
-  try { const { data } = await http.post(`/encomiendas/${encodeURIComponent(codigo)}/pagar/yape`, { token }); return data; }
+  try {
+    const deviceId = await huellaDispositivo();
+    const { data } = await http.post(`/encomiendas/${encodeURIComponent(codigo)}/pagar/yape`, { token, deviceId });
+    return data;
+  }
   catch (e) { throw desempaquetarError(e); }
 }
 

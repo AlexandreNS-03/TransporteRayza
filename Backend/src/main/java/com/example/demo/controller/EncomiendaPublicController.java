@@ -58,6 +58,6 @@ public class EncomiendaPublicController {
     public ResponseEntity<EncomiendaPublicDTO> pagarYape(@PathVariable String codigo,
                                                          @RequestBody Map<String, Object> body) {
         return ResponseEntity.ok(encomiendaService.pagarEncomiendaYape(codigo,
-                (String) body.get("token")));
+                (String) body.get("token"), (String) body.get("deviceId")));
     }
 }

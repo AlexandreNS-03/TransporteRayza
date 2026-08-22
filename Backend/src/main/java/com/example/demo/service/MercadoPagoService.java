@@ -30,6 +30,9 @@ public class MercadoPagoService {
 
     private static final String PAGOS = "/v1/payments";
 
+    /** Lo que le sale al cliente en el resumen de su cuenta. Máximo 22 caracteres. */
+    private static final String DESCRIPTOR = "TRANSPORTES RAYZA";
+
     @Value("${mercadopago.enabled:false}")
     private boolean enabled;
 
@@ -43,6 +46,14 @@ public class MercadoPagoService {
 
     @Value("${mercadopago.endpoint:https://api.mercadopago.com}")
     private String endpoint;
+
+    /**
+     * URL pública donde Mercado Pago avisa de cambios en el pago (contracargos,
+     * devoluciones). Si queda vacía no se envía y el cobro funciona igual, pero
+     * nos enteraríamos de esos casos solo entrando al panel de Mercado Pago.
+     */
+    @Value("${mercadopago.notification-url:}")
+    private String urlNotificacion;
 
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper json = new ObjectMapper();
@@ -66,14 +77,51 @@ public class MercadoPagoService {
     }
 
     /**
+     * Datos de quien paga.
+     *
+     * Mercado Pago los usa para decidir si aprueba el cobro: mientras más completo
+     * va este objeto, menos rechazos por "no pasó los controles de seguridad".
+     * Antes solo se mandaba el correo, y varios pagos legítimos caían ahí.
+     *
+     * Todos los campos son opcionales: lo que venga vacío no se envía.
+     */
+    public static class Pagador {
+        public String email;
+        public String nombre;         // nombre completo; se parte en first_name / last_name
+        public String tipoDocumento;  // DNI, CE, RUC…
+        public String documento;
+        public String telefono;
+
+        public static Pagador de(String email, String nombre, String tipoDocumento,
+                                 String documento, String telefono) {
+            Pagador p = new Pagador();
+            p.email = email;
+            p.nombre = nombre;
+            p.tipoDocumento = tipoDocumento;
+            p.documento = documento;
+            p.telefono = telefono;
+            return p;
+        }
+    }
+
+    /**
      * Cobra con Yape.
      *
-     * @param token         token que generó el SDK a partir del celular y el código
-     * @param idempotencia  clave para que un reintento no cobre dos veces; se usa el
-     *                      id de la reserva, que es único por compra
+     * @param token             token que generó el SDK a partir del celular y el código
+     * @param pagador           datos del comprador para el control antifraude
+     * @param idempotencia      clave para que un reintento no cobre dos veces; se usa el
+     *                          id de la reserva, que es único por compra
+     * @param referenciaExterna id nuestro de la venta o del grupo. Va en external_reference
+     *                          y es lo que permite cruzar un pago de Mercado Pago con la
+     *                          venta del sistema cuando hay que conciliar.
+     * @param deviceId          huella del navegador que genera el script de seguridad de
+     *                          Mercado Pago. Viaja en la cabecera X-meli-session-id y es
+     *                          el dato que más pesa en la aprobación; si falta, se cobra
+     *                          igual pero con más riesgo de rechazo.
      */
     public Resultado pagar(String token, BigDecimal monto, String descripcion,
-                           String email, String idempotencia) {
+                           Pagador pagador, String idempotencia,
+                           String referenciaExterna, String deviceId) {
         Resultado r = new Resultado();
 
         if (!estaActiva()) {
@@ -92,9 +140,24 @@ public class MercadoPagoService {
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setBearerAuth(accessToken);
         headers.set("X-Idempotency-Key", idempotencia != null ? idempotencia : UUID.randomUUID().toString());
+        if (noVacio(deviceId)) headers.set("X-meli-session-id", deviceId);
+        else System.out.println("[MercadoPago] sin device id — el pago va con menos respaldo antifraude");
 
-        Map<String, Object> pagador = new LinkedHashMap<>();
-        pagador.put("email", email);
+        Pagador p = pagador != null ? pagador : new Pagador();
+        String[] partes = partirNombre(p.nombre);
+
+        Map<String, Object> datosPagador = new LinkedHashMap<>();
+        ponSiHay(datosPagador, "email", p.email);
+        ponSiHay(datosPagador, "first_name", partes[0]);
+        ponSiHay(datosPagador, "last_name", partes[1]);
+        if (noVacio(p.documento)) {
+            Map<String, Object> doc = new LinkedHashMap<>();
+            doc.put("type", tipoDocumentoMp(p.tipoDocumento));
+            doc.put("number", p.documento.trim());
+            datosPagador.put("identification", doc);
+        }
+        Map<String, Object> telefono = telefonoMp(p.telefono);
+        if (telefono != null) datosPagador.put("phone", telefono);
 
         Map<String, Object> cuerpo = new LinkedHashMap<>();
         cuerpo.put("token", token);
@@ -102,7 +165,13 @@ public class MercadoPagoService {
         cuerpo.put("description", descripcion);
         cuerpo.put("installments", 1);
         cuerpo.put("payment_method_id", "yape");
-        cuerpo.put("payer", pagador);
+        cuerpo.put("payer", datosPagador);
+        ponSiHay(cuerpo, "external_reference", referenciaExterna);
+        ponSiHay(cuerpo, "notification_url", urlNotificacion);
+        // Lo que le aparece al cliente en su resumen: sin esto el cobro sale con un
+        // nombre que no reconoce y termina en desconocimiento o contracargo.
+        cuerpo.put("statement_descriptor", DESCRIPTOR);
+        cuerpo.put("additional_info", infoAdicional(monto, descripcion, datosPagador, telefono, partes));
 
         try {
             ResponseEntity<Map> resp = restTemplate.postForEntity(
@@ -121,7 +190,8 @@ public class MercadoPagoService {
             // llegan al cliente como un genérico y sin esto no hay cómo saber cuál fue.
             String detalle = data != null ? String.valueOf(data.get("status_detail")) : null;
             System.out.println("[MercadoPago] pago no aprobado — status: " + estado
-                    + " · status_detail: " + detalle);
+                    + " · status_detail: " + detalle
+                    + " · pago: " + (data != null ? data.get("id") : null));
             r.motivo = motivoLegible(detalle);
             return r;
 
@@ -131,6 +201,97 @@ public class MercadoPagoService {
         } catch (Exception e) {
             r.motivo = "Error de conexión con Yape";
             return r;
+        }
+    }
+
+    /**
+     * additional_info es lo que Mercado Pago mira para puntuar el riesgo del cobro.
+     * Repite al pagador y describe qué se está comprando.
+     */
+    private Map<String, Object> infoAdicional(BigDecimal monto, String descripcion,
+                                              Map<String, Object> datosPagador,
+                                              Map<String, Object> telefono, String[] nombre) {
+        Map<String, Object> item = new LinkedHashMap<>();
+        item.put("id", "pasaje");
+        item.put("title", "Pasaje fluvial");
+        item.put("description", descripcion);
+        item.put("category_id", "travels");
+        item.put("quantity", 1);
+        item.put("unit_price", monto);
+
+        Map<String, Object> pagador = new LinkedHashMap<>();
+        ponSiHay(pagador, "first_name", nombre[0]);
+        ponSiHay(pagador, "last_name", nombre[1]);
+        if (telefono != null) pagador.put("phone", telefono);
+
+        Map<String, Object> info = new LinkedHashMap<>();
+        info.put("items", java.util.List.of(item));
+        if (!pagador.isEmpty()) info.put("payer", pagador);
+        return info;
+    }
+
+    /**
+     * Parte "JUAN PEREZ GARCIA" en nombre y apellidos. Con una sola palabra, el
+     * apellido queda vacío y simplemente no se manda.
+     */
+    String[] partirNombre(String completo) {
+        if (!noVacio(completo)) return new String[]{null, null};
+        String limpio = completo.trim().replaceAll("\\s+", " ");
+        int corte = limpio.indexOf(' ');
+        if (corte < 0) return new String[]{limpio, null};
+        return new String[]{limpio.substring(0, corte), limpio.substring(corte + 1)};
+    }
+
+    /** Mercado Pago Perú espera DNI, CE o RUC; cualquier otra cosa se manda como DNI. */
+    String tipoDocumentoMp(String tipo) {
+        if (!noVacio(tipo)) return "DNI";
+        String t = tipo.trim().toUpperCase();
+        return switch (t) {
+            case "RUC" -> "RUC";
+            case "CE", "CARNET_EXTRANJERIA", "CARNET DE EXTRANJERIA" -> "CE";
+            default -> "DNI";
+        };
+    }
+
+    /** El celular peruano va partido: código de área 51 y los 9 dígitos. */
+    Map<String, Object> telefonoMp(String telefono) {
+        if (!noVacio(telefono)) return null;
+        String digitos = telefono.replaceAll("\\D", "");
+        if (digitos.startsWith("51") && digitos.length() > 9) digitos = digitos.substring(2);
+        if (digitos.length() < 6) return null;
+        Map<String, Object> t = new LinkedHashMap<>();
+        t.put("area_code", "51");
+        t.put("number", digitos);
+        return t;
+    }
+
+    private static boolean noVacio(String s) { return s != null && !s.trim().isEmpty(); }
+
+    private static void ponSiHay(Map<String, Object> destino, String clave, String valor) {
+        if (noVacio(valor)) destino.put(clave, valor.trim());
+    }
+
+    /**
+     * Consulta un pago en Mercado Pago. Se usa desde el webhook: la notificación
+     * solo trae el id, y el estado real hay que pedírselo a la API — así una
+     * notificación falsa no puede cambiar nada por sí sola.
+     *
+     * @return los datos del pago, o null si no se pudo consultar
+     */
+    @SuppressWarnings("unchecked")
+    public Map<String, Object> consultarPago(String pagoId) {
+        if (!estaActiva() || pagoId == null || pagoId.isBlank()) return null;
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setBearerAuth(accessToken);
+            ResponseEntity<Map> resp = restTemplate.exchange(
+                    endpoint + PAGOS + "/" + pagoId,
+                    org.springframework.http.HttpMethod.GET,
+                    new HttpEntity<>(headers), Map.class);
+            return resp.getBody();
+        } catch (Exception e) {
+            System.err.println("[MercadoPago] no se pudo consultar el pago " + pagoId + ": " + e.getMessage());
+            return null;
         }
     }
 

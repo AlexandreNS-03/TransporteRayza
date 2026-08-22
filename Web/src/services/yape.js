@@ -57,3 +57,61 @@ export async function tokenizarYape({ publicKey, simulado, otp, phoneNumber }) {
     throw new Error(detalle || "No se pudo validar el código de Yape");
   }
 }
+
+// ---------------------------------------------------------------------------
+// Huella del dispositivo
+// ---------------------------------------------------------------------------
+
+/**
+ * Mercado Pago rechazaba pagos legítimos con "no pasó los controles de seguridad".
+ * Su motor antifraude necesita identificar el dispositivo desde el que se compra:
+ * este script calcula una huella del navegador y la deja en una variable global,
+ * que el servidor reenvía en la cabecera X-meli-session-id al crear el pago.
+ *
+ * No manda datos del cliente ni de la compra: solo características del navegador.
+ */
+const SEGURIDAD_URL = "https://www.mercadopago.com/v2/security.js";
+
+let huella = null;
+
+function cargarSeguridad() {
+  if (huella) return huella;
+
+  huella = new Promise((resolve) => {
+    if (window.MP_DEVICE_SESSION_ID) return resolve(window.MP_DEVICE_SESSION_ID);
+
+    const s = document.createElement("script");
+    s.src = SEGURIDAD_URL;
+    s.setAttribute("view", "checkout");
+    // El script tarda un momento en calcular la huella después de cargar, así que
+    // se revisa por unos segundos. Si no aparece se paga igual: no vale la pena
+    // trabar una compra por esto, solo baja la probabilidad de aprobación.
+    s.onload = () => {
+      const limite = Date.now() + 3000;
+      const revisar = () => {
+        if (window.MP_DEVICE_SESSION_ID) return resolve(window.MP_DEVICE_SESSION_ID);
+        if (Date.now() > limite) return resolve(null);
+        setTimeout(revisar, 100);
+      };
+      revisar();
+    };
+    s.onerror = () => resolve(null);
+    document.head.appendChild(s);
+  });
+
+  return huella;
+}
+
+/**
+ * Empieza a calcular la huella sin esperarla. Se llama al abrir una pantalla de
+ * pago —no en toda la web— para que ya esté lista cuando el cliente termine de
+ * escribir su código y no haya que hacerlo esperar.
+ */
+export function prepararHuellaDispositivo() {
+  cargarSeguridad();
+}
+
+/** Devuelve la huella del dispositivo, o null si no se pudo calcular. */
+export function huellaDispositivo() {
+  return cargarSeguridad();
+}
