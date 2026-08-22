@@ -124,6 +124,48 @@ class MercadoPagoPeticionTest {
                 "el monto debe salir como 80.00 sin comillas: " + cuerpoCrudo);
     }
 
+    /*
+     * Yape acepta entre S/ 1.00 y S/ 2,000 (publicado por Mercado Pago). Fuera de ese
+     * rango la API responde "Invalid value for transaction_amount", que no le dice
+     * nada al pasajero. Se revisa antes para explicarle qué hacer.
+     */
+
+    @Test
+    @DisplayName("Un monto sobre el tope de Yape no se intenta cobrar")
+    void montoSobreElTope() {
+        // Sin expectativas en el mock: si llamara a la API, verify() fallaría.
+        MercadoPagoService.Resultado r = servicio.pagar(
+                "tok", new BigDecimal("2500.00"), "Pasajes", null, "g-1", "g-1", "huella");
+
+        assertFalse(r.pagado);
+        assertTrue(r.motivo.contains("2,000"), r.motivo);
+        mercadoPago.verify();
+    }
+
+    @Test
+    @DisplayName("Un precio en cero se avisa en vez de mandarse a la pasarela")
+    void montoEnCero() {
+        MercadoPagoService.Resultado r = servicio.pagar(
+                "tok", BigDecimal.ZERO, "Pasaje", null, "v-1", "v-1", "huella");
+
+        assertFalse(r.pagado);
+        assertTrue(r.motivo.toLowerCase().contains("precio"), r.motivo);
+        mercadoPago.verify();
+    }
+
+    @Test
+    @DisplayName("El mínimo de Yape, S/ 1.00, sí se cobra")
+    void montoMinimoSeCobra() {
+        mercadoPago.expect(requestTo("https://api.mercadopago.com/v1/payments"))
+                .andRespond(withSuccess("{\"id\":5,\"status\":\"approved\"}", MediaType.APPLICATION_JSON));
+
+        MercadoPagoService.Resultado r = servicio.pagar(
+                "tok", new BigDecimal("1.00"), "Pasaje", null, "v-1", "v-1", "huella");
+
+        assertTrue(r.pagado, "S/ 1.00 es el mínimo permitido, no debe bloquearse");
+        mercadoPago.verify();
+    }
+
     @Test
     @DisplayName("Sin datos del comprador no se mandan campos vacíos que la API rechace")
     void sinDatosNoMandaVacios() throws Exception {
