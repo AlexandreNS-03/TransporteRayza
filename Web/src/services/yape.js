@@ -77,7 +77,19 @@ let huella = null;
 function cargarSeguridad() {
   if (huella) return huella;
 
-  huella = new Promise((resolve) => {
+  huella = intentarCargar().then((valor) => {
+    // Si no se pudo calcular, se olvida el intento para que el siguiente pago
+    // vuelva a probar. Guardar el fallo dejaba a toda la sesión sin huella —y
+    // por lo tanto con más riesgo de rechazo— por un tropiezo de red al abrir.
+    if (!valor) huella = null;
+    return valor;
+  });
+
+  return huella;
+}
+
+function intentarCargar() {
+  return new Promise((resolve) => {
     if (window.MP_DEVICE_SESSION_ID) return resolve(window.MP_DEVICE_SESSION_ID);
 
     const s = document.createElement("script");
@@ -98,8 +110,6 @@ function cargarSeguridad() {
     s.onerror = () => resolve(null);
     document.head.appendChild(s);
   });
-
-  return huella;
 }
 
 /**

@@ -33,6 +33,12 @@ public class MercadoPagoService {
     /** Lo que le sale al cliente en el resumen de su cuenta. Máximo 22 caracteres. */
     private static final String DESCRIPTOR = "TRANSPORTES RAYZA";
 
+    /*
+     * Tope de Yape en Perú, publicado por Mercado Pago:
+     * https://www.mercadopago.com.pe/ayuda/monto-minimo-maximo-medios-de-pago_2491
+     */
+    private static final BigDecimal YAPE_MAXIMO = new BigDecimal("2000.00");
+
     @Value("${mercadopago.enabled:false}")
     private boolean enabled;
 
@@ -54,6 +60,18 @@ public class MercadoPagoService {
      */
     @Value("${mercadopago.notification-url:}")
     private String urlNotificacion;
+
+    /*
+     * Monto mínimo que se le acepta a Yape.
+     *
+     * Mercado Pago publica S/ 1.00 como mínimo, pero en producción un cobro de
+     * exactamente S/ 1.00 fue rechazado con "Invalid value for transaction_amount"
+     * (2026-08-21). O sea que el piso real es más alto que el documentado, y no
+     * sabemos dónde está: queda configurable para poder subirlo sin tocar código
+     * cuando se averigüe, en vez de dejar un número inventado en el fuente.
+     */
+    @Value("${mercadopago.yape.monto-minimo:1.00}")
+    private BigDecimal montoMinimo;
 
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper json = new ObjectMapper();
@@ -136,6 +154,13 @@ public class MercadoPagoService {
             return r;
         }
 
+        String problemaDelMonto = revisarMonto(monto);
+        if (problemaDelMonto != null) {
+            System.out.println("[MercadoPago] no se intenta cobrar: monto " + monto + " fuera de rango");
+            r.motivo = problemaDelMonto;
+            return r;
+        }
+
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setBearerAuth(accessToken);
@@ -196,6 +221,7 @@ public class MercadoPagoService {
             return r;
 
         } catch (HttpStatusCodeException e) {
+            System.out.println("[MercadoPago] la API rechazó el cobro de " + monto);
             r.motivo = extraerMensaje(e.getResponseBodyAsString());
             return r;
         } catch (Exception e) {
@@ -321,12 +347,27 @@ public class MercadoPagoService {
      * "Invalid value for transaction_amount" no le dice nada a quien está
      * comprando un pasaje, y llegaba tal cual a la pantalla.
      */
+    /**
+     * Revisa el monto contra los límites de Yape antes de gastar un intento.
+     *
+     * @return el motivo a mostrar, o null si el monto sirve
+     */
+    private String revisarMonto(BigDecimal monto) {
+        if (monto == null || monto.signum() <= 0)
+            return "No se pudo calcular el precio de este pasaje. Avísanos antes de pagar.";
+        if (montoMinimo != null && monto.compareTo(montoMinimo) < 0)
+            return "Yape no acepta pagos tan bajos. Paga con tarjeta o en la oficina.";
+        if (monto.compareTo(YAPE_MAXIMO) > 0)
+            return "Yape solo acepta pagos de hasta S/ 2,000 y este suma S/ " + monto
+                 + ". Paga con tarjeta, o compra los pasajes en grupos más pequeños.";
+        return null;
+    }
+
     private String enCastellano(String mensajeApi) {
         if (mensajeApi == null) return null;
         String m = mensajeApi.toLowerCase();
         if (m.contains("transaction_amount"))
-            return "Yape no acepta este monto. Si el pasaje cuesta muy poco, "
-                 + "prueba con la tarjeta o paga en la oficina.";
+            return "Yape no aceptó el monto de esta compra. Paga con tarjeta o en la oficina.";
         if (m.contains("token") && (m.contains("invalid") || m.contains("not found")))
             return "El código de aprobación no es válido o ya venció. "
                  + "Genera uno nuevo en tu app de Yape e intenta otra vez.";

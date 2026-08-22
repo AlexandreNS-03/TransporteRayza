@@ -2,6 +2,7 @@ package com.example.demo.controller;
 
 import com.example.demo.service.AuditoriaService;
 import com.example.demo.service.MercadoPagoService;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -41,20 +42,73 @@ public class MercadoPagoWebhookController {
      * otra vez aunque el problema fuera nuestro. Lo que importa queda en el log y
      * en la auditoría.
      */
-    @PostMapping
-    public ResponseEntity<String> notificacion(@RequestBody(required = false) Map<String, Object> cuerpo,
+    /*
+     * Mercado Pago tiene dos formas de avisar y las dos llegan acá:
+     *
+     *   Webhooks (la nueva)  → POST con JSON: {"type":"payment","data":{"id":"123"}}
+     *   IPN (la antigua)     → POST con los datos en la URL: ?topic=payment&id=123,
+     *                          muchas veces sin cuerpo y sin Content-Type de JSON.
+     *
+     * Por eso el cuerpo se recibe como texto y se interpreta a mano: pedirlo como
+     * JSON hacía que el aviso del IPN se rechazara con "tipo de contenido no
+     * soportado" antes de siquiera mirarlo, incluso el botón "Probar" del panel.
+     */
+    @PostMapping(consumes = MediaType.ALL_VALUE)
+    public ResponseEntity<String> notificacion(@RequestBody(required = false) String cuerpo,
                                                @RequestParam(required = false) String topic,
-                                               @RequestParam(required = false) String id) {
+                                               @RequestParam(required = false) String type,
+                                               @RequestParam(required = false) String id,
+                                               @RequestParam(name = "data.id", required = false) String dataId) {
         try {
-            procesar(tipoDe(cuerpo, topic), pagoIdDe(cuerpo, id));
+            Map<String, Object> json = comoJson(cuerpo);
+            procesar(primeroQueSirva(tipoDe(json), type, topic),
+                     primeroQueSirva(pagoIdDe(json), dataId, id));
         } catch (Exception e) {
-            System.err.println("[MercadoPago webhook] " + e.getMessage());
+            System.err.println("[MercadoPago aviso] " + e.getMessage());
         }
         return ResponseEntity.ok("OK");
     }
 
+    /** El cuerpo puede venir vacío, o no ser JSON: en ese caso no hay nada que leer. */
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> comoJson(String cuerpo) {
+        if (cuerpo == null || cuerpo.isBlank()) return null;
+        try {
+            return new com.fasterxml.jackson.databind.ObjectMapper().readValue(cuerpo, Map.class);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private String primeroQueSirva(String... valores) {
+        for (String v : valores)
+            if (v != null && !v.isBlank()) return v;
+        return null;
+    }
+
     private void procesar(String tipo, String pagoId) {
-        if (!"payment".equals(tipo) || pagoId == null) return;
+        if (tipo == null || pagoId == null) return;
+
+        // Los contracargos vienen por un evento aparte, no por el del pago, y el id
+        // que traen es el del contracargo: preguntarle a la API por un pago con ese
+        // id no devolvería nada. Se deja el aviso para revisarlo en el panel, que es
+        // donde está el detalle y desde donde se disputa.
+        if (tipo.toLowerCase().contains("chargeback")) {
+            System.out.println("[MercadoPago aviso] contracargo " + pagoId);
+            auditoriaService.registrar("CONTRACARGO", "VENTAS", null,
+                    "Mercado Pago informó un contracargo (" + pagoId + "). "
+                            + "Revisar el detalle en el panel de Mercado Pago.");
+            return;
+        }
+
+        if (!"payment".equals(tipo)) return;
+
+        // El id de un pago es un número positivo. Preguntar por cualquier otra cosa
+        // solo devuelve un 400 y llena el log de errores que no son problemas.
+        if (!esIdDePago(pagoId)) {
+            System.out.println("[MercadoPago aviso] id de pago ignorado: " + pagoId);
+            return;
+        }
 
         Map<String, Object> pago = mercadoPagoService.consultarPago(pagoId);
         if (pago == null) return;
@@ -75,19 +129,30 @@ public class MercadoPagoWebhookController {
         }
     }
 
-    /** El tipo llega como `type` en el cuerpo o como `topic` en la URL, según la versión. */
-    private String tipoDe(Map<String, Object> cuerpo, String topic) {
-        if (cuerpo != null && cuerpo.get("type") != null) return String.valueOf(cuerpo.get("type"));
-        return topic;
+    private boolean esIdDePago(String id) {
+        try {
+            return Long.parseLong(id.trim()) > 0;
+        } catch (NumberFormatException e) {
+            return false;
+        }
     }
 
-    /** El id del pago viene en `data.id` del cuerpo o como `id` en la URL. */
+    /** El tipo, cuando viene en el cuerpo: `type` en Webhooks, `topic` en IPN. */
+    private String tipoDe(Map<String, Object> cuerpo) {
+        if (cuerpo == null) return null;
+        Object v = cuerpo.get("type") != null ? cuerpo.get("type") : cuerpo.get("topic");
+        return v != null ? String.valueOf(v) : null;
+    }
+
+    /** El id del pago, cuando viene en el cuerpo: en `data.id` o suelto en `id`. */
     @SuppressWarnings("unchecked")
-    private String pagoIdDe(Map<String, Object> cuerpo, String id) {
-        if (cuerpo != null && cuerpo.get("data") instanceof Map<?, ?> data) {
+    private String pagoIdDe(Map<String, Object> cuerpo) {
+        if (cuerpo == null) return null;
+        if (cuerpo.get("data") instanceof Map<?, ?> data) {
             Object v = ((Map<String, Object>) data).get("id");
             if (v != null) return String.valueOf(v);
         }
-        return id;
+        Object v = cuerpo.get("id");
+        return v != null ? String.valueOf(v) : null;
     }
 }
