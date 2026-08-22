@@ -313,11 +313,13 @@ public class EncomiendaService {
 
     /** Confirma el pago con Yape (Mercado Pago) y marca la encomienda como PAGADA. */
     @Transactional
-    public com.example.demo.dto.EncomiendaPublicDTO pagarEncomiendaYape(String codigo, String token) {
+    public com.example.demo.dto.EncomiendaPublicDTO pagarEncomiendaYape(String codigo, String token, String deviceId) {
         Encomienda e = porCodigoParaPago(codigo);
+        MercadoPagoService.Pagador pagador = MercadoPagoService.Pagador.de(
+                null, e.getRemitenteNombre(), null, e.getRemitenteDocumento(), e.getRemitenteTelefono());
         MercadoPagoService.Resultado pago = mercadoPagoService.pagar(
                 token, e.getPrecio(), "Encomienda Rayza " + e.getCodigoEncomienda(),
-                null, "enc-" + e.getId());
+                pagador, "enc-" + e.getId(), e.getCodigoEncomienda(), deviceId);
         if (!pago.pagado)
             throw new RuntimeException(pago.motivo != null ? pago.motivo : "El pago con Yape no se pudo confirmar");
         return marcarPagadaEnLinea(e, pago.referencia, "Yape");

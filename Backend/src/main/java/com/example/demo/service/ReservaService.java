@@ -439,7 +439,7 @@ public class ReservaService {
        (CierrePagoWebService) y el comprobante se emite después. Envolver todo en
        una sola transacción hacía que la emisión esperara por candados que esa
        misma transacción tenía tomados sobre las ventas. */
-    public ConfirmacionDTO pagarConYape(String reservaId, String token) {
+    public ConfirmacionDTO pagarConYape(String reservaId, String token, String deviceId) {
         Venta v = reservaLista(reservaId);
         if (v == null) return confirmacion(ventaRepository.findById(reservaId).orElseThrow(),
                                            false, "Esta compra ya estaba pagada");
@@ -449,7 +449,7 @@ public class ReservaService {
         // El id de la reserva como clave de idempotencia: si el cliente reintenta,
         // Mercado Pago devuelve el mismo pago en vez de cobrar dos veces.
         MercadoPagoService.Resultado pago = mercadoPagoService.pagar(
-                token, v.getPrecio(), descripcion, v.getClienteEmail(), reservaId);
+                token, v.getPrecio(), descripcion, pagadorDe(v), reservaId, reservaId, deviceId);
 
         if (!pago.pagado)
             throw new RuntimeException(pago.motivo != null ? pago.motivo : "El pago con Yape no se pudo confirmar");
@@ -508,7 +508,7 @@ public class ReservaService {
        (CierrePagoWebService) y el comprobante se emite después. Envolver todo en
        una sola transacción hacía que la emisión esperara por candados que esa
        misma transacción tenía tomados sobre las ventas. */
-    public ConfirmacionGrupoDTO pagarGrupoYape(List<String> reservaIds, String token) {
+    public ConfirmacionGrupoDTO pagarGrupoYape(List<String> reservaIds, String token, String deviceId) {
         List<Venta> pendientes = grupoPendiente(reservaIds);
         if (pendientes.isEmpty())
             return confirmarPagoGrupo(reservaIds, pendientes, null, null);
@@ -522,12 +522,29 @@ public class ReservaService {
 
         // El primer id como clave de idempotencia: si el cliente reintenta, Mercado
         // Pago devuelve el mismo pago en vez de cobrar dos veces el total del grupo.
+        String refGrupo = primera.getGrupoVentaId() != null
+                ? primera.getGrupoVentaId() : "grp-" + reservaIds.get(0);
         MercadoPagoService.Resultado pago = mercadoPagoService.pagar(
-                token, total, descripcion, primera.getClienteEmail(), "grp-" + reservaIds.get(0));
+                token, total, descripcion, pagadorDe(primera),
+                "grp-" + reservaIds.get(0), refGrupo, deviceId);
         if (!pago.pagado)
             throw new RuntimeException(pago.motivo != null ? pago.motivo : "El pago con Yape no se pudo confirmar");
 
         return confirmarPagoGrupo(reservaIds, pendientes, pago.referencia, METODO_YAPE);
+    }
+
+    /**
+     * Arma los datos del comprador para Mercado Pago. Van los del pasajero porque
+     * son los únicos que la web pide y verifica; mientras más completos, menos
+     * rechazos del control antifraude.
+     */
+    private MercadoPagoService.Pagador pagadorDe(Venta v) {
+        return MercadoPagoService.Pagador.de(
+                v.getClienteEmail(),
+                v.getPasajeroNombre(),
+                v.getTipoDocumento() != null ? v.getTipoDocumento().name() : null,
+                v.getPasajeroDocumento(),
+                v.getPasajeroTelefono());
     }
 
     private List<Venta> cargarGrupo(List<String> reservaIds) {
