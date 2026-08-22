@@ -34,14 +34,9 @@ public class MercadoPagoService {
     private static final String DESCRIPTOR = "TRANSPORTES RAYZA";
 
     /*
-     * Límites de Yape en Perú, publicados por Mercado Pago:
+     * Tope de Yape en Perú, publicado por Mercado Pago:
      * https://www.mercadopago.com.pe/ayuda/monto-minimo-maximo-medios-de-pago_2491
-     *
-     * Fuera de este rango la API responde "Invalid value for transaction_amount",
-     * que no le dice nada a quien está comprando. Se revisa antes de cobrar para
-     * poder explicar qué pasa y qué hacer.
      */
-    private static final BigDecimal YAPE_MINIMO = new BigDecimal("1.00");
     private static final BigDecimal YAPE_MAXIMO = new BigDecimal("2000.00");
 
     @Value("${mercadopago.enabled:false}")
@@ -65,6 +60,18 @@ public class MercadoPagoService {
      */
     @Value("${mercadopago.notification-url:}")
     private String urlNotificacion;
+
+    /*
+     * Monto mínimo que se le acepta a Yape.
+     *
+     * Mercado Pago publica S/ 1.00 como mínimo, pero en producción un cobro de
+     * exactamente S/ 1.00 fue rechazado con "Invalid value for transaction_amount"
+     * (2026-08-21). O sea que el piso real es más alto que el documentado, y no
+     * sabemos dónde está: queda configurable para poder subirlo sin tocar código
+     * cuando se averigüe, en vez de dejar un número inventado en el fuente.
+     */
+    @Value("${mercadopago.yape.monto-minimo:1.00}")
+    private BigDecimal montoMinimo;
 
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper json = new ObjectMapper();
@@ -348,8 +355,8 @@ public class MercadoPagoService {
     private String revisarMonto(BigDecimal monto) {
         if (monto == null || monto.signum() <= 0)
             return "No se pudo calcular el precio de este pasaje. Avísanos antes de pagar.";
-        if (monto.compareTo(YAPE_MINIMO) < 0)
-            return "Yape no acepta pagos menores a S/ 1.00. Paga con tarjeta o en la oficina.";
+        if (montoMinimo != null && monto.compareTo(montoMinimo) < 0)
+            return "Yape no acepta pagos tan bajos. Paga con tarjeta o en la oficina.";
         if (monto.compareTo(YAPE_MAXIMO) > 0)
             return "Yape solo acepta pagos de hasta S/ 2,000 y este suma S/ " + monto
                  + ". Paga con tarjeta, o compra los pasajes en grupos más pequeños.";
@@ -360,8 +367,7 @@ public class MercadoPagoService {
         if (mensajeApi == null) return null;
         String m = mensajeApi.toLowerCase();
         if (m.contains("transaction_amount"))
-            return "Yape no aceptó este monto. Solo permite pagos entre S/ 1.00 y S/ 2,000. "
-                 + "Paga con tarjeta o en la oficina.";
+            return "Yape no aceptó el monto de esta compra. Paga con tarjeta o en la oficina.";
         if (m.contains("token") && (m.contains("invalid") || m.contains("not found")))
             return "El código de aprobación no es válido o ya venció. "
                  + "Genera uno nuevo en tu app de Yape e intenta otra vez.";

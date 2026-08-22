@@ -39,6 +39,7 @@ class MercadoPagoPeticionTest {
         ReflectionTestUtils.setField(servicio, "publicKey", "TEST-clave-publica");
         ReflectionTestUtils.setField(servicio, "endpoint", "https://api.mercadopago.com");
         ReflectionTestUtils.setField(servicio, "urlNotificacion", "https://rayza.test/api/public/mercadopago");
+        ReflectionTestUtils.setField(servicio, "montoMinimo", new BigDecimal("1.00"));
 
         RestTemplate rest = (RestTemplate) ReflectionTestUtils.getField(servicio, "restTemplate");
         mercadoPago = MockRestServiceServer.bindTo(rest).build();
@@ -154,16 +155,31 @@ class MercadoPagoPeticionTest {
     }
 
     @Test
-    @DisplayName("El mínimo de Yape, S/ 1.00, sí se cobra")
-    void montoMinimoSeCobra() {
+    @DisplayName("Un monto igual al mínimo configurado sí se cobra")
+    void montoEnElMinimoSeCobra() {
         mercadoPago.expect(requestTo("https://api.mercadopago.com/v1/payments"))
                 .andRespond(withSuccess("{\"id\":5,\"status\":\"approved\"}", MediaType.APPLICATION_JSON));
 
         MercadoPagoService.Resultado r = servicio.pagar(
                 "tok", new BigDecimal("1.00"), "Pasaje", null, "v-1", "v-1", "huella");
 
-        assertTrue(r.pagado, "S/ 1.00 es el mínimo permitido, no debe bloquearse");
+        assertTrue(r.pagado, "el monto en el límite no debe bloquearse");
         mercadoPago.verify();
+    }
+
+    @Test
+    @DisplayName("Subir el mínimo por configuración corta el cobro sin tocar código")
+    void minimoConfigurable() {
+        // Mercado Pago documenta S/ 1.00 como mínimo, pero en producción rechazó un
+        // cobro de exactamente S/ 1.00. Por eso el piso es una variable: cuando se
+        // sepa el valor real se cambia ahí, no en el fuente.
+        ReflectionTestUtils.setField(servicio, "montoMinimo", new BigDecimal("5.00"));
+
+        MercadoPagoService.Resultado r = servicio.pagar(
+                "tok", new BigDecimal("1.00"), "Pasaje", null, "v-1", "v-1", "huella");
+
+        assertFalse(r.pagado);
+        mercadoPago.verify();   // no se llamó a la API
     }
 
     @Test

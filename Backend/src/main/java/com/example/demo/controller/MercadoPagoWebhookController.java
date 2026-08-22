@@ -103,6 +103,13 @@ public class MercadoPagoWebhookController {
 
         if (!"payment".equals(tipo)) return;
 
+        // El id de un pago es un número positivo. Preguntar por cualquier otra cosa
+        // solo devuelve un 400 y llena el log de errores que no son problemas.
+        if (!esIdDePago(pagoId)) {
+            System.out.println("[MercadoPago aviso] id de pago ignorado: " + pagoId);
+            return;
+        }
+
         Map<String, Object> pago = mercadoPagoService.consultarPago(pagoId);
         if (pago == null) return;
 
@@ -119,6 +126,14 @@ public class MercadoPagoWebhookController {
             auditoriaService.registrar("PAGO_WEBHOOK", "VENTAS", referencia,
                     "Mercado Pago informó el pago " + pagoId + " como '" + estado
                             + "'. Revisar la venta y anularla o devolverla si corresponde.");
+        }
+    }
+
+    private boolean esIdDePago(String id) {
+        try {
+            return Long.parseLong(id.trim()) > 0;
+        } catch (NumberFormatException e) {
+            return false;
         }
     }
 
