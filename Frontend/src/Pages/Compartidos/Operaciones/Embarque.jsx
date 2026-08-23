@@ -12,6 +12,9 @@ function Embarque() {
     const esAdmin      = usuario?.rol === "ADMIN";
     const esSupervisor = usuario?.rol === "SUPERVISOR";
     const puedeEmbarcar = esAdmin || esSupervisor;
+    // El carro sale de Iquitos, así que el pre-embarque se controla desde ahí. El
+    // admin lo ve desde cualquier sucursal: supervisa la operación completa.
+    const enIquitos = (usuario?.sucursalNombre || "").toLowerCase().includes("iquitos");
 
     const [viajes, setViajes]           = useState([]);
     const [viajeId, setViajeId]         = useState("");
@@ -172,19 +175,31 @@ function Embarque() {
 
     // --- NUEVO: procesar el QR escaneado (busca la venta por su codigoQr) ---
     /**
+     * ¿El escaneo de esta venta corresponde al carro y no al bote?
+     *
+     * Se calcula desde la venta y no desde `pasajeros`, porque al escanear el
+     * estado todavía no se actualizó: React aplica setPasajeros después, y mirar
+     * ahí daría la respuesta del pasajero anterior.
+     */
+    const escaneandoElCarro = (venta) =>
+        etapa === "carro" && venta?.requierePreembarque && (enIquitos || esAdmin);
+
+    /**
      * Embarca directo tras escanear el QR. No recarga por viaje (la búsqueda por
      * QR muestra un solo pasaje): actualiza la fila con lo que devuelve el backend.
      */
     const embarcarDirecto = async (venta) => {
+        const alCarro = escaneandoElCarro(venta);
         setProcesando(venta.id);
         try {
             const token = localStorage.getItem("token");
-            const res = await fetch(`${API_BASE}/api/ventas/${venta.id}/embarcar`, {
+            const accion = alCarro ? "preembarcar" : "embarcar";
+            const res = await fetch(`${API_BASE}/api/ventas/${venta.id}/${accion}`, {
                 method: "PATCH",
                 headers: { "Authorization": `Bearer ${token}` }
             });
             if (!res.ok) {
-                let mensaje = "Error al embarcar pasajero";
+                let mensaje = alCarro ? "Error al registrar el pre-embarque" : "Error al embarcar pasajero";
                 if (res.status === 403)      mensaje = "No tienes permiso para embarcar pasajeros";
                 else if (res.status === 401) mensaje = "Tu sesión expiró, vuelve a iniciar sesión";
                 else {
@@ -196,7 +211,9 @@ function Embarque() {
             setPasajeros([actualizada]);
             setToast({
                 tipo: "success",
-                mensaje: `${venta.pasajeroNombre} embarcado correctamente. Se envió confirmación por correo.`
+                mensaje: alCarro
+                    ? `${venta.pasajeroNombre} subió al carro.`
+                    : `${venta.pasajeroNombre} embarcado correctamente. Se envió confirmación por correo.`
             });
         } catch (err) {
             setToast({ tipo: "error", mensaje: err.message });
@@ -229,15 +246,37 @@ function Embarque() {
             setFiltroEstado("todos");
             setPasajeros([venta]);
 
-            if (venta.embarqueEstado === "EMBARCADO") {
-                setToast({ tipo: "error", mensaje: `${venta.pasajeroNombre} ya estaba embarcado.` });
+            // El escáner sirve para las dos etapas: en la pestaña del carro marca el
+            // pre-embarque, no el embarque al bote. Antes siempre marcaba el bote y
+            // dejaba el pre-embarque sin registrar.
+            const alCarro = escaneandoElCarro(venta);
+            const yaHecho = alCarro
+                ? venta.preembarqueEstado === "EMBARCADO"
+                : venta.embarqueEstado === "EMBARCADO";
+
+            if (yaHecho) {
+                setToast({
+                    tipo: "error",
+                    mensaje: alCarro
+                        ? `${venta.pasajeroNombre} ya había subido al carro.`
+                        : `${venta.pasajeroNombre} ya estaba embarcado.`
+                });
                 return;
             }
             if (!puedeEmbarcar) {
                 setToast({ tipo: "error", mensaje: "No tienes permiso para embarcar pasajeros." });
                 return;
             }
-            // Al escanear se marca el embarque de una vez (sin pulsar "Embarcar")
+            // Igual que con el botón: se avisa pero no se bloquea, porque hay
+            // pasajeros que llegan por su cuenta a Nauta sin pasar por el carro.
+            if (!alCarro && venta.requierePreembarque
+                && venta.preembarqueEstado !== "EMBARCADO"
+                && !window.confirm(
+                    `${venta.pasajeroNombre} no pasó el pre-embarque en Iquitos.\n\n¿Embarcarlo al bote igual?`)) {
+                setToast({ tipo: "error", mensaje: "Embarque cancelado." });
+                return;
+            }
+            // Al escanear se marca de una vez (sin pulsar el botón)
             await embarcarDirecto(venta);
         } catch (err) {
             setError(err.message);
@@ -271,11 +310,15 @@ function Embarque() {
 
     // El backend decide qué rutas se abordan en dos momentos; acá solo se obedece.
     const rutaConPreembarque = pasajeros.some(p => p.requierePreembarque);
-    // El carro sale de Iquitos, así que el pre-embarque se controla desde ahí. El
-    // admin lo ve desde cualquier sucursal: supervisa la operación completa y si no,
-    // no podría revisar quién subió al carro sin viajar hasta Iquitos.
-    const enIquitos = (usuario?.sucursalNombre || "").toLowerCase().includes("iquitos");
     const mostrarEtapas = rutaConPreembarque && (enIquitos || esAdmin);
+
+    // Si se carga un viaje de una ruta que no usa pre-embarque, la pestaña desaparece.
+    // Hay que volver al bote: si no, un escaneo posterior marcaría una etapa que el
+    // trabajador ya no tiene en pantalla. No se toca con la lista vacía, para no
+    // perder la elección entre un escaneo y el siguiente.
+    useEffect(() => {
+        if (pasajeros.length > 0 && !rutaConPreembarque) setEtapa("bote");
+    }, [pasajeros, rutaConPreembarque]);
 
     // Sin la pestaña visible se trabaja siempre sobre el bote, como antes.
     const etapaActiva = mostrarEtapas ? etapa : "bote";
