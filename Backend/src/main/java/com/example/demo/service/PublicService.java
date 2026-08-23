@@ -282,7 +282,7 @@ public class PublicService {
             dto.setFechaSalida(v.getFechaSalida() != null ? v.getFechaSalida().toString() : null);
             dto.setHoraSalida(v.getHoraSalida() != null ? v.getHoraSalida().toString() : null);
 
-            BigDecimal[] precios = calcularPrecioTramo(v, ordenOrigen, ordenDestino);
+            BigDecimal[] precios = calcularPrecioTramo(v, nombreOrigen, nombreDestino, ordenOrigen, ordenDestino);
             java.util.Optional<Ruta> oferta = ofertaActivaDeRuta(v.getRutaId(), v.getFechaSalida())
                     // La oferta es por ruta completa: en un tramo corto puede quedar por
                     // encima de su tarifa normal. Solo se anuncia cuando abarata de verdad.
@@ -380,16 +380,43 @@ public class PublicService {
     }
 
     /** Precio del tramo: tarifa por tramo si existe; si no, el precio base del viaje. */
-    private BigDecimal[] calcularPrecioTramo(Viaje v, int ordenOrigen, int ordenDestino) {
+    private BigDecimal[] calcularPrecioTramo(Viaje v, String nombreOrigen, String nombreDestino,
+                                            int ordenOrigen, int ordenDestino) {
         if (v.getRutaId() != null) {
-            for (RutaTarifaTramo t : tarifaRepository.findByRutaId(v.getRutaId())) {
-                if (t.getOrdenOrigen() != null && t.getOrdenDestino() != null
-                        && t.getOrdenOrigen() == ordenOrigen && t.getOrdenDestino() == ordenDestino) {
-                    return new BigDecimal[]{ t.getPrecioNormal(), t.getPrecioVip() };
-                }
-            }
+            RutaTarifaTramo t = tarifaDelTramo(tarifaRepository.findByRutaId(v.getRutaId()),
+                    nombreOrigen, nombreDestino, ordenOrigen, ordenDestino);
+            if (t != null) return new BigDecimal[]{ t.getPrecioNormal(), t.getPrecioVip() };
         }
         return new BigDecimal[]{ v.getPrecioNormal(), v.getPrecioVip() };
+    }
+
+    /**
+     * La tarifa de un tramo dentro de una ruta. Se empata primero por NOMBRE de las
+     * paradas y solo como respaldo por número de orden.
+     *
+     * El orden se desajusta: si a una ruta se le agrega o quita una parada después de
+     * haber creado viajes, esos viajes conservan la numeración vieja, y buscar la
+     * tarifa por número devuelve la del tramo equivocado (el de al lado). El nombre de
+     * la parada no cambia, así que empatar por nombre da el precio correcto aunque la
+     * ruta se haya reordenado. Devuelve null si la ruta no tiene esa tarifa.
+     */
+    static RutaTarifaTramo tarifaDelTramo(List<RutaTarifaTramo> tarifas,
+                                          String nombreOrigen, String nombreDestino,
+                                          int ordenOrigen, int ordenDestino) {
+        if (tarifas == null) return null;
+        for (RutaTarifaTramo t : tarifas)
+            if (mismoNombre(t.getOrigenTramo(), nombreOrigen)
+                    && mismoNombre(t.getDestinoTramo(), nombreDestino))
+                return t;
+        for (RutaTarifaTramo t : tarifas)
+            if (t.getOrdenOrigen() != null && t.getOrdenDestino() != null
+                    && t.getOrdenOrigen() == ordenOrigen && t.getOrdenDestino() == ordenDestino)
+                return t;
+        return null;
+    }
+
+    static boolean mismoNombre(String a, String b) {
+        return a != null && b != null && a.trim().equalsIgnoreCase(b.trim());
     }
 
     private Integer ordenDeParada(List<ViajeParada> paradas, String nombre) {
