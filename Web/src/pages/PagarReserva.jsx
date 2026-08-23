@@ -189,13 +189,13 @@ export default function PagarReserva() {
                     />
                   )}
 
-                  {formularioVisible ? (
-                    <PanelTarjeta resumen={`${datos.origen} → ${datos.destino}`} monto={soles(datos.total)}>
-                      <div id="izipay-form" />
-                    </PanelTarjeta>
-                  ) : (
+                  <PanelTarjeta
+                    activo={formularioVisible}
+                    resumen={`${datos.origen} → ${datos.destino}`}
+                    monto={soles(datos.total)}
+                  >
                     <div id="izipay-form" />
-                  )}
+                  </PanelTarjeta>
                   {errorPago && <div className="alert alert-warn" style={{ marginTop: 12 }}>{errorPago}</div>}
 
                   {!formularioVisible && (

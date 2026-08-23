@@ -190,26 +190,36 @@ export function FormularioYape({ datos, onCambiar, deshabilitado, prueba }) {
  * que hace falta en ese momento: qué se está pagando, cuánto, y que los datos de la
  * tarjeta no pasan por nosotros. No se tocan los estilos internos del formulario:
  * son de Izipay y cambiarlos por fuera se rompe en cualquier actualización suya.
+ *
+ * OJO con `activo`: el marco se prende y apaga con esa bandera, pero el envoltorio y
+ * `children` se dibujan SIEMPRE, en la misma posición. Antes esto era un ternario que
+ * ponía el contenedor en una rama u otra, y al abrirse el pago React desmontaba el div
+ * viejo para montar uno nuevo — con el formulario que Izipay acababa de dibujar dentro.
+ * El formulario aparecía y se esfumaba al instante. El nodo tiene que sobrevivir.
  */
-export function PanelTarjeta({ resumen, monto, children }) {
+export function PanelTarjeta({ activo, resumen, monto, children }) {
   return (
-    <div className="pago-tarjeta">
-      <div className="pago-tarjeta-cab">
-        <span className="pago-tarjeta-ico" aria-hidden="true"><IconCard /></span>
-        <div>
-          <p className="pago-tarjeta-tit">Pagar con tarjeta</p>
-          {resumen && <p className="pago-tarjeta-sub">{resumen}</p>}
+    <div className={activo ? "pago-tarjeta" : undefined}>
+      {activo && (
+        <div className="pago-tarjeta-cab">
+          <span className="pago-tarjeta-ico" aria-hidden="true"><IconCard /></span>
+          <div>
+            <p className="pago-tarjeta-tit">Pagar con tarjeta</p>
+            {resumen && <p className="pago-tarjeta-sub">{resumen}</p>}
+          </div>
+          {monto && <span className="pago-tarjeta-monto">{monto}</span>}
         </div>
-        {monto && <span className="pago-tarjeta-monto">{monto}</span>}
-      </div>
+      )}
 
       {children}
 
-      <p className="pago-tarjeta-seguro">
-        <IconLock aria-hidden="true" />
-        <span>Tu tarjeta se escribe dentro del formulario de <strong>Izipay</strong>.
-        Esos datos no pasan por Transportes Rayza.</span>
-      </p>
+      {activo && (
+        <p className="pago-tarjeta-seguro">
+          <IconLock aria-hidden="true" />
+          <span>Tu tarjeta se escribe dentro del formulario de <strong>Izipay</strong>.
+          Esos datos no pasan por Transportes Rayza.</span>
+        </p>
+      )}
     </div>
   );
 }

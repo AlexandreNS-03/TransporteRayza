@@ -476,18 +476,16 @@ export default function Comprar() {
                       </div>
                     )}
 
-                    {/* El formulario de Izipay se dibuja acá dentro. Con el marco puesto
-                        deja de quedar suelto y pegado a la izquierda de la tarjeta. */}
-                    {formularioVisible ? (
-                      <PanelTarjeta
-                        resumen={ida.viaje ? `${ida.viaje.origen} → ${ida.viaje.destino}` : null}
-                        monto={soles(totalACobrar)}
-                      >
-                        <div id="izipay-form" />
-                      </PanelTarjeta>
-                    ) : (
+                    {/* El formulario de Izipay se dibuja dentro de #izipay-form. El marco
+                        se prende con `activo`, pero el div va SIEMPRE montado: si se cambia
+                        de rama, React lo reemplaza y se lleva el formulario ya dibujado. */}
+                    <PanelTarjeta
+                      activo={formularioVisible}
+                      resumen={ida.viaje ? `${ida.viaje.origen} → ${ida.viaje.destino}` : null}
+                      monto={soles(totalACobrar)}
+                    >
                       <div id="izipay-form" />
-                    )}
+                    </PanelTarjeta>
                     {errorPago && <div className="alert alert-warn" style={{ marginTop: 12 }}>{errorPago}</div>}
                     <div style={{ display: "flex", justifyContent: "space-between", marginTop: 22 }}>
                       {/* Con el formulario de Izipay abierto, "Volver" quedaba deshabilitado
