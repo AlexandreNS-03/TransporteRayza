@@ -8,7 +8,7 @@
 
 import { useEffect, useRef } from "react";
 import LogoPasarela from "./LogoPasarela";
-import { IconCard, IconPhone, IconMenuApp, IconTeclado, IconCheckCircle } from "./Icons";
+import { IconCard, IconPhone, IconMenuApp, IconTeclado, IconCheckCircle, IconLock } from "./Icons";
 
 const LARGO_CODIGO = 6;
 
@@ -175,6 +175,41 @@ export function FormularioYape({ datos, onCambiar, deshabilitado, prueba }) {
           onCambiar={(otp) => onCambiar({ ...datos, otp })}
         />
       </div>
+    </div>
+  );
+}
+
+/**
+ * Marco del formulario de tarjeta de Izipay.
+ *
+ * El formulario lo dibuja Izipay dentro de `#izipay-form` y viene angosto y pegado
+ * a la izquierda. Suelto en una tarjeta de 800px dejaba un vacío enorme al costado,
+ * como si la página se hubiera roto justo cuando toca poner la tarjeta.
+ *
+ * Acá se le pone medida y se centra, y el espacio que sobraba se usa para lo único
+ * que hace falta en ese momento: qué se está pagando, cuánto, y que los datos de la
+ * tarjeta no pasan por nosotros. No se tocan los estilos internos del formulario:
+ * son de Izipay y cambiarlos por fuera se rompe en cualquier actualización suya.
+ */
+export function PanelTarjeta({ resumen, monto, children }) {
+  return (
+    <div className="pago-tarjeta">
+      <div className="pago-tarjeta-cab">
+        <span className="pago-tarjeta-ico" aria-hidden="true"><IconCard /></span>
+        <div>
+          <p className="pago-tarjeta-tit">Pagar con tarjeta</p>
+          {resumen && <p className="pago-tarjeta-sub">{resumen}</p>}
+        </div>
+        {monto && <span className="pago-tarjeta-monto">{monto}</span>}
+      </div>
+
+      {children}
+
+      <p className="pago-tarjeta-seguro">
+        <IconLock aria-hidden="true" />
+        <span>Tu tarjeta se escribe dentro del formulario de <strong>Izipay</strong>.
+        Esos datos no pasan por Transportes Rayza.</span>
+      </p>
     </div>
   );
 }

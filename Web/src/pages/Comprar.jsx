@@ -9,7 +9,7 @@ import MapaAsientos from "../components/MapaAsientos";
 import SelectorPasajeros from "../components/SelectorPasajeros";
 import FormularioPasajero, { FormularioContacto } from "../components/FormularioPasajero";
 import Confirmacion from "../components/Confirmacion";
-import { MetodosPago, FormularioYape } from "../components/PagoMetodos";
+import { MetodosPago, FormularioYape, PanelTarjeta } from "../components/PagoMetodos";
 import { buscarViajes, crearReservaGrupo, pagarGrupo, formularioDePagoGrupo,
          metodosDePago, pagarConYapeGrupo, avisarAbandono, soles } from "../services/publicApi";
 import { tokenizarYape } from "../services/yape";
@@ -476,7 +476,18 @@ export default function Comprar() {
                       </div>
                     )}
 
-                    <div id="izipay-form" style={{ marginTop: 16 }} />
+                    {/* El formulario de Izipay se dibuja acá dentro. Con el marco puesto
+                        deja de quedar suelto y pegado a la izquierda de la tarjeta. */}
+                    {formularioVisible ? (
+                      <PanelTarjeta
+                        resumen={ida.viaje ? `${ida.viaje.origen} → ${ida.viaje.destino}` : null}
+                        monto={soles(totalACobrar)}
+                      >
+                        <div id="izipay-form" />
+                      </PanelTarjeta>
+                    ) : (
+                      <div id="izipay-form" />
+                    )}
                     {errorPago && <div className="alert alert-warn" style={{ marginTop: 12 }}>{errorPago}</div>}
                     <div style={{ display: "flex", justifyContent: "space-between", marginTop: 22 }}>
                       {/* Con el formulario de Izipay abierto, "Volver" quedaba deshabilitado

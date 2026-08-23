@@ -3,7 +3,7 @@ import { useSearchParams, Link } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import Confirmacion from "../components/Confirmacion";
-import { MetodosPago, FormularioYape } from "../components/PagoMetodos";
+import { MetodosPago, FormularioYape, PanelTarjeta } from "../components/PagoMetodos";
 import { reservasPendientes, formularioDePagoGrupo, pagarGrupo,
          pagarConYapeGrupo, metodosDePago, soles } from "../services/publicApi";
 import { tokenizarYape } from "../services/yape";
@@ -189,7 +189,13 @@ export default function PagarReserva() {
                     />
                   )}
 
-                  <div id="izipay-form" style={{ marginTop: 16 }} />
+                  {formularioVisible ? (
+                    <PanelTarjeta resumen={`${datos.origen} → ${datos.destino}`} monto={soles(datos.total)}>
+                      <div id="izipay-form" />
+                    </PanelTarjeta>
+                  ) : (
+                    <div id="izipay-form" />
+                  )}
                   {errorPago && <div className="alert alert-warn" style={{ marginTop: 12 }}>{errorPago}</div>}
 
                   {!formularioVisible && (
