@@ -39,7 +39,6 @@ class MercadoPagoPeticionTest {
         ReflectionTestUtils.setField(servicio, "publicKey", "TEST-clave-publica");
         ReflectionTestUtils.setField(servicio, "endpoint", "https://api.mercadopago.com");
         ReflectionTestUtils.setField(servicio, "urlNotificacion", "https://rayza.test/api/public/mercadopago");
-        ReflectionTestUtils.setField(servicio, "montoMinimo", new BigDecimal("1.00"));
 
         RestTemplate rest = (RestTemplate) ReflectionTestUtils.getField(servicio, "restTemplate");
         mercadoPago = MockRestServiceServer.bindTo(rest).build();
@@ -155,31 +154,17 @@ class MercadoPagoPeticionTest {
     }
 
     @Test
-    @DisplayName("Un monto igual al mínimo configurado sí se cobra")
-    void montoEnElMinimoSeCobra() {
+    @DisplayName("No hay mínimo propio: un monto bajo se manda a Yape y lo decide Mercado Pago")
+    void sinMinimoPropio() {
         mercadoPago.expect(requestTo("https://api.mercadopago.com/v1/payments"))
                 .andRespond(withSuccess("{\"id\":5,\"status\":\"approved\"}", MediaType.APPLICATION_JSON));
 
+        // El código no bloquea por monto bajo; si Yape no lo acepta, responde la API.
         MercadoPagoService.Resultado r = servicio.pagar(
                 "tok", new BigDecimal("1.00"), "Pasaje", null, "v-1", "v-1", "huella");
 
-        assertTrue(r.pagado, "el monto en el límite no debe bloquearse");
+        assertTrue(r.pagado, "un monto bajo debe llegar a la pasarela, no bloquearse acá");
         mercadoPago.verify();
-    }
-
-    @Test
-    @DisplayName("Subir el mínimo por configuración corta el cobro sin tocar código")
-    void minimoConfigurable() {
-        // Mercado Pago documenta S/ 1.00 como mínimo, pero en producción rechazó un
-        // cobro de exactamente S/ 1.00. Por eso el piso es una variable: cuando se
-        // sepa el valor real se cambia ahí, no en el fuente.
-        ReflectionTestUtils.setField(servicio, "montoMinimo", new BigDecimal("5.00"));
-
-        MercadoPagoService.Resultado r = servicio.pagar(
-                "tok", new BigDecimal("1.00"), "Pasaje", null, "v-1", "v-1", "huella");
-
-        assertFalse(r.pagado);
-        mercadoPago.verify();   // no se llamó a la API
     }
 
     @Test

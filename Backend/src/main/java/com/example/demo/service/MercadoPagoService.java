@@ -61,18 +61,6 @@ public class MercadoPagoService {
     @Value("${mercadopago.notification-url:}")
     private String urlNotificacion;
 
-    /*
-     * Monto mínimo que se le acepta a Yape.
-     *
-     * Mercado Pago publica S/ 1.00 como mínimo, pero en producción un cobro de
-     * exactamente S/ 1.00 fue rechazado con "Invalid value for transaction_amount"
-     * (2026-08-21). O sea que el piso real es más alto que el documentado, y no
-     * sabemos dónde está: queda configurable para poder subirlo sin tocar código
-     * cuando se averigüe, en vez de dejar un número inventado en el fuente.
-     */
-    @Value("${mercadopago.yape.monto-minimo:1.00}")
-    private BigDecimal montoMinimo;
-
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper json = new ObjectMapper();
 
@@ -348,15 +336,15 @@ public class MercadoPagoService {
      * comprando un pasaje, y llegaba tal cual a la pantalla.
      */
     /**
-     * Revisa el monto contra los límites de Yape antes de gastar un intento.
+     * Revisa el monto antes de gastar un intento: que exista y que no pase el tope
+     * de Yape. Sin mínimo propio —lo del piso lo decide Mercado Pago— para no
+     * bloquear montos que en realidad sí acepta.
      *
      * @return el motivo a mostrar, o null si el monto sirve
      */
     private String revisarMonto(BigDecimal monto) {
         if (monto == null || monto.signum() <= 0)
             return "No se pudo calcular el precio de este pasaje. Avísanos antes de pagar.";
-        if (montoMinimo != null && monto.compareTo(montoMinimo) < 0)
-            return "Yape no acepta pagos tan bajos. Paga con tarjeta o en la oficina.";
         if (monto.compareTo(YAPE_MAXIMO) > 0)
             return "Yape solo acepta pagos de hasta S/ 2,000 y este suma S/ " + monto
                  + ". Paga con tarjeta, o compra los pasajes en grupos más pequeños.";
