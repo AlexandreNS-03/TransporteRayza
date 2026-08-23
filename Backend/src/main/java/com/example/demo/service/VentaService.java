@@ -72,23 +72,115 @@ public class VentaService {
      * El embarque solo está permitido desde 2 horas antes de la salida
      * hasta 20 minutos después de la hora programada del viaje.
      */
+    /* Horas fijas del embarque al bote en Nauta, para las rutas que se abordan en
+       dos momentos. Es una ventana de reloj y no un cálculo sobre la salida porque
+       así la maneja la operación: el bote recibe pasajeros de 12 a 2. */
+    private static final java.time.LocalTime EMBARQUE_NAUTA_DESDE = java.time.LocalTime.of(12, 0);
+    private static final java.time.LocalTime EMBARQUE_NAUTA_HASTA = java.time.LocalTime.of(14, 0);
+
+    private static final java.time.format.DateTimeFormatter FMT_FECHA_HORA =
+            java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+
+    /** ¿El viaje de esta venta pertenece a una ruta que se aborda en dos momentos? */
+    private boolean usaPreembarque(Viaje viaje) {
+        if (viaje == null || viaje.getRutaId() == null) return false;
+        return rutaRepository.findById(viaje.getRutaId())
+                .map(Ruta::isRequierePreembarque).orElse(false);
+    }
+
+    /**
+     * Cuándo abre y cierra cada control. Devuelve {inicio, fin}.
+     *
+     * Va aparte y sin dependencias para poder probarlo: son reglas de reloj que
+     * deciden si un pasajero sube o se queda en tierra, y equivocarse en una hora
+     * no se nota hasta que hay gente parada en el muelle.
+     */
+    static LocalDateTime[] ventanaEmbarque(java.time.LocalDate fecha, java.time.LocalTime horaSalida,
+                                           boolean conPreembarque) {
+        // Con pre-embarque el bote se aborda en Nauta, horas después de que el carro
+        // salió de Iquitos: medir contra la hora de salida no sirve, es hora de reloj.
+        if (conPreembarque)
+            return new LocalDateTime[]{ LocalDateTime.of(fecha, EMBARQUE_NAUTA_DESDE),
+                                        LocalDateTime.of(fecha, EMBARQUE_NAUTA_HASTA) };
+
+        LocalDateTime salida = LocalDateTime.of(fecha, horaSalida);
+        return new LocalDateTime[]{ salida.minusHours(2), salida.plusMinutes(20) };
+    }
+
+    /** El carro se aborda en Iquitos: abre una hora antes de la salida. */
+    static LocalDateTime[] ventanaPreembarque(java.time.LocalDate fecha, java.time.LocalTime horaSalida) {
+        LocalDateTime salida = LocalDateTime.of(fecha, horaSalida);
+        return new LocalDateTime[]{ salida.minusHours(1), salida.plusMinutes(20) };
+    }
+
     private void validarVentanaDeEmbarque(Venta venta) {
         if (venta.getViajeId() == null) return;
         Viaje viaje = viajeRepository.findById(venta.getViajeId()).orElse(null);
         if (viaje == null || viaje.getFechaSalida() == null || viaje.getHoraSalida() == null) return;
 
+        boolean conPreembarque = usaPreembarque(viaje);
+        LocalDateTime[] v = ventanaEmbarque(viaje.getFechaSalida(), viaje.getHoraSalida(), conPreembarque);
+        LocalDateTime ahora = LocalDateTime.now();
+
+        if (conPreembarque) {
+            if (ahora.isBefore(v[0]))
+                throw new RuntimeException("El embarque al bote en Nauta se abre a las "
+                        + EMBARQUE_NAUTA_DESDE + ".");
+            if (ahora.isAfter(v[1]))
+                throw new RuntimeException("El embarque al bote en Nauta cerró a las "
+                        + EMBARQUE_NAUTA_HASTA + ".");
+            return;
+        }
+
         LocalDateTime salida = LocalDateTime.of(viaje.getFechaSalida(), viaje.getHoraSalida());
-        LocalDateTime inicio = salida.minusHours(2);
-        LocalDateTime fin    = salida.plusMinutes(20);
+        if (ahora.isBefore(v[0]))
+            throw new RuntimeException("El embarque aún no está habilitado. Se abre el " + v[0].format(FMT_FECHA_HORA)
+                    + " (2 horas antes de la salida programada: " + salida.format(FMT_FECHA_HORA) + ")");
+        if (ahora.isAfter(v[1]))
+            throw new RuntimeException("El embarque ya cerró el " + v[1].format(FMT_FECHA_HORA)
+                    + " (20 minutos después de la salida programada: " + salida.format(FMT_FECHA_HORA) + ")");
+    }
+
+    /**
+     * Marca que el pasajero subió al carro en Iquitos.
+     *
+     * No manda correo: el aviso al pasajero es el del embarque al bote, que es
+     * cuando el viaje de verdad empieza. Dos correos por el mismo viaje sobran.
+     */
+    public VentaDTO preembarcarPasajero(String id, String usuarioNombre) {
+        Venta venta = ventaRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Venta no encontrada"));
+
+        if (venta.getEstado() == Venta.EstadoVenta.ANULADO)
+            throw new RuntimeException("La venta está anulada");
+        if (venta.getPreembarqueEstado() == Venta.EmbarqueEstado.EMBARCADO)
+            throw new RuntimeException("El pasajero ya pasó el pre-embarque");
+
+        Viaje viaje = venta.getViajeId() == null ? null
+                : viajeRepository.findById(venta.getViajeId()).orElse(null);
+        if (!usaPreembarque(viaje))
+            throw new RuntimeException("Esta ruta no usa pre-embarque");
+
+        validarVentanaDePreembarque(viaje);
+
+        venta.setPreembarqueEstado(Venta.EmbarqueEstado.EMBARCADO);
+        venta.setPreembarcadoAt(LocalDateTime.now());
+        venta.setPreembarcadoPor(usuarioNombre);
+        return toDTO(ventaRepository.save(venta));
+    }
+
+    private void validarVentanaDePreembarque(Viaje viaje) {
+        if (viaje == null || viaje.getFechaSalida() == null || viaje.getHoraSalida() == null) return;
+
+        LocalDateTime[] v = ventanaPreembarque(viaje.getFechaSalida(), viaje.getHoraSalida());
+        LocalDateTime salida = LocalDateTime.of(viaje.getFechaSalida(), viaje.getHoraSalida());
         LocalDateTime ahora  = LocalDateTime.now();
 
-        java.time.format.DateTimeFormatter fmt = java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-        if (ahora.isBefore(inicio))
-            throw new RuntimeException("El embarque aún no está habilitado. Se abre el " + inicio.format(fmt)
-                    + " (2 horas antes de la salida programada: " + salida.format(fmt) + ")");
-        if (ahora.isAfter(fin))
-            throw new RuntimeException("El embarque ya cerró el " + fin.format(fmt)
-                    + " (20 minutos después de la salida programada: " + salida.format(fmt) + ")");
+        if (ahora.isBefore(v[0]))
+            throw new RuntimeException("El pre-embarque se abre el " + v[0].format(FMT_FECHA_HORA)
+                    + " (1 hora antes de la salida: " + salida.format(FMT_FECHA_HORA) + ")");
+        if (ahora.isAfter(v[1]))
+            throw new RuntimeException("El pre-embarque ya cerró el " + v[1].format(FMT_FECHA_HORA) + ".");
     }
 
     public List<VentaDTO> listarMisEmbarquesHoy(String usuarioNombre) {
@@ -438,6 +530,8 @@ public class VentaService {
         return String.format("%08d", siguiente);
     }
 
+    private final com.example.demo.repository.RutaRepository rutaRepository;
+
     public VentaService(VentaRepository ventaRepository,
                         VentaTramoUsadoRepository tramoUsadoRepository,
                         ViajeRepository viajeRepository,
@@ -446,7 +540,8 @@ public class VentaService {
                         EmailService emailService,
                         CajaService cajaService,
                         AuditoriaService auditoriaService,
-                        PublicService publicService) {
+                        PublicService publicService,
+                        com.example.demo.repository.RutaRepository rutaRepository) {
         this.ventaRepository      = ventaRepository;
         this.tramoUsadoRepository = tramoUsadoRepository;
         this.viajeRepository      = viajeRepository;
@@ -456,6 +551,7 @@ public class VentaService {
         this.cajaService          = cajaService;
         this.auditoriaService     = auditoriaService;
         this.publicService        = publicService;
+        this.rutaRepository       = rutaRepository;
     }
 
     /**
@@ -562,6 +658,14 @@ public class VentaService {
         dto.setCreatedAt(v.getCreatedAt() != null ? v.getCreatedAt().toString() : null);
         dto.setEmbarcadoPor(v.getEmbarcadoPor());
         dto.setEmbarcadoAt(v.getEmbarcadoAt() != null ? v.getEmbarcadoAt().toString() : null);
+        dto.setPreembarqueEstado(v.getPreembarqueEstado() != null ? v.getPreembarqueEstado().name() : null);
+        dto.setPreembarcadoPor(v.getPreembarcadoPor());
+        dto.setPreembarcadoAt(v.getPreembarcadoAt() != null ? v.getPreembarcadoAt().toString() : null);
+        // La pantalla necesita saber si esta ruta usa pre-embarque para mostrar (o no)
+        // la pestaña; se resuelve acá y no en el navegador para no exponer la regla.
+        if (v.getViajeId() != null)
+            viajeRepository.findById(v.getViajeId())
+                    .ifPresent(vi -> dto.setRequierePreembarque(usaPreembarque(vi)));
         dto.setPrecioOriginal(v.getPrecioOriginal());
         dto.setDescuento(v.getDescuento());
         dto.setLugarPago(v.getLugarPago());

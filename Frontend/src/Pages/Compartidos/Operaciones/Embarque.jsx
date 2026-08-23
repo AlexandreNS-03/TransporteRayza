@@ -21,6 +21,9 @@ function Embarque() {
     const [error, setError]             = useState(null);
     const [busqueda, setBusqueda]       = useState("");
     const [filtroEstado, setFiltroEstado] = useState("todos");
+    // "bote" es lo de siempre. "carro" solo existe en las rutas que se abordan en
+    // dos momentos (Iquitos → Requena): primero el carro a Nauta, después el bote.
+    const [etapa, setEtapa] = useState("bote");
     const [procesando, setProcesando]   = useState(null);
     const [escanerAbierto, setEscanerAbierto] = useState(false);
 
@@ -78,7 +81,13 @@ function Embarque() {
         }
     };
 
-    const marcarEmbarcado = async (ventaId, pasajeroNombre) => {
+    const marcarEmbarcado = async (ventaId, pasajeroNombre, sinPreembarque) => {
+        // Se avisa pero no se bloquea: hay pasajeros que llegan por su cuenta a
+        // Nauta sin haber subido al carro en Iquitos, y esos igual viajan.
+        if (sinPreembarque && !window.confirm(
+            `${pasajeroNombre} no pasó el pre-embarque en Iquitos.\n\n¿Embarcarlo al bote igual?`
+        )) return;
+
         setProcesando(ventaId);
         try {
             const token = localStorage.getItem("token");
@@ -108,6 +117,30 @@ function Embarque() {
                 mensaje: `${pasajeroNombre} embarcado correctamente. Se envió confirmación por correo.`
             });
 
+            fetchPasajeros();
+        } catch (err) {
+            setToast({ tipo: "error", mensaje: err.message });
+        } finally {
+            setProcesando(null);
+        }
+    };
+
+    const marcarPreembarcado = async (ventaId, pasajeroNombre) => {
+        setProcesando(ventaId);
+        try {
+            const token = localStorage.getItem("token");
+            const res = await fetch(`${API_BASE}/api/ventas/${ventaId}/preembarcar`, {
+                method: "PATCH",
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+            if (!res.ok) {
+                let mensaje = "Error al registrar el pre-embarque";
+                if (res.status === 403) mensaje = "No tienes permiso para registrar el pre-embarque";
+                else if (res.status === 401) mensaje = "Tu sesión expiró, vuelve a iniciar sesión";
+                else { try { const d = await res.json(); mensaje = d.message || d.error || mensaje; } catch {} }
+                throw new Error(mensaje);
+            }
+            setToast({ tipo: "success", mensaje: `${pasajeroNombre} subió al carro.` });
             fetchPasajeros();
         } catch (err) {
             setToast({ tipo: "error", mensaje: err.message });
@@ -236,12 +269,23 @@ function Embarque() {
 
     const viajeSeleccionado = viajes.find(v => v.id === viajeId);
 
-    const totalEmbarcados  = pasajeros.filter(p => p.embarqueEstado === "EMBARCADO").length;
-    const totalPendientes  = pasajeros.filter(p => p.embarqueEstado === "PENDIENTE").length;
+    // El backend decide qué rutas se abordan en dos momentos; acá solo se obedece.
+    const rutaConPreembarque = pasajeros.some(p => p.requierePreembarque);
+    // El carro sale de Iquitos, así que el pre-embarque solo se controla desde ahí.
+    const enIquitos = (usuario?.sucursalNombre || "").toLowerCase().includes("iquitos");
+    const mostrarEtapas = rutaConPreembarque && enIquitos;
+
+    // Sin la pestaña visible se trabaja siempre sobre el bote, como antes.
+    const etapaActiva = mostrarEtapas ? etapa : "bote";
+    const campoEstado = etapaActiva === "carro" ? "preembarqueEstado" : "embarqueEstado";
+    const hecho = (p) => p[campoEstado] === "EMBARCADO";
+
+    const totalEmbarcados  = pasajeros.filter(p => hecho(p)).length;
+    const totalPendientes  = pasajeros.length - totalEmbarcados;
 
     const pasajerosFiltrados = pasajeros.filter(p => {
-        if (filtroEstado === "embarcado" && p.embarqueEstado !== "EMBARCADO") return false;
-        if (filtroEstado === "pendiente" && p.embarqueEstado !== "PENDIENTE") return false;
+        if (filtroEstado === "embarcado" && !hecho(p)) return false;
+        if (filtroEstado === "pendiente" && hecho(p))  return false;
         return true;
     });
 
@@ -350,6 +394,36 @@ function Embarque() {
                 </div>
             )}
 
+            {/* ETAPAS: carro (Iquitos) y bote (Nauta). Solo en rutas que lo usan. */}
+            {pasajeros.length > 0 && mostrarEtapas && (
+                    <div className="embarque-etapas" role="tablist" aria-label="Etapa del embarque">
+                        <button
+                            role="tab"
+                            aria-selected={etapaActiva === "carro"}
+                            className={`etapa-btn ${etapaActiva === "carro" ? "activo" : ""}`}
+                            onClick={() => setEtapa("carro")}
+                        >
+                            <i className="ti ti-car"></i>
+                            <span>
+                                <strong>Pre-embarque</strong>
+                                <small>Al carro, en Iquitos</small>
+                            </span>
+                        </button>
+                        <button
+                            role="tab"
+                            aria-selected={etapaActiva === "bote"}
+                            className={`etapa-btn ${etapaActiva === "bote" ? "activo" : ""}`}
+                            onClick={() => setEtapa("bote")}
+                        >
+                            <i className="ti ti-ship"></i>
+                            <span>
+                                <strong>Embarque</strong>
+                                <small>Al bote, en Nauta · 12:00 a 14:00</small>
+                            </span>
+                        </button>
+                    </div>
+                )}
+
             {/* FILTRO ESTADO */}
             {pasajeros.length > 0 && (
                 <div className="embarque-filtros">
@@ -453,26 +527,42 @@ function Embarque() {
                                         {p.serieComprobante}-{p.numeroComprobante}
                                     </td>
                                     <td>
-                                            <span className={`badge ${p.embarqueEstado === "EMBARCADO" ? "badge-embarcado" : "badge-pendiente"}`}>
-                                                {p.embarqueEstado === "EMBARCADO" ? "Embarcado" : "Pendiente"}
+                                            <span className={`badge ${hecho(p) ? "badge-embarcado" : "badge-pendiente"}`}>
+                                                {hecho(p)
+                                                    ? (etapaActiva === "carro" ? "En el carro" : "Embarcado")
+                                                    : "Pendiente"}
                                             </span>
+                                        {/* En el bote se avisa si no pasó por el carro, para que
+                                            el trabajador lo note antes de dejarlo subir. */}
+                                        {etapaActiva === "bote" && mostrarEtapas
+                                            && p.preembarqueEstado !== "EMBARCADO" && (
+                                            <span className="aviso-sin-preembarque" title="No pasó el pre-embarque en Iquitos">
+                                                <i className="ti ti-alert-triangle"></i> sin pre-embarque
+                                            </span>
+                                        )}
                                     </td>
                                     {puedeEmbarcar && (
                                         <td>
-                                            {p.embarqueEstado === "PENDIENTE" ? (
+                                            {!hecho(p) ? (
                                                 <button
                                                     className="btn-embarcar"
-                                                    onClick={() => marcarEmbarcado(p.id, p.pasajeroNombre)}
+                                                    onClick={() => etapaActiva === "carro"
+                                                        ? marcarPreembarcado(p.id, p.pasajeroNombre)
+                                                        : marcarEmbarcado(p.id, p.pasajeroNombre,
+                                                            mostrarEtapas && p.preembarqueEstado !== "EMBARCADO")}
                                                     disabled={procesando === p.id}
                                                 >
                                                     {procesando === p.id
                                                         ? <i className="ti ti-loader-2 spin"></i>
-                                                        : <><i className="ti ti-user-check"></i> Embarcar</>
+                                                        : etapaActiva === "carro"
+                                                            ? <><i className="ti ti-car"></i> Subió al carro</>
+                                                            : <><i className="ti ti-user-check"></i> Embarcar</>
                                                     }
                                                 </button>
                                             ) : (
                                                 <span className="ya-embarcado">
-                                                        <i className="ti ti-check"></i> Embarcado
+                                                        <i className="ti ti-check"></i>
+                                                    {etapaActiva === "carro" ? " En el carro" : " Embarcado"}
                                                     </span>
                                             )}
                                         </td>

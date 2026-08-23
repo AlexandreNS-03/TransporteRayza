@@ -41,6 +41,14 @@ public class VentaDTO {
     private String metodoPago;           // EFECTIVO | YAPE | PLIN | TARJETA | TRANSFERENCIA
     private String codigoQr;
     private String embarqueEstado;
+
+    /* Pre-embarque (subir al carro). NULL en las rutas que no lo usan. La pantalla
+       lo necesita para avisar cuando alguien va a subir al bote sin haber pasado. */
+    private String preembarqueEstado;
+    private String preembarcadoPor;
+    private String preembarcadoAt;
+    /** Si la ruta de este viaje se aborda en dos momentos. */
+    private boolean requierePreembarque;
     private String estado;
     private String canal;              // MOSTRADOR | WEB
     private String grupoVentaId;       // pasajes vendidos juntos (misma operación)
@@ -159,6 +167,15 @@ public class VentaDTO {
 
     public String getCodigoQr() { return codigoQr; }
     public void setCodigoQr(String codigoQr) { this.codigoQr = codigoQr; }
+
+    public String getPreembarqueEstado() { return preembarqueEstado; }
+    public void setPreembarqueEstado(String v) { this.preembarqueEstado = v; }
+    public String getPreembarcadoPor() { return preembarcadoPor; }
+    public void setPreembarcadoPor(String v) { this.preembarcadoPor = v; }
+    public String getPreembarcadoAt() { return preembarcadoAt; }
+    public void setPreembarcadoAt(String v) { this.preembarcadoAt = v; }
+    public boolean isRequierePreembarque() { return requierePreembarque; }
+    public void setRequierePreembarque(boolean v) { this.requierePreembarque = v; }
 
     public String getEmbarqueEstado() { return embarqueEstado; }
     public void setEmbarqueEstado(String embarqueEstado) { this.embarqueEstado = embarqueEstado; }
