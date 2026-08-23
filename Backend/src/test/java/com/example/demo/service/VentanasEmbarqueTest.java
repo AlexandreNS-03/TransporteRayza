@@ -40,9 +40,9 @@ class VentanasEmbarqueTest {
     void embarqueDosHorasAntesDeQuePartaElBote() {
         LocalDateTime[] v = VentaService.ventanaEmbarque(viernes, salidaIquitos, minutosHastaNauta);
 
-        // Bote parte de Nauta 13:00 → abre 11:00, cierra 13:20.
+        // Bote parte de Nauta 13:00 → abre 11:00, cierra 14:20.
         assertEquals(LocalDateTime.of(viernes, LocalTime.of(11, 0)),  v[0]);
-        assertEquals(LocalDateTime.of(viernes, LocalTime.of(13, 20)), v[1]);
+        assertEquals(LocalDateTime.of(viernes, LocalTime.of(14, 20)), v[1]);
     }
 
     @Test
@@ -75,6 +75,20 @@ class VentanasEmbarqueTest {
 
         LocalDateTime[] v = VentaService.ventanaEmbarque(viernes, salidaIquitos, null);
         assertEquals(LocalDateTime.of(viernes, LocalTime.of(9, 0)), v[0]);
+    }
+
+    @Test
+    @DisplayName("El bote da una hora más de gracia que una ruta normal")
+    void elBoteCierraUnaHoraDespues() {
+        LocalDateTime[] bote   = VentaService.ventanaEmbarque(viernes, salidaIquitos, minutosHastaNauta);
+        LocalDateTime[] normal = VentaService.ventanaEmbarque(viernes, salidaIquitos, null);
+
+        // Los pasajeros llegan a Nauta en carro y ese trayecto no calza al minuto.
+        LocalDateTime partidaBote = LocalDateTime.of(viernes, LocalTime.of(13, 0));
+        assertEquals(80, java.time.Duration.between(partidaBote, bote[1]).toMinutes());
+        assertEquals(20, java.time.Duration.between(
+                LocalDateTime.of(viernes, salidaIquitos), normal[1]).toMinutes(),
+                "la ruta normal no cambia: sigue con 20 minutos de gracia");
     }
 
     @Test

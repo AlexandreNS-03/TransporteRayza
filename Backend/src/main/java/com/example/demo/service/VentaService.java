@@ -93,15 +93,19 @@ public class VentaService {
     static LocalDateTime[] ventanaEmbarque(java.time.LocalDate fecha, java.time.LocalTime horaSalida,
                                            Integer minutosHastaElBote) {
         LocalDateTime salida = LocalDateTime.of(fecha, horaSalida);
+        boolean enDosMomentos = minutosHastaElBote != null;
 
         // En las rutas que se abordan en dos momentos, el bote no parte del mismo
         // sitio ni a la misma hora que el carro: sale del puerto intermedio (Nauta)
         // horas después. La ventana se ancla ahí, no en la salida de Iquitos.
-        LocalDateTime partida = minutosHastaElBote != null
-                ? salida.plusMinutes(minutosHastaElBote)
-                : salida;
+        LocalDateTime partida = enDosMomentos ? salida.plusMinutes(minutosHastaElBote) : salida;
 
-        return new LocalDateTime[]{ partida.minusHours(2), partida.plusMinutes(20) };
+        // El cierre del bote va una hora más allá que el de una ruta normal: los
+        // pasajeros llegan a Nauta en carro y ese trayecto no siempre calza al
+        // minuto, así que cerrar a los 20 minutos dejaba gente en tierra.
+        long graciaMinutos = enDosMomentos ? 80 : 20;
+
+        return new LocalDateTime[]{ partida.minusHours(2), partida.plusMinutes(graciaMinutos) };
     }
 
     /** El carro se aborda en Iquitos: abre una hora antes de la salida. */
