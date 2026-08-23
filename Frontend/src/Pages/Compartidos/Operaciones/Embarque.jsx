@@ -463,7 +463,7 @@ function Embarque() {
                             <i className="ti ti-ship"></i>
                             <span>
                                 <strong>Embarque</strong>
-                                <small>Al bote, en Nauta · 12:00 a 14:00</small>
+                                <small>Al bote, en Nauta · 2 h antes de que parta</small>
                             </span>
                         </button>
                     </div>
