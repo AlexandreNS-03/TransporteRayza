@@ -183,25 +183,6 @@ export function IconShare(props) {
   );
 }
 
-/** Menú de la app (las tres líneas), para el paso "entra al menú de tu Yape". */
-export function IconMenuApp(props) {
-  return (
-    <svg {...base} {...props}>
-      <path d="M4 7h16M4 12h16M4 17h10" {...trazo} />
-    </svg>
-  );
-}
-
-/** Teclado numérico: el paso de escribir el código de aprobación. */
-export function IconTeclado(props) {
-  return (
-    <svg {...base} {...props}>
-      <rect x="3" y="5" width="18" height="14" rx="2.4" {...trazo} />
-      <path d="M7.5 9.5h.01M12 9.5h.01M16.5 9.5h.01M7.5 14h.01M16.5 14h.01M11 14h2" {...trazo} />
-    </svg>
-  );
-}
-
 export function IconFood(props) {
   return (
     <svg {...base} {...props}>
