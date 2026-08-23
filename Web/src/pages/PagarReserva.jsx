@@ -3,8 +3,7 @@ import { useSearchParams, Link } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import Confirmacion from "../components/Confirmacion";
-import LogoPasarela from "../components/LogoPasarela";
-import { IconCard, IconPhone } from "../components/Icons";
+import { MetodosPago, FormularioYape } from "../components/PagoMetodos";
 import { reservasPendientes, formularioDePagoGrupo, pagarGrupo,
          pagarConYapeGrupo, metodosDePago, soles } from "../services/publicApi";
 import { tokenizarYape } from "../services/yape";
@@ -174,38 +173,20 @@ export default function PagarReserva() {
                   <h3>¿Cómo quieres pagar?</h3>
 
                   {!formularioVisible && (
-                    <div className="metodos-pago">
-                      <button type="button" className={`metodo ${metodo === "tarjeta" ? "activo" : ""}`}
-                              onClick={() => { setMetodo("tarjeta"); setErrorPago(null); }} disabled={pagando}>
-                        <LogoPasarela archivo="izipay.png" alt="Izipay" respaldo={<IconCard />} />
-                        <span className="metodo-nombre">Tarjeta</span>
-                        <span className="metodo-detalle">Débito o crédito</span>
-                      </button>
-                      <button type="button" className={`metodo ${metodo === "yape" ? "activo" : ""}`}
-                              onClick={() => { setMetodo("yape"); setErrorPago(null); }} disabled={pagando}>
-                        <LogoPasarela archivo="yape.png" alt="Yape" respaldo={<IconPhone />} />
-                        <span className="metodo-nombre">Yape</span>
-                        <span className="metodo-detalle">Con tu celular</span>
-                      </button>
-                    </div>
+                    <MetodosPago
+                      metodo={metodo}
+                      deshabilitado={pagando}
+                      onElegir={(m) => { setMetodo(m); setErrorPago(null); }}
+                    />
                   )}
 
                   {metodo === "yape" && !formularioVisible && (
-                    <div className="yape-form">
-                      <p className="muted" style={{ fontSize: 13 }}>
-                        En tu app de Yape entra a <strong>Aprobar compra por internet</strong> y genera el código de 6 dígitos.
-                      </p>
-                      <label>CELULAR
-                        <input type="tel" inputMode="numeric" maxLength={9} placeholder="9XXXXXXXX"
-                               value={yapeDatos.phoneNumber} disabled={pagando}
-                               onChange={e => setYapeDatos(d => ({ ...d, phoneNumber: e.target.value.replace(/\D/g, "") }))} />
-                      </label>
-                      <label>CÓDIGO DE APROBACIÓN
-                        <input inputMode="numeric" maxLength={6} placeholder="6 dígitos"
-                               value={yapeDatos.otp} disabled={pagando}
-                               onChange={e => setYapeDatos(d => ({ ...d, otp: e.target.value.replace(/\D/g, "") }))} />
-                      </label>
-                    </div>
+                    <FormularioYape
+                      datos={yapeDatos}
+                      onCambiar={setYapeDatos}
+                      deshabilitado={pagando}
+                      prueba={metodos?.yape?.prueba}
+                    />
                   )}
 
                   <div id="izipay-form" style={{ marginTop: 16 }} />

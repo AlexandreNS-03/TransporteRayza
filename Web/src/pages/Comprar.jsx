@@ -9,8 +9,7 @@ import MapaAsientos from "../components/MapaAsientos";
 import SelectorPasajeros from "../components/SelectorPasajeros";
 import FormularioPasajero, { FormularioContacto } from "../components/FormularioPasajero";
 import Confirmacion from "../components/Confirmacion";
-import LogoPasarela from "../components/LogoPasarela";
-import { IconCard, IconPhone } from "../components/Icons";
+import { MetodosPago, FormularioYape } from "../components/PagoMetodos";
 import { buscarViajes, crearReservaGrupo, pagarGrupo, formularioDePagoGrupo,
          metodosDePago, pagarConYapeGrupo, avisarAbandono, soles } from "../services/publicApi";
 import { tokenizarYape } from "../services/yape";
@@ -288,6 +287,11 @@ export default function Comprar() {
     return ids;
   };
 
+  // El mismo total que muestra el resumen. Va también en el botón: el pasajero
+  // confirma cuánto se le cobra en el control que lo cobra, sin mirar al costado.
+  const totalACobrar = totalLeg(ida.viaje, ida.asientos)
+    + (esRedondo && vuelta.viaje ? totalLeg(vuelta.viaje, vuelta.asientos) : 0);
+
   const volverAlPagoDesde = (n) => { invalidarReservas(); setErrorPago(null); setPaso(n); };
   const terminar = (conf) => { invalidarReservas(); setConfirmacion(conf); setPaso(4); scrollTop(); };
 
@@ -449,43 +453,20 @@ export default function Comprar() {
                     </p>
 
                     {!formularioVisible && (
-                      <div className="metodos-pago">
-                        <button type="button" className={`metodo ${metodo === "tarjeta" ? "activo" : ""}`}
-                                onClick={() => { setMetodo("tarjeta"); setErrorPago(null); }} disabled={pagando}>
-                          <LogoPasarela archivo="izipay.png" alt="Izipay" respaldo={<IconCard />} />
-                          <span className="metodo-nombre">Tarjeta</span>
-                          <span className="metodo-detalle">Débito o crédito</span>
-                        </button>
-                        <button type="button" className={`metodo ${metodo === "yape" ? "activo" : ""}`}
-                                onClick={() => { setMetodo("yape"); setErrorPago(null); }} disabled={pagando}>
-                          <LogoPasarela archivo="yape.png" alt="Yape" respaldo={<IconPhone />} />
-                          <span className="metodo-nombre">Yape</span>
-                          <span className="metodo-detalle">Con tu celular</span>
-                        </button>
-                      </div>
+                      <MetodosPago
+                        metodo={metodo}
+                        deshabilitado={pagando}
+                        onElegir={(m) => { setMetodo(m); setErrorPago(null); }}
+                      />
                     )}
 
-                    {metodo === "yape" && (
-                      <div className="yape-form">
-                        <p className="muted" style={{ fontSize: 13 }}>
-                          En tu app de Yape entra a <strong>Aprobar compra por internet</strong> y genera el código de 6 dígitos.
-                        </p>
-                        {metodos?.yape?.prueba && (
-                          <div className="alert alert-warn" style={{ fontSize: 13 }}>
-                            Modo de prueba: usa el celular <strong>111111111</strong> con el código <strong>123456</strong>.
-                          </div>
-                        )}
-                        <label>CELULAR
-                          <input type="tel" inputMode="numeric" maxLength={9} placeholder="9XXXXXXXX"
-                                 value={yapeDatos.phoneNumber} disabled={pagando}
-                                 onChange={e => setYapeDatos(d => ({ ...d, phoneNumber: e.target.value.replace(/\D/g, "") }))} />
-                        </label>
-                        <label>CÓDIGO DE APROBACIÓN
-                          <input inputMode="numeric" maxLength={6} placeholder="6 dígitos"
-                                 value={yapeDatos.otp} disabled={pagando}
-                                 onChange={e => setYapeDatos(d => ({ ...d, otp: e.target.value.replace(/\D/g, "") }))} />
-                        </label>
-                      </div>
+                    {metodo === "yape" && !formularioVisible && (
+                      <FormularioYape
+                        datos={yapeDatos}
+                        onCambiar={setYapeDatos}
+                        deshabilitado={pagando}
+                        prueba={metodos?.yape?.prueba}
+                      />
                     )}
 
                     {((metodo === "tarjeta" && metodos?.tarjeta?.simulado) ||
@@ -516,7 +497,7 @@ export default function Comprar() {
                         <button className="btn btn-primary" disabled={pagando}
                                 onClick={metodo === "yape" ? pagarConYape : pagar}>
                           {pagando ? (metodo === "yape" ? "Cobrando…" : "Abriendo el pago…")
-                                   : (metodo === "yape" ? "Pagar con Yape" : "Pagar con tarjeta")}
+                                   : `Pagar ${soles(totalACobrar)}`}
                         </button>
                       )}
                     </div>
