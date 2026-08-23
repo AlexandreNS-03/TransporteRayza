@@ -86,6 +86,16 @@ public class VentaController {
         return ResponseEntity.ok(ventaService.anularVenta(id, auth.getName()));
     }
 
+    /** Pre-embarque: el pasajero sube al carro que lo lleva de Iquitos a Nauta. */
+    @PatchMapping("/{id}/preembarcar")
+    public ResponseEntity<VentaDTO> preembarcar(
+            @PathVariable String id,
+            Authentication authentication) {
+
+        String usuarioNombre = authentication.getName();
+        return ResponseEntity.ok(ventaService.preembarcarPasajero(id, usuarioNombre));
+    }
+
     @PatchMapping("/{id}/embarcar")
     public ResponseEntity<VentaDTO> embarcar(
             @PathVariable String id,

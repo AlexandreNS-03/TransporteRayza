@@ -38,6 +38,14 @@ public class Ruta {
     @Column(name = "precio_vip_oferta", precision = 10, scale = 2)
     private BigDecimal precioVipOferta;
 
+    /**
+     * Esta ruta se aborda en dos momentos: primero un carro y después el bote.
+     * Va como bandera y no por id de ruta para que activar otra ruta igual no
+     * requiera tocar código.
+     */
+    @Column(name = "requiere_preembarque")
+    private Boolean requierePreembarque;
+
     @Column(name = "oferta_activa")
     private Boolean ofertaActiva;
 
@@ -130,6 +138,9 @@ public class Ruta {
 
     public List<RutaTarifaTramo> getTarifas() { return tarifas; }
     public void setTarifas(List<RutaTarifaTramo> tarifas) { this.tarifas = tarifas; }
+
+    public boolean isRequierePreembarque() { return Boolean.TRUE.equals(requierePreembarque); }
+    public void setRequierePreembarque(Boolean v) { this.requierePreembarque = v; }
 
     public List<RutaTramoBloqueado> getTramosBloqueados() { return tramosBloqueados; }
     public void setTramosBloqueados(List<RutaTramoBloqueado> tramosBloqueados) { this.tramosBloqueados = tramosBloqueados; }

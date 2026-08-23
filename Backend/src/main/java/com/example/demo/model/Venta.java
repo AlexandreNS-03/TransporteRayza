@@ -125,6 +125,21 @@ public class Venta {
     @Column(name = "embarcado_por", length = 100)
     private String embarcadoPor;
 
+    /*
+     * Pre-embarque: subir al carro que lleva de Iquitos a Nauta, antes de abordar
+     * el bote. Queda NULL en las rutas que no lo usan y en las ventas anteriores,
+     * y ahí se lee como "no aplica".
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "preembarque_estado")
+    private EmbarqueEstado preembarqueEstado;
+
+    @Column(name = "preembarcado_at")
+    private LocalDateTime preembarcadoAt;
+
+    @Column(name = "preembarcado_por", length = 100)
+    private String preembarcadoPor;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "estado")
     private EstadoVenta estado;
@@ -292,6 +307,13 @@ public class Venta {
 
     public String getCodigoQr() { return codigoQr; }
     public void setCodigoQr(String codigoQr) { this.codigoQr = codigoQr; }
+
+    public EmbarqueEstado getPreembarqueEstado() { return preembarqueEstado; }
+    public void setPreembarqueEstado(EmbarqueEstado v) { this.preembarqueEstado = v; }
+    public LocalDateTime getPreembarcadoAt() { return preembarcadoAt; }
+    public void setPreembarcadoAt(LocalDateTime v) { this.preembarcadoAt = v; }
+    public String getPreembarcadoPor() { return preembarcadoPor; }
+    public void setPreembarcadoPor(String v) { this.preembarcadoPor = v; }
 
     public EmbarqueEstado getEmbarqueEstado() { return embarqueEstado; }
     public void setEmbarqueEstado(EmbarqueEstado embarqueEstado) { this.embarqueEstado = embarqueEstado; }
