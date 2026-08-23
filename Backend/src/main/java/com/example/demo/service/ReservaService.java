@@ -219,7 +219,8 @@ public class ReservaService {
         validarDatosDelComprobante(req);
 
         boolean vip = "VIP".equalsIgnoreCase(req.getAsientoTipo());
-        BigDecimal precio = calcularPrecio(viaje, req.getOrdenOrigen(), req.getOrdenDestino(), vip);
+        BigDecimal precio = calcularPrecio(viaje, req.getParadaOrigen(), req.getParadaDestino(),
+                req.getOrdenOrigen(), req.getOrdenDestino(), vip);
         if (precio == null)
             throw new RuntimeException("No se pudo determinar la tarifa de este tramo");
 
@@ -863,8 +864,9 @@ public class ReservaService {
         return dto;
     }
 
-    private BigDecimal calcularPrecio(Viaje viaje, int ordenOrigen, int ordenDestino, boolean vip) {
-        BigDecimal regular = precioRegular(viaje, ordenOrigen, ordenDestino, vip);
+    private BigDecimal calcularPrecio(Viaje viaje, String nombreOrigen, String nombreDestino,
+                                     int ordenOrigen, int ordenDestino, boolean vip) {
+        BigDecimal regular = precioRegular(viaje, nombreOrigen, nombreDestino, ordenOrigen, ordenDestino, vip);
 
         java.util.Optional<Ruta> oferta = publicService.ofertaActivaDeRuta(
                 viaje.getRutaId(), viaje.getFechaSalida());
@@ -881,14 +883,15 @@ public class ReservaService {
     }
 
     /** Precio sin oferta: tarifa del tramo si existe, si no la del viaje. */
-    private BigDecimal precioRegular(Viaje viaje, int ordenOrigen, int ordenDestino, boolean vip) {
+    private BigDecimal precioRegular(Viaje viaje, String nombreOrigen, String nombreDestino,
+                                     int ordenOrigen, int ordenDestino, boolean vip) {
         if (viaje.getRutaId() != null) {
-            for (RutaTarifaTramo t : tarifaRepository.findByRutaId(viaje.getRutaId())) {
-                if (t.getOrdenOrigen() != null && t.getOrdenDestino() != null
-                        && t.getOrdenOrigen() == ordenOrigen && t.getOrdenDestino() == ordenDestino) {
-                    return vip ? t.getPrecioVip() : t.getPrecioNormal();
-                }
-            }
+            // Mismo empate por nombre que la web (PublicService): así el cobro y lo que
+            // se muestra coinciden aunque la ruta haya cambiado de paradas después.
+            RutaTarifaTramo t = PublicService.tarifaDelTramo(
+                    tarifaRepository.findByRutaId(viaje.getRutaId()),
+                    nombreOrigen, nombreDestino, ordenOrigen, ordenDestino);
+            if (t != null) return vip ? t.getPrecioVip() : t.getPrecioNormal();
         }
         return vip ? viaje.getPrecioVip() : viaje.getPrecioNormal();
     }
