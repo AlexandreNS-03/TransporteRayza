@@ -271,9 +271,11 @@ function Embarque() {
 
     // El backend decide qué rutas se abordan en dos momentos; acá solo se obedece.
     const rutaConPreembarque = pasajeros.some(p => p.requierePreembarque);
-    // El carro sale de Iquitos, así que el pre-embarque solo se controla desde ahí.
+    // El carro sale de Iquitos, así que el pre-embarque se controla desde ahí. El
+    // admin lo ve desde cualquier sucursal: supervisa la operación completa y si no,
+    // no podría revisar quién subió al carro sin viajar hasta Iquitos.
     const enIquitos = (usuario?.sucursalNombre || "").toLowerCase().includes("iquitos");
-    const mostrarEtapas = rutaConPreembarque && enIquitos;
+    const mostrarEtapas = rutaConPreembarque && (enIquitos || esAdmin);
 
     // Sin la pestaña visible se trabaja siempre sobre el bote, como antes.
     const etapaActiva = mostrarEtapas ? etapa : "bote";
