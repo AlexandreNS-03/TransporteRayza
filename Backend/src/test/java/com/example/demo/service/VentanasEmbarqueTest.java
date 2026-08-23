@@ -14,70 +14,97 @@ import static org.junit.jupiter.api.Assertions.*;
  * pasajero sube o se queda en tierra, y equivocarse en una hora no se nota hasta
  * que hay gente parada en el muelle.
  *
- * La ruta Iquitos → Requena se aborda en dos momentos: el carro sale de Iquitos y
- * el bote se toma en Nauta, horas después. Por eso su embarque NO se mide contra
- * la hora de salida sino contra el reloj: de 12:00 a 14:00.
+ * La ruta Iquitos → Requena se aborda en dos momentos: el carro sale de Iquitos
+ * y el bote se toma en Nauta, dos horas después. El embarque se ancla en la
+ * partida del BOTE, no en la del carro: son puertos y horas distintas.
  */
 class VentanasEmbarqueTest {
 
     private final LocalDate viernes = LocalDate.of(2026, 8, 28);
-    private final LocalTime once    = LocalTime.of(11, 0);
+
+    /** El viaje real: sale de Iquitos 11:00 y el bote parte de Nauta 13:00. */
+    private final LocalTime salidaIquitos = LocalTime.of(11, 0);
+    private final int minutosHastaNauta   = 120;
 
     @Test
-    @DisplayName("Ruta normal: el embarque abre 2 h antes y cierra 20 min después de salir")
+    @DisplayName("Ruta normal: abre 2 h antes de la salida y cierra 20 min después")
     void rutaSinPreembarque() {
-        LocalDateTime[] v = VentaService.ventanaEmbarque(viernes, once, false);
+        LocalDateTime[] v = VentaService.ventanaEmbarque(viernes, salidaIquitos, null);
 
-        assertEquals(LocalDateTime.of(viernes, LocalTime.of(9, 0)), v[0]);
+        assertEquals(LocalDateTime.of(viernes, LocalTime.of(9, 0)),  v[0]);
         assertEquals(LocalDateTime.of(viernes, LocalTime.of(11, 20)), v[1]);
     }
 
     @Test
-    @DisplayName("Iquitos → Requena: el bote en Nauta va de 12:00 a 14:00, no según la salida")
-    void rutaConPreembarque() {
-        LocalDateTime[] v = VentaService.ventanaEmbarque(viernes, once, true);
+    @DisplayName("Iquitos → Requena: si el bote parte de Nauta a la 1, el embarque abre 11")
+    void embarqueDosHorasAntesDeQuePartaElBote() {
+        LocalDateTime[] v = VentaService.ventanaEmbarque(viernes, salidaIquitos, minutosHastaNauta);
 
-        assertEquals(LocalDateTime.of(viernes, LocalTime.of(12, 0)), v[0]);
-        assertEquals(LocalDateTime.of(viernes, LocalTime.of(14, 0)), v[1]);
+        // Bote parte de Nauta 13:00 → abre 11:00, cierra 14:20.
+        assertEquals(LocalDateTime.of(viernes, LocalTime.of(11, 0)),  v[0]);
+        assertEquals(LocalDateTime.of(viernes, LocalTime.of(14, 20)), v[1]);
     }
 
     @Test
-    @DisplayName("Cambiar la hora de salida no mueve el embarque en Nauta")
-    void laHoraDeSalidaNoMueveElBote() {
-        LocalDateTime[] temprano = VentaService.ventanaEmbarque(viernes, LocalTime.of(7, 30), true);
-        LocalDateTime[] tarde    = VentaService.ventanaEmbarque(viernes, LocalTime.of(15, 45), true);
+    @DisplayName("El embarque se mide desde el bote, no desde la salida del carro")
+    void seAnclaEnElBoteNoEnElCarro() {
+        LocalDateTime[] conBote = VentaService.ventanaEmbarque(viernes, salidaIquitos, minutosHastaNauta);
+        LocalDateTime[] sinBote = VentaService.ventanaEmbarque(viernes, salidaIquitos, null);
 
-        // Es una ventana de reloj: el bote recibe de 12 a 2 salga cuando salga el carro.
-        assertArrayEquals(temprano, tarde);
-        assertEquals(LocalTime.of(12, 0), temprano[0].toLocalTime());
-        assertEquals(LocalTime.of(14, 0), temprano[1].toLocalTime());
+        // Anclar en la salida daría 09:00; anclado en el bote da 11:00.
+        assertNotEquals(sinBote[0], conBote[0]);
+        assertEquals(2, java.time.Duration.between(sinBote[0], conBote[0]).toHours(),
+                "las dos horas de diferencia son el trayecto Iquitos → Nauta");
+    }
+
+    @Test
+    @DisplayName("Si cambia la hora de salida, el embarque se mueve con ella")
+    void seMueveConLaSalida() {
+        LocalDateTime[] v = VentaService.ventanaEmbarque(viernes, LocalTime.of(9, 30), minutosHastaNauta);
+
+        // Sale 09:30, bote parte 11:30 → embarque abre 09:30.
+        assertEquals(LocalDateTime.of(viernes, LocalTime.of(9, 30)), v[0]);
+    }
+
+    @Test
+    @DisplayName("Sin paradas cargadas se cae a la hora de salida, como siempre")
+    void sinParadasUsaLaSalida() {
+        assertArrayEquals(
+                VentaService.ventanaEmbarque(viernes, salidaIquitos, null),
+                VentaService.ventanaEmbarque(viernes, salidaIquitos, null));
+
+        LocalDateTime[] v = VentaService.ventanaEmbarque(viernes, salidaIquitos, null);
+        assertEquals(LocalDateTime.of(viernes, LocalTime.of(9, 0)), v[0]);
+    }
+
+    @Test
+    @DisplayName("El bote da una hora más de gracia que una ruta normal")
+    void elBoteCierraUnaHoraDespues() {
+        LocalDateTime[] bote   = VentaService.ventanaEmbarque(viernes, salidaIquitos, minutosHastaNauta);
+        LocalDateTime[] normal = VentaService.ventanaEmbarque(viernes, salidaIquitos, null);
+
+        // Los pasajeros llegan a Nauta en carro y ese trayecto no calza al minuto.
+        LocalDateTime partidaBote = LocalDateTime.of(viernes, LocalTime.of(13, 0));
+        assertEquals(80, java.time.Duration.between(partidaBote, bote[1]).toMinutes());
+        assertEquals(20, java.time.Duration.between(
+                LocalDateTime.of(viernes, salidaIquitos), normal[1]).toMinutes(),
+                "la ruta normal no cambia: sigue con 20 minutos de gracia");
     }
 
     @Test
     @DisplayName("El pre-embarque al carro abre 1 hora antes de la salida")
     void preembarqueAbreUnaHoraAntes() {
-        LocalDateTime[] v = VentaService.ventanaPreembarque(viernes, once);
+        LocalDateTime[] v = VentaService.ventanaPreembarque(viernes, salidaIquitos);
 
-        assertEquals(LocalDateTime.of(viernes, LocalTime.of(10, 0)), v[0]);
+        assertEquals(LocalDateTime.of(viernes, LocalTime.of(10, 0)),  v[0]);
         assertEquals(LocalDateTime.of(viernes, LocalTime.of(11, 20)), v[1]);
     }
 
     @Test
-    @DisplayName("El pre-embarque abre después que el embarque de una ruta normal")
-    void elPreembarqueEsMasTardeQueElEmbarqueNormal() {
-        LocalDateTime[] pre    = VentaService.ventanaPreembarque(viernes, once);
-        LocalDateTime[] normal = VentaService.ventanaEmbarque(viernes, once, false);
-
-        // 1 h antes contra 2 h antes: el carro se aborda más cerca de la salida.
-        assertTrue(pre[0].isAfter(normal[0]),
-                "el pre-embarque (" + pre[0] + ") debe abrir después que el embarque normal (" + normal[0] + ")");
-    }
-
-    @Test
-    @DisplayName("El carro se aborda antes que el bote")
+    @DisplayName("Primero se aborda el carro y después el bote")
     void primeroElCarroDespuesElBote() {
-        LocalDateTime[] carro = VentaService.ventanaPreembarque(viernes, once);
-        LocalDateTime[] bote  = VentaService.ventanaEmbarque(viernes, once, true);
+        LocalDateTime[] carro = VentaService.ventanaPreembarque(viernes, salidaIquitos);
+        LocalDateTime[] bote  = VentaService.ventanaEmbarque(viernes, salidaIquitos, minutosHastaNauta);
 
         assertTrue(carro[0].isBefore(bote[0]), "el pre-embarque debe abrir antes que el embarque");
         assertTrue(carro[1].isBefore(bote[1]), "el pre-embarque debe cerrar antes que el embarque");

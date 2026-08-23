@@ -72,11 +72,6 @@ public class VentaService {
      * El embarque solo está permitido desde 2 horas antes de la salida
      * hasta 20 minutos después de la hora programada del viaje.
      */
-    /* Horas fijas del embarque al bote en Nauta, para las rutas que se abordan en
-       dos momentos. Es una ventana de reloj y no un cálculo sobre la salida porque
-       así la maneja la operación: el bote recibe pasajeros de 12 a 2. */
-    private static final java.time.LocalTime EMBARQUE_NAUTA_DESDE = java.time.LocalTime.of(12, 0);
-    private static final java.time.LocalTime EMBARQUE_NAUTA_HASTA = java.time.LocalTime.of(14, 0);
 
     private static final java.time.format.DateTimeFormatter FMT_FECHA_HORA =
             java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
@@ -96,15 +91,21 @@ public class VentaService {
      * no se nota hasta que hay gente parada en el muelle.
      */
     static LocalDateTime[] ventanaEmbarque(java.time.LocalDate fecha, java.time.LocalTime horaSalida,
-                                           boolean conPreembarque) {
-        // Con pre-embarque el bote se aborda en Nauta, horas después de que el carro
-        // salió de Iquitos: medir contra la hora de salida no sirve, es hora de reloj.
-        if (conPreembarque)
-            return new LocalDateTime[]{ LocalDateTime.of(fecha, EMBARQUE_NAUTA_DESDE),
-                                        LocalDateTime.of(fecha, EMBARQUE_NAUTA_HASTA) };
-
+                                           Integer minutosHastaElBote) {
         LocalDateTime salida = LocalDateTime.of(fecha, horaSalida);
-        return new LocalDateTime[]{ salida.minusHours(2), salida.plusMinutes(20) };
+        boolean enDosMomentos = minutosHastaElBote != null;
+
+        // En las rutas que se abordan en dos momentos, el bote no parte del mismo
+        // sitio ni a la misma hora que el carro: sale del puerto intermedio (Nauta)
+        // horas después. La ventana se ancla ahí, no en la salida de Iquitos.
+        LocalDateTime partida = enDosMomentos ? salida.plusMinutes(minutosHastaElBote) : salida;
+
+        // El cierre del bote va una hora más allá que el de una ruta normal: los
+        // pasajeros llegan a Nauta en carro y ese trayecto no siempre calza al
+        // minuto, así que cerrar a los 20 minutos dejaba gente en tierra.
+        long graciaMinutos = enDosMomentos ? 80 : 20;
+
+        return new LocalDateTime[]{ partida.minusHours(2), partida.plusMinutes(graciaMinutos) };
     }
 
     /** El carro se aborda en Iquitos: abre una hora antes de la salida. */
@@ -113,32 +114,44 @@ public class VentaService {
         return new LocalDateTime[]{ salida.minusHours(1), salida.plusMinutes(20) };
     }
 
+    /**
+     * Minutos desde la salida hasta que el bote parte, en las rutas que se abordan
+     * en dos momentos.
+     *
+     * El carro lleva del puerto de origen al siguiente (Iquitos → Nauta), y ahí se
+     * toma el bote: por eso se mira la parada que sigue al origen y no un nombre
+     * fijo, que se rompería si mañana la parada se llama distinto.
+     *
+     * Devuelve null si el viaje no tiene paradas cargadas; ahí se cae a la hora de
+     * salida, que es el comportamiento de siempre.
+     */
+    private Integer minutosHastaElBote(Viaje viaje) {
+        if (viaje == null) return null;
+        return viajeParadaRepository.findByViajeIdOrderByOrdenAsc(viaje.getId()).stream()
+                .filter(p -> p.getOrden() != null && p.getOrden() == 2)
+                .map(com.example.demo.model.ViajeParada::getMinutosDesdeSalida)
+                .filter(java.util.Objects::nonNull)
+                .findFirst().orElse(null);
+    }
+
     private void validarVentanaDeEmbarque(Venta venta) {
         if (venta.getViajeId() == null) return;
         Viaje viaje = viajeRepository.findById(venta.getViajeId()).orElse(null);
         if (viaje == null || viaje.getFechaSalida() == null || viaje.getHoraSalida() == null) return;
 
         boolean conPreembarque = usaPreembarque(viaje);
-        LocalDateTime[] v = ventanaEmbarque(viaje.getFechaSalida(), viaje.getHoraSalida(), conPreembarque);
+        Integer minutos = conPreembarque ? minutosHastaElBote(viaje) : null;
+
+        LocalDateTime[] v = ventanaEmbarque(viaje.getFechaSalida(), viaje.getHoraSalida(), minutos);
         LocalDateTime ahora = LocalDateTime.now();
+        String queParte = conPreembarque ? "el bote" : "el viaje";
 
-        if (conPreembarque) {
-            if (ahora.isBefore(v[0]))
-                throw new RuntimeException("El embarque al bote en Nauta se abre a las "
-                        + EMBARQUE_NAUTA_DESDE + ".");
-            if (ahora.isAfter(v[1]))
-                throw new RuntimeException("El embarque al bote en Nauta cerró a las "
-                        + EMBARQUE_NAUTA_HASTA + ".");
-            return;
-        }
-
-        LocalDateTime salida = LocalDateTime.of(viaje.getFechaSalida(), viaje.getHoraSalida());
         if (ahora.isBefore(v[0]))
-            throw new RuntimeException("El embarque aún no está habilitado. Se abre el " + v[0].format(FMT_FECHA_HORA)
-                    + " (2 horas antes de la salida programada: " + salida.format(FMT_FECHA_HORA) + ")");
+            throw new RuntimeException("El embarque aún no está habilitado. Se abre el "
+                    + v[0].format(FMT_FECHA_HORA) + " (2 horas antes de que parta " + queParte + ").");
         if (ahora.isAfter(v[1]))
             throw new RuntimeException("El embarque ya cerró el " + v[1].format(FMT_FECHA_HORA)
-                    + " (20 minutos después de la salida programada: " + salida.format(FMT_FECHA_HORA) + ")");
+                    + " (20 minutos después de que partiera " + queParte + ").");
     }
 
     /**
@@ -531,6 +544,7 @@ public class VentaService {
     }
 
     private final com.example.demo.repository.RutaRepository rutaRepository;
+    private final com.example.demo.repository.ViajeParadaRepository viajeParadaRepository;
 
     public VentaService(VentaRepository ventaRepository,
                         VentaTramoUsadoRepository tramoUsadoRepository,
@@ -541,7 +555,8 @@ public class VentaService {
                         CajaService cajaService,
                         AuditoriaService auditoriaService,
                         PublicService publicService,
-                        com.example.demo.repository.RutaRepository rutaRepository) {
+                        com.example.demo.repository.RutaRepository rutaRepository,
+                        com.example.demo.repository.ViajeParadaRepository viajeParadaRepository) {
         this.ventaRepository      = ventaRepository;
         this.tramoUsadoRepository = tramoUsadoRepository;
         this.viajeRepository      = viajeRepository;
@@ -552,6 +567,7 @@ public class VentaService {
         this.auditoriaService     = auditoriaService;
         this.publicService        = publicService;
         this.rutaRepository       = rutaRepository;
+        this.viajeParadaRepository = viajeParadaRepository;
     }
 
     /**
