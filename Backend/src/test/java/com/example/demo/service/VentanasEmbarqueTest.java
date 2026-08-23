@@ -109,4 +109,32 @@ class VentanasEmbarqueTest {
         assertTrue(carro[0].isBefore(bote[0]), "el pre-embarque debe abrir antes que el embarque");
         assertTrue(carro[1].isBefore(bote[1]), "el pre-embarque debe cerrar antes que el embarque");
     }
+
+    // ---- Quién sube en un puerto de paso ----
+    //
+    // El bote recoge pasajeros a lo largo del río. Con la ventana medida desde la
+    // salida del puerto de origen, embarcar en Clavero era imposible: la ventana
+    // cerraba a las 05:20 y el bote recién llegaba ahí a las 07:30.
+
+    @Test
+    @DisplayName("La parada 1 es el puerto de origen: ahí sí se controla la hora")
+    void enElOrigenSeControla() {
+        assertFalse(VentaService.subeEnPuertoDePaso(1));
+    }
+
+    @Test
+    @DisplayName("De la parada 2 en adelante es puerto de paso: sin hora que cumplir")
+    void enPuertoDePasoNoSeControla() {
+        assertTrue(VentaService.subeEnPuertoDePaso(2),  "Yanallapa");
+        assertTrue(VentaService.subeEnPuertoDePaso(6),  "Clavero");
+        assertTrue(VentaService.subeEnPuertoDePaso(10), "Nauta");
+    }
+
+    @Test
+    @DisplayName("Sin orden de parada se trata como origen, que es lo que ya hacía")
+    void sinOrdenSeComportaComoAntes() {
+        // Ventas viejas que no guardaban ordenOrigen: no deben quedar sin control
+        // por un dato ausente.
+        assertFalse(VentaService.subeEnPuertoDePaso(null));
+    }
 }

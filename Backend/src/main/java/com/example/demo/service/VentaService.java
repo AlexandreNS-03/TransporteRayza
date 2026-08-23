@@ -134,10 +134,41 @@ public class VentaService {
                 .findFirst().orElse(null);
     }
 
+    /**
+     * ¿Este pasajero sube en un puerto intermedio y no en el de origen?
+     *
+     * La parada 1 es el puerto de donde arranca el viaje; de la 2 en adelante son
+     * puertos de paso. Sin `ordenOrigen` (ventas viejas) se asume el origen, que
+     * es el comportamiento que ya tenían.
+     */
+    private boolean subeEnRuta(Venta venta) {
+        return subeEnPuertoDePaso(venta.getOrdenOrigen());
+    }
+
+    static boolean subeEnPuertoDePaso(Integer ordenOrigen) {
+        return ordenOrigen != null && ordenOrigen > 1;
+    }
+
     private void validarVentanaDeEmbarque(Venta venta) {
         if (venta.getViajeId() == null) return;
         Viaje viaje = viajeRepository.findById(venta.getViajeId()).orElse(null);
         if (viaje == null || viaje.getFechaSalida() == null || viaje.getHoraSalida() == null) return;
+
+        /* Quien sube en un puerto de paso no tiene hora que cumplir: el bote llega
+           cuando llega, y el río manda. Con la ventana medida desde la salida del
+           puerto de origen, embarcar en Clavero o en Nauta era imposible —la ventana
+           ya había cerrado horas antes de que el bote llegara ahí—.
+
+           Lo único que se sigue exigiendo es que sea el día del viaje: eso evita
+           marcar por error a un pasajero de otra fecha. */
+        if (subeEnRuta(venta)) {
+            java.time.LocalDate hoy = java.time.LocalDate.now();
+            if (!hoy.equals(viaje.getFechaSalida()))
+                throw new RuntimeException("Este pasaje es para el "
+                        + viaje.getFechaSalida().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+                        + ", no para hoy.");
+            return;
+        }
 
         boolean conPreembarque = usaPreembarque(viaje);
         Integer minutos = conPreembarque ? minutosHastaElBote(viaje) : null;
