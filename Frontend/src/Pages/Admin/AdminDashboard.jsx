@@ -139,6 +139,9 @@ function AdminDashboard() {
                     <NavLink to="/admin/soporte" className={({ isActive }) => isActive ? "sb-item active" : "sb-item"}>
                         <i className="ti ti-lifebuoy"></i> Soporte
                     </NavLink>
+                    <NavLink to="/admin/reclamaciones" className={({ isActive }) => isActive ? "sb-item active" : "sb-item"}>
+                        <i className="ti ti-book"></i> Reclamaciones
+                    </NavLink>
 
                 </nav>
             </aside>

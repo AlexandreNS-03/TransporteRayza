@@ -8,7 +8,7 @@ import Carrusel from "../components/Carrusel";
 import Galeria from "../components/Galeria";
 import Reveal from "../components/Reveal";
 import HeroConProfundidad from "../components/HeroConProfundidad";
-import AnuncioAniversario from "../components/AnuncioAniversario";
+import ProximaFiesta from "../components/ProximaFiesta";
 import { getAnuncios } from "../services/publicApi";
 import { EMPRESA, telefonoBonito, telefonoInternacional,
          aniosDeAniversario } from "../datos";
@@ -152,7 +152,7 @@ export default function Landing() {
         </div>
       </section>
 
-      <AnuncioAniversario />
+      <ProximaFiesta />
 
       {/* ===== CÓMO COMPRAR ===== */}
       <section className="section" id="como-comprar">
