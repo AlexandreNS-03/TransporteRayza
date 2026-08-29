@@ -20,6 +20,7 @@ const Historial      = lazy(() => import("./pages/Historial"));
 const Servicios      = lazy(() => import("./pages/Servicios"));
 const Clausulas      = lazy(() => import("./pages/Clausulas"));
 const Privacidad     = lazy(() => import("./pages/Privacidad"));
+const LibroReclamaciones = lazy(() => import("./pages/LibroReclamaciones"));
 const Contacto       = lazy(() => import("./pages/Contacto"));
 const Destinos       = lazy(() => import("./pages/Destinos"));
 const DestinoDetalle = lazy(() => import("./pages/DestinoDetalle"));
@@ -51,6 +52,7 @@ export default function App() {
           <Route path="/servicios" element={<Servicios />} />
           <Route path="/clausulas" element={<Clausulas />} />
           <Route path="/privacidad" element={<Privacidad />} />
+          <Route path="/libro-de-reclamaciones" element={<LibroReclamaciones />} />
           <Route path="/contacto" element={<Contacto />} />
           <Route path="/destinos" element={<Destinos />} />
           <Route path="/destinos/:slug" element={<DestinoDetalle />} />

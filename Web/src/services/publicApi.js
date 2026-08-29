@@ -222,3 +222,11 @@ export async function rastrearEncomienda(tab, valor) {
   try { const { data } = await http.get(ruta); return data; }
   catch (e) { throw desempaquetarError(e); }
 }
+
+/** Registra una hoja del Libro de Reclamaciones. No necesita sesión: lo exige la norma. */
+export async function registrarReclamacion(datos) {
+  try {
+    const { data } = await http.post("/reclamaciones", datos);
+    return data;
+  } catch (e) { throw desempaquetarError(e); }
+}
