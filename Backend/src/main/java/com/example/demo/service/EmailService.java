@@ -121,6 +121,36 @@ public class EmailService implements InitializingBean {
             enviarPorSmtp(destinatario, "Embarque confirmado - Transportes Rayza", html, null);
     }
 
+    // ------------------------------------------------- Código de verificación
+
+    /**
+     * Código de un solo uso para entrar al sistema.
+     *
+     * El código va grande y separado del texto: se lee de reojo desde el celular
+     * mientras se escribe en la otra pantalla.
+     *
+     * Avisa qué hacer si no fue quien lo pidió, porque un código que llega sin
+     * motivo significa que alguien más tiene la contraseña.
+     */
+    public void enviarCodigoVerificacion(String destinatario, String nombre,
+                                         String codigo, int minutos) throws MessagingException {
+        String html = "<div style=\"font-family:Arial,sans-serif;max-width:480px;margin:auto;color:#0f172a\">"
+                + "<h2 style=\"margin:0 0 6px\">Tu código para entrar</h2>"
+                + "<p style=\"margin:0 0 20px;color:#55617a\">Hola " + esc(nombre) + ",</p>"
+                + "<div style=\"padding:20px;background:#f4f7fc;border-radius:12px;text-align:center\">"
+                + "<div style=\"font-size:34px;font-weight:800;letter-spacing:9px;color:#0f172a\">"
+                + esc(codigo) + "</div></div>"
+                + "<p style=\"margin-top:18px;color:#55617a;font-size:14px\">"
+                + "Vence en " + minutos + " minutos y sirve una sola vez.</p>"
+                + "<p style=\"color:#55617a;font-size:14px\"><strong>¿No estabas entrando?</strong> "
+                + "Alguien más sabe tu contraseña: cámbiala ahora y avisa a un administrador.</p>"
+                + "</div>";
+
+        String asunto = "Tu código: " + codigo + " - Transportes Rayza";
+        if (usaResend()) enviarPorResend(destinatario, asunto, html, null);
+        else             enviarPorSmtp(destinatario, asunto, html, null);
+    }
+
     // ------------------------------------------------- Recuperar contraseña
 
     /**

@@ -1,0 +1,24 @@
+
+/* Código de verificación: grande y espaciado, porque se lee de reojo desde el
+   celular mientras se escribe en la otra pantalla. */
+.input-codigo {
+    letter-spacing: 10px;
+    font-size: 22px;
+    font-weight: 700;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+}
+.input-codigo::placeholder { letter-spacing: 10px; opacity: .35; font-weight: 400; }
+
+/* Salida para quien no recibió el correo: sin esto quedaría atrapado. */
+.btn-volver-login {
+    width: 100%;
+    margin-top: 10px;
+    padding: 10px;
+    border: 0;
+    background: transparent;
+    color: #6b7280;
+    font-size: 13px;
+    cursor: pointer;
+}
+.btn-volver-login:hover { color: #1a4db5; text-decoration: underline; }

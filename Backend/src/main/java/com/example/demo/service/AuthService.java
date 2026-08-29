@@ -16,13 +16,17 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final IntentosLoginService intentosLoginService;
 
+    private final DobleFactorService dobleFactorService;
+
     public AuthService(UsuarioRepository usuarioRepository, JwtUtil jwtUtil,
                        PasswordEncoder passwordEncoder,
-                       IntentosLoginService intentosLoginService) {
+                       IntentosLoginService intentosLoginService,
+                       DobleFactorService dobleFactorService) {
         this.usuarioRepository = usuarioRepository;
         this.jwtUtil = jwtUtil;
         this.passwordEncoder = passwordEncoder;
         this.intentosLoginService = intentosLoginService;
+        this.dobleFactorService = dobleFactorService;
     }
 
     public LoginResponse login(LoginRequest request, String ip) {
@@ -47,9 +51,55 @@ public class AuthService {
 
         intentosLoginService.registrarExito(request.getUsername(), ip);
 
-        String token = jwtUtil.generateToken(usuario.getUsername(), usuario.getRol().name());
+        // Con segundo factor la contraseña sola no abre nada: se devuelve el
+        // desafío y el token recién sale al verificar el código.
+        if (usuario.usaDobleFactor()) {
+            LoginResponse pendiente = new LoginResponse(null, usuario.getUsername(), usuario.getNombre(),
+                    usuario.getRol().name(), usuario.getSucursalId(), usuario.getSucursalNombre());
+            pendiente.setRequiereCodigo(true);
+            pendiente.setDesafioId(dobleFactorService.iniciar(usuario));
+            pendiente.setCorreoPista(taparCorreo(usuario.getEmail()));
+            return pendiente;
+        }
 
+        return conToken(usuario);
+    }
+
+    /**
+     * Segundo paso del login: el código que llegó al correo.
+     *
+     * Vuelve a comprobar que el usuario siga activo: entre que pidió el código y
+     * lo escribió pudieron desactivarlo, y esos minutos no deberían alcanzarle
+     * para entrar.
+     */
+    public LoginResponse verificarCodigo(String desafioId, String codigo) {
+        String usuarioId = dobleFactorService.verificar(desafioId, codigo);
+
+        Usuario usuario = usuarioRepository.findById(usuarioId)
+                .orElseThrow(() -> new RuntimeException("La cuenta ya no existe"));
+        if (!usuario.getActivo())
+            throw new RuntimeException("Usuario inactivo");
+
+        return conToken(usuario);
+    }
+
+    private LoginResponse conToken(Usuario usuario) {
+        String token = jwtUtil.generateToken(usuario.getUsername(), usuario.getRol().name());
         return new LoginResponse(token, usuario.getUsername(), usuario.getNombre(), usuario.getRol().name(),
                 usuario.getSucursalId(), usuario.getSucursalNombre());
+    }
+
+    /**
+     * "ra…z@gmail.com": recuerda a cuál correo mirar sin mostrarlo entero.
+     *
+     * Quien acertó la contraseña ya sabe de quién es la cuenta, pero el correo
+     * completo es un dato más que regalar si esa contraseña estaba robada.
+     */
+    static String taparCorreo(String email) {
+        if (email == null || !email.contains("@")) return "tu correo";
+        String[] p = email.split("@", 2);
+        String u = p[0];
+        String visible = u.length() <= 2 ? u.substring(0, 1) : u.substring(0, 2);
+        return visible + "…" + u.charAt(u.length() - 1) + "@" + p[1];
     }
 }

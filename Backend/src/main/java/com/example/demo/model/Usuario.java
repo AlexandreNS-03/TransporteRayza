@@ -26,6 +26,16 @@ public class Usuario {
     @Column(name = "activo")
     private Boolean activo;
 
+    /**
+     * Pedir un código por correo además de la contraseña.
+     *
+     * Va apagado por defecto y se prende cuenta por cuenta: encenderlo para todos
+     * de golpe dejaría fuera a cualquiera cuyo correo esté mal escrito, y en una
+     * empresa que vende todos los días eso es peor que el riesgo que evita.
+     */
+    @Column(name = "doble_factor")
+    private Boolean dobleFactor;
+
     @Enumerated(EnumType.STRING)
     private Rol rol;
 
@@ -90,6 +100,10 @@ public class Usuario {
     public void setRol(Rol rol) {
         this.rol = rol;
     }
+
+    public boolean usaDobleFactor() { return Boolean.TRUE.equals(dobleFactor); }
+    public Boolean getDobleFactor() { return dobleFactor; }
+    public void setDobleFactor(Boolean v) { this.dobleFactor = v; }
 
     public Boolean getActivo() {
         return activo;
