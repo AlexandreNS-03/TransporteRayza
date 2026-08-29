@@ -17,7 +17,10 @@ public class Anuncio {
     @Column(name = "titulo", length = 150)
     private String titulo;
 
-    @Column(name = "mensaje", length = 500)
+    /* TEXT y no VARCHAR(500): un aviso de fuerza mayor o una disculpa a los
+       pasajeros no entra en 500 caracteres, y al pasarse la base lo rechazaba
+       con un error que hablaba de registros duplicados. */
+    @Column(name = "mensaje", columnDefinition = "TEXT")
     private String mensaje;
 
     @Enumerated(EnumType.STRING)

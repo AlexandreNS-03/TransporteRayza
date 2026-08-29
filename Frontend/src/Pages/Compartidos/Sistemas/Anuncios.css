@@ -378,3 +378,12 @@
 
 .btn-guardar:hover { background: #1440a0; }
 .btn-guardar:disabled { background: #93c5fd; cursor: not-allowed; }
+
+/* Cuántos caracteres lleva el mensaje. La barra superior recorta los textos
+   largos en el celular, y eso se descubría después de publicarlo. */
+.contador-mensaje {
+    display: block;
+    margin-top: 5px;
+    font-size: 11.5px;
+    color: #6b7280;
+}
