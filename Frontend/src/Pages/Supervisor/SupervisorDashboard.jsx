@@ -87,6 +87,9 @@ function SupervisorDashboard() {
                     <NavLink to="/supervisor/soporte" className={item}>
                         <i className="ti ti-lifebuoy"></i> Soporte
                     </NavLink>
+                    <NavLink to="/supervisor/reclamaciones" className={item}>
+                        <i className="ti ti-book"></i> Reclamaciones
+                    </NavLink>
                 </nav>
             </aside>
 

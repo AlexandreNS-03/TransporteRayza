@@ -26,6 +26,7 @@ import Cajas from "./Pages/Compartidos/Finanzas/Cajas.jsx";
 import Encomiendas from "./Pages/Compartidos/Ventas/Encomiendas.jsx";
 import Auditorias from "./Pages/Compartidos/Sistemas/Auditorias.jsx";
 import Soporte from "./Pages/Compartidos/Sistemas/Soporte.jsx";
+import Reclamaciones from "./Pages/Compartidos/Sistemas/Reclamaciones.jsx";
 import EstadoSistema from "./Pages/Compartidos/Sistemas/EstadoSistema.jsx";
 import Anuncios from "./Pages/Compartidos/Sistemas/Anuncios.jsx";
 import PreciosWeb from "./Pages/Compartidos/Sistemas/PreciosWeb.jsx";
@@ -53,6 +54,7 @@ function App() {
                     <Route path="pasajes" element={<Pasajes />} />
                     <Route path="encomiendas" element={<Encomiendas />} />
                     <Route path="soporte" element={<Soporte />} />
+                    <Route path="reclamaciones" element={<Reclamaciones />} />
                     <Route path="estado" element={<EstadoSistema />} />
                     <Route path="paradas" element={<Paradas />} />
                     <Route path="caja" element={<Cajas />} />
@@ -84,6 +86,7 @@ function App() {
                     <Route path="pasajes" element={<Pasajes />} />
                     <Route path="encomiendas" element={<Encomiendas />} />
                     <Route path="soporte" element={<Soporte />} />
+                    <Route path="reclamaciones" element={<Reclamaciones />} />
                     <Route path="estado" element={<EstadoSistema />} />
                     <Route path="paradas" element={<Paradas />} />
                     <Route path="caja" element={<Cajas />} />

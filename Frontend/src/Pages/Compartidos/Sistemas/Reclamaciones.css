@@ -1,0 +1,69 @@
+/* Libro de Reclamaciones. El plazo manda: lo que se sanciona es no responder a
+   tiempo, así que lo vencido tiene que saltar a la vista antes que nada. */
+
+.rec-alerta {
+    padding: 14px 16px;
+    margin-bottom: 16px;
+    border-radius: 10px;
+    border-left: 4px solid #b91c1c;
+    background: #fef2f2;
+    color: #7f1d1d;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.rec-filtros { display: flex; gap: 8px; margin-bottom: 16px; }
+
+.rec-lista { display: grid; gap: 14px; }
+
+.rec-hoja {
+    padding: 18px;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    background: #fff;
+    display: grid;
+    gap: 12px;
+}
+.rec-hoja.vencida { border-color: #fca5a5; background: #fffbfb; }
+
+.rec-hoja header {
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 10px;
+}
+.rec-hoja header > div { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+.rec-numero {
+    font-weight: 800; font-size: 15px; color: #0f172a;
+    font-variant-numeric: tabular-nums;
+}
+
+.rec-plazo { font-size: 12.5px; color: #6b7280; }
+.rec-plazo-vencido { color: #b91c1c; font-weight: 700; }
+
+.rec-datos p { margin: 0 0 3px; font-size: 14px; color: #0f172a; }
+.rec-datos .muted { font-size: 12.5px; color: #6b7280; }
+
+.rec-texto { display: grid; gap: 4px; }
+.rec-etiqueta {
+    font-size: 11.5px; font-weight: 700; color: #6b7280; letter-spacing: .03em;
+}
+.rec-texto p {
+    margin: 0; font-size: 14px; line-height: 1.55; color: #0f172a;
+    white-space: pre-wrap;
+}
+
+.rec-respuesta {
+    display: grid; gap: 4px;
+    padding: 12px 14px; border-radius: 10px; background: #eef3fd;
+}
+.rec-respuesta p { margin: 0; font-size: 14px; line-height: 1.55; white-space: pre-wrap; }
+
+.rec-modal { max-width: 620px; }
+.rec-campo { display: grid; gap: 6px; margin-top: 14px; }
+.rec-campo > span { font-size: 12.5px; font-weight: 700; color: #6b7280; }
+.rec-campo textarea {
+    width: 100%; padding: 12px 13px;
+    border: 1.5px solid #d1d5db; border-radius: 10px;
+    font-family: inherit; font-size: 14.5px; line-height: 1.5; resize: vertical;
+}
+.rec-campo textarea:focus { outline: none; border-color: #1a4db5; }

@@ -62,6 +62,16 @@ export default function Footer() {
               <li><Link to="/contacto">Encomiendas</Link></li>
               <li><Link to="/clausulas">Términos y condiciones</Link></li>
               <li><Link to="/privacidad">Política de privacidad</Link></li>
+              <li>
+                {/* El aviso oficial va como imagen y no como enlace de texto: la norma
+                    pide mostrarlo, y llevarlo puesto es lo que lo hace de fácil acceso.
+                    Es el archivo que publica INDECOPI, sin retocar. */}
+                <Link className="lr-aviso" to="/libro-de-reclamaciones">
+                  <img src="/libro-reclamaciones.png" alt="Libro de Reclamaciones"
+                       width="480" height="380" loading="lazy" />
+                  <span>Déjanos tu reclamo o queja</span>
+                </Link>
+              </li>
             </ul>
           </div>
         </div>

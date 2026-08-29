@@ -2081,3 +2081,119 @@ html :is(a, button, input, select, textarea, [tabindex]):focus-visible {
   .comprobante-opcion { transition: none; }
   .comprobante-opcion:active { transform: none; }
 }
+
+/* ---- Libro de Reclamaciones (INDECOPI) ----
+   El enlace del footer va destacado porque la norma pide que sea de fácil
+   acceso: perdido entre los demás enlaces no cumpliría. */
+.lr-enlace-footer { font-weight: 700; }
+
+.lr-empresa {
+  margin: 14px 0 20px; padding: 12px 14px;
+  border: 1px solid var(--line); border-radius: var(--r-sm);
+  background: var(--bg-soft); font-size: 13.5px; color: var(--ink-soft);
+}
+.lr-empresa strong { color: var(--ink); }
+
+.lr-form { display: grid; gap: 22px; }
+.lr-form fieldset { border: 0; padding: 0; margin: 0; display: grid; gap: 12px; }
+.lr-form legend {
+  padding: 0; font-family: var(--font-head); font-size: 16px;
+  font-weight: 700; color: var(--ink);
+}
+.lr-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.lr-ancho { grid-column: 1 / -1; }
+@media (max-width: 620px) { .lr-grid { grid-template-columns: 1fr; } }
+
+.campo { display: grid; gap: 6px; }
+.campo > span { font-size: 12.5px; font-weight: 700; color: var(--ink-soft); letter-spacing: .02em; }
+.campo input, .campo select, .campo textarea {
+  width: 100%; padding: 11px 13px;
+  border: 1.5px solid var(--line-strong); border-radius: var(--r-sm);
+  background: var(--card); color: var(--ink); font-size: 15px; font-family: inherit;
+}
+.campo textarea { resize: vertical; line-height: 1.5; }
+.campo input:focus, .campo select:focus, .campo textarea:focus {
+  outline: none; border-color: var(--sky); box-shadow: 0 0 0 4px var(--sky-soft);
+}
+.campo small { font-size: 12px; }
+
+/* Reclamo y queja no son lo mismo y la norma obliga a distinguirlos: el
+   consumidor tiene que entender cuál le corresponde antes de elegir. */
+.lr-tipos { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 560px) { .lr-tipos { grid-template-columns: 1fr; } }
+.lr-tipo {
+  display: flex; align-items: flex-start; gap: 10px; padding: 14px;
+  border: 1.5px solid var(--line-strong); border-radius: var(--r-sm);
+  background: var(--card); cursor: pointer;
+  transition: border-color .18s var(--ease), background-color .18s var(--ease);
+}
+.lr-tipo span { display: grid; gap: 2px; }
+.lr-tipo strong { font-size: 14.5px; color: var(--ink); }
+.lr-tipo small { font-size: 12.5px; color: var(--ink-soft); line-height: 1.4; }
+.lr-tipo.activo { border-color: var(--brand); background: var(--sky-soft); }
+.lr-tipo input { margin-top: 3px; accent-color: var(--brand-700); }
+
+.lr-check { display: flex; align-items: center; gap: 9px; font-size: 14px; color: var(--ink); }
+.lr-check input { width: 17px; height: 17px; accent-color: var(--brand-700); }
+
+/* ---- La hoja registrada ---- */
+.lr-hoja-cab {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;
+  padding-bottom: 14px; margin-bottom: 16px; border-bottom: 1px solid var(--line);
+}
+.lr-numero { text-align: right; flex: none; }
+.lr-numero span { display: block; font-size: 11px; color: var(--ink-soft); letter-spacing: .06em; }
+.lr-numero strong {
+  font-family: var(--font-head); font-size: 30px; color: var(--accent);
+  font-variant-numeric: tabular-nums; line-height: 1;
+}
+.lr-ok {
+  margin: 0 0 18px; padding: 12px 14px; border-radius: var(--r-sm);
+  background: var(--sky-soft); color: var(--yape-guia-ink); font-size: 14px;
+}
+.lr-datos { margin: 0; display: grid; gap: 12px; }
+.lr-dato { display: grid; grid-template-columns: 150px 1fr; gap: 12px; }
+.lr-dato dt { font-size: 12.5px; font-weight: 700; color: var(--ink-soft); }
+.lr-dato dd { margin: 0; font-size: 14.5px; color: var(--ink); }
+.lr-dato-bloque { grid-template-columns: 1fr; }
+.lr-dato-bloque dd { white-space: pre-wrap; }
+@media (max-width: 560px) { .lr-dato { grid-template-columns: 1fr; gap: 3px; } }
+
+.lr-plazo {
+  margin: 20px 0 0; padding-top: 14px; border-top: 1px solid var(--line);
+  font-size: 13px; color: var(--ink-soft); line-height: 1.55;
+}
+.lr-acciones { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 18px; }
+
+/* Al imprimir queda solo la hoja: es la copia que el consumidor se lleva. */
+@media print {
+  .announce, header, footer, .lr-acciones { display: none !important; }
+  .section { padding: 0 !important; }
+  .lr-hoja { border: 0 !important; box-shadow: none !important; }
+}
+
+/* El aviso oficial de INDECOPI en el pie. Va como imagen porque la norma pide
+   mostrarlo, no solo enlazarlo. Sobre fondo blanco siempre: el archivo original
+   lo tiene y en modo oscuro quedaría un recuadro sucio alrededor del libro. */
+.lr-aviso {
+  display: inline-grid; justify-items: center; gap: 6px;
+  padding: 10px 14px; border-radius: var(--r-sm);
+  background: #fff; text-decoration: none;
+  transition: transform .16s var(--ease), box-shadow .16s var(--ease);
+}
+.lr-aviso img { display: block; width: 116px; height: auto; }
+.lr-aviso span { font-size: 11.5px; font-weight: 700; color: #1f6fb2; text-align: center; }
+@media (hover: hover) and (pointer: fine) {
+  .lr-aviso:hover { transform: translateY(-2px); box-shadow: var(--sh); }
+}
+@media (prefers-reduced-motion: reduce) { .lr-aviso { transition: none; } }
+
+/* Las advertencias que trae la hoja oficial. Van antes del botón, no después:
+   son parte de lo que el consumidor tiene derecho a saber antes de enviar. */
+.lr-legal {
+  display: grid; gap: 8px; padding: 14px;
+  border-radius: var(--r-sm); background: var(--bg-soft);
+  font-size: 12.5px; line-height: 1.5; color: var(--ink-soft);
+}
+.lr-legal p { margin: 0; }
+.lr-legal strong { color: var(--ink); }

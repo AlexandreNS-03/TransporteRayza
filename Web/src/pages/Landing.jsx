@@ -8,7 +8,7 @@ import Carrusel from "../components/Carrusel";
 import Galeria from "../components/Galeria";
 import Reveal from "../components/Reveal";
 import HeroConProfundidad from "../components/HeroConProfundidad";
-import AnuncioAniversario from "../components/AnuncioAniversario";
+import ProximaFiesta from "../components/ProximaFiesta";
 import { getAnuncios } from "../services/publicApi";
 import { EMPRESA, telefonoBonito, telefonoInternacional,
          aniosDeAniversario } from "../datos";
@@ -16,11 +16,46 @@ import { DESTINOS } from "../destinos";
 
 // Tarjetas de respaldo si todavía no se cargó ningún anuncio de tipo LANDING
 // desde el sistema: la sección nunca queda vacía.
-const PROMOS_RESPALDO = [
-  { titulo: "Aniversario de Requena", mensaje: "Acompáñanos a celebrar el aniversario de Requena. Asegura tu asiento a los principales puertos.", tag: "Del 18 al 23 de agosto" },
-  { titulo: "Compra en línea", mensaje: "Sin colas: reserva y paga desde tu celular.", tag: "Nuevo" },
-  { titulo: "Encomiendas", mensaje: "Puerta a puerto, con comprobante electrónico.", tag: "Encomiendas" },
+//
+// Las de temporada llevan `desde` y `hasta` (mes-día) y se muestran solo dentro de
+// su ventana. El aniversario de Requena se quedó anunciado semanas después de
+// terminar justamente porque acá no había forma de decir cuándo vencía: quedaba
+// escrito "Del 18 al 23 de agosto" en septiembre.
+const PROMOS_TEMPORADA = [
+  { titulo: "Aniversario de Requena", mensaje: "Acompáñanos a celebrar el aniversario de Requena. Asegura tu asiento a los principales puertos.", tag: "Del 18 al 23 de agosto", desde: "08-11", hasta: "08-23" },
+  { titulo: "Aniversario de Nauta",   mensaje: "Viaja para las fiestas de Nauta. Reserva con anticipación: los asientos se agotan.",              tag: "30 de abril",           desde: "04-23", hasta: "04-30" },
+  { titulo: "Fiestas Patrias",        mensaje: "Julio es temporada alta en el río. Asegura tu pasaje antes de que se llene.",                      tag: "28 y 29 de julio",      desde: "07-18", hasta: "07-29" },
 ];
+
+// Siempre ciertas: no vencen ni hay que acordarse de bajarlas.
+const PROMOS_SIEMPRE = [
+  { titulo: "Compra en línea",     mensaje: "Sin colas: reserva y paga desde tu celular.",                          tag: "En línea" },
+  { titulo: "Encomiendas",         mensaje: "Puerta a puerto, con comprobante electrónico.",                        tag: "Encomiendas" },
+  { titulo: "Elige tu asiento",    mensaje: "Mira el bote y escoge dónde te sientas antes de pagar.",               tag: "Asientos" },
+  { titulo: "Boleto con QR",       mensaje: "Te llega al correo al instante. Solo muéstralo al embarcar.",          tag: "Sin papel" },
+  { titulo: "Paga como quieras",   mensaje: "Tarjeta o Yape desde la web, o en efectivo en nuestras oficinas.",     tag: "Pagos" },
+  { titulo: "Bebés no pagan",      mensaje: "Los bebés en brazos viajan gratis. Indícalo al comprar.",              tag: "Familia" },
+];
+
+const dosDigitos = (n) => String(n).padStart(2, "0");
+
+/**
+ * Las tres tarjetas de hoy: primero lo de temporada que esté vigente y se
+ * completa con las de siempre, rotando según el día para que la portada no se
+ * vea igual cada vez que alguien vuelve.
+ */
+function promosDeHoy(hoy = new Date()) {
+  const md = `${dosDigitos(hoy.getMonth() + 1)}-${dosDigitos(hoy.getDate())}`;
+  const vigentes = PROMOS_TEMPORADA.filter((p) => md >= p.desde && md <= p.hasta);
+
+  // El día del año como punto de partida: cambia solo, sin guardar nada.
+  const inicio = Math.floor((hoy - new Date(hoy.getFullYear(), 0, 0)) / 86400000);
+  const rotadas = PROMOS_SIEMPRE.map((_, i) => PROMOS_SIEMPRE[(inicio + i) % PROMOS_SIEMPRE.length]);
+
+  return [...vigentes, ...rotadas].slice(0, 3);
+}
+
+const PROMOS_RESPALDO = promosDeHoy();
 
 export default function Landing() {
   const anios = aniosDeAniversario();
@@ -117,7 +152,7 @@ export default function Landing() {
         </div>
       </section>
 
-      <AnuncioAniversario />
+      <ProximaFiesta />
 
       {/* ===== CÓMO COMPRAR ===== */}
       <section className="section" id="como-comprar">

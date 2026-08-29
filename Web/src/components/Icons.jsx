@@ -202,6 +202,16 @@ export function IconTeclado(props) {
   );
 }
 
+/** Libro abierto: el Libro de Reclamaciones en el pie de página. */
+export function IconLibro(props) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M4 5.5A1.5 1.5 0 015.5 4H10a2 2 0 012 2v13a2 2 0 00-2-2H5.5A1.5 1.5 0 014 15.5v-10z" {...trazo} />
+      <path d="M20 5.5A1.5 1.5 0 0018.5 4H14a2 2 0 00-2 2v13a2 2 0 012-2h4.5a1.5 1.5 0 001.5-1.5v-10z" {...trazo} />
+    </svg>
+  );
+}
+
 export function IconFood(props) {
   return (
     <svg {...base} {...props}>

@@ -107,6 +107,82 @@ public class EmailService implements InitializingBean {
             enviarPorSmtp(destinatario, "Embarque confirmado - Transportes Rayza", html, null);
     }
 
+    // ------------------------------------------------- Libro de Reclamaciones
+
+    /**
+     * Copia de la hoja para el consumidor.
+     *
+     * La norma exige poder imprimirla o mandarla al correo; esto es lo segundo.
+     * Lleva el número correlativo, que es lo que el consumidor necesita si más
+     * adelante acude a INDECOPI.
+     */
+    public void enviarCopiaReclamacion(com.example.demo.model.Reclamacion r) throws MessagingException {
+        String asunto = "Hoja de Reclamación N° " + r.getNumero() + " - Transportes Rayza";
+        String html = construirHtmlReclamacion(r, false);
+
+        if (usaResend()) enviarPorResend(r.getConsumidorEmail(), asunto, html, null);
+        else             enviarPorSmtp(r.getConsumidorEmail(), asunto, html, null);
+    }
+
+    /** Aviso al consumidor de que su hoja ya tiene respuesta. */
+    public void enviarRespuestaReclamacion(com.example.demo.model.Reclamacion r) throws MessagingException {
+        String asunto = "Respuesta a tu Hoja de Reclamación N° " + r.getNumero() + " - Transportes Rayza";
+        String html = construirHtmlReclamacion(r, true);
+
+        if (usaResend()) enviarPorResend(r.getConsumidorEmail(), asunto, html, null);
+        else             enviarPorSmtp(r.getConsumidorEmail(), asunto, html, null);
+    }
+
+    private String construirHtmlReclamacion(com.example.demo.model.Reclamacion r, boolean conRespuesta) {
+        String tipo = r.getTipo() == com.example.demo.model.Reclamacion.Tipo.QUEJA ? "Queja" : "Reclamo";
+        StringBuilder b = new StringBuilder();
+        b.append("<div style=\"font-family:Arial,sans-serif;max-width:600px;margin:auto;color:#0f172a\">");
+        b.append("<h2 style=\"margin:0 0 4px\">Hoja de Reclamación N° ").append(r.getNumero()).append("</h2>");
+        b.append("<p style=\"margin:0 0 18px;color:#55617a\">Transportes Rayza · ")
+         .append(tipo).append(" registrado el ").append(fechaBonita(r.getCreatedAt())).append("</p>");
+
+        b.append(fila("Consumidor", esc(r.getConsumidorNombre())));
+        b.append(fila("Documento", esc(r.getConsumidorTipoDocumento()) + " " + esc(r.getConsumidorDocumento())));
+        if (noVacio(r.getConsumidorTelefono())) b.append(fila("Teléfono", esc(r.getConsumidorTelefono())));
+        if (noVacio(r.getBienDescripcion()))    b.append(fila("Servicio", esc(r.getBienDescripcion())));
+        b.append(fila("Detalle", esc(r.getDetalle())));
+        if (noVacio(r.getPedido())) b.append(fila("Tu pedido", esc(r.getPedido())));
+
+        if (conRespuesta && noVacio(r.getRespuesta())) {
+            b.append("<div style=\"margin-top:18px;padding:14px;background:#eef3fd;border-radius:8px\">");
+            b.append("<strong>Respuesta de Transportes Rayza</strong>");
+            b.append("<p style=\"margin:8px 0 0;white-space:pre-wrap\">").append(esc(r.getRespuesta())).append("</p>");
+            b.append("</div>");
+        } else {
+            b.append("<p style=\"margin-top:18px;color:#55617a;font-size:14px\">")
+             .append("Te responderemos a este correo dentro de los 15 días hábiles que establece la norma. ")
+             .append("Guarda el número de tu hoja: es lo que te van a pedir si acudes a INDECOPI.</p>");
+        }
+
+        b.append("<p style=\"margin-top:22px;color:#55617a;font-size:12px\">")
+         .append("Este mensaje es la constancia de tu registro en nuestro Libro de Reclamaciones virtual.</p>");
+        b.append("</div>");
+        return b.toString();
+    }
+
+    private String fila(String etiqueta, String valor) {
+        return "<p style=\"margin:0 0 10px\"><strong>" + etiqueta + ":</strong><br>"
+             + "<span style=\"white-space:pre-wrap\">" + valor + "</span></p>";
+    }
+
+    private String fechaBonita(java.time.LocalDateTime f) {
+        return f == null ? "" : f.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
+    }
+
+    private boolean noVacio(String s) { return s != null && !s.trim().isEmpty(); }
+
+    /* El texto lo escribe el consumidor: se escapa para que no pueda inyectar HTML
+       en el correo que le llega a él ni en el que revisa la empresa. */
+    private String esc(String s) {
+        if (s == null) return "";
+        return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;");
+    }
+
     // ------------------------------------------------- Reserva pendiente de pago
 
     /**

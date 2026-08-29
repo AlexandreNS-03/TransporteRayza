@@ -109,6 +109,11 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/api/anuncios/**").hasRole("ADMIN")
 
                         /*VENTAS*/
+                        // Libro de Reclamaciones: registrar es público (lo exige la norma);
+                        // leerlas y responderlas es del personal.
+                        .requestMatchers(HttpMethod.GET,   "/api/reclamaciones").hasAnyRole("ADMIN", "SUPERVISOR")
+                        .requestMatchers(HttpMethod.PATCH, "/api/reclamaciones/*/responder").hasAnyRole("ADMIN", "SUPERVISOR")
+
                         .requestMatchers(HttpMethod.GET,   "/api/ventas/**").hasAnyRole("ADMIN", "SUPERVISOR", "EMPLEADO")
                         .requestMatchers(HttpMethod.POST,  "/api/ventas").hasAnyRole("ADMIN", "SUPERVISOR", "EMPLEADO")
                         .requestMatchers(HttpMethod.PUT,   "/api/ventas/*").hasAnyRole("ADMIN", "SUPERVISOR", "EMPLEADO")
