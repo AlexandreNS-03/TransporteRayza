@@ -67,3 +67,12 @@
     font-family: inherit; font-size: 14.5px; line-height: 1.5; resize: vertical;
 }
 .rec-campo textarea:focus { outline: none; border-color: #1a4db5; }
+
+.rec-adjuntos { display: flex; flex-wrap: wrap; gap: 8px; }
+.rec-adjuntos a {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 11px; border-radius: 8px;
+    background: #eef3fd; color: #1a4db5;
+    font-size: 13px; text-decoration: none; word-break: break-all;
+}
+.rec-adjuntos a:hover { background: #dde8fb; }

@@ -49,3 +49,20 @@ CREATE TABLE IF NOT EXISTS reclamaciones (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 SELECT COUNT(*) AS hojas_registradas FROM reclamaciones;
+
+-- ---------------------------------------------------------------------------
+-- Adjuntos: fotos o documentos que sube el consumidor (boleto, equipaje).
+--
+-- Se guarda la URL y no el archivo: el disco de Railway se borra en cada
+-- despliegue, y esto es prueba que hay que conservar dos años. Los archivos
+-- viven en Cloudinary.
+-- ---------------------------------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS reclamacion_adjuntos (
+  reclamacion_id VARCHAR(36)  NOT NULL,
+  url            VARCHAR(500) NOT NULL,
+  nombre         VARCHAR(200),
+  KEY idx_adjunto_reclamacion (reclamacion_id),
+  CONSTRAINT fk_adjunto_reclamacion FOREIGN KEY (reclamacion_id)
+    REFERENCES reclamaciones (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

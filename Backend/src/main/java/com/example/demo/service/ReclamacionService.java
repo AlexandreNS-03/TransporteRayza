@@ -27,6 +27,13 @@ public class ReclamacionService {
     /** Días hábiles que da la norma para responder. */
     public static final int DIAS_HABILES_PARA_RESPONDER = 15;
 
+    /** Como mucho, para que nadie use el formulario de depósito de archivos. */
+    private static final int MAX_ADJUNTOS = 5;
+
+    /** Cuenta de Cloudinary donde viven los adjuntos. Solo se aceptan URLs de ahí. */
+    @org.springframework.beans.factory.annotation.Value("${cloudinary.cloud-name:}")
+    private String cloudName;
+
     private final ReclamacionRepository repositorio;
     private final EmailService emailService;
 
@@ -80,6 +87,7 @@ public class ReclamacionService {
         r.setMontoReclamado(req.getMontoReclamado());
         r.setDetalle(limpiar(req.getDetalle()));
         r.setPedido(limpiar(req.getPedido()));
+        r.setAdjuntos(adjuntosValidos(req.getAdjuntos()));
 
         Reclamacion guardada = repositorio.save(r);
 
@@ -93,6 +101,52 @@ public class ReclamacionService {
         }
 
         return toDTO(guardada);
+    }
+
+    /**
+     * Se queda solo con los adjuntos que de verdad están en nuestro Cloudinary.
+     *
+     * El endpoint es público, así que cualquiera puede mandar una URL: sin este
+     * filtro, la hoja podría terminar apuntando a un archivo de otro servidor que
+     * mañana no existe, o peor, a algo que no queremos enlazar desde el correo que
+     * le llega a la empresa.
+     */
+    private List<com.example.demo.model.Reclamacion.Adjunto> adjuntosValidos(
+            List<ReclamacionDTO.AdjuntoDTO> enviados) {
+
+        List<com.example.demo.model.Reclamacion.Adjunto> ok = new java.util.ArrayList<>();
+        if (enviados == null) return ok;
+
+        for (ReclamacionDTO.AdjuntoDTO a : enviados) {
+            if (ok.size() >= MAX_ADJUNTOS) break;
+            if (a == null || a.getUrl() == null) continue;
+
+            String url = a.getUrl().trim();
+            if (!esDeNuestroCloudinary(url)) {
+                System.err.println("[Reclamaciones] adjunto descartado, no es de nuestro Cloudinary: "
+                        + url.substring(0, Math.min(url.length(), 120)));
+                continue;
+            }
+            String nombre = a.getNombre() == null ? "archivo" : a.getNombre().trim();
+            if (nombre.length() > 200) nombre = nombre.substring(0, 200);
+            ok.add(new com.example.demo.model.Reclamacion.Adjunto(url, nombre));
+        }
+        return ok;
+    }
+
+    /* Se compara el host completo, no con contains: "res.cloudinary.com.otro.pe"
+       contiene el texto pero es otro servidor. */
+    boolean esDeNuestroCloudinary(String url) {
+        if (cloudName == null || cloudName.isBlank()) return false;
+        try {
+            java.net.URI u = java.net.URI.create(url);
+            return "https".equalsIgnoreCase(u.getScheme())
+                    && "res.cloudinary.com".equalsIgnoreCase(u.getHost())
+                    && u.getPath() != null
+                    && u.getPath().startsWith("/" + cloudName + "/");
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     @Transactional(readOnly = true)
@@ -180,6 +234,10 @@ public class ReclamacionService {
         d.setMontoReclamado(r.getMontoReclamado());
         d.setDetalle(r.getDetalle());
         d.setPedido(r.getPedido());
+        d.setAdjuntos(r.getAdjuntos() == null ? java.util.List.of()
+                : r.getAdjuntos().stream()
+                    .map(a -> new ReclamacionDTO.AdjuntoDTO(a.getUrl(), a.getNombre()))
+                    .collect(Collectors.toList()));
         d.setEstado(r.getEstado() != null ? r.getEstado().name() : null);
         d.setRespuesta(r.getRespuesta());
         d.setRespondidoAt(r.getRespondidoAt() != null ? r.getRespondidoAt().toString() : null);

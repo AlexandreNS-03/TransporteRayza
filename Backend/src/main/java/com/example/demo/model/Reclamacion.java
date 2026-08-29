@@ -85,6 +85,34 @@ public class Reclamacion {
     @Column(name = "pedido", length = 2000)
     private String pedido;
 
+    /**
+     * Fotos o documentos que adjuntó el consumidor (boleto, equipaje dañado).
+     *
+     * Se guarda la URL, no el archivo: el disco de Railway es efímero y se borra
+     * en cada despliegue, y esto es prueba que hay que conservar dos años.
+     */
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "reclamacion_adjuntos",
+                     joinColumns = @JoinColumn(name = "reclamacion_id"))
+    private java.util.List<Adjunto> adjuntos = new java.util.ArrayList<>();
+
+    @Embeddable
+    public static class Adjunto {
+        @Column(name = "url", length = 500)
+        private String url;
+
+        @Column(name = "nombre", length = 200)
+        private String nombre;
+
+        public Adjunto() { }
+        public Adjunto(String url, String nombre) { this.url = url; this.nombre = nombre; }
+
+        public String getUrl() { return url; }
+        public void setUrl(String v) { this.url = v; }
+        public String getNombre() { return nombre; }
+        public void setNombre(String v) { this.nombre = v; }
+    }
+
     // ---- Respuesta del proveedor ----
     @Enumerated(EnumType.STRING)
     @Column(name = "estado", nullable = false, length = 20)
@@ -137,6 +165,9 @@ public class Reclamacion {
     public void setMontoReclamado(BigDecimal v) { this.montoReclamado = v; }
     public String getDetalle() { return detalle; }
     public void setDetalle(String v) { this.detalle = v; }
+    public java.util.List<Adjunto> getAdjuntos() { return adjuntos; }
+    public void setAdjuntos(java.util.List<Adjunto> v) { this.adjuntos = v; }
+
     public String getPedido() { return pedido; }
     public void setPedido(String v) { this.pedido = v; }
     public Estado getEstado() { return estado; }

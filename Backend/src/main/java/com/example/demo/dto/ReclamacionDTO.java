@@ -31,6 +31,21 @@ public class ReclamacionDTO {
     private String respuesta;
     private String respondidoAt;
     private String limiteRespuesta;
+    private java.util.List<AdjuntoDTO> adjuntos;
+
+    /** Foto o documento que subió el consumidor. Solo viaja la URL. */
+    public static class AdjuntoDTO {
+        private String url;
+        private String nombre;
+
+        public AdjuntoDTO() { }
+        public AdjuntoDTO(String url, String nombre) { this.url = url; this.nombre = nombre; }
+
+        public String getUrl() { return url; }
+        public void setUrl(String v) { this.url = v; }
+        public String getNombre() { return nombre; }
+        public void setNombre(String v) { this.nombre = v; }
+    }
 
     public String getId() { return id; }
     public void setId(String v) { this.id = v; }
@@ -94,6 +109,9 @@ public class ReclamacionDTO {
 
     public String getRespondidoAt() { return respondidoAt; }
     public void setRespondidoAt(String v) { this.respondidoAt = v; }
+
+    public java.util.List<AdjuntoDTO> getAdjuntos() { return adjuntos; }
+    public void setAdjuntos(java.util.List<AdjuntoDTO> v) { this.adjuntos = v; }
 
     public String getLimiteRespuesta() { return limiteRespuesta; }
     public void setLimiteRespuesta(String v) { this.limiteRespuesta = v; }
