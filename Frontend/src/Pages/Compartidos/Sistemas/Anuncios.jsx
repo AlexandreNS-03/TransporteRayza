@@ -265,8 +265,15 @@ function Anuncios() {
 
                             <div className="form-grupo">
                                 <label>Mensaje *</label>
-                                <textarea name="mensaje" value={form.mensaje} onChange={handleChange} rows={3}
+                                <textarea name="mensaje" value={form.mensaje} onChange={handleChange} rows={5}
                                           placeholder="Ej: 20% de descuento en la ruta Requena-Iquitos, solo este fin de semana." />
+                                {/* Los avisos de barra se recortan en pantallas chicas: conviene
+                                    saberlo mientras se escribe y no después de publicarlo. */}
+                                <small className="contador-mensaje">
+                                    {form.mensaje.length} caracteres
+                                    {form.tipo === "BARRA" && form.mensaje.length > 160 &&
+                                        " · en la barra superior un texto tan largo se ve recortado en el celular"}
+                                </small>
                             </div>
 
                             <div className="form-fila">
