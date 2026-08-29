@@ -21,6 +21,7 @@ const Servicios      = lazy(() => import("./pages/Servicios"));
 const Clausulas      = lazy(() => import("./pages/Clausulas"));
 const Privacidad     = lazy(() => import("./pages/Privacidad"));
 const LibroReclamaciones = lazy(() => import("./pages/LibroReclamaciones"));
+const RecuperarClave     = lazy(() => import("./pages/RecuperarClave"));
 const Contacto       = lazy(() => import("./pages/Contacto"));
 const Destinos       = lazy(() => import("./pages/Destinos"));
 const DestinoDetalle = lazy(() => import("./pages/DestinoDetalle"));
@@ -53,6 +54,10 @@ export default function App() {
           <Route path="/clausulas" element={<Clausulas />} />
           <Route path="/privacidad" element={<Privacidad />} />
           <Route path="/libro-de-reclamaciones" element={<LibroReclamaciones />} />
+          {/* Las dos rutas llevan a la misma pantalla: sin token pide el enlace,
+              con token deja elegir la contraseña nueva. */}
+          <Route path="/olvide-mi-clave" element={<RecuperarClave />} />
+          <Route path="/restablecer" element={<RecuperarClave />} />
           <Route path="/contacto" element={<Contacto />} />
           <Route path="/destinos" element={<Destinos />} />
           <Route path="/destinos/:slug" element={<DestinoDetalle />} />

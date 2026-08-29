@@ -2227,3 +2227,8 @@ html :is(a, button, input, select, textarea, [tabindex]):focus-visible {
   cursor: pointer;
 }
 .lr-adjuntos button:hover { background: var(--line); color: var(--ink); }
+
+/* "¿Olvidaste tu contraseña?" junto al campo, alineado a la derecha: ahí es
+   donde la persona se da cuenta de que no la recuerda. */
+.olvide-fila { display: flex; justify-content: flex-end; margin-top: -6px; }
+.olvide-fila a { font-size: 13px; color: var(--tira-enlace, var(--brand-700)); }
