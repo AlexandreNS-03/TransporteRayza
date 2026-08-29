@@ -49,6 +49,20 @@ public class EmailService implements InitializingBean {
     @Value("${resend.from:Transportes Rayza <onboarding@resend.dev>}")
     private String remitente;
 
+    /*
+     * Remitente del Libro de Reclamaciones.
+     *
+     * Va aparte del de boletos porque a un reclamo la persona SÍ le responde, y
+     * esa respuesta tiene que llegar a alguien. Si queda vacío se usa el de
+     * siempre, así que no configurar nada no rompe el envío.
+     */
+    @Value("${resend.from-reclamaciones:}")
+    private String remitenteReclamaciones;
+
+    /** Copia de cada reclamo a la empresa: quien tiene que responder debe enterarse. */
+    @Value("${email.copia-reclamaciones:}")
+    private String copiaReclamaciones;
+
     @Value("${spring.mail.password:}")
     private String claveSmtp;
 
@@ -170,8 +184,12 @@ public class EmailService implements InitializingBean {
         String asunto = "Hoja de Reclamación N° " + r.getNumero() + " - Transportes Rayza";
         String html = construirHtmlReclamacion(r, false);
 
-        if (usaResend()) enviarPorResend(r.getConsumidorEmail(), asunto, html, null);
-        else             enviarPorSmtp(r.getConsumidorEmail(), asunto, html, null);
+        // Con copia a la empresa: alguien tiene que responder dentro de los 15 días
+        // hábiles, y enterarse por el panel supone que alguien lo esté mirando.
+        if (usaResend()) enviarPorResend(r.getConsumidorEmail(), asunto, html, null,
+                                         remitenteReclamaciones, copiaReclamaciones);
+        else             enviarPorSmtp(r.getConsumidorEmail(), asunto, html, null,
+                                       copiaReclamaciones);
     }
 
     /** Aviso al consumidor de que su hoja ya tiene respuesta. */
@@ -179,7 +197,8 @@ public class EmailService implements InitializingBean {
         String asunto = "Respuesta a tu Hoja de Reclamación N° " + r.getNumero() + " - Transportes Rayza";
         String html = construirHtmlReclamacion(r, true);
 
-        if (usaResend()) enviarPorResend(r.getConsumidorEmail(), asunto, html, null);
+        if (usaResend()) enviarPorResend(r.getConsumidorEmail(), asunto, html, null,
+                                         remitenteReclamaciones, null);
         else             enviarPorSmtp(r.getConsumidorEmail(), asunto, html, null);
     }
 
@@ -274,9 +293,20 @@ public class EmailService implements InitializingBean {
     /** El QR va como adjunto con content_id "qrcode", que el HTML referencia con cid:qrcode. */
     private void enviarPorResend(String destinatario, String asunto, String html, byte[] qr)
             throws MessagingException {
+        enviarPorResend(destinatario, asunto, html, qr, null, null);
+    }
+
+    /**
+     * @param de     remitente distinto al de siempre, o null para el de siempre
+     * @param copia  dirección en copia, o null
+     */
+    private void enviarPorResend(String destinatario, String asunto, String html, byte[] qr,
+                                 String de, String copia)
+            throws MessagingException {
 
         Map<String, Object> cuerpo = new LinkedHashMap<>();
-        cuerpo.put("from", remitente);
+        cuerpo.put("from", noVacio(de) ? de : remitente);
+        if (noVacio(copia)) cuerpo.put("cc", List.of(copia.trim()));
         cuerpo.put("to", List.of(destinatario));
         cuerpo.put("subject", asunto);
         cuerpo.put("html", html);
@@ -307,10 +337,19 @@ public class EmailService implements InitializingBean {
 
     private void enviarPorSmtp(String destinatario, String asunto, String html, byte[] qr)
             throws MessagingException {
+        enviarPorSmtp(destinatario, asunto, html, qr, null);
+    }
+
+    private void enviarPorSmtp(String destinatario, String asunto, String html, byte[] qr,
+                               String copia)
+            throws MessagingException {
 
         MimeMessage mensaje = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(mensaje, true, "UTF-8");
         helper.setTo(destinatario);
+        // Por SMTP el remitente lo fija la cuenta que autentica, así que solo se
+        // puede agregar la copia; el "de" no se puede cambiar libremente.
+        if (noVacio(copia)) helper.setCc(copia.trim());
         helper.setSubject(asunto);
         helper.setText(html, true);
         if (qr != null)
