@@ -2197,3 +2197,33 @@ html :is(a, button, input, select, textarea, [tabindex]):focus-visible {
 }
 .lr-legal p { margin: 0; }
 .lr-legal strong { color: var(--ink); }
+
+/* Adjuntar archivos al reclamo. El input nativo se esconde: su texto no se puede
+   traducir ni estilar, y en español queda "Sin archivos seleccionados". */
+.lr-subir input[type="file"] { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.lr-subir {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 11px 18px; border-radius: var(--r-sm);
+  border: 1.5px dashed var(--line-strong); background: var(--card);
+  color: var(--ink); font-size: 14px; font-weight: 600; cursor: pointer;
+  transition: border-color .18s var(--ease), background-color .18s var(--ease);
+}
+@media (hover: hover) and (pointer: fine) {
+  .lr-subir:hover { border-color: var(--brand); background: var(--sky-soft); }
+}
+.lr-subir:has(input:disabled) { opacity: .6; cursor: not-allowed; }
+.lr-subir:focus-within { border-color: var(--sky); box-shadow: 0 0 0 4px var(--sky-soft); }
+
+.lr-adjuntos { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 6px; }
+.lr-adjuntos li {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 8px 12px; border-radius: var(--r-sm); background: var(--bg-soft);
+  font-size: 13.5px;
+}
+.lr-adjuntos a { color: var(--ink); word-break: break-all; }
+.lr-adjuntos button {
+  flex: none; width: 24px; height: 24px; border: 0; border-radius: 50%;
+  background: transparent; color: var(--ink-soft); font-size: 18px; line-height: 1;
+  cursor: pointer;
+}
+.lr-adjuntos button:hover { background: var(--line); color: var(--ink); }

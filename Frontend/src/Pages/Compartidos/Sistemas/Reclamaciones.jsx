@@ -184,6 +184,21 @@ function Reclamaciones() {
                                     </div>
                                 )}
 
+                                {/* La evidencia que subió el consumidor: hay que poder
+                                    verla antes de responder, no después. */}
+                                {h.adjuntos?.length > 0 && (
+                                    <div className="rec-texto">
+                                        <span className="rec-etiqueta">Adjuntos ({h.adjuntos.length})</span>
+                                        <div className="rec-adjuntos">
+                                            {h.adjuntos.map((a) => (
+                                                <a key={a.url} href={a.url} target="_blank" rel="noopener">
+                                                    <i className="ti ti-paperclip"></i> {a.nombre}
+                                                </a>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
                                 {h.estado === "RESPONDIDO" ? (
                                     <div className="rec-respuesta">
                                         <span className="rec-etiqueta">Nuestra respuesta · {fmtFecha(h.respondidoAt)}</span>
