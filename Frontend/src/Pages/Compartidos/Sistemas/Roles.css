@@ -496,3 +496,8 @@
 
 .sucursal-select:focus { border-color: #2563b0; }
 .sucursal-select:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Verificación en dos pasos activada: se distingue de un vistazo cuáles cuentas
+   la tienen, que es lo que hace falta al revisar la seguridad del equipo. */
+.btn-accion.dosfactor-on { background: #dcfce7; color: #15803d; }
+.btn-accion.dosfactor-on:hover { background: #bbf7d0; }

@@ -9,6 +9,7 @@ public class UsuarioDTO {
     private String email;
     private String rol;
     private Boolean activo;
+    private boolean dobleFactor;
     private String ultimoLogin;
     private String createdAt;
     private String sucursalId;
@@ -39,4 +40,7 @@ public class UsuarioDTO {
     public String getCreatedAt() { return createdAt; }
     public String getSucursalId() { return sucursalId; }
     public String getSucursalNombre() { return sucursalNombre; }
+
+    public boolean isDobleFactor() { return dobleFactor; }
+    public void setDobleFactor(boolean v) { this.dobleFactor = v; }
 }
