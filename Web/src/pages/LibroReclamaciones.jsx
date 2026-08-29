@@ -5,6 +5,7 @@ import Seo from "../components/Seo";
 import { EMPRESA, telefonoBonito } from "../datos";
 import { RUC_EMPRESA } from "../Utils/empresa";
 import { registrarReclamacion } from "../services/publicApi";
+import { subirAdjunto, MAX_ARCHIVOS, MAX_MB } from "../services/cloudinary";
 
 /** Domicilio fiscal, como figura en la hoja oficial del Libro de Reclamaciones. */
 const DOMICILIO_FISCAL = "Prol. San Antonio Nro. 270 (frente a Casa La Salle) — Requena, Loreto";
@@ -45,11 +46,44 @@ export default function LibroReclamaciones() {
   const [error, setError] = useState(null);
   const [hoja, setHoja] = useState(null);
   const hojaRef = useRef(null);
+  const [adjuntos, setAdjuntos] = useState([]);
+  const [subiendo, setSubiendo] = useState(false);
 
   const cambiar = (campo) => (e) => {
     const v = e.target.type === "checkbox" ? e.target.checked : e.target.value;
     setDatos((d) => ({ ...d, [campo]: v }));
   };
+
+  /**
+   * Sube los archivos apenas se eligen, no al enviar: así el consumidor ve si
+   * algo falló mientras todavía puede corregirlo, y no pierde todo el formulario
+   * por un archivo pesado.
+   */
+  const elegirArchivos = async (e) => {
+    const nuevos = Array.from(e.target.files || []);
+    e.target.value = "";                       // permite volver a elegir el mismo
+    if (!nuevos.length) return;
+
+    const espacio = MAX_ARCHIVOS - adjuntos.length;
+    if (espacio <= 0) {
+      setError(`Puedes adjuntar hasta ${MAX_ARCHIVOS} archivos.`);
+      return;
+    }
+
+    setSubiendo(true);
+    setError(null);
+    for (const archivo of nuevos.slice(0, espacio)) {
+      try {
+        const a = await subirAdjunto(archivo);
+        setAdjuntos((prev) => [...prev, a]);
+      } catch (err) {
+        setError(err.message);
+      }
+    }
+    setSubiendo(false);
+  };
+
+  const quitarAdjunto = (url) => setAdjuntos((prev) => prev.filter((a) => a.url !== url));
 
   const enviar = async (e) => {
     e.preventDefault();
@@ -57,7 +91,7 @@ export default function LibroReclamaciones() {
     setError(null);
     try {
       const monto = datos.montoReclamado ? Number(datos.montoReclamado) : null;
-      const r = await registrarReclamacion({ ...datos, montoReclamado: monto });
+      const r = await registrarReclamacion({ ...datos, montoReclamado: monto, adjuntos });
       setHoja(r);
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err) {
@@ -109,6 +143,20 @@ export default function LibroReclamaciones() {
                 {hoja.montoReclamado != null && <Dato t="Monto reclamado" v={`S/ ${hoja.montoReclamado}`} />}
                 <Dato t="Detalle" v={hoja.detalle} bloque />
                 {hoja.pedido && <Dato t="Tu pedido" v={hoja.pedido} bloque />}
+                {hoja.adjuntos?.length > 0 && (
+                  <div className="lr-dato lr-dato-bloque">
+                    <dt>Adjuntos</dt>
+                    <dd>
+                      <ul className="lr-adjuntos">
+                        {hoja.adjuntos.map((a) => (
+                          <li key={a.url}>
+                            <a href={a.url} target="_blank" rel="noopener">{a.nombre}</a>
+                          </li>
+                        ))}
+                      </ul>
+                    </dd>
+                  </div>
+                )}
               </dl>
 
               <p className="lr-plazo">
@@ -240,6 +288,35 @@ export default function LibroReclamaciones() {
                 <span>¿Qué esperas de nosotros?</span>
                 <textarea rows={3} value={datos.pedido} onChange={cambiar("pedido")} />
               </label>
+
+              {/* Opcional: una foto del boleto o del daño explica más que un párrafo. */}
+              <div className="campo">
+                <span>Adjunta una foto o documento (opcional)</span>
+                <label className="lr-subir">
+                  <input type="file" multiple accept="image/*,application/pdf"
+                         onChange={elegirArchivos} disabled={subiendo || adjuntos.length >= MAX_ARCHIVOS} />
+                  <span>
+                    {subiendo ? "Subiendo…"
+                      : adjuntos.length >= MAX_ARCHIVOS ? `Ya adjuntaste ${MAX_ARCHIVOS} archivos`
+                      : "Elegir archivos"}
+                  </span>
+                </label>
+                <small className="muted">
+                  Hasta {MAX_ARCHIVOS} archivos, {MAX_MB} MB cada uno. Imágenes o PDF.
+                </small>
+
+                {adjuntos.length > 0 && (
+                  <ul className="lr-adjuntos">
+                    {adjuntos.map((a) => (
+                      <li key={a.url}>
+                        <a href={a.url} target="_blank" rel="noopener">{a.nombre}</a>
+                        <button type="button" onClick={() => quitarAdjunto(a.url)}
+                                aria-label={`Quitar ${a.nombre}`}>×</button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
             </fieldset>
 
             {error && <div className="alert alert-warn">{error}</div>}
@@ -261,8 +338,8 @@ export default function LibroReclamaciones() {
               </p>
             </div>
 
-            <button className="btn btn-primary" disabled={enviando}>
-              {enviando ? "Enviando…" : "Enviar mi hoja"}
+            <button className="btn btn-primary" disabled={enviando || subiendo}>
+              {enviando ? "Enviando…" : subiendo ? "Esperando los archivos…" : "Enviar mi hoja"}
             </button>
           </form>
         </div>
