@@ -80,3 +80,25 @@ export async function reprogramarPasaje(ventaId, viajeId) {
   const { data } = await axios.patch(`${API}/pasajes/${ventaId}/reprogramar`, { viajeId }, headers());
   return data;
 }
+
+/**
+ * Pide el enlace para recuperar la contraseña.
+ *
+ * La respuesta es la misma exista o no la cuenta —el servidor no dice cuál es—,
+ * así que acá tampoco se distingue: mostrar "ese correo no existe" dejaría que
+ * cualquiera averigüe quién tiene cuenta.
+ */
+export async function pedirEnlaceRecuperacion(email) {
+  try {
+    const { data } = await axios.post(`${AUTH}/olvide-mi-clave`, { email });
+    return data.message;
+  } catch (e) { throw err(e); }
+}
+
+/** Cambia la contraseña con el token que llegó por correo. */
+export async function restablecerClave(token, password) {
+  try {
+    const { data } = await axios.post(`${AUTH}/restablecer`, { token, password });
+    return data.message;
+  } catch (e) { throw err(e); }
+}

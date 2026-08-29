@@ -107,6 +107,56 @@ public class EmailService implements InitializingBean {
             enviarPorSmtp(destinatario, "Embarque confirmado - Transportes Rayza", html, null);
     }
 
+    // ------------------------------------------------- Recuperar contraseña
+
+    /**
+     * Enlace para poner una contraseña nueva.
+     *
+     * El correo dice qué hacer si NO fue quien lo pidió: alguien puede escribir el
+     * correo ajeno en el formulario, y el dueño tiene que entender que su cuenta
+     * sigue a salvo mientras no use el enlace.
+     */
+    public void enviarEnlaceRecuperacion(String destinatario, String nombre,
+                                         String enlace, int minutos) throws MessagingException {
+        String html = "<div style=\"font-family:Arial,sans-serif;max-width:520px;margin:auto;color:#0f172a\">"
+                + "<h2 style=\"margin:0 0 6px\">Recupera tu contraseña</h2>"
+                + "<p style=\"margin:0 0 18px;color:#55617a\">Hola " + esc(nombre) + ",</p>"
+                + "<p>Pediste volver a entrar a tu cuenta de Transportes Rayza. "
+                + "Haz clic en el botón y elige una contraseña nueva.</p>"
+                + "<p style=\"margin:24px 0\"><a href=\"" + esc(enlace) + "\" "
+                + "style=\"display:inline-block;padding:13px 26px;background:#e01e2a;color:#fff;"
+                + "border-radius:9px;text-decoration:none;font-weight:700\">Cambiar mi contraseña</a></p>"
+                + "<p style=\"color:#55617a;font-size:14px\">El enlace vence en " + minutos
+                + " minutos y sirve una sola vez.</p>"
+                + "<p style=\"color:#55617a;font-size:14px\"><strong>¿No fuiste tú?</strong> "
+                + "Ignora este correo: tu contraseña no cambia mientras no uses el enlace.</p>"
+                + "</div>";
+
+        String asunto = "Recupera tu contraseña - Transportes Rayza";
+        if (usaResend()) enviarPorResend(destinatario, asunto, html, null);
+        else             enviarPorSmtp(destinatario, asunto, html, null);
+    }
+
+    /**
+     * Aviso de que la contraseña cambió.
+     *
+     * Es la única señal que tendría el dueño si alguien más entrara a su correo y
+     * le robara la cuenta, así que se manda aunque el cambio haya sido legítimo.
+     */
+    public void enviarAvisoClaveCambiada(String destinatario, String nombre) throws MessagingException {
+        String html = "<div style=\"font-family:Arial,sans-serif;max-width:520px;margin:auto;color:#0f172a\">"
+                + "<h2 style=\"margin:0 0 6px\">Tu contraseña cambió</h2>"
+                + "<p style=\"margin:0 0 18px;color:#55617a\">Hola " + esc(nombre) + ",</p>"
+                + "<p>La contraseña de tu cuenta de Transportes Rayza acaba de cambiar.</p>"
+                + "<p style=\"color:#55617a;font-size:14px\"><strong>Si no fuiste tú</strong>, "
+                + "escríbenos cuanto antes: alguien más pudo entrar a tu correo.</p>"
+                + "</div>";
+
+        String asunto = "Tu contraseña cambió - Transportes Rayza";
+        if (usaResend()) enviarPorResend(destinatario, asunto, html, null);
+        else             enviarPorSmtp(destinatario, asunto, html, null);
+    }
+
     // ------------------------------------------------- Libro de Reclamaciones
 
     /**

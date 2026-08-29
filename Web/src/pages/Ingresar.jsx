@@ -52,6 +52,10 @@ export default function Ingresar() {
                     <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required /></div>
                   <div className="field full"><label>Contraseña</label>
                     <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required /></div>
+                  {/* Va junto al campo, que es donde se nota que no la recuerdas. */}
+                  <div className="field full olvide-fila">
+                    <Link to="/olvide-mi-clave">¿Olvidaste tu contraseña?</Link>
+                  </div>
                 </div>
               ) : (
                 <div className="form-grid">
