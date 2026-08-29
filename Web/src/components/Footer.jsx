@@ -1,5 +1,4 @@
 import { Link } from "react-router-dom";
-import { IconLibro } from "./Icons";
 import { LogoMark } from "./Logo";
 import { EMPRESA, telefonoBonito, telefonoInternacional } from "../datos";
 
@@ -64,20 +63,14 @@ export default function Footer() {
               <li><Link to="/clausulas">Términos y condiciones</Link></li>
               <li><Link to="/privacidad">Política de privacidad</Link></li>
               <li>
-                {/* La norma pide que el Libro sea de fácil acceso desde el mismo medio
-                    donde se vende, y que se muestre el aviso oficial. Por eso va
-                    destacado y con el aviso al lado, no como un enlace más de la lista. */}
-                <Link className="lr-enlace-footer" to="/libro-de-reclamaciones">
-                  <IconLibro className="lr-libro" aria-hidden="true" />
-                  Libro de Reclamaciones
+                {/* El aviso oficial va como imagen y no como enlace de texto: la norma
+                    pide mostrarlo, y llevarlo puesto es lo que lo hace de fácil acceso.
+                    Es el archivo que publica INDECOPI, sin retocar. */}
+                <Link className="lr-aviso" to="/libro-de-reclamaciones">
+                  <img src="/libro-reclamaciones.png" alt="Libro de Reclamaciones"
+                       width="480" height="380" loading="lazy" />
+                  <span>Déjanos tu reclamo o queja</span>
                 </Link>
-              </li>
-              <li>
-                <a className="lr-aviso-footer"
-                   href="https://consumidor.gob.pe/wp-content/uploads/2020/07/AvisoVirtual.pdf"
-                   target="_blank" rel="noopener">
-                  Aviso oficial de INDECOPI
-                </a>
               </li>
             </ul>
           </div>

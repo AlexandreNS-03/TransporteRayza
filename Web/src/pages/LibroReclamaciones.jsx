@@ -6,6 +6,9 @@ import { EMPRESA, telefonoBonito } from "../datos";
 import { RUC_EMPRESA } from "../Utils/empresa";
 import { registrarReclamacion } from "../services/publicApi";
 
+/** Domicilio fiscal, como figura en la hoja oficial del Libro de Reclamaciones. */
+const DOMICILIO_FISCAL = "Prol. San Antonio Nro. 270 (frente a Casa La Salle) — Requena, Loreto";
+
 /**
  * Libro de Reclamaciones virtual (INDECOPI, D.S. 011-2011-PCM).
  *
@@ -143,8 +146,11 @@ export default function LibroReclamaciones() {
             Al enviarlo recibes una copia por correo y puedes descargarla.
           </p>
 
+          {/* Los datos del proveedor los exige la norma en la hoja. El domicilio es
+              el fiscal, tal como figura en la hoja oficial de la empresa. */}
           <div className="lr-empresa">
-            <strong>{EMPRESA.nombre}</strong> · RUC {RUC_EMPRESA} · Requena e Iquitos, Loreto ·{" "}
+            <strong>{EMPRESA.nombre}</strong> · RUC {RUC_EMPRESA}<br />
+            {DOMICILIO_FISCAL}<br />
             {telefonoBonito}
           </div>
 
@@ -153,8 +159,8 @@ export default function LibroReclamaciones() {
               <legend>1. ¿Qué quieres registrar?</legend>
               <div className="lr-tipos">
                 {[
-                  { v: "RECLAMO", t: "Reclamo", d: "Disconformidad con el servicio que contrataste." },
-                  { v: "QUEJA",   t: "Queja",   d: "Malestar por la atención que recibiste." },
+                  { v: "RECLAMO", t: "Reclamo", d: "Disconformidad relacionada a los productos o servicios." },
+                  { v: "QUEJA",   t: "Queja",   d: "Malestar o descontento respecto a la atención al público." },
                 ].map((o) => (
                   <label key={o.v} className={`lr-tipo ${datos.tipo === o.v ? "activo" : ""}`}>
                     <input type="radio" name="tipo" value={o.v}
@@ -238,11 +244,22 @@ export default function LibroReclamaciones() {
 
             {error && <div className="alert alert-warn">{error}</div>}
 
-            <p className="muted" style={{ fontSize: 13 }}>
-              Al enviarlo aceptas que usemos tus datos para atender este caso, según nuestra{" "}
-              <a href="/privacidad">política de privacidad</a>. Responderemos dentro de los
-              15 días hábiles que establece la norma.
-            </p>
+            {/* Estas dos advertencias van al pie de la hoja oficial y son parte de lo
+                que el consumidor tiene derecho a saber antes de enviar. */}
+            <div className="lr-legal">
+              <p>
+                La formulación del reclamo no impide acudir a otras vías de solución de
+                controversias ni es requisito previo para interponer una denuncia ante el INDECOPI.
+              </p>
+              <p>
+                El proveedor debe dar respuesta al reclamo o queja en un plazo no mayor a
+                <strong> quince (15) días hábiles</strong>, el cual es improrrogable.
+              </p>
+              <p>
+                Al enviarlo aceptas que usemos tus datos para atender este caso, según nuestra{" "}
+                <a href="/privacidad">política de privacidad</a>.
+              </p>
+            </div>
 
             <button className="btn btn-primary" disabled={enviando}>
               {enviando ? "Enviando…" : "Enviar mi hoja"}
