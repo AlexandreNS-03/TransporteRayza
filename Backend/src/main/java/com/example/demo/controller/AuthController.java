@@ -39,6 +39,17 @@ public class AuthController {
     }
 
     /**
+     * Segundo paso del login: el código que llegó al correo.
+     *
+     * Público a propósito: quien está acá todavía no tiene token —justamente
+     * porque le falta este paso—, así que exigir sesión sería un círculo.
+     */
+    @PostMapping("/verificar-codigo")
+    public LoginResponse verificarCodigo(@RequestBody Map<String, String> body) {
+        return authService.verificarCodigo(body.get("desafioId"), body.get("codigo"));
+    }
+
+    /**
      * Dirección real de quien llama. En Railway la aplicación está detrás de un
      * proxy, así que la IP directa siempre sería la del proxy: la del visitante
      * viene en X-Forwarded-For, primera de la lista.

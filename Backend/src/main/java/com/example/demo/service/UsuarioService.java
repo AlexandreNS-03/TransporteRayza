@@ -64,6 +64,30 @@ public class UsuarioService {
         return creado;
     }
 
+    /**
+     * Prende o apaga el segundo factor de una cuenta.
+     *
+     * Se exige el correo antes de prenderlo: sin correo el código no llega a
+     * ningún lado y la persona queda sin poder entrar. Apagarlo siempre se puede,
+     * que es justo lo que hace falta cuando alguien perdió el acceso al correo.
+     */
+    public UsuarioDTO cambiarDobleFactor(String id, boolean activar) {
+        Usuario usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        if (activar && (usuario.getEmail() == null || usuario.getEmail().isBlank()))
+            throw new RuntimeException("Primero agrégale un correo a " + usuario.getUsername()
+                    + ": sin correo no podría recibir el código y quedaría sin poder entrar.");
+
+        usuario.setDobleFactor(activar);
+        UsuarioDTO dto = toDTO(usuarioRepository.save(usuario));
+
+        auditoriaService.registrar("DOBLE_FACTOR", "USUARIOS", id,
+                "Verificación en dos pasos " + (activar ? "activada" : "desactivada")
+                        + " para " + usuario.getUsername());
+        return dto;
+    }
+
     public UsuarioDTO cambiarSucursal(String id, String sucursalId) {
         Usuario usuario = usuarioRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
@@ -131,7 +155,7 @@ public class UsuarioService {
     }
 
     private UsuarioDTO toDTO(Usuario u) {
-        return new UsuarioDTO(
+        UsuarioDTO dto = new UsuarioDTO(
                 u.getId(),
                 u.getUsername(),
                 u.getNombre(),
@@ -143,5 +167,7 @@ public class UsuarioService {
                 u.getSucursalId(),
                 u.getSucursalNombre()
         );
+        dto.setDobleFactor(u.usaDobleFactor());
+        return dto;
     }
 }

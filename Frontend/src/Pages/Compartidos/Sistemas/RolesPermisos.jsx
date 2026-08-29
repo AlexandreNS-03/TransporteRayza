@@ -151,6 +151,32 @@ function Roles() {
         }
     };
 
+    /**
+     * Prende o apaga la verificación en dos pasos.
+     *
+     * Apagarla es la salida cuando alguien pierde el acceso a su correo: sin esto
+     * quedaría sin poder entrar y sin forma de arreglarlo desde el sistema.
+     */
+    const toggleDobleFactor = async (usuario) => {
+        const activar = !usuario.dobleFactor;
+        if (activar && !confirm(
+            `${usuario.nombre} tendrá que escribir un código enviado a ${usuario.email || "su correo"} cada vez que entre.\n\n¿Activar?`
+        )) return;
+
+        setAccionandoId(usuario.id);
+        try {
+            const actualizado = await apiFetch(`/api/usuarios/${usuario.id}/doble-factor`, {
+                method: "PATCH",
+                body: JSON.stringify({ activar }),
+            });
+            setUsuarios(prev => prev.map(u => u.id === usuario.id ? actualizado : u));
+        } catch (err) {
+            alert(err.message);
+        } finally {
+            setAccionandoId(null);
+        }
+    };
+
     // ── Resetear contraseña ──
     const abrirModalReset = (usuario) => {
         setModalReset(usuario);
@@ -333,6 +359,16 @@ function Roles() {
                                             title="Resetear contraseña"
                                         >
                                             <i className="ti ti-key"></i>
+                                        </button>
+                                        <button
+                                            className={`btn-accion ${u.dobleFactor ? "dosfactor-on" : ""}`}
+                                            onClick={() => toggleDobleFactor(u)}
+                                            disabled={accionandoId === u.id}
+                                            title={u.dobleFactor
+                                                ? "Verificación en dos pasos activada — clic para desactivar"
+                                                : "Activar verificación en dos pasos"}
+                                        >
+                                            <i className={u.dobleFactor ? "ti ti-shield-check" : "ti ti-shield"}></i>
                                         </button>
                                     </td>
                                 </tr>

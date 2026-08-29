@@ -53,6 +53,18 @@ public class UsuarioController {
         }
     }
 
+    /** Prende o apaga la verificación en dos pasos de una cuenta. */
+    @PatchMapping("/{id}/doble-factor")
+    public ResponseEntity<?> cambiarDobleFactor(@PathVariable String id,
+                                                @RequestBody Map<String, Boolean> body) {
+        try {
+            return ResponseEntity.ok(
+                    usuarioService.cambiarDobleFactor(id, Boolean.TRUE.equals(body.get("activar"))));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
     @PatchMapping("/{id}/sucursal")
     public ResponseEntity<?> cambiarSucursal(@PathVariable String id, @RequestBody Map<String, String> body) {
         try {
