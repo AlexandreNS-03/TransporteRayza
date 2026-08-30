@@ -1,0 +1,197 @@
+/* Sorteos. Hay un premio y una norma de por medio: lo legal va primero y lo
+   irreversible (ejecutar) tiene que verse distinto a "guardar".
+
+   El alineado se declara a mano porque #root centra todo el panel (viene del
+   template original); sin esto los textos largos salen centrados y se leen mal. */
+
+.sorteo-legal, .sorteo-nuevo, .sorteo-lista, .sorteo-tarjeta { text-align: left; }
+
+.sorteo-legal {
+    padding: 13px 15px;
+    margin-bottom: 18px;
+    border-radius: 10px;
+    border-left: 4px solid #b45309;
+    background: #fffbeb;
+    color: #78350f;
+    font-size: 13.5px;
+    line-height: 1.55;
+}
+
+.sorteo-nuevo {
+    padding: 18px;
+    margin-bottom: 20px;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    background: #fff;
+}
+.sorteo-nuevo h3 { margin: 0 0 14px; font-size: 15px; font-weight: 700; color: #0f172a; }
+
+.sorteo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
+    margin-bottom: 16px;
+}
+.sorteo-grid .ancho { grid-column: 1 / -1; }
+
+.sorteo-lista { display: grid; gap: 14px; }
+
+.sorteo-tarjeta {
+    padding: 18px;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    background: #fff;
+    display: grid;
+    gap: 14px;
+}
+
+.sorteo-tarjeta header {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    gap: 12px; flex-wrap: wrap;
+}
+.sorteo-tarjeta h3 { margin: 0 0 2px; font-size: 16px; font-weight: 700; color: #0f172a; }
+.sorteo-tarjeta p  { margin: 0; font-size: 13.5px; }
+.sorteo-tarjeta .muted { color: #6b7280; }
+
+.badge.estado-borrador { background: #f1f5f9; color: #475569; }
+.badge.estado-abierto  { background: #f0fdf4; color: #15803d; }
+.badge.estado-cerrado  { background: #fff7ed; color: #b45309; }
+.badge.estado-sorteado { background: #eef2ff; color: #4338ca; }
+
+/* Las cifras son lo que se mira de reojo antes de decidir si ya toca sortear. */
+.sorteo-cifras {
+    display: flex; gap: 26px; flex-wrap: wrap;
+    padding: 12px 0;
+    border-top: 1px solid #f1f5f9;
+    border-bottom: 1px solid #f1f5f9;
+}
+.sorteo-cifras > div { display: grid; gap: 2px; }
+.sorteo-cifras strong {
+    font-size: 22px; font-weight: 800; color: #0f172a;
+    font-variant-numeric: tabular-nums; line-height: 1.1;
+}
+.sorteo-cifras span { font-size: 12px; color: #6b7280; }
+
+.sorteo-ganador-caja {
+    padding: 14px 16px;
+    border-radius: 10px;
+    background: #f8fafc;
+    border-left: 4px solid #1a4db5;
+}
+.sorteo-ganador-caja .rec-etiqueta {
+    display: block; font-size: 11.5px; font-weight: 700;
+    color: #6b7280; text-transform: uppercase; letter-spacing: .04em;
+    margin-bottom: 6px;
+}
+.sorteo-ganador-caja p { margin: 0 0 4px; font-size: 14px; }
+
+.sorteo-acciones { display: flex; gap: 10px; flex-wrap: wrap; }
+
+@media (max-width: 640px) {
+    .sorteo-cifras { gap: 18px; }
+    .sorteo-acciones button { flex: 1; }
+}
+
+/* ── La transmisión, vista desde el panel ──
+   El operador anuncia el resultado mientras la gente lo ve en la web: si acá
+   apareciera el nombre de golpe y allá con suspenso, lo cantaría antes de
+   tiempo. Por eso es la misma rueda, con los mismos nombres y el mismo tiempo.
+   El armado está en Components/RuletaSorteo.jsx. */
+
+.sorteo-vivo { max-width: 440px; text-align: center; }
+.sorteo-vivo h3, .sorteo-vivo > p { text-align: center; }
+
+.ruleta-caja { margin: 16px auto 4px; }
+
+.ruleta-disco {
+    position: relative; width: 260px; aspect-ratio: 1;
+    margin: 0 auto; display: grid; place-items: center;
+    filter: drop-shadow(0 12px 26px rgba(15, 23, 42, .22));
+}
+
+.ruleta-svg, .ruleta-aro { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+/* Solo transform: es lo único que el navegador mueve sin recalcular la página.
+   La curva es la del sistema, la misma de index.css. */
+.ruleta-svg {
+    transition-property: transform;
+    transition-timing-function: var(--ease-salida);
+}
+
+.ruleta-borde { fill: none; stroke: #fff; stroke-width: 7; }
+.ruleta-radio { stroke: rgba(255, 255, 255, .5); stroke-width: .8; }
+
+.ruleta-nombre-sector {
+    font-size: 7.8px; font-weight: 700; fill: #fff; letter-spacing: .04em;
+    paint-order: stroke; stroke: rgba(0, 0, 0, .28); stroke-width: 1.6px;
+}
+
+/* El sector premiado, marcado al frenar: sin eso hay que creerle al texto del
+   centro que la aguja cayó donde dice. */
+.ruleta-sector-ganador {
+    stroke: #fff; stroke-width: 2.5; stroke-linejoin: round;
+    filter: brightness(1.12);
+    animation: ruleta-revelar 420ms var(--ease-salida) both;
+}
+
+/* Las luces del aro no giran con la rueda: lo que se ve moverse es el
+   contraste entre el aro quieto y los sectores pasando por debajo. */
+.ruleta-luz { fill: #fff; opacity: .95; }
+.ruleta-luz.par { fill: #ffd257; }
+
+.ruleta-aguja {
+    position: absolute; top: -12px; left: 50%; z-index: 4;
+    transform: translateX(-50%);
+    filter: drop-shadow(0 3px 4px rgba(15, 23, 42, .35));
+    color: #0f172a;
+}
+
+.ruleta-centro {
+    position: relative; z-index: 3;
+    width: 46%; aspect-ratio: 1; border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 6px 18px rgba(15, 23, 42, .18), 0 0 0 5px #fff;
+    display: grid; place-content: center; text-align: center; padding: 10px;
+}
+
+.ruleta-eti { font-size: 11.5px; color: #6b7280; letter-spacing: .04em; }
+.ruleta-cifra {
+    display: block; font-size: 30px; font-weight: 800; color: #0f172a;
+    line-height: 1; font-variant-numeric: tabular-nums;
+}
+
+/* Entra desde 0.94, nunca desde 0: nada en el mundo real aparece de la nada. */
+.ruleta-ganador {
+    display: block; font-size: 17px; font-weight: 800; color: #1a4db5;
+    line-height: 1.2; margin: 4px 0;
+    animation: ruleta-revelar 320ms var(--ease-salida) both 60ms;
+}
+.ruleta-codigo {
+    font-size: 11px; color: #6b7280; letter-spacing: .1em;
+    animation: ruleta-revelar 320ms var(--ease-salida) both 140ms;
+}
+.ruleta-eti-girando { animation: ruleta-latir 1.4s ease-in-out infinite; }
+@keyframes ruleta-latir { 50% { opacity: .45; } }
+
+@keyframes ruleta-revelar {
+    from { opacity: 0; transform: scale(.94); }
+    to   { opacity: 1; transform: scale(1); }
+}
+
+.ruleta-nota {
+    margin: 10px auto 0; max-width: 40ch;
+    font-size: 12px; color: #6b7280; text-align: center;
+}
+
+.sorteo-vivo .sorteo-ganador-caja { text-align: left; margin-top: 10px; }
+
+/* Menos movimiento: se conserva la aparición, se quita el giro y la escala. */
+@media (prefers-reduced-motion: reduce) {
+    .ruleta-svg { transition-duration: 1ms !important; }
+    .ruleta-eti-girando { animation: none; }
+    .ruleta-ganador, .ruleta-codigo, .ruleta-sector-ganador {
+        animation-name: ruleta-aparecer;
+        animation-duration: 200ms;
+    }
+}
+@keyframes ruleta-aparecer { from { opacity: 0; } to { opacity: 1; } }

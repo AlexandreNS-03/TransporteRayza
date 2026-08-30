@@ -42,6 +42,9 @@ public class VentaDTO {
     private String codigoQr;
     private String embarqueEstado;
 
+    /** Código del sorteo impreso en el ticket. Null si no hay sorteo abierto. */
+    private String codigoSorteo;
+
     /* Pre-embarque (subir al carro). NULL en las rutas que no lo usan. La pantalla
        lo necesita para avisar cuando alguien va a subir al bote sin haber pasado. */
     private String preembarqueEstado;
@@ -167,6 +170,9 @@ public class VentaDTO {
 
     public String getCodigoQr() { return codigoQr; }
     public void setCodigoQr(String codigoQr) { this.codigoQr = codigoQr; }
+
+    public String getCodigoSorteo() { return codigoSorteo; }
+    public void setCodigoSorteo(String v) { this.codigoSorteo = v; }
 
     public String getPreembarqueEstado() { return preembarqueEstado; }
     public void setPreembarqueEstado(String v) { this.preembarqueEstado = v; }

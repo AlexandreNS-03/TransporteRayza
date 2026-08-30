@@ -22,6 +22,7 @@ const Clausulas      = lazy(() => import("./pages/Clausulas"));
 const Privacidad     = lazy(() => import("./pages/Privacidad"));
 const LibroReclamaciones = lazy(() => import("./pages/LibroReclamaciones"));
 const RecuperarClave     = lazy(() => import("./pages/RecuperarClave"));
+const Sorteo             = lazy(() => import("./pages/Sorteo"));
 const Contacto       = lazy(() => import("./pages/Contacto"));
 const Destinos       = lazy(() => import("./pages/Destinos"));
 const DestinoDetalle = lazy(() => import("./pages/DestinoDetalle"));
@@ -58,6 +59,7 @@ export default function App() {
               con token deja elegir la contraseña nueva. */}
           <Route path="/olvide-mi-clave" element={<RecuperarClave />} />
           <Route path="/restablecer" element={<RecuperarClave />} />
+          <Route path="/sorteo" element={<Sorteo />} />
           <Route path="/contacto" element={<Contacto />} />
           <Route path="/destinos" element={<Destinos />} />
           <Route path="/destinos/:slug" element={<DestinoDetalle />} />

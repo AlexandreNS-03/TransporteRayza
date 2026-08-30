@@ -9,6 +9,7 @@ import Galeria from "../components/Galeria";
 import Reveal from "../components/Reveal";
 import HeroConProfundidad from "../components/HeroConProfundidad";
 import ProximaFiesta from "../components/ProximaFiesta";
+import SorteoDestacado from "../components/SorteoDestacado";
 import { getAnuncios } from "../services/publicApi";
 import { EMPRESA, telefonoBonito, telefonoInternacional,
          aniosDeAniversario } from "../datos";
@@ -129,6 +130,9 @@ export default function Landing() {
       {/* ===== PROMOS ===== */}
       <section className="section" style={{ paddingTop: 56 }}>
         <div className="wrap">
+          {/* Solo aparece si hay un sorteo abierto o recién hecho. */}
+          <SorteoDestacado />
+
           <div className="promos">
             {promos.map((p, i) => {
               const contenido = (

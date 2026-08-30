@@ -250,6 +250,19 @@ export async function generarTicket80mm(venta) {
     doc.setFont("helvetica", "bold");
     doc.setTextColor(...azul);
     doc.setFontSize(7);
+    // Código del sorteo, si hay uno abierto.
+    if (venta.codigoSorteo) {
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(8);
+        doc.text(`Sorteo: ${venta.codigoSorteo}`, ancho / 2, y, { align: "center" });
+        y += 3.5;
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(6.5);
+        doc.text("Regístralo en transporterayza.com/sorteo", ancho / 2, y, { align: "center" });
+        y += 5;
+        doc.setFontSize(8);
+    }
+
     doc.text("¡Gracias por viajar con Transportes Rayza!", ancho / 2, y, { align: "center" });
 
     // ── DESCARGAR ──

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import "../Ventas/Pasajes.css";
 import "../Finanzas/Comprobantes.css";
+import "./ModalSimple.css";
 import "./Reclamaciones.css";
 import { apiFetch } from "../../../Services/api.js";
 import { useToast, Toasts } from "../../../Components/Toast.jsx";
@@ -61,7 +62,7 @@ function Reclamaciones() {
         try {
             setHojas(await apiFetch("/api/reclamaciones"));
         } catch (e) {
-            mostrarToast(e.message || "No se pudieron cargar las reclamaciones", "error");
+            mostrarToast("error", e.message || "No se pudieron cargar las reclamaciones");
         } finally {
             setCargando(false);
         }
@@ -69,7 +70,7 @@ function Reclamaciones() {
 
     const responder = async () => {
         if (!respuesta.trim()) {
-            mostrarToast("Escribe la respuesta antes de enviarla", "error");
+            mostrarToast("error", "Escribe la respuesta antes de enviarla");
             return;
         }
         setEnviando(true);
@@ -78,12 +79,12 @@ function Reclamaciones() {
                 method: "PATCH",
                 body: JSON.stringify({ respuesta }),
             });
-            mostrarToast(`Respondida la hoja N° ${abierta.numero}. Se le avisó al consumidor por correo.`, "success");
+            mostrarToast("success", `Respondida la hoja N° ${abierta.numero}. Se le avisó al consumidor por correo.`);
             setAbierta(null);
             setRespuesta("");
             cargar();
         } catch (e) {
-            mostrarToast(e.message || "No se pudo guardar la respuesta", "error");
+            mostrarToast("error", e.message || "No se pudo guardar la respuesta");
         } finally {
             setEnviando(false);
         }
@@ -216,7 +217,7 @@ function Reclamaciones() {
             )}
 
             {abierta && (
-                <div className="modal-fondo" onClick={() => !enviando && setAbierta(null)}>
+                <div className="modal-overlay" onClick={() => !enviando && setAbierta(null)}>
                     <div className="modal rec-modal" onClick={(e) => e.stopPropagation()}>
                         <h3>Responder la hoja N° {abierta.numero}</h3>
                         <p className="muted">
