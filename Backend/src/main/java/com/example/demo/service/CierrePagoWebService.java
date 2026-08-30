@@ -28,10 +28,13 @@ public class CierrePagoWebService {
 
     private final VentaRepository ventaRepository;
     private final AsientoService asientoService;
+    private final SorteoService sorteoService;
 
-    public CierrePagoWebService(VentaRepository ventaRepository, AsientoService asientoService) {
+    public CierrePagoWebService(VentaRepository ventaRepository, AsientoService asientoService,
+                                SorteoService sorteoService) {
         this.ventaRepository = ventaRepository;
         this.asientoService = asientoService;
+        this.sorteoService = sorteoService;
     }
 
     /** Deja las ventas pagadas y sus asientos confirmados, y cierra la transacción. */
@@ -44,6 +47,9 @@ public class CierrePagoWebService {
             v.setReservaExpira(null);
             ventaRepository.save(v);
             asientoService.confirmarAsiento(v.getId());
+            // El cupón se emite recién al pagar, no al reservar: una reserva que
+            // expira no da derecho a participar.
+            sorteoService.generarCuponDe(v);
         }
     }
 }

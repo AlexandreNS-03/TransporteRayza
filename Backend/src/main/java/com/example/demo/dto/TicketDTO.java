@@ -35,4 +35,6 @@ public class TicketDTO {
     public String clienteTipoDoc;
     public String clienteDocumento;
     public String detalleComprobante;
+    /** El código del sorteo, si la venta generó uno. Va impreso en el ticket. */
+    public String codigoSorteo;
 }

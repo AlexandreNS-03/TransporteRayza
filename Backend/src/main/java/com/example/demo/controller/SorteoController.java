@@ -151,6 +151,18 @@ public class SorteoController {
         return ResponseEntity.ok(aMapaAdmin(sorteoRepository.save(s)));
     }
 
+    /** Emite los códigos que hayan quedado sin generar desde que se abrió. */
+    @PostMapping("/api/sorteos/{id}/emitir-faltantes")
+    public ResponseEntity<?> emitirFaltantes(@PathVariable String id) {
+        int n = servicio.emitirFaltantes(id);
+        return ResponseEntity.ok(Map.of(
+                "emitidos", n,
+                "message", n == 0
+                        ? "No faltaba ningún código: todos los pasajes vendidos desde que abriste el sorteo ya tienen el suyo."
+                        : n + (n == 1 ? " código emitido." : " códigos emitidos.")
+                          + " Vuelve a imprimir esos tickets para que salgan con el código."));
+    }
+
     /** Elige al ganador. Una sola vez. */
     @PostMapping("/api/sorteos/{id}/ejecutar")
     public ResponseEntity<?> ejecutar(@PathVariable String id, Authentication auth) {

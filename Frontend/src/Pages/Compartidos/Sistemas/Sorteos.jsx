@@ -69,6 +69,21 @@ function Sorteos() {
         } finally { setCreando(false); }
     };
 
+    /**
+     * Emite los códigos que hayan quedado sin generar.
+     *
+     * Está a la vista porque el operador no tiene cómo saber que a un pasaje le
+     * faltó el suyo: lo descubre cuando el cliente reclama que su ticket salió
+     * sin código.
+     */
+    const emitirFaltantes = async (s) => {
+        try {
+            const r = await apiFetch(`/api/sorteos/${s.id}/emitir-faltantes`, { method: "POST" });
+            mostrarToast(r.emitidos > 0 ? "success" : "info", r.message);
+            cargar();
+        } catch (e) { mostrarToast("error", e.message); }
+    };
+
     const cerrar = async (s) => {
         if (!confirm(`Cerrar el registro de "${s.nombre}"?\n\nDespués de esto nadie más podrá registrar su código.`)) return;
         try {
@@ -192,7 +207,10 @@ function Sorteos() {
                             </header>
 
                             <div className="sorteo-cifras">
-                                <div><strong>{s.cupones}</strong><span>códigos emitidos</span></div>
+                                <div>
+                                    <strong>{s.cupones}</strong>
+                                    <span>{s.cupones === 1 ? "código emitido" : "códigos emitidos"}</span>
+                                </div>
                                 <div><strong>{s.participantes}</strong><span>registrados</span></div>
                                 {s.estado !== "SORTEADO" && (
                                     <div><strong>{s.viendoAhora}</strong><span>viendo ahora</span></div>
@@ -216,9 +234,14 @@ function Sorteos() {
                             ) : (
                                 <div className="sorteo-acciones">
                                     {s.estado === "ABIERTO" && (
-                                        <button className="btn-secundario" onClick={() => cerrar(s)}>
-                                            Cerrar registro
-                                        </button>
+                                        <>
+                                            <button className="btn-secundario" onClick={() => emitirFaltantes(s)}>
+                                                Emitir códigos faltantes
+                                            </button>
+                                            <button className="btn-secundario" onClick={() => cerrar(s)}>
+                                                Cerrar registro
+                                            </button>
+                                        </>
                                     )}
                                     {/* Solo con el registro cerrado: sortear mientras la gente
                                         aún se registra dejaría fuera a quien llegó tarde. */}

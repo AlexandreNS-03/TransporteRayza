@@ -448,6 +448,11 @@ public class VentaService {
                 venta.getMetodoPago(),
                 venta.getId());
 
+        // El código del sorteo, que va impreso en el ticket. Va antes de armar el
+        // DTO: el ticket se dibuja con lo que devuelve este método, así que un
+        // cupón creado después saldría en la base pero no en el papel.
+        sorteoService.generarCuponDe(venta);
+
         auditoriaService.registrar("CREAR", "VENTAS", venta.getId(),
                 "Venta " + venta.getSerieComprobante() + "-" + venta.getNumeroComprobante()
                         + " a " + venta.getPasajeroNombre() + " (S/ " + venta.getPrecio()
