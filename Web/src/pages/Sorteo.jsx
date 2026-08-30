@@ -14,7 +14,7 @@ import { sorteoVigente, registrarCodigoSorteo, conectarSorteoVivo,
  * eligiera el navegador, cualquiera con la consola abierta podría ganar.
  */
 
-const DURACION_GIRO = 5200;     // ms; suficiente para que se sienta el suspenso
+const DURACION_GIRO = 15000;    // ms; el suspenso pedido: 15 segundos de rueda
 
 export default function Sorteo() {
   const [sorteo, setSorteo] = useState(null);

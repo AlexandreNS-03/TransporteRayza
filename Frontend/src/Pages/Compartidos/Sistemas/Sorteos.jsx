@@ -18,7 +18,7 @@ import { useToast, Toasts } from "../../../Components/Toast.jsx";
 const VACIO = { nombre: "", premio: "", premioValor: "", fechaSorteo: "", basesUrl: "" };
 
 const VUELTAS = 6;              // vueltas completas antes de frenar
-const DURACION_GIRO = 5200;     // ms; el mismo que ve el público en la web
+const DURACION_GIRO = 15000;    // ms; el mismo que ve el público en la web
 
 const fmt = (iso) => (iso ? iso.replace("T", " ").slice(0, 16) : "—");
 

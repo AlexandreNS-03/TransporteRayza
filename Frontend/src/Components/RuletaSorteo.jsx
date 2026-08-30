@@ -12,7 +12,17 @@ import { useEffect, useMemo, useRef, useState } from "react";
  */
 
 const MAX_SECTORES = 14;   // más que esto y los nombres no se leen
-const VUELTAS = 5;
+
+/* El giro va en dos tramos.
+ *
+ * Con una sola curva de 15 segundos la rueda llega casi al final en los
+ * primeros cuatro y después se arrastra imperceptiblemente: se ve rota, no
+ * lenta. Así que primero gira parejo, a velocidad constante, y recién el
+ * último tramo frena de a poco hasta el sector del ganador — que es como se
+ * mueve una ruleta de verdad. */
+const PARTE_RAPIDA = 0.6;   // del tiempo total gira a velocidad constante
+const VUELTAS_RAPIDAS = 12;
+const VUELTAS_FRENADO = 4;
 
 export default function Ruleta({
   participantes = [],
@@ -25,8 +35,10 @@ export default function Ruleta({
   total = 0,
 }) {
   const [angulo, setAngulo] = useState(0);
-  const vueltasDadas = useRef(0);
-  const giroPrevio = useRef(false);
+  const [frenando, setFrenando] = useState(false);
+  const desde = useRef(0);        // dónde estaba la rueda al arrancar este giro
+  const enMarcha = useRef(false);
+  const arranque = useRef(0);
 
   /**
    * Los sectores. Con poca gente, uno por participante; con mucha, una muestra
@@ -61,20 +73,36 @@ export default function Ruleta({
   // desde el primer instante. Calculándolo con el ganador, la rueda arrancaba
   // hacia un ángulo al azar y frenaba sobre otra persona.
   useEffect(() => {
-    if (!girando) { giroPrevio.current = false; return; }
+    if (!girando) { enMarcha.current = false; setFrenando(false); return; }
 
-    // Las vueltas se suman una sola vez por giro. Si la lista de participantes
-    // termina de cargar con la rueda ya girando, hay que recalcular el ángulo
-    // —el sector del ganador cambió de lugar— pero no volver a acelerar.
-    if (!giroPrevio.current) { vueltasDadas.current += VUELTAS; giroPrevio.current = true; }
+    // Las vueltas se cuentan una sola vez por giro. Si la lista de
+    // participantes termina de cargar con la rueda ya girando, hay que
+    // recalcular dónde frenar —el sector del ganador cambió de lugar— pero no
+    // volver a acelerar.
+    if (!enMarcha.current) {
+      desde.current = angulo;
+      arranque.current = Date.now();
+      enMarcha.current = true;
+    }
 
     const n = visibles.length;
     const i = destino ? visibles.findIndex((p) => p.codigo === destino.codigo) : -1;
-    // El centro del sector, medido desde arriba en sentido horario. Girar la
-    // rueda ese tanto en negativo lo deja justo bajo la aguja.
+    // El centro del sector, medido desde arriba en sentido horario. Dejar la
+    // rueda en -centro lo pone justo bajo la aguja.
     const centro = n > 0 && i >= 0 ? (i + 0.5) * (360 / n) : Math.random() * 360;
 
-    setAngulo(vueltasDadas.current * 360 - centro);
+    const tramoRapido = desde.current + 360 * VUELTAS_RAPIDAS;
+    let final = desde.current - (desde.current % 360) + 360 * (VUELTAS_RAPIDAS + VUELTAS_FRENADO) - centro;
+    while (final <= tramoRapido) final += 360;
+
+    setFrenando(false);
+    setAngulo(tramoRapido);
+
+    // Desde el arranque real y no desde ahora: si esto se recalcula a mitad de
+    // giro, la frenada tiene que empezar igual cuando corresponde.
+    const resta = Math.max(0, duracion * PARTE_RAPIDA - (Date.now() - arranque.current));
+    const t = setTimeout(() => { setFrenando(true); setAngulo(final); }, resta);
+    return () => clearTimeout(t);
   }, [girando, destino, visibles.length]);
 
   // Quien entra cuando el sorteo ya se hizo no ve girar nada: la rueda tiene
@@ -107,7 +135,11 @@ export default function Ruleta({
           className="ruleta-svg"
           style={{
             transform: `rotate(${angulo}deg)`,
-            transitionDuration: girando ? `${duracion}ms` : "0ms",
+            transitionDuration: girando
+              ? `${duracion * (frenando ? 1 - PARTE_RAPIDA : PARTE_RAPIDA)}ms`
+              : "0ms",
+            // Parejo mientras gira, y la curva del sistema para la frenada.
+            transitionTimingFunction: frenando ? undefined : "linear",
           }}
           aria-hidden="true"
         >
