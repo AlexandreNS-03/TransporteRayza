@@ -48,8 +48,18 @@ public class SorteoVivoService {
         return emitter;
     }
 
-    public void avisarNuevoParticipante(String sorteoId, int total) {
-        difundir(sorteoId, "participante", Map.of("participantes", total));
+    /**
+     * Alguien acaba de registrar su código.
+     *
+     * Va el nombre recortado además del total: la página muestra quién se va
+     * sumando, y un contador solo no dice nada de que hay gente real detrás.
+     */
+    public void avisarNuevoParticipante(String sorteoId, int total, CuponSorteo cupon) {
+        difundir(sorteoId, "participante", Map.of(
+                "participantes", total,
+                "codigo", cupon.getCodigo(),
+                "nombre", nombreCorto(cupon.getPasajeroNombre()),
+                "vip", cupon.getPeso() != null && cupon.getPeso() > 1));
     }
 
     /**

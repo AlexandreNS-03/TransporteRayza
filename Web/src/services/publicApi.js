@@ -263,3 +263,9 @@ export async function historialSorteos() {
   try { const { data } = await http.get("/sorteos/historial"); return data; }
   catch { return []; }
 }
+
+/** Quiénes participan, para pintar la rueda. Orden fijo: ver el backend. */
+export async function participantesSorteo(sorteoId) {
+  try { const { data } = await http.get(`/sorteo/${sorteoId}/participantes`); return data; }
+  catch { return []; }
+}

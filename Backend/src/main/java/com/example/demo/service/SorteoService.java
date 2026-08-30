@@ -120,7 +120,7 @@ public class SorteoService {
         c.setRegistradoAt(LocalDateTime.now());
         CuponSorteo guardado = cuponRepository.save(c);
 
-        vivo.avisarNuevoParticipante(s.getId(), cuponRepository.participantesDe(s.getId()).size());
+        vivo.avisarNuevoParticipante(s.getId(), cuponRepository.participantesDe(s.getId()).size(), guardado);
         return guardado;
     }
 

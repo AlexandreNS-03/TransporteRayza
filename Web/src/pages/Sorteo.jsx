@@ -1,8 +1,10 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import Seo from "../components/Seo";
-import { sorteoVigente, registrarCodigoSorteo, conectarSorteoVivo, historialSorteos } from "../services/publicApi";
+import Ruleta from "../components/Ruleta";
+import { sorteoVigente, registrarCodigoSorteo, conectarSorteoVivo,
+         historialSorteos, participantesSorteo } from "../services/publicApi";
 
 /**
  * Sorteo promocional: registrar el código del ticket y ver el sorteo en vivo.
@@ -12,15 +14,21 @@ import { sorteoVigente, registrarCodigoSorteo, conectarSorteoVivo, historialSort
  * eligiera el navegador, cualquiera con la consola abierta podría ganar.
  */
 
-const VUELTAS = 6;              // vueltas completas antes de frenar
 const DURACION_GIRO = 5200;     // ms; suficiente para que se sienta el suspenso
 
 export default function Sorteo() {
   const [sorteo, setSorteo] = useState(null);
   const [cargando, setCargando] = useState(true);
   const [ganador, setGanador] = useState(null);
+  // A quién apunta la rueda. Se sabe apenas arranca el giro, aunque el nombre
+  // no se muestre hasta que frene.
+  const [destino, setDestino] = useState(null);
   const [girando, setGirando] = useState(false);
   const [participantes, setParticipantes] = useState(0);
+  // Quiénes participan: son los nombres que van en los sectores de la rueda.
+  const [gente, setGente] = useState([]);
+  // Los últimos en registrarse, para que se vea entrar a alguien de verdad.
+  const [recientes, setRecientes] = useState([]);
   const [historial, setHistorial] = useState([]);
   // Al repetir se reusa la misma rueda: es la forma de mostrar que el resultado
   // guardado es el mismo que se anunció ese día.
@@ -32,14 +40,22 @@ export default function Sorteo() {
         setSorteo(s);
         setParticipantes(s.participantes ?? 0);
         // Si ya se sorteó antes de que llegara, se muestra el resultado sin girar.
-        if (s.estado === "SORTEADO" && s.ganadorNombre)
-          setGanador({ nombre: s.ganadorNombre, codigo: s.ganadorCodigo, participantes: s.participantes });
+        if (s.estado === "SORTEADO" && s.ganadorNombre) {
+          const g = { nombre: s.ganadorNombre, codigo: s.ganadorCodigo, participantes: s.participantes };
+          setGanador(g);
+          setDestino(g);
+        }
       })
       .catch(() => setSorteo({ hay: false }))
       .finally(() => setCargando(false));
   }, []);
 
   useEffect(() => { historialSorteos().then(setHistorial).catch(() => {}); }, []);
+
+  useEffect(() => {
+    if (!sorteo?.id) return;
+    participantesSorteo(sorteo.id).then(setGente).catch(() => {});
+  }, [sorteo?.id]);
 
   /** El ganador del sorteo vigente, si ya se hizo. Se usa para volver de una
    *  repetición sin tener que recargar la página. */
@@ -48,13 +64,21 @@ export default function Sorteo() {
       ? { nombre: sorteo.ganadorNombre, codigo: sorteo.ganadorCodigo, participantes: sorteo.participantes }
       : null;
 
-  const salirDeRepeticion = () => { setRepeticion(null); setGanador(ganadorVigente()); };
+  const salirDeRepeticion = () => {
+    setRepeticion(null);
+    setGanador(ganadorVigente());
+    setDestino(ganadorVigente());
+    if (sorteo?.id) participantesSorteo(sorteo.id).then(setGente).catch(() => {});
+  };
 
   /** Vuelve a girar la rueda con un resultado ya guardado. */
   const repetir = (pasado) => {
     setRepeticion(pasado);
     setGanador(null);
+    setDestino({ nombre: pasado.ganadorNombre, codigo: pasado.ganadorCodigo });
     setGirando(true);
+    // La rueda de una repetición lleva a la gente de ESE sorteo, no la de hoy.
+    participantesSorteo(pasado.id).then(setGente).catch(() => setGente([]));
     window.scrollTo({ top: 0, behavior: "smooth" });
     setTimeout(() => {
       setGanador({ nombre: pasado.ganadorNombre, codigo: pasado.ganadorCodigo,
@@ -69,8 +93,15 @@ export default function Sorteo() {
     if (!sorteo?.hay || sorteo.estado === "SORTEADO") return;
 
     return conectarSorteoVivo(sorteo.id, {
-      onParticipante: (d) => setParticipantes(d.participantes),
+      onParticipante: (d) => {
+        setParticipantes(d.participantes);
+        if (!d.codigo) return;
+        const nuevo = { codigo: d.codigo, nombre: d.nombre, vip: d.vip };
+        setGente((g) => (g.some((p) => p.codigo === d.codigo) ? g : [...g, nuevo]));
+        setRecientes((r) => [nuevo, ...r.filter((p) => p.codigo !== d.codigo)].slice(0, 6));
+      },
       onGanador: (d) => {
+        setDestino(d);
         setGirando(true);
         // La rueda gira un rato y recién ahí se muestra el nombre: sin la espera
         // el resultado aparece de golpe y se pierde el momento.
@@ -150,7 +181,26 @@ export default function Sorteo() {
             </p>
           )}
 
-          <Ruleta girando={girando} ganador={ganador} participantes={participantes} />
+          <Ruleta
+            participantes={gente}
+            girando={girando}
+            destino={destino}
+            ganador={ganador}
+            duracion={DURACION_GIRO}
+            total={repeticion ? repeticion.participantes : participantes}
+          />
+
+          {/* Quiénes se van sumando. Un contador solo no dice que hay gente
+              detrás; ver entrar un nombre sí. */}
+          {recientes.length > 0 && !ganador && (
+            <div className="sorteo-entrando" aria-live="polite">
+              {recientes.map((p, i) => (
+                <span className="sorteo-chip" key={p.codigo} style={{ animationDelay: `${i * 40}ms` }}>
+                  {p.nombre}{p.vip && <em className="sorteo-chip-vip">VIP ×2</em>}
+                </span>
+              ))}
+            </div>
+          )}
 
           {/* Ver una repetición no cierra el registro del sorteo vigente: el
               ganador que se muestra es de otro sorteo, no de este. */}
@@ -201,58 +251,6 @@ export default function Sorteo() {
       </section>
       <Footer />
     </>
-  );
-}
-
-/**
- * La rueda.
- *
- * Da vueltas completas y frena; no representa cupones reales porque el ganador
- * ya está decidido en el servidor. Mostrar nombres girando daría a entender que
- * la rueda elige, y no es así.
- */
-function Ruleta({ girando, ganador, participantes }) {
-  const [angulo, setAngulo] = useState(0);
-  const giroPrevio = useRef(0);
-
-  useEffect(() => {
-    if (!girando) return;
-    // Se acumula para que nunca gire "hacia atrás" entre sorteos.
-    giroPrevio.current += 360 * VUELTAS + Math.floor(Math.random() * 360);
-    setAngulo(giroPrevio.current);
-  }, [girando]);
-
-  return (
-    <div className="sorteo-ruleta-caja">
-      <div className="sorteo-aguja" aria-hidden="true" />
-      <div
-        className="sorteo-ruleta"
-        style={{
-          transform: `rotate(${angulo}deg)`,
-          transitionDuration: girando ? `${DURACION_GIRO}ms` : "0ms",
-        }}
-        aria-hidden="true"
-      />
-
-      <div className="sorteo-centro" role="status" aria-live="polite">
-        {ganador ? (
-          <>
-            <span className="sorteo-centro-eti">Ganador</span>
-            <strong className="sorteo-ganador">{ganador.nombre}</strong>
-            <span className="sorteo-codigo">{ganador.codigo}</span>
-          </>
-        ) : girando ? (
-          <span className="sorteo-centro-eti">Sorteando…</span>
-        ) : (
-          <>
-            <strong className="sorteo-participantes">{participantes}</strong>
-            <span className="sorteo-centro-eti">
-              {participantes === 1 ? "participante" : "participantes"}
-            </span>
-          </>
-        )}
-      </div>
-    </div>
   );
 }
 

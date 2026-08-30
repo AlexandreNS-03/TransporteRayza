@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
+import Ruleta from "../../../Components/RuletaSorteo.jsx";
 import "../Ventas/Pasajes.css";
 import "./ModalSimple.css";
 import "./Sorteos.css";
@@ -21,6 +22,13 @@ const DURACION_GIRO = 5200;     // ms; el mismo que ve el público en la web
 
 const fmt = (iso) => (iso ? iso.replace("T", " ").slice(0, 16) : "—");
 
+/** Los participantes del sorteo. Es un endpoint público: no lleva sesión. */
+async function cargarParticipantes(sorteoId) {
+    const base = import.meta.env.VITE_API_URL || "http://localhost:8080";
+    const r = await fetch(`${base}/api/public/sorteo/${sorteoId}/participantes`);
+    return r.ok ? r.json() : [];
+}
+
 function Sorteos() {
     const { toasts, mostrarToast } = useToast();
     const esAdmin = usuarioActual()?.rol === "ADMIN";
@@ -34,6 +42,8 @@ function Sorteos() {
     // Lo que se está transmitiendo: el operador ve la misma ruleta que el
     // público, y con el mismo tiempo, para poder anunciarlo a la vez.
     const [envivo, setEnVivo] = useState(null);
+    // Los participantes del sorteo que se transmite: son los nombres de la rueda.
+    const [gente, setGente] = useState([]);
 
     useEffect(() => { cargar(); }, []);
 
@@ -77,12 +87,19 @@ function Sorteos() {
         // respuesta, el panel iría siempre unos segundos por detrás.
         const arranque = Date.now();
         setEnVivo({ sorteo: s, ganador: null });
+        // La lista es pública y no necesita sesión: es la misma que pinta la web.
+        cargarParticipantes(s.id).then(setGente).catch(() => setGente([]));
 
         try {
             const r = await apiFetch(`/api/sorteos/${s.id}/ejecutar`, { method: "POST" });
+            // El destino se sabe apenas responde el servidor: la rueda necesita
+            // saber DÓNDE frenar aunque el nombre se muestre recién al final.
+            const premiado = { codigo: r.ganadorCodigo, nombre: r.ganadorNombre };
+            setEnVivo((v) => ({ ...v, destino: premiado }));
+
             const falta = Math.max(0, DURACION_GIRO - (Date.now() - arranque));
             setTimeout(() => {
-                setEnVivo({ sorteo: s, ganador: r });
+                setEnVivo((v) => ({ ...v, ganador: r, destino: premiado }));
                 cargar();
             }, falta);
         } catch (e) {
@@ -225,7 +242,16 @@ function Sorteos() {
                             Esto mismo se está viendo en la página del sorteo.
                         </p>
 
-                        <RuletaPanel girando={!envivo.ganador} ganador={envivo.ganador} />
+                        <Ruleta
+                            participantes={gente}
+                            girando={!envivo.ganador}
+                            destino={envivo.destino}
+                            ganador={envivo.ganador
+                                ? { codigo: envivo.ganador.ganadorCodigo, nombre: envivo.ganador.ganadorNombre }
+                                : null}
+                            duracion={DURACION_GIRO}
+                            total={envivo.sorteo.participantes}
+                        />
 
                         {envivo.ganador && (
                             <div className="sorteo-ganador-caja">
@@ -276,45 +302,6 @@ function Sorteos() {
                     </div>
                 </div>
             )}
-        </div>
-    );
-}
-
-/**
- * La ruleta del panel.
- *
- * Es la misma animación de la web, para que el operador vea lo que ve el
- * público. No elige nada: el ganador ya vino del servidor.
- */
-function RuletaPanel({ girando, ganador }) {
-    const [angulo, setAngulo] = useState(0);
-    const giroPrevio = useRef(0);
-
-    useEffect(() => {
-        if (!girando) return;
-        giroPrevio.current += 360 * VUELTAS + Math.floor(Math.random() * 360);
-        setAngulo(giroPrevio.current);
-    }, [girando]);
-
-    return (
-        <div className="ruleta-caja">
-            <div className="ruleta-aguja" aria-hidden="true" />
-            <div className="ruleta" aria-hidden="true"
-                 style={{ transform: `rotate(${angulo}deg)`,
-                          transitionDuration: girando ? `${DURACION_GIRO}ms` : "0ms" }} />
-            <div className="ruleta-centro" role="status" aria-live="polite">
-                {ganador ? (
-                    <>
-                        <span className="ruleta-eti">Ganador</span>
-                        <strong className="ruleta-nombre">
-                            {ganador.ganadorNombre || ganador.ganadorNombreCompleto}
-                        </strong>
-                        <span className="ruleta-codigo">{ganador.ganadorCodigo}</span>
-                    </>
-                ) : (
-                    <span className="ruleta-eti">Sorteando…</span>
-                )}
-            </div>
         </div>
     );
 }

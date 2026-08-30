@@ -68,6 +68,24 @@ public class SorteoController {
                         .stream().map(this::aMapaPublico).toList());
     }
 
+    /**
+     * Quiénes participan, para pintar la rueda.
+     *
+     * Va el nombre recortado y el código —los dos ya se muestran en público
+     * cuando alguien gana—, nunca el correo ni el documento. El orden es el de
+     * registro y no cambia: la rueda frena sobre el sector del ganador y eso
+     * solo cuadra si la lista es siempre la misma.
+     */
+    @GetMapping("/api/public/sorteo/{id}/participantes")
+    public ResponseEntity<List<Map<String, Object>>> participantes(@PathVariable String id) {
+        return ResponseEntity.ok(cuponRepository.participantesDe(id).stream()
+                .map(c -> Map.<String, Object>of(
+                        "codigo", c.getCodigo(),
+                        "nombre", SorteoVivoService.nombreCorto(c.getPasajeroNombre()),
+                        "vip", c.getPeso() != null && c.getPeso() > 1))
+                .toList());
+    }
+
     /** Registra el código impreso en el ticket. */
     @PostMapping("/api/public/sorteo/registrar")
     public ResponseEntity<?> registrar(@RequestBody Map<String, String> body) {
