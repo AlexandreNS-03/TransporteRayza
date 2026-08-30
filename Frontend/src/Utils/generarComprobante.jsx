@@ -250,6 +250,22 @@ export async function generarComprobante(venta) {
     y += 8;
     doc.setFont("helvetica", "bold");
     doc.setTextColor(...azul);
+
+    // Código del sorteo, solo si la venta generó uno. Va antes de la despedida
+    // para que se lea al recoger el ticket y no perdido al final del papel.
+    if (venta.codigoSorteo) {
+        doc.setFontSize(8);
+        doc.text(`Sorteo: ${venta.codigoSorteo}`, ancho / 2, y, { align: "center" });
+        y += 3.5;
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(...gris);
+        doc.setFontSize(6);
+        doc.text("Regístralo en transporterayza.com/sorteo", ancho / 2, y, { align: "center" });
+        y += 5;
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(...azul);
+    }
+
     doc.setFontSize(7);
     doc.text("¡Gracias por viajar con Transportes Rayza!", ancho / 2, y, { align: "center" });
 
