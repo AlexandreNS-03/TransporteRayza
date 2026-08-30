@@ -69,6 +69,7 @@ public class ReservaService {
     private final ComprobanteService comprobanteService;
     private final PublicService publicService;
     private final CierrePagoWebService cierrePagoWebService;
+    private final SorteoService sorteoService;
 
     public ReservaService(ViajeRepository viajeRepository,
                           VentaRepository ventaRepository,
@@ -81,7 +82,8 @@ public class ReservaService {
                           VentaService ventaService,
                           ComprobanteService comprobanteService,
                           PublicService publicService,
-                          CierrePagoWebService cierrePagoWebService) {
+                          CierrePagoWebService cierrePagoWebService,
+                          SorteoService sorteoService) {
         this.comprobanteService = comprobanteService;
         this.publicService = publicService;
         this.cierrePagoWebService = cierrePagoWebService;
@@ -94,6 +96,7 @@ public class ReservaService {
         this.izipayService = izipayService;
         this.mercadoPagoService = mercadoPagoService;
         this.ventaService = ventaService;
+        this.sorteoService = sorteoService;
     }
 
     @Transactional
@@ -300,6 +303,7 @@ public class ReservaService {
         t.clienteNombre = v.getClienteNombre();
         t.clienteTipoDoc = v.getClienteTipoDoc();
         t.clienteDocumento = v.getClienteDocumento();
+        t.codigoSorteo = sorteoService.codigoDeVenta(v.getId());
         if (v.getViajeId() != null) {
             viajeRepository.findById(v.getViajeId()).ifPresent(viaje -> {
                 t.fechaSalida = viaje.getFechaSalida() != null ? viaje.getFechaSalida().toString() : null;
@@ -590,6 +594,7 @@ public class ReservaService {
             v.setReservaExpira(null);
             ventaRepository.save(v);
             asientoService.confirmarAsiento(v.getId());
+            sorteoService.generarCuponDe(v);
 
             emitirComprobanteElectronico(v);
             try {
@@ -716,6 +721,10 @@ public class ReservaService {
         ventaRepository.save(v);
 
         asientoService.confirmarAsiento(v.getId());
+
+        // El cupón del sorteo: recién al pagar, y antes de armar la respuesta,
+        // que es con lo que el navegador dibuja el ticket.
+        sorteoService.generarCuponDe(v);
 
         ComprobanteDTO comprobante = emitirComprobanteElectronico(v);
 

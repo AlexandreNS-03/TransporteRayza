@@ -36,14 +36,17 @@ public class SorteoService {
 
     private final SorteoRepository sorteoRepository;
     private final CuponSorteoRepository cuponRepository;
+    private final com.example.demo.repository.VentaRepository ventaRepository;
     private final SorteoVivoService vivo;
     private final SecureRandom aleatorio = new SecureRandom();
 
     public SorteoService(SorteoRepository sorteoRepository,
                          CuponSorteoRepository cuponRepository,
+                         com.example.demo.repository.VentaRepository ventaRepository,
                          SorteoVivoService vivo) {
         this.sorteoRepository = sorteoRepository;
         this.cuponRepository = cuponRepository;
+        this.ventaRepository = ventaRepository;
         this.vivo = vivo;
     }
 
@@ -78,6 +81,36 @@ public class SorteoService {
             System.err.println("[Sorteo] no se pudo generar el cupón de la venta "
                     + venta.getId() + ": " + e.getMessage());
         }
+    }
+
+    /**
+     * Emite los códigos que falten del sorteo abierto.
+     *
+     * Existe porque un pasaje pagado se puede quedar sin su código: pasó cuando
+     * la generación no estaba conectada a todos los caminos de pago, y puede
+     * volver a pasar si un cobro se cierra por una vía nueva. Sin esto, esos
+     * pasajeros se quedarían fuera del sorteo por un error nuestro.
+     *
+     * Solo alcanza a las ventas pagadas DESDE que se abrió el sorteo: las
+     * anteriores no participan, y darles código cambiaría las bases publicadas.
+     *
+     * @return cuántos códigos se emitieron
+     */
+    public int emitirFaltantes(String sorteoId) {
+        Sorteo s = sorteoRepository.findById(sorteoId)
+                .orElseThrow(() -> new RuntimeException("Ese sorteo no existe"));
+        if (s.getEstado() != Sorteo.Estado.ABIERTO)
+            throw new RuntimeException("Solo se pueden emitir códigos con el sorteo abierto.");
+
+        LocalDateTime desde = s.getCreatedAt() != null ? s.getCreatedAt() : LocalDateTime.now();
+        int emitidos = 0;
+        for (Venta v : ventaRepository.findByEstadoAndCreatedAtGreaterThanEqual(
+                Venta.EstadoVenta.PAGADO, desde)) {
+            if (cuponRepository.findByVentaId(v.getId()).isPresent()) continue;
+            generarCuponDe(v);
+            if (cuponRepository.findByVentaId(v.getId()).isPresent()) emitidos++;
+        }
+        return emitidos;
     }
 
     /** El código impreso en el ticket de una venta, o null si no tiene. */

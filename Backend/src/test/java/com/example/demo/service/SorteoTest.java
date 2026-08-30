@@ -30,7 +30,7 @@ class SorteoTest {
     }
 
     private SorteoService servicio() {
-        return new SorteoService(null, null, null);
+        return new SorteoService(null, null, null, null);
     }
 
     @Test

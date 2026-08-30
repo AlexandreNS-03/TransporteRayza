@@ -29,6 +29,10 @@ public interface VentaRepository extends JpaRepository<Venta, String> {
     List<Venta> findByClienteIdOrderByCreatedAtDesc(String clienteId);
     List<Venta> findByEstadoAndReservaExpiraBefore(Venta.EstadoVenta estado, java.time.LocalDateTime limite);
 
+    /** Ventas pagadas desde una fecha. Para emitir los códigos de sorteo que falten. */
+    List<Venta> findByEstadoAndCreatedAtGreaterThanEqual(Venta.EstadoVenta estado,
+                                                         java.time.LocalDateTime desde);
+
     /** Solo el conteo: el verificador del sistema lo consulta seguido y no necesita las filas. */
     long countByEstadoAndReservaExpiraBefore(Venta.EstadoVenta estado, java.time.LocalDateTime limite);
 

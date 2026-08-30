@@ -115,6 +115,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST,  "/api/sorteos").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PATCH, "/api/sorteos/*/cerrar").hasAnyRole("ADMIN", "SUPERVISOR")
                         .requestMatchers(HttpMethod.POST,  "/api/sorteos/*/ejecutar").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST,  "/api/sorteos/*/emitir-faltantes").hasAnyRole("ADMIN", "SUPERVISOR")
 
                         // Libro de Reclamaciones: registrar es público (lo exige la norma);
                         // leerlas y responderlas es del personal.
