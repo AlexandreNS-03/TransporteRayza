@@ -6,11 +6,13 @@ import com.example.demo.model.Venta;
 import com.example.demo.repository.CuponSorteoRepository;
 import com.example.demo.repository.SorteoRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -57,7 +59,14 @@ public class SorteoService {
      *
      * No revienta si algo falla: una venta no se puede caer porque el sorteo no
      * esté configurado. Es una promoción, no parte del cobro.
+     *
+     * Y por eso corre en su PROPIA transacción. Atrapar la excepción no alcanza:
+     * si el fallo ocurre dentro de la transacción del pago —un código repetido,
+     * por ejemplo—, esa transacción queda marcada para deshacerse y el cobro
+     * entero se cae al confirmar, con el dinero ya cobrado en la pasarela.
+     * Como se llama desde otros beans, el proxy de Spring aplica esta anotación.
      */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void generarCuponDe(Venta venta) {
         try {
             Sorteo abierto = sorteoRepository.findFirstByEstado(Sorteo.Estado.ABIERTO).orElse(null);
@@ -96,21 +105,24 @@ public class SorteoService {
      *
      * @return cuántos códigos se emitieron
      */
-    public int emitirFaltantes(String sorteoId) {
+    public Map<String, Integer> emitirFaltantes(String sorteoId) {
         Sorteo s = sorteoRepository.findById(sorteoId)
                 .orElseThrow(() -> new RuntimeException("Ese sorteo no existe"));
         if (s.getEstado() != Sorteo.Estado.ABIERTO)
             throw new RuntimeException("Solo se pueden emitir códigos con el sorteo abierto.");
 
         LocalDateTime desde = s.getCreatedAt() != null ? s.getCreatedAt() : LocalDateTime.now();
-        int emitidos = 0;
+        int web = 0, mostrador = 0;
         for (Venta v : ventaRepository.findByEstadoAndCreatedAtGreaterThanEqual(
                 Venta.EstadoVenta.PAGADO, desde)) {
             if (cuponRepository.findByVentaId(v.getId()).isPresent()) continue;
             generarCuponDe(v);
-            if (cuponRepository.findByVentaId(v.getId()).isPresent()) emitidos++;
+            if (cuponRepository.findByVentaId(v.getId()).isEmpty()) continue;
+            // Se cuentan por separado para poder ver de un vistazo si el que
+            // falla es un canal en particular y no los dos.
+            if ("WEB".equals(v.getCanal())) web++; else mostrador++;
         }
-        return emitidos;
+        return Map.of("web", web, "mostrador", mostrador, "total", web + mostrador);
     }
 
     /** El código impreso en el ticket de una venta, o null si no tiene. */

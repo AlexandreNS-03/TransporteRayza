@@ -632,6 +632,12 @@ public class ReservaService {
         // documento ya estaba emitido en SUNAT pero no quedaba registrado acá.
         cierrePagoWebService.marcarPagadas(pendientes, referencia, metodo);
 
+        // El código del sorteo, ya fuera de la transacción del pago y por la misma
+        // razón que los comprobantes: nada que sea accesorio al cobro entra ahí.
+        // Se emite recién al pagar, no al reservar: una reserva que expira no da
+        // derecho a participar.
+        for (Venta v : pendientes) sorteoService.generarCuponDe(v);
+
         // Ya con la transacción del pago cerrada, se emite sin pelear por candados.
         if (unoSolo) {
             ComprobanteDTO c = emitirComprobanteDelGrupo(primera);
