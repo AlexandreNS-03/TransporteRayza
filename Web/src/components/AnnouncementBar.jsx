@@ -3,8 +3,11 @@ import { getAnuncios } from "../services/publicApi";
 
 // Mensaje de respaldo si no hay ningún anuncio de tipo BARRA cargado (o si la
 // petición falla): la barra nunca queda vacía sin explicación.
+// Corto a propósito: la barra tiene alto fijo —para que cambiar el anuncio no
+// mueva la página— y a este largo entra completo hasta en el celular más
+// angosto, sin que se corte a media frase.
 const RESPALDO = {
-  mensaje: "Compra 100% en línea: elige tu asiento y paga seguro con tarjeta o Yape. Recibe tu boleto con QR al instante.",
+  mensaje: "Compra 100% en línea: elige tu asiento, paga con Yape o tarjeta y recibe tu boleto con QR.",
 };
 
 // Barra de anuncios superior, descartable (estilo aerolínea).

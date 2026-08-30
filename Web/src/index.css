@@ -148,9 +148,21 @@ h1,h2,h3,h4 { font-family: var(--font-head); color: var(--ink); line-height: 1.1
 
 /* ---------- Barra de anuncios ---------- */
 .announce { background: linear-gradient(90deg, var(--brand-700), var(--brand-600)); color: #eaf2ff; font-size: 13.5px; }
-.announce .wrap { display: flex; align-items: center; gap: 12px; padding-top: 9px; padding-bottom: 9px; }
+/* La barra se pinta con un mensaje de respaldo y, cuando responde el servidor,
+   lo cambia por el anuncio real. Si el texto nuevo ocupa otra cantidad de
+   líneas, la página entera se mueve hacia abajo o hacia arriba —eso es lo que
+   Clarity mide como CLS—. Por eso la altura está fija: dos líneas en el móvil,
+   una en pantallas anchas, y lo que sobre se recorta. */
+.announce .wrap { display: flex; align-items: center; gap: 12px; padding-top: 9px; padding-bottom: 9px;
+  min-height: 62px; }
 .announce .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 0 4px rgba(224,169,59,.25); flex: none; }
-.announce p { margin: 0; flex: 1; }
+.announce p { margin: 0; flex: 1;
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+
+@media (min-width: 760px) {
+  .announce .wrap { min-height: 40px; }
+  .announce p { -webkit-line-clamp: 1; }
+}
 .announce b { color: #fff; }
 .announce-enlace { color: #fff; text-decoration: underline; margin-left: 6px; white-space: nowrap; }
 .announce button { background: none; border: 0; color: #cfe0f7; cursor: pointer; font-size: 18px; line-height: 1; padding: 2px 6px; border-radius: 6px; }
@@ -2391,6 +2403,12 @@ html :is(a, button, input, select, textarea, [tabindex]):focus-visible {
 }
 :root[data-theme="dark"]  { --sorteo-eti: #5cc2ee; --sorteo-vivo: #ff7a83; }
 :root[data-theme="light"] { --sorteo-eti: var(--brand-700); --sorteo-vivo: var(--accent); }
+
+/* El hueco se reserva desde el primer pintado: el recuadro llega cuando
+   responde el servidor, y apareciendo de golpe empujaba hacia abajo todo lo que
+   tiene debajo. */
+.sorteo-mini-hueco { height: 92px; margin-bottom: 18px; }
+@media (max-width: 560px) { .sorteo-mini-hueco { height: 76px; } }
 
 .sorteo-mini {
   display: flex; align-items: center; gap: 16px;
