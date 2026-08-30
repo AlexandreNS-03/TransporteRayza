@@ -1,0 +1,63 @@
+/* Modal de confirmación, sin cabecera ni botón de cerrar: un título, un texto y
+   dos acciones. Vive aparte porque lo usan varias pantallas de Sistemas y cada
+   una tenía su propia versión —o ninguna, que era el caso del Libro de
+   Reclamaciones: usaba clases que no existían en ningún CSS.
+
+   La clase se llama .modal-overlay a propósito: index.css ya le da la animación
+   de entrada a ese nombre en todo el sistema. */
+
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    z-index: 1000;
+}
+
+.modal {
+    /* #root centra todo el panel; un texto de confirmación centrado se lee
+       peor, sobre todo cuando explica algo que no se puede deshacer. */
+    text-align: left;
+    background: #fff;
+    border-radius: 14px;
+    width: 100%;
+    max-width: 480px;
+    padding: 22px;
+    box-shadow: 0 20px 60px rgba(15, 23, 42, 0.22);
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal h3 { margin: 0 0 10px; font-size: 17px; font-weight: 700; color: #0f172a; }
+.modal p  { margin: 0 0 8px; font-size: 14px; line-height: 1.55; color: #334155; }
+.modal p.muted { color: #6b7280; font-size: 13px; }
+
+.modal-acciones {
+    display: flex; justify-content: flex-end; gap: 10px;
+    margin-top: 18px; flex-wrap: wrap;
+}
+
+/* Campo compacto para los formularios de estas pantallas. */
+.campo-s { display: grid; gap: 6px; text-align: left; }
+.campo-s > span { font-size: 12.5px; font-weight: 700; color: #6b7280; }
+.campo-s input, .campo-s select, .campo-s textarea {
+    padding: 9px 11px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    background: #fff;
+    width: 100%;
+}
+.campo-s input:focus, .campo-s select:focus, .campo-s textarea:focus {
+    outline: none; border-color: #1a4db5;
+}
+.campo-s small { font-size: 11.5px; color: #9ca3af; }
+
+@media (max-width: 480px) {
+    .modal { padding: 18px; }
+    .modal-acciones button { flex: 1; }
+}

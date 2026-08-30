@@ -129,6 +129,9 @@ function AdminDashboard() {
                             <NavLink to="/admin/precios-web" className={({ isActive }) => isActive ? "sb-item active" : "sb-item"}>
                                 <i className="ti ti-tag"></i> Precios Web
                             </NavLink>
+                            <NavLink to="/admin/sorteos" className={({ isActive }) => isActive ? "sb-item active" : "sb-item"}>
+                                <i className="ti ti-gift"></i> Sorteos
+                            </NavLink>
                         </>
                     )}
 

@@ -35,6 +35,9 @@
   --font-head: "Poppins", system-ui, sans-serif;
   --font-body: "Inter", system-ui, "Segoe UI", Roboto, sans-serif;
   --ease: cubic-bezier(.22,.61,.36,1);
+  /* Ease-out fuerte, para lo que entra o frena. Las curvas por defecto del
+     navegador son demasiado suaves y el movimiento se siente flojo. */
+  --ease-out: cubic-bezier(.23, 1, .32, 1);
 
   /* Texto sobre la guía de Yape, que va sobre --sky-soft. Tintado del mismo azul
      y no gris: el gris sobre una superficie de color se ve sucio y pierde contraste. */
@@ -2232,3 +2235,141 @@ html :is(a, button, input, select, textarea, [tabindex]):focus-visible {
    donde la persona se da cuenta de que no la recuerda. */
 .olvide-fila { display: flex; justify-content: flex-end; margin-top: -6px; }
 .olvide-fila a { font-size: 13px; color: var(--tira-enlace, var(--brand-700)); }
+
+/* ---- Sorteo ---- */
+.sorteo-cab { text-align: center; margin-bottom: 26px; }
+.sorteo-tag {
+  display: inline-block; padding: 5px 13px; border-radius: 999px;
+  background: var(--sky-soft); color: var(--yape-guia-ink);
+  font-size: 12px; font-weight: 700; letter-spacing: .03em;
+}
+.sorteo-cab h1 { margin: 12px 0 6px; }
+.sorteo-premio { margin: 0 0 4px; font-size: 19px; font-weight: 700; color: var(--accent); }
+
+/* La rueda. Gira y frena; NO representa cupones: el ganador ya se decidió en el
+   servidor, y dibujar nombres girando haría creer que la rueda elige. */
+.sorteo-ruleta-caja {
+  position: relative; width: min(320px, 82vw); aspect-ratio: 1;
+  margin: 0 auto 26px; display: grid; place-items: center;
+}
+.sorteo-ruleta {
+  position: absolute; inset: 0; border-radius: 50%;
+  border: 10px solid var(--card);
+  box-shadow: var(--sh-lg), 0 0 0 3px var(--line-strong);
+  background: conic-gradient(
+    var(--brand) 0deg 45deg,      var(--accent) 45deg 90deg,
+    var(--brand-700) 90deg 135deg, var(--gold) 135deg 180deg,
+    var(--brand) 180deg 225deg,   var(--accent) 225deg 270deg,
+    var(--brand-700) 270deg 315deg, var(--gold) 315deg 360deg);
+  /* Arranca rápido y frena de a poco, como una ruleta de verdad. Solo transform:
+     es lo único que el navegador puede mover en la GPU sin recalcular la página. */
+  transition-property: transform;
+  transition-timing-function: var(--ease-out);
+}
+.sorteo-aguja {
+  position: absolute; top: -6px; z-index: 3;
+  width: 0; height: 0;
+  border-left: 13px solid transparent; border-right: 13px solid transparent;
+  border-top: 24px solid var(--ink);
+  filter: drop-shadow(0 2px 3px rgba(0,0,0,.3));
+}
+.sorteo-centro {
+  position: relative; z-index: 2;
+  width: 58%; aspect-ratio: 1; border-radius: 50%;
+  background: var(--card); box-shadow: var(--sh);
+  display: grid; place-content: center; text-align: center; padding: 10px;
+}
+.sorteo-centro-eti { font-size: 12px; color: var(--ink-soft); letter-spacing: .04em; }
+.sorteo-participantes {
+  display: block; font-family: var(--font-head); font-size: 40px;
+  font-weight: 800; color: var(--ink); line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+/* El ganador entra en vez de aparecer de golpe. Nada en el mundo real surge de
+   la nada, así que arranca en 0.94 y no en 0. */
+.sorteo-ganador {
+  display: block; font-family: var(--font-head); font-size: 22px;
+  font-weight: 800; color: var(--accent); line-height: 1.2; margin: 4px 0;
+  animation: sorteo-revelar 320ms var(--ease-out) both;
+}
+.sorteo-centro-eti, .sorteo-codigo { animation: sorteo-revelar 320ms var(--ease-out) both; }
+.sorteo-ganador { animation-delay: 60ms; }
+.sorteo-codigo   { animation-delay: 140ms; }
+
+@keyframes sorteo-revelar {
+  from { opacity: 0; transform: scale(.94); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.sorteo-codigo { font-size: 12px; color: var(--ink-soft); letter-spacing: .1em; }
+
+.sorteo-form { display: grid; gap: 14px; }
+.sorteo-codigo-input {
+  text-transform: uppercase; letter-spacing: .18em;
+  font-family: var(--font-head); font-size: 19px; font-weight: 700; text-align: center;
+}
+.sorteo-listo { text-align: center; }
+
+/* Historial: la prueba pública de que cada sorteo se hizo y con quién. */
+.sorteo-repeticion-barra {
+  display: flex; align-items: center; justify-content: center;
+  gap: 10px; flex-wrap: wrap; margin: 0 0 6px;
+}
+
+.sorteo-salir {
+  background: none; border: 0; padding: 4px 6px;
+  color: var(--muted); font: inherit; font-size: 13px;
+  text-decoration: underline; cursor: pointer;
+}
+.sorteo-salir:hover { color: var(--text); }
+
+.sorteo-historial { margin-top: 34px; }
+.sorteo-historial h2 { font-size: 19px; margin-bottom: 4px; }
+.sorteo-pasado {
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 12px;
+  padding: 14px 16px; margin-top: 10px;
+  border: 1px solid var(--line); border-radius: var(--r-sm); background: var(--card);
+  /* Entran escalonados: de a uno se lee mejor que si aparecieran todos de golpe. */
+  animation: sorteo-entrar 380ms var(--ease-out) both;
+}
+.sorteo-pasado:nth-child(2) { animation-delay: 60ms; }
+.sorteo-pasado:nth-child(3) { animation-delay: 120ms; }
+.sorteo-pasado:nth-child(4) { animation-delay: 180ms; }
+.sorteo-pasado-datos strong { display: block; font-size: 14.5px; color: var(--ink); }
+.sorteo-pasado-datos span { font-size: 12.5px; color: var(--ink-soft); }
+.sorteo-repetir {
+  flex: none; padding: 8px 14px; border-radius: 999px;
+  border: 1.5px solid var(--line-strong); background: var(--card);
+  color: var(--ink); font-size: 13px; font-weight: 600; cursor: pointer;
+  transition: border-color .16s var(--ease-out), background-color .16s var(--ease-out),
+              transform .12s var(--ease-out);
+}
+@media (hover: hover) and (pointer: fine) {
+  .sorteo-repetir:hover { border-color: var(--brand); background: var(--sky-soft); }
+}
+.sorteo-repetir:active { transform: scale(.97); }
+
+@keyframes sorteo-entrar {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Aviso de que se está viendo una repetición y no un sorteo en curso. */
+.sorteo-repeticion {
+  display: inline-block; margin-bottom: 10px;
+  padding: 5px 13px; border-radius: 999px;
+  background: var(--bg-soft); color: var(--ink-soft);
+  font-size: 12px; font-weight: 700;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Menos movimiento, no cero: el resultado igual se revela con opacidad, que es
+     lo que hace falta entender. La rueda deja de girar. */
+  .sorteo-ruleta { transition-duration: 1ms !important; }
+  .sorteo-ganador, .sorteo-codigo, .sorteo-centro-eti, .sorteo-pasado {
+    animation-duration: 200ms;
+    animation-name: sorteo-aparecer;
+  }
+  .sorteo-repetir:active { transform: none; }
+}
+@keyframes sorteo-aparecer { from { opacity: 0; } to { opacity: 1; } }

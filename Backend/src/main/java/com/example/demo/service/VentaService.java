@@ -575,6 +575,7 @@ public class VentaService {
     }
 
     private final com.example.demo.repository.RutaRepository rutaRepository;
+    private final SorteoService sorteoService;
     private final com.example.demo.repository.ViajeParadaRepository viajeParadaRepository;
 
     public VentaService(VentaRepository ventaRepository,
@@ -587,7 +588,8 @@ public class VentaService {
                         AuditoriaService auditoriaService,
                         PublicService publicService,
                         com.example.demo.repository.RutaRepository rutaRepository,
-                        com.example.demo.repository.ViajeParadaRepository viajeParadaRepository) {
+                        com.example.demo.repository.ViajeParadaRepository viajeParadaRepository,
+                        SorteoService sorteoService) {
         this.ventaRepository      = ventaRepository;
         this.tramoUsadoRepository = tramoUsadoRepository;
         this.viajeRepository      = viajeRepository;
@@ -599,6 +601,7 @@ public class VentaService {
         this.publicService        = publicService;
         this.rutaRepository       = rutaRepository;
         this.viajeParadaRepository = viajeParadaRepository;
+        this.sorteoService        = sorteoService;
     }
 
     /**
@@ -705,6 +708,7 @@ public class VentaService {
         dto.setCreatedAt(v.getCreatedAt() != null ? v.getCreatedAt().toString() : null);
         dto.setEmbarcadoPor(v.getEmbarcadoPor());
         dto.setEmbarcadoAt(v.getEmbarcadoAt() != null ? v.getEmbarcadoAt().toString() : null);
+        dto.setCodigoSorteo(sorteoService.codigoDeVenta(v.getId()));
         dto.setPreembarqueEstado(v.getPreembarqueEstado() != null ? v.getPreembarqueEstado().name() : null);
         dto.setPreembarcadoPor(v.getPreembarcadoPor());
         dto.setPreembarcadoAt(v.getPreembarcadoAt() != null ? v.getPreembarcadoAt().toString() : null);

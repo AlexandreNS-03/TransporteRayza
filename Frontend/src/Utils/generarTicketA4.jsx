@@ -215,6 +215,21 @@ export async function generarTicketA4(venta) {
     doc.setFontSize(8.5);
     doc.text("El embarque abre 2 horas antes de la salida y cierra 20 minutos después de la hora programada.", W / 2, y, { align: "center" });
     y += 5;
+    // Código del sorteo, solo si hay uno abierto. Va antes de la despedida para
+    // que se vea al recoger el ticket y no perdido al final.
+    if (venta.codigoSorteo) {
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(...azul);
+        doc.setFontSize(9);
+        doc.text(`Tu código de sorteo: ${venta.codigoSorteo}`, W / 2, y, { align: "center" });
+        y += 4.5;
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(...gris);
+        doc.setFontSize(8);
+        doc.text("Regístralo en transporterayza.com/sorteo y participa.", W / 2, y, { align: "center" });
+        y += 6;
+    }
+
     doc.setFont("helvetica", "bold");
     doc.setTextColor(...azul);
     doc.setFontSize(10);

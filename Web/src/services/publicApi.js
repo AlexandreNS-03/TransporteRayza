@@ -230,3 +230,36 @@ export async function registrarReclamacion(datos) {
     return data;
   } catch (e) { throw desempaquetarError(e); }
 }
+
+// ---------------------------------------------------------------- Sorteo
+
+/** El sorteo vigente y su estado. */
+export async function sorteoVigente() {
+  try { const { data } = await http.get("/sorteo"); return data; }
+  catch (e) { throw desempaquetarError(e); }
+}
+
+/** Registra el código impreso en el ticket de embarque. */
+export async function registrarCodigoSorteo(codigo, email, telefono) {
+  try { const { data } = await http.post("/sorteo/registrar", { codigo, email, telefono }); return data; }
+  catch (e) { throw desempaquetarError(e); }
+}
+
+/**
+ * Conecta a la transmisión del sorteo.
+ *
+ * EventSource y no WebSocket: acá todo va del servidor a quien mira, y el
+ * navegador se reconecta solo si se cae la señal.
+ */
+export function conectarSorteoVivo(sorteoId, { onParticipante, onGanador }) {
+  const es = new EventSource(`${API}/sorteo/${sorteoId}/vivo`);
+  es.addEventListener("participante", (e) => onParticipante?.(JSON.parse(e.data)));
+  es.addEventListener("ganador", (e) => onGanador?.(JSON.parse(e.data)));
+  return () => es.close();
+}
+
+/** Los sorteos ya realizados, con su ganador. Es el registro público. */
+export async function historialSorteos() {
+  try { const { data } = await http.get("/sorteos/historial"); return data; }
+  catch { return []; }
+}

@@ -217,6 +217,18 @@ export async function generarTicketA4(venta) {
     doc.setFont("helvetica", "bold");
     doc.setTextColor(...azul);
     doc.setFontSize(10);
+    if (venta.codigoSorteo) {
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(9);
+        doc.text(`Tu código de sorteo: ${venta.codigoSorteo}`, W / 2, y, { align: "center" });
+        y += 4.5;
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(8);
+        doc.text("Regístralo en transporterayza.com/sorteo y participa.", W / 2, y, { align: "center" });
+        y += 6;
+        doc.setFontSize(10);
+    }
+
     doc.text("¡Gracias por viajar con Transportes Rayza!", W / 2, y, { align: "center" });
 
     doc.save(`TICKET-A4-${venta.serieComprobante}-${venta.numeroComprobante}.pdf`);

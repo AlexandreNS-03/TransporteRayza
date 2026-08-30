@@ -30,6 +30,7 @@ import Reclamaciones from "./Pages/Compartidos/Sistemas/Reclamaciones.jsx";
 import EstadoSistema from "./Pages/Compartidos/Sistemas/EstadoSistema.jsx";
 import Anuncios from "./Pages/Compartidos/Sistemas/Anuncios.jsx";
 import PreciosWeb from "./Pages/Compartidos/Sistemas/PreciosWeb.jsx";
+import Sorteos from "./Pages/Compartidos/Sistemas/Sorteos.jsx";
 
 function App() {
     return (
@@ -68,6 +69,7 @@ function App() {
                     <Route path="auditoria" element={<Auditorias />} />
                     <Route path="anuncios" element={<Anuncios />} />
                     <Route path="precios-web" element={<PreciosWeb />} />
+                    <Route path="sorteos" element={<Sorteos />} />
                 </Route>
 
                 <Route

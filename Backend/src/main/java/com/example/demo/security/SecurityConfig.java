@@ -109,6 +109,13 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/api/anuncios/**").hasRole("ADMIN")
 
                         /*VENTAS*/
+                        // Sorteo: mirar y registrar el código es público (participar no puede
+                        // exigir cuenta); crearlo y ejecutarlo es del personal.
+                        .requestMatchers(HttpMethod.GET,   "/api/sorteos").hasAnyRole("ADMIN", "SUPERVISOR")
+                        .requestMatchers(HttpMethod.POST,  "/api/sorteos").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/api/sorteos/*/cerrar").hasAnyRole("ADMIN", "SUPERVISOR")
+                        .requestMatchers(HttpMethod.POST,  "/api/sorteos/*/ejecutar").hasRole("ADMIN")
+
                         // Libro de Reclamaciones: registrar es público (lo exige la norma);
                         // leerlas y responderlas es del personal.
                         .requestMatchers(HttpMethod.GET,   "/api/reclamaciones").hasAnyRole("ADMIN", "SUPERVISOR")
