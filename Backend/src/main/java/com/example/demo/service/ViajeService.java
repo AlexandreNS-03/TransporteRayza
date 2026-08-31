@@ -2,6 +2,7 @@ package com.example.demo.service;
 
 import com.example.demo.dto.ViajeDTO;
 import com.example.demo.dto.ViajeRequest;
+import com.example.demo.model.Venta;
 import com.example.demo.model.Viaje;
 import com.example.demo.model.ViajeParada;
 import com.example.demo.repository.ViajeRepository;
@@ -9,6 +10,7 @@ import com.example.demo.repository.EmbarcacionRepository;
 import com.example.demo.repository.RutaParadaRepository;
 import com.example.demo.repository.RutaRepository;
 import com.example.demo.repository.SucursalRepository;
+import com.example.demo.repository.VentaRepository;
 import com.example.demo.repository.ViajeParadaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,6 +30,9 @@ public class ViajeService {
     private final SucursalRepository   sucursalRepository;
     private final RutaParadaRepository  rutaParadaRepository;
     private final ViajeParadaRepository viajeParadaRepository;
+    private final VentaRepository      ventaRepository;
+    private final AuditoriaService     auditoriaService;
+    private final EmailService         emailService;
 
     public ViajeService(ViajeRepository viajeRepository,
                         AsientoService asientoService,
@@ -35,7 +40,10 @@ public class ViajeService {
                         RutaRepository rutaRepository,
                         SucursalRepository sucursalRepository,
                         RutaParadaRepository rutaParadaRepository,
-                        ViajeParadaRepository viajeParadaRepository) {
+                        ViajeParadaRepository viajeParadaRepository,
+                        VentaRepository ventaRepository,
+                        AuditoriaService auditoriaService,
+                        EmailService emailService) {
         this.viajeRepository      = viajeRepository;
         this.asientoService       = asientoService;
         this.embarcacionRepository = embarcacionRepository;
@@ -43,6 +51,9 @@ public class ViajeService {
         this.sucursalRepository   = sucursalRepository;
         this.rutaParadaRepository  = rutaParadaRepository;
         this.viajeParadaRepository = viajeParadaRepository;
+        this.ventaRepository       = ventaRepository;
+        this.auditoriaService      = auditoriaService;
+        this.emailService          = emailService;
     }
 
     // Listar todos
@@ -116,6 +127,103 @@ public class ViajeService {
         asientoService.inicializarAsientosParaViaje(v.getId(), embarcacion.getId());
 
         return toDTO(v);
+    }
+
+    /**
+     * Cambia la fecha, la hora o la embarcación de un viaje ya programado.
+     *
+     * Pasa seguido: el río, el tiempo o la carga corren la salida y el mostrador
+     * necesita que el sistema diga la hora de verdad —de ella dependen la
+     * ventana de embarque, el manifiesto y lo que ve el pasajero en la web—.
+     *
+     * Lo que NO cambia es el código del viaje, aunque lleve la hora vieja dentro
+     * (RR-E-20260618-1420-…): ese código ya está impreso en los tickets vendidos
+     * y en los manifiestos, y es como se los ubica. Es un identificador, no un
+     * horario; la hora que manda es la de la columna.
+     *
+     * @return cuántos pasajeros quedaron avisados por correo
+     */
+    @Transactional
+    public ResultadoEdicion editarViaje(String id, ViajeRequest req, boolean avisar, String usuario) {
+        Viaje v = viajeRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Viaje no encontrado"));
+
+        if (v.getEstado() == Viaje.EstadoViaje.CANCELADO)
+            throw new RuntimeException("El viaje está cancelado. No se puede editar.");
+        if (v.getEstado() == Viaje.EstadoViaje.COMPLETADO)
+            throw new RuntimeException("El viaje ya se completó. No se puede editar.");
+
+        List<Venta> ventas = ventaRepository.findByViajeId(id).stream()
+                .filter(x -> x.getEstado() != Venta.EstadoVenta.ANULADO)
+                .toList();
+
+        String antes = descripcionHorario(v);
+
+        if (req.getFechaSalida() != null) v.setFechaSalida(req.getFechaSalida());
+        if (req.getHoraSalida()  != null) v.setHoraSalida(req.getHoraSalida());
+
+        // La embarcación solo se puede cambiar con el viaje vacío: los asientos
+        // vendidos son los del mapa de la nave anterior, y en otra nave ese
+        // número puede no existir o ser de otro tipo. Mover pasajeros de una nave
+        // a otra es harina de otro costal.
+        if (req.getEmbarcacionId() != null && !req.getEmbarcacionId().equals(v.getEmbarcacionId())) {
+            if (!ventas.isEmpty())
+                throw new RuntimeException("Este viaje ya tiene " + ventas.size()
+                        + " pasaje(s) vendido(s): no se puede cambiar la embarcación sin mover a esos pasajeros.");
+            var emb = embarcacionRepository.findById(req.getEmbarcacionId())
+                    .orElseThrow(() -> new RuntimeException("Embarcación no encontrada"));
+            v.setEmbarcacionId(emb.getId());
+            v.setEmbarcacionNombre(emb.getNombre());
+            asientoService.inicializarAsientosParaViaje(v.getId(), emb.getId());
+        }
+
+        viajeRepository.save(v);
+
+        String despues = descripcionHorario(v);
+        auditoriaService.registrar("EDITAR", "VIAJES", v.getId(),
+                "Viaje " + v.getCodigoViaje() + ": " + antes + " → " + despues
+                        + " (" + ventas.size() + " pasaje(s) vendido(s))");
+
+        int avisados = avisar && !antes.equals(despues) ? avisarPasajeros(v, ventas, antes) : 0;
+        return new ResultadoEdicion(toDTO(v), ventas.size(), avisados);
+    }
+
+    public record ResultadoEdicion(ViajeDTO viaje, int pasajeros, int avisados) { }
+
+    private String descripcionHorario(Viaje v) {
+        return v.getFechaSalida() + " " + (v.getHoraSalida() != null
+                ? v.getHoraSalida().toString().substring(0, 5) : "—")
+                + " · " + v.getEmbarcacionNombre();
+    }
+
+    /**
+     * Le avisa del cambio a quien dejó su correo.
+     *
+     * Un correo que no sale no puede tumbar la edición: la hora nueva ya está
+     * guardada y es lo que importa para el embarque.
+     */
+    private int avisarPasajeros(Viaje v, List<Venta> ventas, String antes) {
+        int enviados = 0;
+        for (Venta venta : ventas) {
+            String correo = venta.getClienteEmail();
+            if (correo == null || correo.isBlank()) continue;
+            try {
+                emailService.enviarTexto(correo,
+                        "Cambio de horario de tu viaje - Transportes Rayza",
+                        "Hola " + venta.getPasajeroNombre() + ",\n\n"
+                        + "Te avisamos que tu viaje " + v.getRutaNombre() + " cambió de horario.\n\n"
+                        + "Antes: " + antes + "\n"
+                        + "Ahora: " + descripcionHorario(v) + "\n\n"
+                        + "Tu pasaje y tu asiento (" + venta.getAsientoTipo() + " #"
+                        + venta.getAsientoNumero() + ") siguen siendo los mismos; solo cambia la hora.\n"
+                        + "El embarque abre 2 horas antes de la salida.\n\n"
+                        + "Disculpa las molestias.\nTransportes Rayza");
+                enviados++;
+            } catch (Exception e) {
+                System.err.println("[Viaje] no se pudo avisar a " + correo + ": " + e.getMessage());
+            }
+        }
+        return enviados;
     }
 
     private void copiarParadasDeLaRuta(Viaje v, String rutaId) {

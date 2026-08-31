@@ -4,6 +4,7 @@ import com.example.demo.dto.ViajeDTO;
 import com.example.demo.dto.ViajeRequest;
 import com.example.demo.service.ViajeService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -35,6 +36,24 @@ public class ViajeController {
     @PostMapping
     public ResponseEntity<ViajeDTO> crear(@RequestBody ViajeRequest req) {
         return ResponseEntity.ok(viajeService.crearViaje(req));
+    }
+
+    /**
+     * Cambia la hora, la fecha o la embarcación de un viaje programado.
+     *
+     * Con `avisar=true` se le manda un correo a cada pasajero que dejó el suyo:
+     * es una salida hacia afuera, así que la decide quien edita, no el sistema.
+     */
+    @PutMapping("/{id}")
+    public ResponseEntity<?> editar(@PathVariable String id,
+                                    @RequestBody ViajeRequest req,
+                                    @RequestParam(defaultValue = "false") boolean avisar,
+                                    Authentication auth) {
+        var r = viajeService.editarViaje(id, req, avisar, auth.getName());
+        return ResponseEntity.ok(java.util.Map.of(
+                "viaje", r.viaje(),
+                "pasajeros", r.pasajeros(),
+                "avisados", r.avisados()));
     }
 
     @GetMapping("/filtrar")
