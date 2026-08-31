@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useToast, Toasts } from "../../../Components/Toast.jsx";
 import "./Viajes.css";
 import { motivoDelError } from "../../../Services/api.js";
 
@@ -65,6 +66,7 @@ function badgeClass(estado) {
 }
 
 function Viajes() {
+    const { toasts, mostrarToast } = useToast();
     const usuario      = JSON.parse(localStorage.getItem("usuario"));
     const esAdmin      = usuario?.rol === "ADMIN";
     const esSupervisor = usuario?.rol === "SUPERVISOR";
@@ -97,6 +99,13 @@ function Viajes() {
     // Listas para selects
     const [rutas, setRutas]           = useState([]);
     const [embarcaciones, setEmb]     = useState([]);
+
+    // Modal editar viaje (cambio de horario de último momento)
+    const [viajeEditar, setViajeEditar]   = useState(null);
+    const [formEdit, setFormEdit]         = useState({ fechaSalida: "", horaSalida: "", embarcacionId: "" });
+    const [avisarPasajeros, setAvisar]    = useState(false);
+    const [editando, setEditando]         = useState(false);
+    const [errorEdit, setErrorEdit]       = useState(null);
 
     // Modal crear viaje
     const [modalAbierto, setModalAbierto] = useState(false);
@@ -152,6 +161,54 @@ function Viajes() {
             fetchViajes();
         } catch (err) { setErrorCancel(err.message); }
         finally { setCancelando(false); }
+    };
+
+    const abrirEdicion = async (v) => {
+        setViajeEditar(v);
+        setFormEdit({
+            fechaSalida: v.fechaSalida || "",
+            horaSalida: (v.horaSalida || "").slice(0, 5),
+            embarcacionId: v.embarcacionId || "",
+        });
+        setAvisar(false);
+        setErrorEdit(null);
+        if (embsDisponibles.length === 0) {
+            const token = localStorage.getItem("token");
+            const r = await fetch(`${API_BASE}/api/embarcaciones/activas`, { headers: { Authorization: `Bearer ${token}` } });
+            if (r.ok) setEmbsDisponibles(await r.json());
+        }
+    };
+
+    const guardarEdicion = async () => {
+        if (!formEdit.fechaSalida || !formEdit.horaSalida) { setErrorEdit("La fecha y la hora son obligatorias"); return; }
+        setEditando(true); setErrorEdit(null);
+        try {
+            const token = localStorage.getItem("token");
+            const res = await fetch(
+                `${API_BASE}/api/viajes/${viajeEditar.id}?avisar=${avisarPasajeros}`, {
+                method: "PUT",
+                headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    fechaSalida: formEdit.fechaSalida,
+                    horaSalida: formEdit.horaSalida.length === 5 ? formEdit.horaSalida + ":00" : formEdit.horaSalida,
+                    embarcacionId: formEdit.embarcacionId || null,
+                }),
+            });
+            if (!res.ok) {
+                let m = "No se pudo guardar el cambio";
+                try { const d = await res.json(); m = d.message || d.error || m; } catch { /* sin cuerpo */ }
+                throw new Error(m);
+            }
+            const d = await res.json();
+            setViajeEditar(null);
+            fetchViajes();
+            mostrarToast("success", d.avisados > 0
+                ? `Horario actualizado. Se avisó por correo a ${d.avisados} pasajero(s).`
+                : d.pasajeros > 0
+                    ? `Horario actualizado. Ojo: ${d.pasajeros} pasaje(s) ya vendido(s) no fueron avisados.`
+                    : "Horario actualizado.");
+        } catch (err) { setErrorEdit(err.message); }
+        finally { setEditando(false); }
     };
 
     const abrirModal = async () => {
@@ -228,6 +285,7 @@ function Viajes() {
 
     return (
         <div className="viajes-page">
+            <Toasts toasts={toasts} />
 
             {/* ENCABEZADO */}
             <div className="viajes-header">
@@ -392,6 +450,13 @@ function Viajes() {
                                                 <span className={badgeClass(v.estado)}>
                                                     {ESTADO_LABEL[v.estado] || v.estado}
                                                 </span>
+                                                {puedeCancelar && v.estado === "PROGRAMADO" && (
+                                                    <button className="btn-editar-viaje"
+                                                            onClick={() => abrirEdicion(v)}
+                                                            title="Cambiar fecha, hora o embarcación">
+                                                        <i className="ti ti-clock-edit"></i> Cambiar horario
+                                                    </button>
+                                                )}
                                                 {puedeCancelar && (v.estado === "PROGRAMADO" || v.estado === "EN_CURSO") && (
                                                     <button className="btn-cancelar-viaje"
                                                             onClick={() => { setViajeCancelar(v); setMotivoCancel(""); setErrorCancel(null); }}
@@ -571,6 +636,86 @@ function Viajes() {
             )}
 
             {/* MODAL CANCELAR VIAJE */}
+            {viajeEditar && (
+                <div className="modal-overlay" onClick={() => setViajeEditar(null)}>
+                    <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 480 }}>
+                        <div className="modal-header">
+                            <h3>Cambiar horario · {viajeEditar.codigoViaje}</h3>
+                            <button className="modal-cerrar" onClick={() => setViajeEditar(null)}>
+                                <i className="ti ti-x"></i>
+                            </button>
+                        </div>
+                        <div className="modal-body">
+                            <p className="campo-ayuda" style={{ marginTop: 0 }}>
+                                {viajeEditar.rutaNombre} · sale {viajeEditar.fechaSalida} a las{" "}
+                                {(viajeEditar.horaSalida || "").slice(0, 5)}
+                            </p>
+
+                            <div className="form-fila">
+                                <div className="form-grupo">
+                                    <label>Fecha de salida *</label>
+                                    <input type="date" value={formEdit.fechaSalida}
+                                           onChange={e => setFormEdit(f => ({ ...f, fechaSalida: e.target.value }))} />
+                                </div>
+                                <div className="form-grupo">
+                                    <label>Hora de salida *</label>
+                                    <input type="time" value={formEdit.horaSalida}
+                                           onChange={e => setFormEdit(f => ({ ...f, horaSalida: e.target.value }))} />
+                                </div>
+                            </div>
+
+                            <div className="form-grupo">
+                                <label>Embarcación</label>
+                                <select value={formEdit.embarcacionId}
+                                        onChange={e => setFormEdit(f => ({ ...f, embarcacionId: e.target.value }))}>
+                                    {embsDisponibles.map(e => (
+                                        <option key={e.id} value={e.id}>{e.nombre}</option>
+                                    ))}
+                                </select>
+                                {/* Los asientos vendidos son los del mapa de esta nave: en otra,
+                                    ese número puede no existir o ser de otro tipo. */}
+                                <span className="campo-ayuda">
+                                    Solo se puede cambiar si el viaje todavía no tiene pasajes vendidos.
+                                </span>
+                            </div>
+
+                            <label className="check-avisar">
+                                <input type="checkbox" checked={avisarPasajeros}
+                                       onChange={e => setAvisar(e.target.checked)} />
+                                <span>
+                                    Avisar por correo a los pasajeros que ya compraron
+                                    <em>Se les manda el horario nuevo. Solo a quienes dejaron su correo.</em>
+                                </span>
+                            </label>
+
+                            <div className="aviso-cancel" style={{ marginTop: 4 }}>
+                                <i className="ti ti-info-circle"></i>
+                                <div>
+                                    <strong>El código del viaje no cambia.</strong>
+                                    <span>
+                                        Lleva la hora vieja dentro porque ya está impreso en los tickets
+                                        vendidos y en los manifiestos; la hora que manda es la de arriba.
+                                        Los tickets ya impresos siguen diciendo la anterior.
+                                    </span>
+                                </div>
+                            </div>
+
+                            {errorEdit && (
+                                <div className="modal-error"><i className="ti ti-alert-circle"></i> {errorEdit}</div>
+                            )}
+                        </div>
+                        <div className="modal-footer">
+                            <button className="btn-cancelar" onClick={() => setViajeEditar(null)}>Volver</button>
+                            <button className="btn-guardar" onClick={guardarEdicion} disabled={editando}>
+                                {editando
+                                    ? <><i className="ti ti-loader-2 spin"></i> Guardando…</>
+                                    : <><i className="ti ti-check"></i> Guardar cambio</>}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {viajeCancelar && (
                 <div className="modal-overlay" onClick={() => setViajeCancelar(null)}>
                     <div className="modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 480 }}>
