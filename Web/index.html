@@ -33,6 +33,11 @@
     <meta name="twitter:title" content="Transportes Rayza — Pasajes en lancha rápida por la Amazonía" />
     <meta name="twitter:description" content="Compra tu pasaje en línea entre Requena, Iquitos, Nauta y los puertos del río. Recibe tu boleto con QR al instante." />
     <meta name="twitter:image" content="https://transporterayza.com/og-rayza.jpg" />
+    <!-- La primera foto del carrusel es lo más grande que se ve al abrir, o sea
+         lo que mide el LCP. Sin esto el navegador recién la descubre cuando el
+         JavaScript ya se descargó y ejecutó, casi un segundo más tarde.
+         Si cambia el orden de los destinos, actualizar esta ruta. -->
+    <link rel="preload" as="image" href="/destinos/iquits.jpg" fetchpriority="high" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet" />

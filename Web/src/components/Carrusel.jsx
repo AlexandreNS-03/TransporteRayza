@@ -8,6 +8,27 @@ export default function Carrusel({ slides = [], intervalo = 5000, flechas = fals
   const [activo, setActivo] = useState(0);
   const timer = useRef(null);
 
+  /**
+   * Qué fotos se han pedido ya.
+   *
+   * Todas las diapositivas están una encima de otra dentro de la pantalla, así
+   * que `loading="lazy"` no sirve de nada: el navegador las ve en pantalla y se
+   * las baja todas al abrir —eran 1,7 MB peleando con la foto de portada, que
+   * es justo la que se mide como LCP—. Acá se pide solo la que se ve y la que
+   * sigue; el resto entra a medida que le toca.
+   */
+  const [pedidas, setPedidas] = useState(() => new Set([0, slides.length > 1 ? 1 : 0]));
+
+  useEffect(() => {
+    setPedidas((p) => {
+      const siguiente = (activo + 1) % Math.max(slides.length, 1);
+      if (p.has(activo) && p.has(siguiente)) return p;
+      const n = new Set(p);
+      n.add(activo); n.add(siguiente);
+      return n;
+    });
+  }, [activo, slides.length]);
+
   const reprogramar = () => {
     clearInterval(timer.current);
     if (slides.length <= 1) return;
@@ -31,10 +52,15 @@ export default function Carrusel({ slides = [], intervalo = 5000, flechas = fals
       {slides.map((s, i) => (
         <img
           key={`${i}-${s.src}`}
-          src={s.src}
+          src={pedidas.has(i) ? s.src : undefined}
           alt={s.alt || ""}
           className={`carrusel-img ${i === activo ? "on" : ""}`}
           loading={i === 0 ? "eager" : "lazy"}
+          /* La primera es la foto grande de la portada: es la que el navegador
+             mide como LCP, así que pide paso delante del resto. Las demás se
+             decodifican aparte para no bloquear el hilo mientras se lee. */
+          fetchPriority={i === 0 ? "high" : "low"}
+          decoding={i === 0 ? "sync" : "async"}
           aria-hidden={i !== activo}
         />
       ))}

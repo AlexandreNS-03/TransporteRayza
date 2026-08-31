@@ -5,7 +5,7 @@ export const DESTINOS = [
     etiqueta: "La puerta de la Amazonía",
     imagen: "iquits.jpg",
     imagen2:"iqui2.jpg",
-    imagen3:"iqui4.png",
+    imagen3:"iqui4.jpg",
     intro: "Una ciudad viva entre los ríos Amazonas, Nanay e Itaya.",
     descripcion: "Iquitos combina historia, gastronomía amazónica y una vida marcada por el río. Es nuestro principal punto de llegada y una gran puerta para descubrir la selva peruana.",
     ruta: "Conexión fluvial desde Requena y los puertos intermedios.",

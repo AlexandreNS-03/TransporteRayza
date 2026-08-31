@@ -15,13 +15,26 @@ import { sorteoVigente } from "../services/publicApi";
  * La excepción es el día del sorteo, con el registro ya cerrado: ahí el giro
  * continuo sí dice algo —"esto está pasando ahora"— y por eso se permite.
  */
+/* Si la visita anterior tenía sorteo, casi seguro esta también: se reserva el
+   hueco desde el primer pintado y el recuadro entra sin mover nada. Cuando el
+   navegador no deja guardar nada (modo privado), simplemente no se reserva. */
+const CLAVE = "rayza_sorteo_activo";
+const habiaSorteo = () => { try { return localStorage.getItem(CLAVE) === "1"; } catch { return false; } };
+const recordar = (hay) => { try { localStorage.setItem(CLAVE, hay ? "1" : "0"); } catch { /* sin guardar */ } };
+
 export default function SorteoDestacado() {
   const [sorteo, setSorteo] = useState(null);
+  const [esperando, setEsperando] = useState(habiaSorteo);
   const [girar, setGirar] = useState(false);
   const [vueltas, setVueltas] = useState(0);
   const ref = useRef(null);
 
-  useEffect(() => { sorteoVigente().then(setSorteo).catch(() => {}); }, []);
+  useEffect(() => {
+    sorteoVigente()
+      .then((s) => { setSorteo(s); recordar(s?.hay); })
+      .catch(() => {})
+      .finally(() => setEsperando(false));
+  }, []);
 
   // Gira al entrar en pantalla, una sola vez.
   useEffect(() => {
@@ -40,7 +53,7 @@ export default function SorteoDestacado() {
     setTimeout(() => setGirar(false), 1600);
   };
 
-  if (!sorteo?.hay) return null;
+  if (!sorteo?.hay) return esperando ? <div className="sorteo-mini-hueco" aria-hidden="true" /> : null;
 
   const enVivo = sorteo.estado === "CERRADO";
   const hecho  = sorteo.estado === "SORTEADO";
