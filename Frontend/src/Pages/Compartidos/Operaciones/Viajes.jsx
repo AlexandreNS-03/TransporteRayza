@@ -71,7 +71,10 @@ function Viajes() {
     const esAdmin      = usuario?.rol === "ADMIN";
     const esSupervisor = usuario?.rol === "SUPERVISOR";
     const esEmpleado   = usuario?.rol === "EMPLEADO";
-    const puedeCancelar = esAdmin || esSupervisor;
+    /* Cambiar el horario y cancelar los puede hacer cualquiera del personal: el
+       horario cambia a último momento y quien está en el mostrador es quien se
+       entera. Queda firmado en auditoría, que es lo que permite revisarlo. */
+    const puedeOperarViaje = esAdmin || esSupervisor || esEmpleado;
 
     // Cancelar viaje
     const [viajeCancelar, setViajeCancelar] = useState(null);
@@ -450,14 +453,14 @@ function Viajes() {
                                                 <span className={badgeClass(v.estado)}>
                                                     {ESTADO_LABEL[v.estado] || v.estado}
                                                 </span>
-                                                {puedeCancelar && v.estado === "PROGRAMADO" && (
+                                                {puedeOperarViaje && v.estado === "PROGRAMADO" && (
                                                     <button className="btn-editar-viaje"
                                                             onClick={() => abrirEdicion(v)}
                                                             title="Cambiar fecha, hora o embarcación">
                                                         <i className="ti ti-clock-edit"></i> Cambiar horario
                                                     </button>
                                                 )}
-                                                {puedeCancelar && (v.estado === "PROGRAMADO" || v.estado === "EN_CURSO") && (
+                                                {puedeOperarViaje && (v.estado === "PROGRAMADO" || v.estado === "EN_CURSO") && (
                                                     <button className="btn-cancelar-viaje"
                                                             onClick={() => { setViajeCancelar(v); setMotivoCancel(""); setErrorCancel(null); }}
                                                             title="Cancelar viaje">
@@ -488,13 +491,13 @@ function Viajes() {
                             <th>Embarcación</th>
                             <th>Sucursal</th>
                             <th>Estado</th>
-                            {puedeCancelar && <th>Acciones</th>}
+                            {puedeOperarViaje && <th>Acciones</th>}
                         </tr>
                         </thead>
                         <tbody>
                         {viajesFiltrados.length === 0 ? (
                             <tr>
-                                <td colSpan={puedeCancelar ? 9 : 8} className="tabla-vacia">
+                                <td colSpan={puedeOperarViaje ? 9 : 8} className="tabla-vacia">
                                     <i className="ti ti-ship-off"></i>
                                     <span>No se encontraron viajes</span>
                                 </td>
@@ -523,8 +526,15 @@ function Viajes() {
                                             </div>
                                         )}
                                     </td>
-                                    {puedeCancelar && (
-                                        <td>
+                                    {puedeOperarViaje && (
+                                        <td className="acciones-viaje">
+                                            {v.estado === "PROGRAMADO" && (
+                                                <button className="btn-editar-viaje"
+                                                        onClick={() => abrirEdicion(v)}
+                                                        title="Cambiar fecha, hora o embarcación">
+                                                    <i className="ti ti-clock-edit"></i> Horario
+                                                </button>
+                                            )}
                                             {(v.estado === "PROGRAMADO" || v.estado === "EN_CURSO") && (
                                                 <button className="btn-cancelar-viaje"
                                                         onClick={() => { setViajeCancelar(v); setMotivoCancel(""); setErrorCancel(null); }}

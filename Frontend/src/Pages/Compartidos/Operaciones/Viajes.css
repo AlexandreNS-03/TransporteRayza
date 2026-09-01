@@ -282,6 +282,9 @@
 }
 .btn-editar-viaje:hover { background: #dbeafe; }
 
+/* En la tabla van los dos botones seguidos. */
+.acciones-viaje { display: flex; gap: 6px; flex-wrap: wrap; }
+
 /* La casilla del aviso por correo: manda algo hacia afuera, así que se lee
    antes de marcarla. */
 .check-avisar {

@@ -72,9 +72,12 @@ public class SecurityConfig {
                         /*VIAJES*/
                         .requestMatchers(HttpMethod.GET,    "/api/viajes/**").hasAnyRole("ADMIN", "SUPERVISOR", "EMPLEADO")
                         .requestMatchers(HttpMethod.POST,   "/api/viajes/**").hasAnyRole("ADMIN", "SUPERVISOR", "EMPLEADO")
-                        .requestMatchers(HttpMethod.PUT,    "/api/viajes/**").hasAnyRole("ADMIN", "SUPERVISOR")
+                        // Cambiar el horario y cancelar están al alcance de los tres roles: el
+                        // horario cambia a último momento y quien está en el mostrador es
+                        // quien se entera. Todo cambio queda firmado en auditoría.
+                        .requestMatchers(HttpMethod.PUT,    "/api/viajes/**").hasAnyRole("ADMIN", "SUPERVISOR", "EMPLEADO")
                         .requestMatchers(HttpMethod.DELETE, "/api/viajes/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PATCH,  "/api/viajes/*/cancelar").hasAnyRole("ADMIN", "SUPERVISOR")
+                        .requestMatchers(HttpMethod.PATCH,  "/api/viajes/*/cancelar").hasAnyRole("ADMIN", "SUPERVISOR", "EMPLEADO")
 
                         /*CANCELACIONES: resolver los pasajes de un viaje cancelado*/
                         .requestMatchers(HttpMethod.GET,   "/api/ventas/por-resolver").hasAnyRole("ADMIN", "SUPERVISOR", "EMPLEADO")
