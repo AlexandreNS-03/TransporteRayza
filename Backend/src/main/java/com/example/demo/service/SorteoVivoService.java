@@ -68,11 +68,18 @@ public class SorteoVivoService {
      * Va el nombre recortado y nunca el documento ni el correo: esto lo ve
      * cualquiera que abra la página.
      */
-    public void avisarGanador(String sorteoId, CuponSorteo ganador, int participantes) {
-        difundir(sorteoId, "ganador", Map.of(
-                "codigo", ganador.getCodigo(),
-                "nombre", nombreCorto(ganador.getPasajeroNombre()),
-                "participantes", participantes));
+    public void avisarGanador(String sorteoId, CuponSorteo ganador, int participantes,
+                              com.example.demo.model.PremioSorteo premio, boolean quedanPremios) {
+        java.util.Map<String, Object> datos = new java.util.HashMap<>();
+        datos.put("codigo", ganador.getCodigo());
+        datos.put("nombre", nombreCorto(ganador.getPasajeroNombre()));
+        datos.put("participantes", participantes);
+        // De qué premio se trata: la página lo anuncia con el nombre del premio
+        // y, si falta alguno, deja la rueda lista para el siguiente giro.
+        datos.put("premio", premio.getDescripcion());
+        datos.put("premioOrden", premio.getOrden());
+        datos.put("quedanPremios", quedanPremios);
+        difundir(sorteoId, "ganador", datos);
     }
 
     private void difundir(String sorteoId, String evento, Object datos) {

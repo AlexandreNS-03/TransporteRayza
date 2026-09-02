@@ -2502,6 +2502,46 @@ html :is(a, button, input, select, textarea, [tabindex]):focus-visible {
   .sorteo-mini:hover { transform: none; }
 }
 
+/* ── Varios premios ──
+   La rueda gira una vez por premio, del último al primero. Lo ya repartido
+   queda a la vista: quien entra a mitad de la transmisión tiene que poder ver
+   qué se jugó antes sin preguntarle a nadie. */
+
+.sorteo-premios {
+  list-style: none; margin: 14px 0 0; padding: 0;
+  display: grid; gap: 6px; justify-items: center;
+}
+.sorteo-premios li { font-size: 14px; color: var(--ink-soft); }
+.sorteo-premio-puesto {
+  font-family: var(--font-head); font-weight: 800; color: var(--accent); margin-right: 4px;
+}
+
+.sorteo-premio-turno {
+  text-align: center; margin: -12px 0 20px;
+  font-size: 14px; color: var(--ink-soft);
+}
+.sorteo-premio-turno strong { color: var(--ink); }
+
+.sorteo-entregados {
+  list-style: none; margin: 0 0 24px; padding: 14px 16px;
+  display: grid; gap: 9px;
+  border: 1px solid var(--line); border-radius: 14px; background: var(--card);
+}
+.sorteo-entregados li {
+  display: flex; align-items: baseline; gap: 9px;
+  font-size: 13.5px; color: var(--ink-soft);
+  animation: sorteo-revelar 300ms var(--ease-out) both;
+}
+.sorteo-entregados strong { margin-left: auto; color: var(--ink); font-family: var(--font-head); }
+.sorteo-entregado-puesto {
+  font-family: var(--font-head); font-weight: 800; color: var(--accent);
+  flex: 0 0 auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sorteo-entregados li { animation-name: sorteo-aparecer; animation-duration: 200ms; }
+}
+
 /* Historial: la prueba pública de que cada sorteo se hizo y con quién. */
 .sorteo-repeticion-barra {
   display: flex; align-items: center; justify-content: center;

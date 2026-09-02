@@ -1,9 +1,11 @@
 package com.example.demo.service;
 
 import com.example.demo.model.CuponSorteo;
+import com.example.demo.model.PremioSorteo;
 import com.example.demo.model.Sorteo;
 import com.example.demo.model.Venta;
 import com.example.demo.repository.CuponSorteoRepository;
+import com.example.demo.repository.PremioSorteoRepository;
 import com.example.demo.repository.SorteoRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -38,16 +40,19 @@ public class SorteoService {
 
     private final SorteoRepository sorteoRepository;
     private final CuponSorteoRepository cuponRepository;
+    private final PremioSorteoRepository premioRepository;
     private final com.example.demo.repository.VentaRepository ventaRepository;
     private final SorteoVivoService vivo;
     private final SecureRandom aleatorio = new SecureRandom();
 
     public SorteoService(SorteoRepository sorteoRepository,
                          CuponSorteoRepository cuponRepository,
+                         PremioSorteoRepository premioRepository,
                          com.example.demo.repository.VentaRepository ventaRepository,
                          SorteoVivoService vivo) {
         this.sorteoRepository = sorteoRepository;
         this.cuponRepository = cuponRepository;
+        this.premioRepository = premioRepository;
         this.ventaRepository = ventaRepository;
         this.vivo = vivo;
     }
@@ -169,39 +174,174 @@ public class SorteoService {
         return guardado;
     }
 
+    /**
+     * Abre un sorteo que estaba preparado.
+     *
+     * Abrir es publicar una promoción: desde ese momento cada pasaje vendido
+     * lleva su código impreso. Por eso lo aprieta una persona y nunca una tarea
+     * automática — un sorteo sin bases ni autorización publicadas es lo que
+     * puede costar una sanción.
+     */
+    @Transactional
+    public Sorteo abrir(String sorteoId) {
+        Sorteo s = sorteoRepository.findById(sorteoId)
+                .orElseThrow(() -> new RuntimeException("Ese sorteo no existe"));
+        if (s.getEstado() != Sorteo.Estado.BORRADOR)
+            throw new RuntimeException("Este sorteo ya no está en preparación.");
+
+        // Con dos abiertos, un pasaje no sabría a cuál pertenece su código.
+        if (sorteoRepository.findFirstByEstado(Sorteo.Estado.ABIERTO).isPresent())
+            throw new RuntimeException("Ya hay un sorteo abierto. Ciérralo antes de abrir este.");
+
+        if (premioRepository.countBySorteoId(s.getId()) == 0
+                && (s.getPremio() == null || s.getPremio().isBlank()))
+            throw new RuntimeException("Este sorteo no tiene ningún premio: agrégalo antes de abrirlo.");
+
+        s.setEstado(Sorteo.Estado.ABIERTO);
+        return sorteoRepository.save(s);
+    }
+
+    /**
+     * Cierra el registro de los sorteos cuya hora anunciada ya pasó.
+     *
+     * Las bases dicen a qué hora cierra el registro, y hasta ahora eso dependía
+     * de que alguien se acordara de apretar el botón: si nadie estaba, se seguían
+     * aceptando códigos después de la hora publicada. Cerrar no sortea nada —el
+     * ganador lo sigue eligiendo una persona, en vivo—.
+     *
+     * @return cuántos se cerraron
+     */
+    @Transactional
+    public int cerrarLosQueYaVencieron() {
+        int cerrados = 0;
+        for (Sorteo s : sorteoRepository.findByEstado(Sorteo.Estado.ABIERTO)) {
+            if (s.getFechaSorteo() == null) continue;          // sin hora anunciada, no hay qué cumplir
+            if (LocalDateTime.now().isBefore(s.getFechaSorteo())) continue;
+            s.setEstado(Sorteo.Estado.CERRADO);
+            sorteoRepository.save(s);
+            cerrados++;
+            System.out.println("[Sorteo] registro cerrado solo: " + s.getNombre()
+                    + " (anunciado para " + s.getFechaSorteo() + ")");
+        }
+        return cerrados;
+    }
+
     // ------------------------------------------------------------ El sorteo
 
     /**
-     * Elige al ganador. Una sola vez y sin vuelta atrás.
+     * Sortea el siguiente premio pendiente. Una sola vez cada uno y sin vuelta atrás.
+     *
+     * Los premios se sortean del último al primero —tercero, segundo, primero—
+     * porque anunciar el grande al final es lo que sostiene la atención.
      *
      * El peso se respeta repartiendo un número al azar sobre la suma total: un
      * cupón VIP ocupa el doble de espacio que uno normal, así que sale el doble
      * de veces. Es más simple y más justo que duplicar filas.
+     *
+     * Quien ya ganó queda fuera de los premios que faltan, y se excluye por
+     * DOCUMENTO, no por cupón: quien compró cinco pasajes tiene más chances de
+     * ganar algo, pero no se lleva dos premios. Es lo que la gente espera y
+     * evita el reclamo de "esa persona ganó dos veces".
      */
     @Transactional
-    public Sorteo ejecutar(String sorteoId, String usuario) {
+    public PremioSorteo ejecutar(String sorteoId, String usuario) {
         Sorteo s = sorteoRepository.findById(sorteoId)
                 .orElseThrow(() -> new RuntimeException("Ese sorteo no existe"));
 
         // Sin esto, alguien podría volver a sortear hasta que salga quien quiere.
         if (s.getEstado() == Sorteo.Estado.SORTEADO)
-            throw new RuntimeException("Este sorteo ya tiene ganador. No se puede repetir.");
+            throw new RuntimeException("Este sorteo ya repartió todos sus premios. No se puede repetir.");
+
+        List<PremioSorteo> premios = premiosDe(s);
+        PremioSorteo premio = premios.stream()
+                .filter(p -> !p.estaSorteado())
+                .max(java.util.Comparator.comparing(PremioSorteo::getOrden))   // el último primero
+                .orElseThrow(() -> new RuntimeException("Este sorteo no tiene premios pendientes."));
 
         List<CuponSorteo> participantes = cuponRepository.participantesDe(sorteoId);
         if (participantes.isEmpty())
             throw new RuntimeException("Todavía nadie registró su código: no hay entre quiénes sortear.");
 
-        CuponSorteo ganador = elegirPonderado(participantes);
+        // Los documentos que ya se llevaron un premio de este sorteo.
+        java.util.Set<String> yaGanaron = premios.stream()
+                .filter(PremioSorteo::estaSorteado)
+                .map(p -> cuponRepository.findById(p.getCuponGanadorId()).orElse(null))
+                .filter(java.util.Objects::nonNull)
+                .map(CuponSorteo::getPasajeroDocumento)
+                .filter(d -> d != null && !d.isBlank())
+                .collect(java.util.stream.Collectors.toSet());
 
-        s.setCuponGanadorId(ganador.getId());
-        s.setSorteadoAt(LocalDateTime.now());
-        s.setSorteadoPor(usuario);
+        List<CuponSorteo> elegibles = participantes.stream()
+                .filter(c -> c.getPasajeroDocumento() == null || !yaGanaron.contains(c.getPasajeroDocumento()))
+                .toList();
+
+        // Con menos gente que premios se acaban los elegibles. Antes que dejar el
+        // premio sin dueño o repetir persona, se avisa: lo resuelve quien organiza.
+        if (elegibles.isEmpty())
+            throw new RuntimeException("Ya no queda nadie sin premio: todos los que participaron ganaron algo.");
+
+        CuponSorteo ganador = elegirPonderado(elegibles);
+
+        premio.setCuponGanadorId(ganador.getId());
+        premio.setSorteadoAt(LocalDateTime.now());
+        premio.setSorteadoPor(usuario);
+        premioRepository.save(premio);
+
+        // El primer premio sorteado deja también su marca en el sorteo: el
+        // historial público y las pantallas viejas lo leen de ahí.
+        if (s.getCuponGanadorId() == null) {
+            s.setCuponGanadorId(ganador.getId());
+            s.setSorteadoAt(premio.getSorteadoAt());
+            s.setSorteadoPor(usuario);
+        }
         s.setCuponesParticipantes(participantes.size());
-        s.setEstado(Sorteo.Estado.SORTEADO);
-        Sorteo guardado = sorteoRepository.save(s);
 
-        vivo.avisarGanador(sorteoId, ganador, participantes.size());
-        return guardado;
+        boolean quedan = premios.stream().anyMatch(p -> !p.estaSorteado() && !p.getId().equals(premio.getId()));
+        if (!quedan) s.setEstado(Sorteo.Estado.SORTEADO);
+        sorteoRepository.save(s);
+
+        vivo.avisarGanador(sorteoId, ganador, participantes.size(), premio, quedan);
+        return premio;
+    }
+
+    /**
+     * Los premios del sorteo.
+     *
+     * Un sorteo creado antes de que existieran los premios múltiples no tiene
+     * ninguno: se le arma uno al vuelo con lo que guardaba, para que siga
+     * funcionando igual sin tocar sus datos.
+     */
+    public List<PremioSorteo> premiosDe(Sorteo s) {
+        List<PremioSorteo> premios = premioRepository.findBySorteoIdOrderByOrdenAsc(s.getId());
+        if (!premios.isEmpty()) return premios;
+
+        PremioSorteo unico = new PremioSorteo();
+        unico.setId(UUID.randomUUID().toString());
+        unico.setSorteoId(s.getId());
+        unico.setOrden(1);
+        unico.setDescripcion(s.getPremio());
+        unico.setValor(s.getPremioValor());
+        unico.setCuponGanadorId(s.getCuponGanadorId());
+        unico.setSorteadoAt(s.getSorteadoAt());
+        unico.setSorteadoPor(s.getSorteadoPor());
+        return List.of(premioRepository.save(unico));
+    }
+
+    /** Guarda los premios de un sorteo nuevo. El orden 1 es el premio mayor. */
+    public void guardarPremios(String sorteoId, List<java.util.Map<String, Object>> premios) {
+        int orden = 1;
+        for (var p : premios) {
+            String desc = p.get("descripcion") == null ? null : p.get("descripcion").toString().trim();
+            if (desc == null || desc.isBlank()) continue;
+            PremioSorteo x = new PremioSorteo();
+            x.setId(UUID.randomUUID().toString());
+            x.setSorteoId(sorteoId);
+            x.setOrden(orden++);
+            x.setDescripcion(desc);
+            if (p.get("valor") != null && !p.get("valor").toString().isBlank())
+                x.setValor(new java.math.BigDecimal(p.get("valor").toString()));
+            premioRepository.save(x);
+        }
     }
 
     /**

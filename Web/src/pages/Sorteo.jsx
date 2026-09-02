@@ -23,6 +23,9 @@ export default function Sorteo() {
   // A quién apunta la rueda. Se sabe apenas arranca el giro, aunque el nombre
   // no se muestre hasta que frene.
   const [destino, setDestino] = useState(null);
+  // Lo ya repartido en esta transmisión: con varios premios, la lista es lo
+  // que queda en pantalla mientras la rueda vuelve a girar por el siguiente.
+  const [entregados, setEntregados] = useState([]);
   const [girando, setGirando] = useState(false);
   const [participantes, setParticipantes] = useState(0);
   // Quiénes participan: son los nombres que van en los sectores de la rueda.
@@ -55,6 +58,11 @@ export default function Sorteo() {
   useEffect(() => {
     if (!sorteo?.id) return;
     participantesSorteo(sorteo.id).then(setGente).catch(() => {});
+    // Quien entra tarde ve lo que ya se repartió, no una pantalla en blanco.
+    setEntregados((sorteo.premios || [])
+      .filter((p) => p.sorteado)
+      .map((p) => ({ premioOrden: p.orden, premio: p.descripcion,
+                     nombre: p.ganadorNombre, codigo: p.ganadorCodigo })));
   }, [sorteo?.id]);
 
   /** El ganador del sorteo vigente, si ya se hizo. Se usa para volver de una
@@ -108,12 +116,16 @@ export default function Sorteo() {
         setTimeout(() => {
           setGanador(d);
           setGirando(false);
-          // El sorteo pasa a estar hecho: la etiqueta decía "Registro abierto"
-          // con el ganador ya en pantalla, y el sorteo recién hecho tiene que
-          // entrar al historial sin recargar.
-          setSorteo((s) => ({ ...s, estado: "SORTEADO",
-                              ganadorNombre: d.nombre, ganadorCodigo: d.codigo }));
-          historialSorteos().then(setHistorial).catch(() => {});
+          setEntregados((lista) =>
+            lista.some((p) => p.premioOrden === d.premioOrden) ? lista : [...lista, d]);
+
+          // Mientras queden premios el sorteo sigue en marcha: la etiqueta no
+          // debe decir "realizado" ni el registro reabrirse a mitad de camino.
+          if (!d.quedanPremios) {
+            setSorteo((s) => ({ ...s, estado: "SORTEADO",
+                                ganadorNombre: d.nombre, ganadorCodigo: d.codigo }));
+            historialSorteos().then(setHistorial).catch(() => {});
+          }
         }, DURACION_GIRO);
       },
     });
@@ -165,6 +177,15 @@ export default function Sorteo() {
             </span>
             <h1>{sorteo.nombre || "Sorteo"}</h1>
             <p className="sorteo-premio">{sorteo.premio}</p>
+            {sorteo.premios?.length > 1 && (
+              <ul className="sorteo-premios">
+                {sorteo.premios.map((p) => (
+                  <li key={p.orden}>
+                    <span className="sorteo-premio-puesto">{p.orden}°</span> {p.descripcion}
+                  </li>
+                ))}
+              </ul>
+            )}
             {sorteo.fechaSorteo && sorteo.estado !== "SORTEADO" && (
               <p className="muted">Se sortea el {fechaBonita(sorteo.fechaSorteo)}</p>
             )}
@@ -181,6 +202,16 @@ export default function Sorteo() {
             </p>
           )}
 
+          {/* Qué se está jugando en este giro. Con un solo premio no hace falta:
+              ya está en el encabezado. */}
+          {sorteo.premios?.length > 1 && !ganador && (
+            <p className="sorteo-premio-turno">
+              {girando
+                ? "Sorteando el siguiente premio…"
+                : `${sorteo.premios.length} premios en juego · se sortean del último al primero`}
+            </p>
+          )}
+
           <Ruleta
             participantes={gente}
             girando={girando}
@@ -189,6 +220,24 @@ export default function Sorteo() {
             duracion={DURACION_GIRO}
             total={repeticion ? repeticion.participantes : participantes}
           />
+
+          {ganador?.premio && (
+            <p className="sorteo-premio-turno">
+              <strong>{ganador.premioOrden}° premio:</strong> {ganador.premio}
+            </p>
+          )}
+
+          {entregados.length > 1 && (
+            <ul className="sorteo-entregados">
+              {entregados.map((p) => (
+                <li key={p.premioOrden}>
+                  <span className="sorteo-entregado-puesto">{p.premioOrden}°</span>
+                  <span>{p.premio}</span>
+                  <strong>{p.nombre}</strong>
+                </li>
+              ))}
+            </ul>
+          )}
 
           {/* Quiénes se van sumando. Un contador solo no dice que hay gente
               detrás; ver entrar un nombre sí. */}

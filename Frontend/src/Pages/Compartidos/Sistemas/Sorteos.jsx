@@ -15,7 +15,15 @@ import { useToast, Toasts } from "../../../Components/Toast.jsx";
  * para quien llegó tarde.
  */
 
-const VACIO = { nombre: "", premio: "", premioValor: "", fechaSorteo: "", basesUrl: "" };
+const VACIO = {
+    nombre: "", fechaSorteo: "", basesUrl: "",
+    // El primero es el premio mayor: se sortea al final, que es cuando la gente
+    // está mirando.
+    premios: [{ descripcion: "", valor: "" }],
+    // Dejarlo preparado en vez de abrirlo: sirve para tener el siguiente listo
+    // mientras el actual sigue corriendo.
+    preparado: false,
+};
 
 const VUELTAS = 6;              // vueltas completas antes de frenar
 const DURACION_GIRO = 15000;    // ms; el mismo que ve el público en la web
@@ -56,12 +64,27 @@ function Sorteos() {
 
     const cambiar = (c) => (e) => setForm((f) => ({ ...f, [c]: e.target.value }));
 
+    const cambiarPremio = (i, campo, valor) => setForm((f) => ({
+        ...f,
+        premios: f.premios.map((p, j) => (j === i ? { ...p, [campo]: valor } : p)),
+    }));
+    const agregarPremio = () => setForm((f) => ({ ...f, premios: [...f.premios, { descripcion: "", valor: "" }] }));
+    const quitarPremio = (i) => setForm((f) => ({ ...f, premios: f.premios.filter((_, j) => j !== i) }));
+
     const crear = async (e) => {
         e.preventDefault();
         setCreando(true);
         try {
-            await apiFetch("/api/sorteos", { method: "POST", body: JSON.stringify(form) });
-            mostrarToast("success", "Sorteo creado. Los pasajes que se vendan desde ahora llevarán su código.");
+            const preparado = form.preparado || hayAbierto;
+            const premios = form.premios.filter(p => p.descripcion.trim());
+            if (premios.length === 0) throw new Error("Escribe al menos un premio");
+            await apiFetch("/api/sorteos", {
+                method: "POST",
+                body: JSON.stringify({ ...form, preparado, premios, premio: premios[0].descripcion }),
+            });
+            mostrarToast("success", preparado
+                ? "Sorteo preparado. No recibe códigos ni sale en la web hasta que lo abras."
+                : "Sorteo creado. Los pasajes que se vendan desde ahora llevarán su código.");
             setForm(VACIO);
             cargar();
         } catch (err) {
@@ -84,6 +107,15 @@ function Sorteos() {
         } catch (e) { mostrarToast("error", e.message); }
     };
 
+    const abrir = async (s) => {
+        if (!confirm(`¿Abrir "${s.nombre}"?\n\nDesde ahora cada pasaje vendido llevará su código impreso, y el sorteo aparecerá en la web.`)) return;
+        try {
+            await apiFetch(`/api/sorteos/${s.id}/abrir`, { method: "PATCH" });
+            mostrarToast("success", "Sorteo abierto. Los pasajes que se vendan desde ahora llevarán su código.");
+            cargar();
+        } catch (e) { mostrarToast("error", e.message); }
+    };
+
     const cerrar = async (s) => {
         if (!confirm(`Cerrar el registro de "${s.nombre}"?\n\nDespués de esto nadie más podrá registrar su código.`)) return;
         try {
@@ -93,15 +125,16 @@ function Sorteos() {
         } catch (e) { mostrarToast("error", e.message); }
     };
 
-    const ejecutar = async () => {
-        const s = confirmando;
+    const ejecutar = async (sorteo) => {
+        const s = sorteo || confirmando;
         setConfirmando(null);
         setTextoConfirma("");
         // La ruleta arranca antes de tener la respuesta: en la web pública gira
         // desde que el servidor emite el ganador, y si acá esperáramos la
         // respuesta, el panel iría siempre unos segundos por detrás.
         const arranque = Date.now();
-        setEnVivo({ sorteo: s, ganador: null });
+        setEnVivo((v) => ({ sorteo: s, ganador: null, destino: null,
+                            entregados: v?.entregados || [] }));
         // La lista es pública y no necesita sesión: es la misma que pinta la web.
         cargarParticipantes(s.id).then(setGente).catch(() => setGente([]));
 
@@ -109,12 +142,21 @@ function Sorteos() {
             const r = await apiFetch(`/api/sorteos/${s.id}/ejecutar`, { method: "POST" });
             // El destino se sabe apenas responde el servidor: la rueda necesita
             // saber DÓNDE frenar aunque el nombre se muestre recién al final.
-            const premiado = { codigo: r.ganadorCodigo, nombre: r.ganadorNombre };
+            const p = r.premioSorteado || {};
+            const premiado = { codigo: p.ganadorCodigo, nombre: p.ganadorNombre };
             setEnVivo((v) => ({ ...v, destino: premiado }));
 
             const falta = Math.max(0, DURACION_GIRO - (Date.now() - arranque));
             setTimeout(() => {
-                setEnVivo((v) => ({ ...v, ganador: r, destino: premiado }));
+                setEnVivo((v) => ({
+                    ...v,
+                    ganador: p,
+                    destino: premiado,
+                    quedan: r.quedanPremios,
+                    // Se van apilando: al terminar se ve la lista completa de
+                    // quién ganó qué, que es lo que hay que anunciar y entregar.
+                    entregados: [...(v.entregados || []), p],
+                }));
                 cargar();
             }, falta);
         } catch (e) {
@@ -149,7 +191,7 @@ function Sorteos() {
                 Consúltalo con tu asesor legal — hacerlo sin eso puede traer sanciones de INDECOPI.
             </div>
 
-            {esAdmin && !hayAbierto && (
+            {esAdmin && (
                 <form className="sorteo-nuevo" onSubmit={crear}>
                     <h3>Nuevo sorteo</h3>
                     <div className="sorteo-grid">
@@ -158,17 +200,32 @@ function Sorteos() {
                             <input value={form.nombre} onChange={cambiar("nombre")} required
                                    placeholder="Ej. Sorteo Fiestas Patrias" />
                         </label>
-                        <label className="campo-s">
-                            <span>Premio</span>
-                            <input value={form.premio} onChange={cambiar("premio")} required
-                                   placeholder="Ej. Un pasaje gratis a cualquier destino" />
-                        </label>
-                        <label className="campo-s">
-                            <span>Valor del premio (S/)</span>
-                            <input type="number" step="0.01" value={form.premioValor}
-                                   onChange={cambiar("premioValor")} placeholder="120.00" />
-                            <small>Las bases lo exigen.</small>
-                        </label>
+                        <div className="campo-s ancho">
+                            <span>Premios</span>
+                            {/* Uno o varios. Con varios, la rueda gira una vez por
+                                premio y empieza por el último: el grande se anuncia
+                                al final. Nadie se lleva dos. */}
+                            {form.premios.map((p, i) => (
+                                <div className="premio-fila" key={i}>
+                                    <span className="premio-puesto">{i + 1}°</span>
+                                    <input value={p.descripcion} placeholder="Ej. Un pasaje gratis a cualquier destino"
+                                           onChange={e => cambiarPremio(i, "descripcion", e.target.value)} />
+                                    <input type="number" step="0.01" value={p.valor} placeholder="Valor S/"
+                                           className="premio-valor"
+                                           onChange={e => cambiarPremio(i, "valor", e.target.value)} />
+                                    {form.premios.length > 1 && (
+                                        <button type="button" className="premio-quitar" title="Quitar este premio"
+                                                onClick={() => quitarPremio(i)}>
+                                            <i className="ti ti-x"></i>
+                                        </button>
+                                    )}
+                                </div>
+                            ))}
+                            <button type="button" className="premio-agregar" onClick={agregarPremio}>
+                                <i className="ti ti-plus"></i> Agregar otro premio
+                            </button>
+                            <small>El valor de cada uno lo exigen las bases.</small>
+                        </div>
                         <label className="campo-s">
                             <span>Fecha y hora del sorteo</span>
                             <input type="datetime-local" value={form.fechaSorteo} onChange={cambiar("fechaSorteo")} />
@@ -179,18 +236,29 @@ function Sorteos() {
                                    placeholder="https://…" />
                         </label>
                     </div>
+                    {/* Con uno abierto solo se puede preparar el siguiente: dos abiertos
+                        dejarían al pasaje sin saber a cuál pertenece su código. */}
+                    <label className="check-preparado">
+                        <input type="checkbox" checked={form.preparado || hayAbierto}
+                               disabled={hayAbierto}
+                               onChange={(e) => setForm((f) => ({ ...f, preparado: e.target.checked }))} />
+                        <span>
+                            Dejarlo preparado, sin abrir
+                            <em>
+                                {hayAbierto
+                                    ? "Ya hay un sorteo abierto, así que este queda en borrador hasta que cierres el otro."
+                                    : "No recibe códigos ni sale en la web hasta que lo abras."}
+                            </em>
+                        </span>
+                    </label>
+
                     <button className="btn-primario" disabled={creando}>
-                        {creando ? "Creando…" : "Abrir sorteo"}
+                        {creando ? "Creando…" : (form.preparado || hayAbierto) ? "Preparar sorteo" : "Abrir sorteo"}
                     </button>
                 </form>
             )}
 
-            {hayAbierto && esAdmin && (
-                <p className="muted" style={{ marginBottom: 14 }}>
-                    Ya hay un sorteo abierto. Ciérralo antes de crear otro: con dos abiertos, un
-                    pasaje no sabría a cuál pertenece su código.
-                </p>
-            )}
+
 
             {cargando ? <p className="muted">Cargando…</p>
              : sorteos.length === 0 ? <p className="muted">Todavía no hay sorteos.</p>
@@ -217,7 +285,25 @@ function Sorteos() {
                                 )}
                             </div>
 
-                            {s.fechaSorteo && <p className="muted">Anunciado para el {fmt(s.fechaSorteo)}</p>}
+                            {s.fechaSorteo && (
+                                <p className="muted">
+                                    Anunciado para el {fmt(s.fechaSorteo)}
+                                    {s.estado === "ABIERTO" && " · el registro se cierra solo a esa hora"}
+                                </p>
+                            )}
+
+                            {s.premios?.length > 1 && (
+                                <ul className="premios-lista">
+                                    {s.premios.map((p) => (
+                                        <li key={p.orden}>
+                                            <b>{p.orden}°</b> {p.descripcion}
+                                            {p.sorteado
+                                                ? <span className="premio-ganador"> — {p.ganadorNombreCompleto || p.ganadorNombre}</span>
+                                                : <span className="muted"> — sin sortear</span>}
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
 
                             {s.estado === "SORTEADO" ? (
                                 <div className="sorteo-ganador-caja">
@@ -233,6 +319,11 @@ function Sorteos() {
                                 </div>
                             ) : (
                                 <div className="sorteo-acciones">
+                                    {s.estado === "BORRADOR" && esAdmin && (
+                                        <button className="btn-primario" onClick={() => abrir(s)}>
+                                            Abrir sorteo
+                                        </button>
+                                    )}
                                     {s.estado === "ABIERTO" && (
                                         <>
                                             <button className="btn-secundario" onClick={() => emitirFaltantes(s)}>
@@ -260,7 +351,11 @@ function Sorteos() {
             {envivo && (
                 <div className="modal-overlay">
                     <div className="modal sorteo-vivo">
-                        <h3>{envivo.ganador ? "Tenemos ganador" : "Sorteando…"}</h3>
+                        <h3>
+                            {envivo.ganador
+                                ? `${envivo.ganador.orden}° premio: ${envivo.ganador.descripcion || ""}`
+                                : "Sorteando…"}
+                        </h3>
                         <p className="muted">
                             Esto mismo se está viendo en la página del sorteo.
                         </p>
@@ -287,11 +382,28 @@ function Sorteos() {
                             </div>
                         )}
 
+                        {/* Lo ya repartido, para cantarlo sin equivocarse. */}
+                        {envivo.entregados?.length > 1 && (
+                            <ul className="premios-entregados">
+                                {envivo.entregados.map((p) => (
+                                    <li key={p.orden}>
+                                        <b>{p.orden}°</b> {p.descripcion} — {p.ganadorNombreCompleto}
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+
                         <div className="modal-acciones">
-                            <button className="btn-primario" onClick={() => setEnVivo(null)}
-                                    disabled={!envivo.ganador}>
-                                {envivo.ganador ? "Listo" : "Sorteando…"}
-                            </button>
+                            {envivo.ganador && envivo.quedan ? (
+                                <button className="btn-primario" onClick={() => ejecutar(envivo.sorteo)}>
+                                    <i className="ti ti-player-play"></i> Sortear el siguiente premio
+                                </button>
+                            ) : (
+                                <button className="btn-primario" onClick={() => setEnVivo(null)}
+                                        disabled={!envivo.ganador}>
+                                    {envivo.ganador ? "Listo" : "Sorteando…"}
+                                </button>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -302,7 +414,11 @@ function Sorteos() {
                     <div className="modal" onClick={(e) => e.stopPropagation()}>
                         <h3>Ejecutar el sorteo</h3>
                         <p>
-                            Se elegirá al ganador entre <strong>{confirmando.participantes}</strong> participantes.
+                            {confirmando.premios?.length > 1
+                                ? <>Se repartirán <strong>{confirmando.premios.length} premios</strong> entre{" "}
+                                   <strong>{confirmando.participantes}</strong> participantes, uno por giro y
+                                   empezando por el último. Nadie se lleva dos.</>
+                                : <>Se elegirá al ganador entre <strong>{confirmando.participantes}</strong> participantes.</>}
                         </p>
                         {/* Es irreversible y hay un premio de por medio: conviene que
                             cueste un poco más que un clic distraído. */}
@@ -317,7 +433,9 @@ function Sorteos() {
                         </label>
                         <div className="modal-acciones">
                             <button className="btn-secundario" onClick={() => setConfirmando(null)}>Cancelar</button>
-                            <button className="btn-primario" onClick={ejecutar}
+                            {/* Sin la flecha, React le pasaría el evento del clic como
+                                si fuera el sorteo, y la llamada saldría con id vacío. */}
+                            <button className="btn-primario" onClick={() => ejecutar()}
                                     disabled={textoConfirma !== "SORTEAR"}>
                                 Sortear ahora
                             </button>
