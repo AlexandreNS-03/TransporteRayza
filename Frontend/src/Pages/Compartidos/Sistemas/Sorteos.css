@@ -195,3 +195,45 @@
     }
 }
 @keyframes ruleta-aparecer { from { opacity: 0; } to { opacity: 1; } }
+
+/* ── Varios premios ──
+   El primero es el mayor y se sortea al final; el número al costado lo deja
+   claro sin tener que explicarlo. */
+
+.premio-fila { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.premio-puesto {
+    flex: 0 0 auto; width: 26px; text-align: center;
+    font-size: 12.5px; font-weight: 800; color: #1a4db5;
+}
+.premio-fila input { flex: 1; min-width: 0; }
+.premio-fila .premio-valor { flex: 0 0 110px; }
+
+.premio-quitar {
+    flex: 0 0 auto; width: 30px; height: 30px; cursor: pointer;
+    display: grid; place-items: center;
+    border: 1px solid #e5e7eb; border-radius: 7px;
+    background: #fff; color: #6b7280;
+}
+.premio-quitar:hover { background: #fef2f2; border-color: #fecaca; color: #b91c1c; }
+
+.premio-agregar {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 6px 11px; margin-top: 2px; cursor: pointer;
+    border: 1px dashed #cbd5e1; border-radius: 7px;
+    background: #fff; color: #1a4db5; font-size: 12.5px;
+}
+.premio-agregar:hover { background: #eff6ff; border-color: #93c5fd; }
+
+/* La lista de premios de un sorteo ya creado, con quién ganó cada uno. */
+.premios-lista, .premios-entregados {
+    list-style: none; margin: 0; padding: 0;
+    display: grid; gap: 5px; text-align: left;
+}
+.premios-lista li, .premios-entregados li { font-size: 13px; color: #334155; }
+.premios-lista b, .premios-entregados b { color: #1a4db5; margin-right: 4px; }
+.premio-ganador { font-weight: 600; color: #0f172a; }
+
+.premios-entregados {
+    margin-top: 12px; padding: 11px 13px;
+    background: #f8fafc; border-radius: 9px;
+}

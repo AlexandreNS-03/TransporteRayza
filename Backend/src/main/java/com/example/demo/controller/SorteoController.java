@@ -137,7 +137,22 @@ public class SorteoController {
             s.setFechaSorteo(LocalDateTime.parse(body.get("fechaSorteo").toString()));
         s.setEstado(Sorteo.Estado.ABIERTO);
         s.setCreatedAt(LocalDateTime.now());
-        return ResponseEntity.ok(aMapaAdmin(sorteoRepository.save(s)));
+        Sorteo guardado = sorteoRepository.save(s);
+
+        // Los premios, si vinieron varios. El campo `premio` del sorteo se queda
+        // con el mayor para que las pantallas y el historial de siempre lo lean.
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> premios = body.get("premios") instanceof List<?> l
+                ? (List<Map<String, Object>>) l : List.of();
+        if (!premios.isEmpty()) {
+            servicio.guardarPremios(guardado.getId(), premios);
+            var mayor = premios.get(0);
+            if (mayor.get("descripcion") != null) guardado.setPremio(texto(mayor.get("descripcion")));
+            if (mayor.get("valor") != null && !mayor.get("valor").toString().isBlank())
+                guardado.setPremioValor(new java.math.BigDecimal(mayor.get("valor").toString()));
+            sorteoRepository.save(guardado);
+        }
+        return ResponseEntity.ok(aMapaAdmin(guardado));
     }
 
     /** Cierra el registro. Después de esto ya no entran más cupones. */
@@ -167,10 +182,46 @@ public class SorteoController {
                           + " Vuelve a imprimir esos tickets para que salgan con el código."));
     }
 
-    /** Elige al ganador. Una sola vez. */
+    /**
+     * Sortea el siguiente premio pendiente. Una sola vez cada uno.
+     *
+     * Devuelve el sorteo completo más el premio que acaba de salir, que es lo
+     * que la pantalla anuncia antes de ofrecer el siguiente giro.
+     */
     @PostMapping("/api/sorteos/{id}/ejecutar")
     public ResponseEntity<?> ejecutar(@PathVariable String id, Authentication auth) {
-        return ResponseEntity.ok(aMapaAdmin(servicio.ejecutar(id, auth.getName())));
+        var premio = servicio.ejecutar(id, auth.getName());
+        Sorteo s = sorteoRepository.findById(id).orElseThrow();
+
+        java.util.HashMap<String, Object> r = new java.util.HashMap<>(aMapaAdmin(s));
+        r.put("premioSorteado", premioComoMapa(premio, true));
+        r.put("quedanPremios", servicio.premiosDe(s).stream().anyMatch(p -> !p.estaSorteado()));
+        return ResponseEntity.ok(r);
+    }
+
+    /**
+     * Un premio para mostrar. Con `conGanador` va también quién lo ganó; en la
+     * web solo se muestra el nombre recortado, nunca el documento ni el correo.
+     */
+    private Map<String, Object> premioComoMapa(com.example.demo.model.PremioSorteo p, boolean detalle) {
+        java.util.HashMap<String, Object> m = new java.util.HashMap<>();
+        m.put("orden", p.getOrden());
+        m.put("descripcion", p.getDescripcion());
+        m.put("valor", p.getValor());
+        m.put("sorteado", p.estaSorteado());
+        m.put("sorteadoAt", p.getSorteadoAt() != null ? p.getSorteadoAt().toString() : null);
+        if (p.getCuponGanadorId() != null)
+            cuponRepository.findById(p.getCuponGanadorId()).ifPresent(g -> {
+                m.put("ganadorNombre", SorteoVivoService.nombreCorto(g.getPasajeroNombre()));
+                m.put("ganadorCodigo", g.getCodigo());
+                if (detalle) {
+                    m.put("ganadorNombreCompleto", g.getPasajeroNombre());
+                    m.put("ganadorDocumento", g.getPasajeroDocumento());
+                    m.put("ganadorEmail", g.getEmail());
+                    m.put("ganadorTelefono", g.getTelefono());
+                }
+            });
+        return m;
     }
 
     // ---------------------------------------------------------- Armado
@@ -192,6 +243,10 @@ public class SorteoController {
                         ? s.getCuponesParticipantes()
                         : cuponRepository.participantesDe(s.getId()).size());
 
+        // Los premios, con su ganador si ya salió: es lo que la página va
+        // anunciando giro a giro y lo que queda como registro.
+        m.put("premios", servicio.premiosDe(s).stream().map(p -> premioComoMapa(p, false)).toList());
+
         // El ganador solo después de sortear, y sin datos personales de más.
         if (s.getEstado() == Sorteo.Estado.SORTEADO && s.getCuponGanadorId() != null) {
             cuponRepository.findById(s.getCuponGanadorId()).ifPresent(g -> {
@@ -208,6 +263,8 @@ public class SorteoController {
 
     private Map<String, Object> aMapaAdmin(Sorteo s) {
         java.util.HashMap<String, Object> m = new java.util.HashMap<>(aMapaPublico(s));
+        // Al personal le van los datos para ubicar a cada ganador y entregarle.
+        m.put("premios", servicio.premiosDe(s).stream().map(p -> premioComoMapa(p, true)).toList());
         m.put("cupones", cuponRepository.countBySorteoId(s.getId()));
         m.put("viendoAhora", vivo.viendo(s.getId()));
         m.put("sorteadoAt", s.getSorteadoAt() != null ? s.getSorteadoAt().toString() : null);
