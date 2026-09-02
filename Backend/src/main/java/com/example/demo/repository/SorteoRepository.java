@@ -22,4 +22,7 @@ public interface SorteoRepository extends JpaRepository<Sorteo, String> {
 
     /** Los ya realizados, del más reciente al más viejo. */
     List<Sorteo> findByEstadoOrderBySorteadoAtDesc(Sorteo.Estado estado);
+
+    /** Todos los que están en un estado, para el listado y para el cierre automático. */
+    List<Sorteo> findByEstado(Sorteo.Estado estado);
 }

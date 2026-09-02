@@ -174,6 +174,58 @@ public class SorteoService {
         return guardado;
     }
 
+    /**
+     * Abre un sorteo que estaba preparado.
+     *
+     * Abrir es publicar una promoción: desde ese momento cada pasaje vendido
+     * lleva su código impreso. Por eso lo aprieta una persona y nunca una tarea
+     * automática — un sorteo sin bases ni autorización publicadas es lo que
+     * puede costar una sanción.
+     */
+    @Transactional
+    public Sorteo abrir(String sorteoId) {
+        Sorteo s = sorteoRepository.findById(sorteoId)
+                .orElseThrow(() -> new RuntimeException("Ese sorteo no existe"));
+        if (s.getEstado() != Sorteo.Estado.BORRADOR)
+            throw new RuntimeException("Este sorteo ya no está en preparación.");
+
+        // Con dos abiertos, un pasaje no sabría a cuál pertenece su código.
+        if (sorteoRepository.findFirstByEstado(Sorteo.Estado.ABIERTO).isPresent())
+            throw new RuntimeException("Ya hay un sorteo abierto. Ciérralo antes de abrir este.");
+
+        if (premioRepository.countBySorteoId(s.getId()) == 0
+                && (s.getPremio() == null || s.getPremio().isBlank()))
+            throw new RuntimeException("Este sorteo no tiene ningún premio: agrégalo antes de abrirlo.");
+
+        s.setEstado(Sorteo.Estado.ABIERTO);
+        return sorteoRepository.save(s);
+    }
+
+    /**
+     * Cierra el registro de los sorteos cuya hora anunciada ya pasó.
+     *
+     * Las bases dicen a qué hora cierra el registro, y hasta ahora eso dependía
+     * de que alguien se acordara de apretar el botón: si nadie estaba, se seguían
+     * aceptando códigos después de la hora publicada. Cerrar no sortea nada —el
+     * ganador lo sigue eligiendo una persona, en vivo—.
+     *
+     * @return cuántos se cerraron
+     */
+    @Transactional
+    public int cerrarLosQueYaVencieron() {
+        int cerrados = 0;
+        for (Sorteo s : sorteoRepository.findByEstado(Sorteo.Estado.ABIERTO)) {
+            if (s.getFechaSorteo() == null) continue;          // sin hora anunciada, no hay qué cumplir
+            if (LocalDateTime.now().isBefore(s.getFechaSorteo())) continue;
+            s.setEstado(Sorteo.Estado.CERRADO);
+            sorteoRepository.save(s);
+            cerrados++;
+            System.out.println("[Sorteo] registro cerrado solo: " + s.getNombre()
+                    + " (anunciado para " + s.getFechaSorteo() + ")");
+        }
+        return cerrados;
+    }
+
     // ------------------------------------------------------------ El sorteo
 
     /**

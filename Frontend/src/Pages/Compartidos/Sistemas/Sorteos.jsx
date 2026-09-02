@@ -20,6 +20,9 @@ const VACIO = {
     // El primero es el premio mayor: se sortea al final, que es cuando la gente
     // está mirando.
     premios: [{ descripcion: "", valor: "" }],
+    // Dejarlo preparado en vez de abrirlo: sirve para tener el siguiente listo
+    // mientras el actual sigue corriendo.
+    preparado: false,
 };
 
 const VUELTAS = 6;              // vueltas completas antes de frenar
@@ -72,13 +75,16 @@ function Sorteos() {
         e.preventDefault();
         setCreando(true);
         try {
+            const preparado = form.preparado || hayAbierto;
             const premios = form.premios.filter(p => p.descripcion.trim());
             if (premios.length === 0) throw new Error("Escribe al menos un premio");
             await apiFetch("/api/sorteos", {
                 method: "POST",
-                body: JSON.stringify({ ...form, premios, premio: premios[0].descripcion }),
+                body: JSON.stringify({ ...form, preparado, premios, premio: premios[0].descripcion }),
             });
-            mostrarToast("success", "Sorteo creado. Los pasajes que se vendan desde ahora llevarán su código.");
+            mostrarToast("success", preparado
+                ? "Sorteo preparado. No recibe códigos ni sale en la web hasta que lo abras."
+                : "Sorteo creado. Los pasajes que se vendan desde ahora llevarán su código.");
             setForm(VACIO);
             cargar();
         } catch (err) {
@@ -97,6 +103,15 @@ function Sorteos() {
         try {
             const r = await apiFetch(`/api/sorteos/${s.id}/emitir-faltantes`, { method: "POST" });
             mostrarToast(r.emitidos > 0 ? "success" : "info", r.message);
+            cargar();
+        } catch (e) { mostrarToast("error", e.message); }
+    };
+
+    const abrir = async (s) => {
+        if (!confirm(`¿Abrir "${s.nombre}"?\n\nDesde ahora cada pasaje vendido llevará su código impreso, y el sorteo aparecerá en la web.`)) return;
+        try {
+            await apiFetch(`/api/sorteos/${s.id}/abrir`, { method: "PATCH" });
+            mostrarToast("success", "Sorteo abierto. Los pasajes que se vendan desde ahora llevarán su código.");
             cargar();
         } catch (e) { mostrarToast("error", e.message); }
     };
@@ -176,7 +191,7 @@ function Sorteos() {
                 Consúltalo con tu asesor legal — hacerlo sin eso puede traer sanciones de INDECOPI.
             </div>
 
-            {esAdmin && !hayAbierto && (
+            {esAdmin && (
                 <form className="sorteo-nuevo" onSubmit={crear}>
                     <h3>Nuevo sorteo</h3>
                     <div className="sorteo-grid">
@@ -221,18 +236,29 @@ function Sorteos() {
                                    placeholder="https://…" />
                         </label>
                     </div>
+                    {/* Con uno abierto solo se puede preparar el siguiente: dos abiertos
+                        dejarían al pasaje sin saber a cuál pertenece su código. */}
+                    <label className="check-preparado">
+                        <input type="checkbox" checked={form.preparado || hayAbierto}
+                               disabled={hayAbierto}
+                               onChange={(e) => setForm((f) => ({ ...f, preparado: e.target.checked }))} />
+                        <span>
+                            Dejarlo preparado, sin abrir
+                            <em>
+                                {hayAbierto
+                                    ? "Ya hay un sorteo abierto, así que este queda en borrador hasta que cierres el otro."
+                                    : "No recibe códigos ni sale en la web hasta que lo abras."}
+                            </em>
+                        </span>
+                    </label>
+
                     <button className="btn-primario" disabled={creando}>
-                        {creando ? "Creando…" : "Abrir sorteo"}
+                        {creando ? "Creando…" : (form.preparado || hayAbierto) ? "Preparar sorteo" : "Abrir sorteo"}
                     </button>
                 </form>
             )}
 
-            {hayAbierto && esAdmin && (
-                <p className="muted" style={{ marginBottom: 14 }}>
-                    Ya hay un sorteo abierto. Ciérralo antes de crear otro: con dos abiertos, un
-                    pasaje no sabría a cuál pertenece su código.
-                </p>
-            )}
+
 
             {cargando ? <p className="muted">Cargando…</p>
              : sorteos.length === 0 ? <p className="muted">Todavía no hay sorteos.</p>
@@ -259,7 +285,12 @@ function Sorteos() {
                                 )}
                             </div>
 
-                            {s.fechaSorteo && <p className="muted">Anunciado para el {fmt(s.fechaSorteo)}</p>}
+                            {s.fechaSorteo && (
+                                <p className="muted">
+                                    Anunciado para el {fmt(s.fechaSorteo)}
+                                    {s.estado === "ABIERTO" && " · el registro se cierra solo a esa hora"}
+                                </p>
+                            )}
 
                             {s.premios?.length > 1 && (
                                 <ul className="premios-lista">
@@ -288,6 +319,11 @@ function Sorteos() {
                                 </div>
                             ) : (
                                 <div className="sorteo-acciones">
+                                    {s.estado === "BORRADOR" && esAdmin && (
+                                        <button className="btn-primario" onClick={() => abrir(s)}>
+                                            Abrir sorteo
+                                        </button>
+                                    )}
                                     {s.estado === "ABIERTO" && (
                                         <>
                                             <button className="btn-secundario" onClick={() => emitirFaltantes(s)}>

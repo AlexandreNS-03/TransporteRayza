@@ -46,6 +46,9 @@ public class SorteoController {
     /** El sorteo vigente y su estado, para la página del cliente. */
     @GetMapping("/api/public/sorteo")
     public ResponseEntity<?> vigente() {
+        // Nunca un BORRADOR: eso todavía se está preparando y no hay nada que
+        // anunciar. El orden es el de la vida del sorteo: el que recibe códigos,
+        // el que espera su hora, y si no hay ninguno, el último realizado.
         Sorteo s = sorteoRepository.findFirstByEstado(Sorteo.Estado.ABIERTO)
                 .or(() -> sorteoRepository.findFirstByEstado(Sorteo.Estado.CERRADO))
                 .or(() -> sorteoRepository.findFirstByEstado(Sorteo.Estado.SORTEADO))
@@ -120,11 +123,16 @@ public class SorteoController {
 
     @PostMapping("/api/sorteos")
     public ResponseEntity<?> crear(@RequestBody Map<String, Object> body) {
+        // "Dejarlo preparado" lo crea en borrador: no recibe códigos ni sale en la
+        // web hasta que alguien lo abre. Sirve para tener el siguiente listo —con
+        // sus premios y sus bases— mientras el actual sigue corriendo.
+        boolean preparado = Boolean.TRUE.equals(body.get("preparado"));
+
         // Uno abierto a la vez: con dos, un pasaje no sabría a cuál pertenece su
         // código y el ticket saldría con un cupón ambiguo.
-        if (sorteoRepository.findFirstByEstado(Sorteo.Estado.ABIERTO).isPresent())
+        if (!preparado && sorteoRepository.findFirstByEstado(Sorteo.Estado.ABIERTO).isPresent())
             return ResponseEntity.badRequest().body(Map.of("message",
-                    "Ya hay un sorteo abierto. Ciérralo antes de crear otro."));
+                    "Ya hay un sorteo abierto. Ciérralo antes de crear otro, o déjalo preparado como borrador."));
 
         Sorteo s = new Sorteo();
         s.setId(UUID.randomUUID().toString());
@@ -135,7 +143,7 @@ public class SorteoController {
             s.setPremioValor(new java.math.BigDecimal(body.get("premioValor").toString()));
         if (body.get("fechaSorteo") != null && !body.get("fechaSorteo").toString().isBlank())
             s.setFechaSorteo(LocalDateTime.parse(body.get("fechaSorteo").toString()));
-        s.setEstado(Sorteo.Estado.ABIERTO);
+        s.setEstado(preparado ? Sorteo.Estado.BORRADOR : Sorteo.Estado.ABIERTO);
         s.setCreatedAt(LocalDateTime.now());
         Sorteo guardado = sorteoRepository.save(s);
 
@@ -164,6 +172,17 @@ public class SorteoController {
             return ResponseEntity.badRequest().body(Map.of("message", "Ese sorteo ya se realizó."));
         s.setEstado(Sorteo.Estado.CERRADO);
         return ResponseEntity.ok(aMapaAdmin(sorteoRepository.save(s)));
+    }
+
+    /**
+     * Abre un sorteo preparado: desde ahora cada pasaje vendido lleva su código.
+     *
+     * Lo aprieta una persona y nunca una tarea automática: abrir es publicar una
+     * promoción, y hacerlo sin bases ni autorización es lo que trae sanciones.
+     */
+    @PatchMapping("/api/sorteos/{id}/abrir")
+    public ResponseEntity<?> abrir(@PathVariable String id) {
+        return ResponseEntity.ok(aMapaAdmin(servicio.abrir(id)));
     }
 
     /** Emite los códigos que hayan quedado sin generar desde que se abrió. */
