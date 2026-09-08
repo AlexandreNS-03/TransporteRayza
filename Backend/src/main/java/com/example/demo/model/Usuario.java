@@ -24,7 +24,7 @@ public class Usuario {
     private String email;
 
     @Column(name = "activo")
-    private Boolean activo;
+    private Boolean activo = true;
 
     /**
      * Pedir un código por correo además de la contraseña.
@@ -32,9 +32,13 @@ public class Usuario {
      * Va apagado por defecto y se prende cuenta por cuenta: encenderlo para todos
      * de golpe dejaría fuera a cualquiera cuyo correo esté mal escrito, y en una
      * empresa que vende todos los días eso es peor que el riesgo que evita.
+     *
+     * Arranca en FALSE y no en null: la columna es NOT NULL, y como Hibernate la
+     * incluye en el INSERT, mandaba null explícito —el DEFAULT de la tabla no se
+     * aplica cuando se envía un valor— y crear un usuario nuevo fallaba.
      */
-    @Column(name = "doble_factor")
-    private Boolean dobleFactor;
+    @Column(name = "doble_factor", nullable = false)
+    private Boolean dobleFactor = false;
 
     @Enumerated(EnumType.STRING)
     private Rol rol;
