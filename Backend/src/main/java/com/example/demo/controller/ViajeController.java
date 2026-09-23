@@ -29,13 +29,14 @@ public class ViajeController {
      * descargarse todo para tirar el 95%.
      */
     @GetMapping
-    public ResponseEntity<List<ViajeDTO>> listar(@RequestParam(required = false) String estado) {
-        return ResponseEntity.ok(viajeService.listarViajes(estado));
+    public ResponseEntity<List<ViajeDTO>> listar(@RequestParam(required = false) String estado,
+                                                 Authentication auth) {
+        return ResponseEntity.ok(viajeService.listarViajes(estado, auth.getName()));
     }
 
     @PostMapping
-    public ResponseEntity<ViajeDTO> crear(@RequestBody ViajeRequest req) {
-        return ResponseEntity.ok(viajeService.crearViaje(req));
+    public ResponseEntity<ViajeDTO> crear(@RequestBody ViajeRequest req, Authentication auth) {
+        return ResponseEntity.ok(viajeService.crearViaje(req, auth.getName()));
     }
 
     /**
@@ -59,8 +60,9 @@ public class ViajeController {
     @GetMapping("/filtrar")
     public ResponseEntity<List<ViajeDTO>> filtrarPorFechas(
             @RequestParam String fechaInicio,
-            @RequestParam String fechaFin) {
-        return ResponseEntity.ok(viajeService.filtrarPorFechas(fechaInicio, fechaFin));
+            @RequestParam String fechaFin,
+            Authentication auth) {
+        return ResponseEntity.ok(viajeService.filtrarPorFechas(fechaInicio, fechaFin, auth.getName()));
     }
 
 }

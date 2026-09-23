@@ -33,6 +33,7 @@ public class ViajeService {
     private final VentaRepository      ventaRepository;
     private final AuditoriaService     auditoriaService;
     private final EmailService         emailService;
+    private final AlcanceSucursal      alcance;
 
     public ViajeService(ViajeRepository viajeRepository,
                         AsientoService asientoService,
@@ -43,7 +44,8 @@ public class ViajeService {
                         ViajeParadaRepository viajeParadaRepository,
                         VentaRepository ventaRepository,
                         AuditoriaService auditoriaService,
-                        EmailService emailService) {
+                        EmailService emailService,
+                        AlcanceSucursal alcance) {
         this.viajeRepository      = viajeRepository;
         this.asientoService       = asientoService;
         this.embarcacionRepository = embarcacionRepository;
@@ -54,17 +56,26 @@ public class ViajeService {
         this.ventaRepository       = ventaRepository;
         this.auditoriaService      = auditoriaService;
         this.emailService          = emailService;
+        this.alcance               = alcance;
     }
 
     // Listar todos
     public List<ViajeDTO> listarViajes() {
-        return listarViajes(null);
+        return listarViajes(null, null);
     }
 
     /**
+     * Los viajes que le tocan a quien pregunta.
+     *
+     * Quien atiende en un mostrador no ve las salidas del otro: no son suyas
+     * para vender ni para mover, y tenerlas en la lista solo lleva a vender un
+     * pasaje del puerto equivocado.
+     *
      * @param estados estados separados por coma; si viene vacío, todos.
+     * @param usuario quién pregunta; null solo para usos internos del sistema.
      */
-    public List<ViajeDTO> listarViajes(String estados) {
+    public List<ViajeDTO> listarViajes(String estados, String usuario) {
+        String miSucursal = alcance.sucursalDe(usuario);
         java.util.Set<Viaje.EstadoViaje> filtro = new java.util.HashSet<>();
         if (estados != null && !estados.isBlank()) {
             for (String e : estados.split(",")) {
@@ -75,27 +86,35 @@ public class ViajeService {
         return viajeRepository.findAllByOrderByFechaSalidaDesc()
                 .stream()
                 .filter(v -> filtro.isEmpty() || filtro.contains(v.getEstado()))
+                .filter(v -> miSucursal == null || miSucursal.equals(v.getSucursalId()))
                 .map(this::toDTO)
                 .collect(Collectors.toList());
     }
 
-    public List<ViajeDTO> filtrarPorFechas(String fechaInicio, String fechaFin) {
+    public List<ViajeDTO> filtrarPorFechas(String fechaInicio, String fechaFin, String usuario) {
+        String miSucursal = alcance.sucursalDe(usuario);
         LocalDate inicio = LocalDate.parse(fechaInicio);
         LocalDate fin = LocalDate.parse(fechaFin);
         return viajeRepository.findByFechaSalidaBetween(inicio, fin)
                 .stream()
+                .filter(v -> miSucursal == null || miSucursal.equals(v.getSucursalId()))
                 .map(this::toDTO)
                 .collect(Collectors.toList());
     }
 
     // Crear viaje
     @Transactional
-    public ViajeDTO crearViaje(ViajeRequest req) {
+    public ViajeDTO crearViaje(ViajeRequest req, String usuario) {
         var embarcacion = embarcacionRepository.findById(req.getEmbarcacionId())
                 .orElseThrow(() -> new RuntimeException("Embarcación no encontrada"));
 
         var ruta = rutaRepository.findById(req.getRutaId())
                 .orElseThrow(() -> new RuntimeException("Ruta no encontrada"));
+
+        // Un viaje de otra sucursal no se puede crear desde acá: quedaría a cargo
+        // de un mostrador que no lo va a despachar, y su gente ni lo vería.
+        if (!alcance.alcanza(usuario, req.getSucursalId()))
+            throw new RuntimeException("Solo puedes crear viajes de tu sucursal.");
 
         var sucursal = sucursalRepository.findById(req.getSucursalId())
                 .orElseThrow(() -> new RuntimeException("Sucursal no encontrada"));
@@ -147,6 +166,8 @@ public class ViajeService {
     public ResultadoEdicion editarViaje(String id, ViajeRequest req, boolean avisar, String usuario) {
         Viaje v = viajeRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Viaje no encontrado"));
+
+        alcance.exigirAcceso(usuario, v);
 
         if (v.getEstado() == Viaje.EstadoViaje.CANCELADO)
             throw new RuntimeException("El viaje está cancelado. No se puede editar.");
