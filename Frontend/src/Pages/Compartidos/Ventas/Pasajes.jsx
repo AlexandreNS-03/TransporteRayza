@@ -26,6 +26,26 @@ const COMP_LABEL   = { TICKET: "Ticket", BOLETA: "Boleta", FACTURA: "Factura" };
 
 const ESTADO_LABEL = { PAGADO: "Pagado", ANULADO: "Anulado" };
 
+/**
+ * Cuándo sale, dicho como lo diría una persona: "Hoy", "Mañana", "en 12 días".
+ *
+ * Vender para el día equivocado es el error más caro del mostrador —el pasajero
+ * se entera en el puerto— y una fecha en formato 2026-12-15 no avisa de nada.
+ */
+function cuandoSale(iso) {
+    if (!iso) return null;
+    const [a, m, d] = iso.slice(0, 10).split("-").map(Number);
+    const salida = new Date(a, m - 1, d);
+    const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
+    const dias = Math.round((salida - hoy) / 86400000);
+
+    const largo = salida.toLocaleDateString("es-PE", { weekday: "long", day: "numeric", month: "long" });
+    if (dias === 0) return { texto: largo, cuando: "Hoy", tono: "hoy" };
+    if (dias === 1) return { texto: largo, cuando: "Mañana", tono: "pronto" };
+    if (dias < 0)   return { texto: largo, cuando: `hace ${-dias} día${dias === -1 ? "" : "s"}`, tono: "pasado" };
+    return { texto: largo, cuando: `en ${dias} días`, tono: "futuro" };
+}
+
 /** 2026-07-24 → 24/07/26. La columna es angosta y el año completo no aporta. */
 function fechaCorta(iso) {
     if (!iso) return "—";
@@ -949,22 +969,26 @@ function Pasajes() {
                                         </div>
                                     </div>
 
-                                    {viajeSeleccionado && (
-                                        <div className="viaje-card">
-                                            <div className="viaje-card-item">
-                                                <i className="ti ti-ship"></i>
-                                                <span>{viajeSeleccionado.embarcacionNombre}</span>
+                                    {viajeSeleccionado && (() => {
+                                        const c = cuandoSale(viajeSeleccionado.fechaSalida);
+                                        return (
+                                            <div className={`viaje-card viaje-card-${c?.tono || "futuro"}`}>
+                                                <div className="viaje-card-cuando">
+                                                    <strong>{c?.cuando}</strong>
+                                                    <span>{c?.texto} · {(viajeSeleccionado.horaSalida || "").slice(0, 5)} h</span>
+                                                </div>
+                                                <div className="viaje-card-datos">
+                                                    <span><i className="ti ti-route"></i> {viajeSeleccionado.rutaNombre}</span>
+                                                    <span><i className="ti ti-ship"></i> {viajeSeleccionado.embarcacionNombre}</span>
+                                                </div>
+                                                {c?.tono === "pasado" && (
+                                                    <p className="viaje-card-aviso">
+                                                        Este viaje ya salió. Revisa que sea el que el pasajero quiere.
+                                                    </p>
+                                                )}
                                             </div>
-                                            <div className="viaje-card-item">
-                                                <i className="ti ti-route"></i>
-                                                <span>{viajeSeleccionado.rutaNombre}</span>
-                                            </div>
-                                            <div className="viaje-card-item">
-                                                <i className="ti ti-calendar"></i>
-                                                <span>{viajeSeleccionado.fechaSalida} a las {viajeSeleccionado.horaSalida}</span>
-                                            </div>
-                                        </div>
-                                    )}
+                                        );
+                                    })()}
                                 </div>
                             )}
 
