@@ -31,10 +31,15 @@ public class VentaService {
     private final CajaService cajaService;
     private final AuditoriaService auditoriaService;
     private final PublicService publicService;
+    private final AlcanceSucursal alcance;
 
     public VentaDTO embarcarPasajero(String id, String usuarioNombre) {
         Venta venta = ventaRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Venta no encontrada"));
+
+        if (venta.getViajeId() != null)
+            viajeRepository.findById(venta.getViajeId())
+                    .ifPresent(vi -> alcance.exigirAcceso(usuarioNombre, vi));
 
         if (venta.getEstado() == Venta.EstadoVenta.ANULADO)
             throw new RuntimeException("La venta está anulada");
@@ -194,6 +199,10 @@ public class VentaService {
     public VentaDTO preembarcarPasajero(String id, String usuarioNombre) {
         Venta venta = ventaRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Venta no encontrada"));
+
+        if (venta.getViajeId() != null)
+            viajeRepository.findById(venta.getViajeId())
+                    .ifPresent(vi -> alcance.exigirAcceso(usuarioNombre, vi));
 
         if (venta.getEstado() == Venta.EstadoVenta.ANULADO)
             throw new RuntimeException("La venta está anulada");
@@ -356,6 +365,10 @@ public class VentaService {
     public VentaDTO crearVenta(VentaRequest req, String usuarioNombre, String grupoVentaId) {
         Viaje viaje = viajeRepository.findById(req.getViajeId())
                 .orElseThrow(() -> new RuntimeException("Viaje no encontrado"));
+
+        // El mostrador vende lo suyo: un pasaje de la otra sucursal lo despacha
+        // otro puerto, con otra caja y otra gente esperando en el muelle.
+        alcance.exigirAcceso(usuarioNombre, viaje);
 
         // Venta por sucursal: cada sucursal solo vende los viajes que salen de ella
         // (el ADMIN y los usuarios sin sucursal asignada pueden vender cualquier viaje)
@@ -594,7 +607,8 @@ public class VentaService {
                         PublicService publicService,
                         com.example.demo.repository.RutaRepository rutaRepository,
                         com.example.demo.repository.ViajeParadaRepository viajeParadaRepository,
-                        SorteoService sorteoService) {
+                        SorteoService sorteoService,
+                        AlcanceSucursal alcance) {
         this.ventaRepository      = ventaRepository;
         this.tramoUsadoRepository = tramoUsadoRepository;
         this.viajeRepository      = viajeRepository;
@@ -607,6 +621,7 @@ public class VentaService {
         this.rutaRepository       = rutaRepository;
         this.viajeParadaRepository = viajeParadaRepository;
         this.sorteoService        = sorteoService;
+        this.alcance              = alcance;
     }
 
     /**

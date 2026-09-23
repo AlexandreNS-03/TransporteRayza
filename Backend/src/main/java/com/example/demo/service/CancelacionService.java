@@ -30,14 +30,17 @@ public class CancelacionService {
     private final AsientoService asientoService;
     private final CajaService cajaService;
     private final AuditoriaService auditoriaService;
+    private final AlcanceSucursal alcance;
 
     public CancelacionService(ViajeRepository viajeRepository,
                               VentaRepository ventaRepository,
                               SaldoMovimientoRepository saldoRepository,
                               AsientoService asientoService,
                               CajaService cajaService,
-                              AuditoriaService auditoriaService) {
+                              AuditoriaService auditoriaService,
+                              AlcanceSucursal alcance) {
         this.viajeRepository = viajeRepository;
+        this.alcance = alcance;
         this.ventaRepository = ventaRepository;
         this.saldoRepository = saldoRepository;
         this.asientoService = asientoService;
@@ -50,6 +53,10 @@ public class CancelacionService {
     public Viaje cancelarViaje(String viajeId, String motivo, String usuarioNombre) {
         Viaje v = viajeRepository.findById(viajeId)
                 .orElseThrow(() -> new RuntimeException("Viaje no encontrado"));
+
+        // Cancelar el viaje de otro mostrador deja sin salida a pasajeros que
+        // uno ni siquiera vendió.
+        alcance.exigirAcceso(usuarioNombre, v);
 
         if (v.getEstado() == Viaje.EstadoViaje.CANCELADO)
             throw new RuntimeException("Este viaje ya estaba cancelado");
