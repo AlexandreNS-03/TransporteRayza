@@ -63,12 +63,16 @@ public class Sorteo {
     private LocalDateTime createdAt;
 
     /**
+     * DESIERTO  se cerró sin que nadie registrara su código: no hubo a quién
+     *           premiar. Queda con su fecha y quién lo declaró, igual que un
+     *           sorteo hecho, porque también hay que poder mostrar qué pasó.
+     *
      * BORRADOR  se está preparando, no acepta registros
      * ABIERTO   la gente puede registrar sus códigos
      * CERRADO   ya no entran más, falta ejecutarlo
      * SORTEADO  hay ganador; no se puede volver a sortear
      */
-    public enum Estado { BORRADOR, ABIERTO, CERRADO, SORTEADO }
+    public enum Estado { BORRADOR, ABIERTO, CERRADO, SORTEADO, DESIERTO }
 
     public String getId() { return id; }
     public void setId(String v) { this.id = v; }

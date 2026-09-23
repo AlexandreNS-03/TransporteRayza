@@ -52,6 +52,7 @@ public class SorteoController {
         Sorteo s = sorteoRepository.findFirstByEstado(Sorteo.Estado.ABIERTO)
                 .or(() -> sorteoRepository.findFirstByEstado(Sorteo.Estado.CERRADO))
                 .or(() -> sorteoRepository.findFirstByEstado(Sorteo.Estado.SORTEADO))
+                .or(() -> sorteoRepository.findFirstByEstado(Sorteo.Estado.DESIERTO))
                 .orElse(null);
         if (s == null) return ResponseEntity.ok(Map.of("hay", false));
         return ResponseEntity.ok(aMapaPublico(s));
@@ -66,9 +67,15 @@ public class SorteoController {
      */
     @GetMapping("/api/public/sorteos/historial")
     public ResponseEntity<List<Map<String, Object>>> historial() {
-        return ResponseEntity.ok(
-                sorteoRepository.findByEstadoOrderBySorteadoAtDesc(Sorteo.Estado.SORTEADO)
-                        .stream().map(this::aMapaPublico).toList());
+        // Los desiertos también van: que un sorteo se haya cerrado sin
+        // participantes es parte del registro, y esconderlo deja un hueco entre
+        // dos fechas que nadie sabe explicar.
+        List<Sorteo> hechos = new java.util.ArrayList<>(
+                sorteoRepository.findByEstadoOrderBySorteadoAtDesc(Sorteo.Estado.SORTEADO));
+        hechos.addAll(sorteoRepository.findByEstadoOrderBySorteadoAtDesc(Sorteo.Estado.DESIERTO));
+        hechos.sort(java.util.Comparator.comparing(
+                Sorteo::getSorteadoAt, java.util.Comparator.nullsLast(java.util.Comparator.reverseOrder())));
+        return ResponseEntity.ok(hechos.stream().map(this::aMapaPublico).toList());
     }
 
     /**
@@ -185,6 +192,18 @@ public class SorteoController {
         return ResponseEntity.ok(aMapaAdmin(servicio.abrir(id)));
     }
 
+    /**
+     * Deja constancia de que el sorteo se cerró sin participantes.
+     *
+     * Es la salida honesta cuando nadie registró su código: el sorteo queda
+     * cerrado con su fecha, entra al registro público como desierto y la página
+     * deja de prometer un ganador.
+     */
+    @PatchMapping("/api/sorteos/{id}/desierto")
+    public ResponseEntity<?> desierto(@PathVariable String id, Authentication auth) {
+        return ResponseEntity.ok(aMapaAdmin(servicio.declararDesierto(id, auth.getName())));
+    }
+
     /** Emite los códigos que hayan quedado sin generar desde que se abrió. */
     @PostMapping("/api/sorteos/{id}/emitir-faltantes")
     public ResponseEntity<?> emitirFaltantes(@PathVariable String id) {
@@ -265,6 +284,12 @@ public class SorteoController {
         // Los premios, con su ganador si ya salió: es lo que la página va
         // anunciando giro a giro y lo que queda como registro.
         m.put("premios", servicio.premiosDe(s).stream().map(p -> premioComoMapa(p, false)).toList());
+
+        // La fecha en que se resolvió, haya habido ganador o no: el historial la
+        // muestra, y un sorteo desierto sin fecha es un renglón que no dice cuándo
+        // pasó lo que cuenta.
+        if (s.getEstado() == Sorteo.Estado.SORTEADO || s.getEstado() == Sorteo.Estado.DESIERTO)
+            m.put("sorteadoAt", s.getSorteadoAt() != null ? s.getSorteadoAt().toString() : null);
 
         // El ganador solo después de sortear, y sin datos personales de más.
         if (s.getEstado() == Sorteo.Estado.SORTEADO && s.getCuponGanadorId() != null) {

@@ -229,6 +229,42 @@ public class SorteoService {
     // ------------------------------------------------------------ El sorteo
 
     /**
+     * Declara el sorteo desierto: se cerró y nadie registró su código.
+     *
+     * Pasa de verdad, sobre todo con el primero: los códigos salen impresos en
+     * los tickets, pero registrarlos en la web es un paso que la gente tiene que
+     * dar. Sin esta salida el sorteo se quedaba trabado en "registro cerrado" y
+     * la página seguía prometiendo un ganador que nunca iba a aparecer.
+     *
+     * Solo cuando de verdad no hay nadie: con un solo código registrado hay que
+     * sortear. Declarar desierto un sorteo con participantes sería quitarles su
+     * premio.
+     */
+    @Transactional
+    public Sorteo declararDesierto(String sorteoId, String usuario) {
+        Sorteo s = sorteoRepository.findById(sorteoId)
+                .orElseThrow(() -> new RuntimeException("Ese sorteo no existe"));
+
+        if (s.getEstado() == Sorteo.Estado.SORTEADO)
+            throw new RuntimeException("Este sorteo ya repartió sus premios.");
+        if (s.getEstado() == Sorteo.Estado.DESIERTO)
+            throw new RuntimeException("Este sorteo ya está declarado desierto.");
+        if (s.getEstado() == Sorteo.Estado.BORRADOR)
+            throw new RuntimeException("Este sorteo todavía no se abrió.");
+
+        int participantes = cuponRepository.participantesDe(sorteoId).size();
+        if (participantes > 0)
+            throw new RuntimeException("Hay " + participantes
+                    + " código(s) registrado(s): este sorteo tiene que sortearse, no declararse desierto.");
+
+        s.setEstado(Sorteo.Estado.DESIERTO);
+        s.setSorteadoAt(LocalDateTime.now());
+        s.setSorteadoPor(usuario);
+        s.setCuponesParticipantes(0);
+        return sorteoRepository.save(s);
+    }
+
+    /**
      * Sortea el siguiente premio pendiente. Una sola vez cada uno y sin vuelta atrás.
      *
      * Los premios se sortean del último al primero —tercero, segundo, primero—

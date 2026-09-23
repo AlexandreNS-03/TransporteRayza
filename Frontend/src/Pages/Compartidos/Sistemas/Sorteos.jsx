@@ -116,6 +116,15 @@ function Sorteos() {
         } catch (e) { mostrarToast("error", e.message); }
     };
 
+    const declararDesierto = async (s) => {
+        if (!confirm(`¿Declarar desierto "${s.nombre}"?\n\nNadie registró su código, así que no hay a quién premiar. Queda cerrado con la fecha de hoy y aparece así en el registro público.`)) return;
+        try {
+            await apiFetch(`/api/sorteos/${s.id}/desierto`, { method: "PATCH" });
+            mostrarToast("success", "Sorteo declarado desierto. Queda la constancia de que nadie participó.");
+            cargar();
+        } catch (e) { mostrarToast("error", e.message); }
+    };
+
     const cerrar = async (s) => {
         if (!confirm(`Cerrar el registro de "${s.nombre}"?\n\nDespués de esto nadie más podrá registrar su código.`)) return;
         try {
@@ -305,7 +314,16 @@ function Sorteos() {
                                 </ul>
                             )}
 
-                            {s.estado === "SORTEADO" ? (
+                            {s.estado === "DESIERTO" ? (
+                                <div className="sorteo-ganador-caja desierto">
+                                    <span className="rec-etiqueta">Desierto · {fmt(s.sorteadoAt)}</span>
+                                    <p>Se cerró sin que nadie registrara su código.</p>
+                                    <p className="muted" style={{ fontSize: 12 }}>
+                                        Declarado por {s.sorteadoPor}. Los códigos emitidos ya no sirven:
+                                        el siguiente sorteo emite los suyos.
+                                    </p>
+                                </div>
+                            ) : s.estado === "SORTEADO" ? (
                                 <div className="sorteo-ganador-caja">
                                     <span className="rec-etiqueta">Ganador · {fmt(s.sorteadoAt)}</span>
                                     <p><strong>{s.ganadorNombreCompleto}</strong> · {s.ganadorDocumento}</p>
@@ -335,11 +353,23 @@ function Sorteos() {
                                         </>
                                     )}
                                     {/* Solo con el registro cerrado: sortear mientras la gente
-                                        aún se registra dejaría fuera a quien llegó tarde. */}
+                                        aún se registra dejaría fuera a quien llegó tarde.
+                                        Y sin nadie registrado no hay sorteo posible: en vez de
+                                        dejar que el operador llegue hasta el final para recibir
+                                        un error, se le ofrece la salida que corresponde. */}
                                     {s.estado === "CERRADO" && esAdmin && (
-                                        <button className="btn-primario" onClick={() => setConfirmando(s)}>
-                                            Ejecutar el sorteo
-                                        </button>
+                                        s.participantes > 0 ? (
+                                            <button className="btn-primario" onClick={() => setConfirmando(s)}>
+                                                Ejecutar el sorteo
+                                            </button>
+                                        ) : (
+                                            <div className="sorteo-sin-nadie">
+                                                <p>Nadie registró su código, así que no hay entre quiénes sortear.</p>
+                                                <button className="btn-secundario" onClick={() => declararDesierto(s)}>
+                                                    Declararlo desierto
+                                                </button>
+                                            </div>
+                                        )
                                     )}
                                 </div>
                             )}

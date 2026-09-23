@@ -172,7 +172,8 @@ export default function Sorteo() {
 
           <div className="sorteo-cab">
             <span className="sorteo-tag">
-              {sorteo.estado === "SORTEADO" ? "Sorteo realizado"
+              {sorteo.estado === "DESIERTO" ? "Sorteo desierto"
+                : sorteo.estado === "SORTEADO" ? "Sorteo realizado"
                 : sorteo.estado === "CERRADO" ? "Registro cerrado" : "Registro abierto"}
             </span>
             <h1>{sorteo.nombre || "Sorteo"}</h1>
@@ -257,6 +258,18 @@ export default function Sorteo() {
             <Registro onListo={() => setParticipantes((n) => n + 1)} />
           )}
 
+          {sorteo.estado === "DESIERTO" && (
+            <div className="card" style={{ textAlign: "center" }}>
+              <p style={{ margin: 0 }}>
+                Este sorteo se cerró sin participantes: nadie registró su código, así que
+                no hubo a quién premiar.
+              </p>
+              <p className="muted" style={{ fontSize: 13, margin: "8px 0 0" }}>
+                En el próximo, registra el código de tu ticket apenas lo recibas.
+              </p>
+            </div>
+          )}
+
           {sorteo.estado === "CERRADO" && (!ganador || repeticion) && (
             <div className="card" style={{ textAlign: "center" }}>
               <p style={{ margin: 0 }}>
@@ -277,15 +290,24 @@ export default function Sorteo() {
               {historial.map((h) => (
                 <div className="sorteo-pasado" key={h.id}>
                   <div className="sorteo-pasado-datos">
-                    <strong>{h.ganadorNombre} · {h.ganadorCodigo}</strong>
+                    <strong>
+                      {h.estado === "DESIERTO"
+                        ? "Sin participantes"
+                        : `${h.ganadorNombre} · ${h.ganadorCodigo}`}
+                    </strong>
                     <span>
-                      {h.nombre} · {fechaBonita(h.sorteadoAt)} · entre {h.participantes}{" "}
-                      {h.participantes === 1 ? "participante" : "participantes"}
+                      {h.nombre} · {fechaBonita(h.sorteadoAt)}
+                      {h.estado === "DESIERTO"
+                        ? " · se cerró sin que nadie registrara su código"
+                        : ` · entre ${h.participantes} ${h.participantes === 1 ? "participante" : "participantes"}`}
                     </span>
                   </div>
-                  <button className="sorteo-repetir" onClick={() => repetir(h)}>
-                    Ver repetición
-                  </button>
+                  {/* Un sorteo desierto no tiene nada que repetir. */}
+                  {h.estado !== "DESIERTO" && (
+                    <button className="sorteo-repetir" onClick={() => repetir(h)}>
+                      Ver repetición
+                    </button>
+                  )}
                 </div>
               ))}
             </section>
