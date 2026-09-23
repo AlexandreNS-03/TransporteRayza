@@ -92,3 +92,44 @@
 
 .dif-ok       { color: #15803d; }
 .dif-negativa { color: #b91c1c; }
+
+/* ══ Las cifras del turno ══
+   En el orden en que se pregunta al cerrar: cuánto entró, cuánto salió y
+   cuánto tiene que haber en el cajón. Antes faltaba lo cobrado, y el total
+   digital ocupaba tanto espacio como el dato que sí se necesita. */
+.caja-cifras {
+    display: grid; gap: 12px; margin-bottom: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+}
+.caja-cifra {
+    /* #root centra todo el panel (viene del template original): sin esto las
+       cifras salen centradas y cuesta compararlas de una a otra. */
+    text-align: left;
+    padding: 14px 16px; border-radius: 10px;
+    background: #fff; border: 1px solid #e5e7eb;
+    display: grid; gap: 3px; align-content: start;
+}
+.caja-eti { font-size: 12px; color: #6b7280; }
+.caja-cifra strong {
+    font-size: 23px; font-weight: 700; color: #0f172a; line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+}
+.caja-nota { font-size: 11px; color: #9ca3af; }
+
+.caja-cobrado strong { color: #15803d; }
+.caja-salidas strong { color: #b45309; }
+
+/* El que se compara contra el conteo manual: va destacado, no de adorno. */
+.caja-esperado { border-color: #bfdbfe; background: #f8fbff; }
+.caja-esperado strong { color: #1a4db5; font-size: 26px; }
+
+.caja-digital { background: #fafafa; }
+
+/* ── Movimientos del turno ── */
+.col-hora { font-variant-numeric: tabular-nums; color: #475569; white-space: nowrap; width: 70px; }
+.col-monto { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.mov-ingreso strong { color: #15803d; }
+.mov-egreso strong  { color: #b91c1c; }
+.mov-motivo { display: flex; flex-direction: column; gap: 1px; line-height: 1.35; }
+.mov-motivo strong { font-size: 13.5px; font-weight: 600; color: #0f172a; }
+.mov-motivo span { font-size: 11.5px; color: #6b7280; }

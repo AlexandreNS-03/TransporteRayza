@@ -144,23 +144,31 @@ function Cajas() {
             {!cargando && !error && tab === "micaja" && (
                 miCaja ? (
                     <>
-                        <div className="comp-stats">
-                            <div className="comp-stat">
-                                <i className="ti ti-lock-open"></i>
-                                <div><strong>{fmt(miCaja.montoInicial)}</strong><span>Monto inicial — {miCaja.fechaApertura}</span></div>
+                        {/* Lo que se pregunta al cerrar, en el orden en que se pregunta:
+                            cuánto entró, cuánto salió y cuánto tiene que haber en el
+                            cajón. Antes faltaba justamente lo cobrado, y "Digital S/ 0"
+                            ocupaba tanto espacio como el dato que sí importa. */}
+                        <div className="caja-cifras">
+                            <div className="caja-cifra caja-cobrado">
+                                <span className="caja-eti">Cobrado en efectivo</span>
+                                <strong>{fmt(ingresosEfectivo)}</strong>
                             </div>
-                            <div className="comp-stat monto">
-                                <i className="ti ti-device-mobile"></i>
-                                <div><strong>{fmt(digital)}</strong><span>Digital (Yape/transf.)</span></div>
+                            <div className="caja-cifra caja-salidas">
+                                <span className="caja-eti">Salidas</span>
+                                <strong>− {fmt(egresosEfectivo)}</strong>
                             </div>
-                            <div className="comp-stat anulado">
-                                <i className="ti ti-arrow-up-right"></i>
-                                <div><strong>{fmt(egresosEfectivo + egresosDigital)}</strong><span>Egresos</span></div>
+                            <div className="caja-cifra caja-esperado">
+                                <span className="caja-eti">Debe haber en el cajón</span>
+                                <strong>{fmt(enCaja)}</strong>
+                                <span className="caja-nota">incluye los {fmt(miCaja.montoInicial)} de apertura</span>
                             </div>
-                            <div className="comp-stat">
-                                <i className="ti ti-cash"></i>
-                                <div><strong>{fmt(enCaja)}</strong><span>Efectivo en caja (esperado)</span></div>
-                            </div>
+                            {digital !== 0 && (
+                                <div className="caja-cifra caja-digital">
+                                    <span className="caja-eti">Yape y transferencias</span>
+                                    <strong>{fmt(digital)}</strong>
+                                    <span className="caja-nota">no va en el conteo</span>
+                                </div>
+                            )}
                         </div>
 
                         <div className="caja-acciones">
@@ -176,26 +184,32 @@ function Cajas() {
                             <table className="pasajes-tabla">
                                 <thead>
                                 <tr>
-                                    <th>Fecha / Hora</th>
-                                    <th>Tipo</th>
+                                    <th>Hora</th>
                                     <th>Motivo</th>
-                                    <th>Monto</th>
+                                    <th className="col-monto">Monto</th>
                                 </tr>
                                 </thead>
                                 <tbody>
                                 {movimientos.length === 0 ? (
-                                    <tr><td colSpan={4} className="tabla-vacia"><i className="ti ti-cash-off"></i><span>Sin movimientos aún</span></td></tr>
+                                    <tr><td colSpan={3} className="tabla-vacia"><i className="ti ti-cash-off"></i><span>Sin movimientos aún</span></td></tr>
                                 ) : (
                                     movimientos.map(m => (
                                         <tr key={m.id}>
-                                            <td data-label="Fecha / Hora">{m.fecha} {m.hora?.slice(0, 8)}</td>
-                                            <td data-label="Tipo">
-                                                <span className={`badge ${m.tipo === "INGRESO" ? "badge-pagado" : "badge-anulado"}`}>
-                                                    {m.tipo === "INGRESO" ? "Ingreso" : "Egreso"}
-                                                </span>
+                                            {/* Todos los movimientos son del mismo turno:
+                                                repetir la fecha en cada renglón no dice nada. */}
+                                            <td data-label="Hora" className="col-hora">{m.hora?.slice(0, 5)}</td>
+                                            <td data-label="Motivo">
+                                                <div className="mov-motivo">
+                                                    <strong>{m.motivo}</strong>
+                                                    {m.observacion && <span>{m.observacion}</span>}
+                                                </div>
                                             </td>
-                                            <td data-label="Motivo">{m.motivo}</td>
-                                            <td data-label="Monto"><strong>{m.tipo === "EGRESO" ? "-" : ""}{fmt(m.monto)}</strong></td>
+                                            {/* El signo y el color dicen a dónde fue la plata
+                                                sin tener que leer una columna aparte. */}
+                                            <td data-label="Monto"
+                                                className={`col-monto ${m.tipo === "EGRESO" ? "mov-egreso" : "mov-ingreso"}`}>
+                                                <strong>{m.tipo === "EGRESO" ? "− " : "+ "}{fmt(m.monto)}</strong>
+                                            </td>
                                         </tr>
                                     ))
                                 )}
