@@ -54,6 +54,9 @@ export default function SorteoDestacado() {
   };
 
   if (!sorteo?.hay) return esperando ? <div className="sorteo-mini-hueco" aria-hidden="true" /> : null;
+  // Un sorteo desierto no se anuncia en la portada: no hay nada que ofrecer. Queda
+  // en el registro de la página del sorteo, que es donde corresponde.
+  if (sorteo.estado === "DESIERTO") return null;
 
   const enVivo = sorteo.estado === "CERRADO";
   const hecho  = sorteo.estado === "SORTEADO";
