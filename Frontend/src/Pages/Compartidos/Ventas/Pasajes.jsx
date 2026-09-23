@@ -26,6 +26,13 @@ const COMP_LABEL   = { TICKET: "Ticket", BOLETA: "Boleta", FACTURA: "Factura" };
 
 const ESTADO_LABEL = { PAGADO: "Pagado", ANULADO: "Anulado" };
 
+/** 2026-07-24 → 24/07/26. La columna es angosta y el año completo no aporta. */
+function fechaCorta(iso) {
+    if (!iso) return "—";
+    const [a, m, d] = iso.slice(0, 10).split("-");
+    return `${d}/${m}/${a.slice(2)}`;
+}
+
 function badgeEstado(estado) {
     return estado === "PAGADO" ? "badge badge-pagado" : "badge badge-anulado";
 }
@@ -530,7 +537,21 @@ function Pasajes() {
         return comparar(val(a), val(b), orden.dir);
     });
 
-    const pag = usePaginacion(ventasOrdenadas, 10);
+    const pag = usePaginacion(ventasOrdenadas, 15);
+
+    /**
+     * Lo que suma lo que está a la vista.
+     *
+     * La pantalla mostraba una lista sin totales: para saber cuánto se vendió
+     * hoy había que contar a mano o abrir otro reporte. Los anulados no suman
+     * plata pero se cuentan aparte, porque explican la diferencia.
+     */
+    const resumen = ventasFiltradas.reduce((r, v) => {
+        if (v.estado === "ANULADO") { r.anulados += 1; return r; }
+        r.pasajes += 1;
+        r.importe += Number(v.precio) || 0;
+        return r;
+    }, { pasajes: 0, importe: 0, anulados: 0 });
 
     // Encabezado clicable para ordenar (A-Z / Z-A, número, fecha)
     const ThOrden = ({ label, ordKey }) => (
@@ -663,26 +684,44 @@ function Pasajes() {
             {error && !cargando && <div className="pasajes-estado error"><i className="ti ti-alert-circle"></i> {error}</div>}
 
             {!cargando && !error && (
+                <div className="resumen-barra">
+                    <div className="resumen-dato">
+                        <strong>{resumen.pasajes}</strong>
+                        <span>{resumen.pasajes === 1 ? "pasaje" : "pasajes"}</span>
+                    </div>
+                    <div className="resumen-dato resumen-plata">
+                        <strong>S/ {resumen.importe.toFixed(2)}</strong>
+                        <span>cobrado</span>
+                    </div>
+                    {resumen.anulados > 0 && (
+                        <div className="resumen-dato resumen-anulados">
+                            <strong>{resumen.anulados}</strong>
+                            <span>{resumen.anulados === 1 ? "anulado" : "anulados"}</span>
+                        </div>
+                    )}
+                    {hayFiltros && <span className="resumen-nota">con los filtros puestos</span>}
+                </div>
+            )}
+
+            {!cargando && !error && (
                 <div className="pasajes-tabla-wrapper">
                     <table className="pasajes-tabla">
                         <thead>
                         <tr>
                             <th>Comprobante</th>
                             <ThOrden label="Pasajero" ordKey="pasajeroNombre" />
-                            <th>Documento</th>
-                            <th>Viaje</th>
-                            <th>Tramo</th>
+                            <th>Viaje y tramo</th>
                             <ThOrden label="Asiento" ordKey="asientoNumero" />
                             <ThOrden label="Precio" ordKey="precio" />
                             <ThOrden label="Fecha" ordKey="fechaVenta" />
                             <th>Estado</th>
-                            {puedeVender && <th>Acciones</th>}
+                            {puedeVender && <th className="th-acciones">Acciones</th>}
                         </tr>
                         </thead>
                         <tbody>
                         {pag.items.length === 0 ? (
                             <tr>
-                                <td colSpan={puedeVender ? 10 : 9} className="tabla-vacia">
+                                <td colSpan={puedeVender ? 8 : 7} className="tabla-vacia">
                                     <i className="ti ti-ticket-off"></i>
                                     {hayFiltros ? (
                                         <>
@@ -713,41 +752,41 @@ function Pasajes() {
                         ) : (
                             pag.items.map(v => (
                                 <tr key={v.id} className={v.estado === "ANULADO" ? "fila-anulada" : ""}>
-                                    <td className="codigo" data-label="Comprobante">
-                                        {v.serieComprobante}-{v.numeroComprobante}
-                                        <br />
-                                        <span style={{ fontSize: "10px", color: "#9ca3af" }}>
-                                                {COMP_LABEL[v.tipoComprobante]}
-                                            </span>
+                                    {/* Comprobante y canal juntos: de dónde salió la venta
+                                        se lee de un vistazo, sin gastar una columna. */}
+                                    <td className="celda-comprobante" data-label="Comprobante">
+                                        <span className="codigo">{v.serieComprobante}-{v.numeroComprobante}</span>
+                                        <span className="celda-sub">
+                                            {COMP_LABEL[v.tipoComprobante]}
+                                            {v.canal === "WEB" && (
+                                                <i className="ti ti-world" title="Comprado por la web de clientes"></i>
+                                            )}
+                                        </span>
                                     </td>
+                                    {/* El documento va con el nombre: son la misma persona y
+                                        se buscan juntos. La edad y el sexo salían en cada fila
+                                        y casi nunca se miran; están en el ticket. */}
                                     <td data-label="Pasajero">
                                         <div className="pasajero-info">
                                             <strong>{v.pasajeroNombre}</strong>
-                                            <span>{v.edad} años — {v.sexo}</span>
+                                            <span>{v.tipoDocumento} {v.pasajeroDocumento}</span>
                                         </div>
                                     </td>
-                                    <td data-label="Documento">
+                                    <td data-label="Viaje y tramo">
                                         <div className="pasajero-info">
-                                            <span>{v.tipoDocumento}</span>
-                                            <strong>{v.pasajeroDocumento}</strong>
-                                        </div>
-                                    </td>
-                                    <td className="codigo" data-label="Viaje">{v.viajeCodigo}</td>
-                                    <td data-label="Tramo">
-                                        <div className="tramo-info">
-                                            <span>{v.paradaOrigen}</span>
-                                            <i className="ti ti-arrow-right"></i>
-                                            <span>{v.paradaDestino}</span>
+                                            <span className="codigo codigo-viaje">{v.viajeCodigo}</span>
+                                            <span className="tramo-linea">
+                                                {v.paradaOrigen} <i className="ti ti-arrow-narrow-right"></i> {v.paradaDestino}
+                                            </span>
                                         </div>
                                     </td>
                                     <td data-label="Asiento">
-                                            <span className={`asiento-tipo ${v.asientoTipo?.toLowerCase()}`}>
-                                                {v.asientoTipo}
-                                            </span>
-                                        <strong> #{v.asientoNumero}</strong>
+                                        <span className={`asiento-tipo ${v.asientoTipo?.toLowerCase()}`}>
+                                            {v.asientoTipo} #{v.asientoNumero}
+                                        </span>
                                     </td>
-                                    <td data-label="Precio">
-                                        <strong>S/ {v.precio}</strong>
+                                    <td className="celda-precio" data-label="Precio">
+                                        <strong>S/ {Number(v.precio).toFixed(2)}</strong>
                                         {v.lugarPago && (
                                             <><br /><span style={{ fontSize: "10px", color: "#6b7280" }}>
                                                 <i className="ti ti-map-pin"></i> {v.lugarPago === "IQUITOS" ? "Iquitos" : "Requena"}
@@ -759,16 +798,11 @@ function Pasajes() {
                                             </span></>
                                         )}
                                     </td>
-                                    <td data-label="Fecha">{v.fechaVenta}</td>
+                                    <td className="celda-fecha" data-label="Fecha">{fechaCorta(v.fechaVenta)}</td>
                                     <td data-label="Estado">
-                                            <span className={badgeEstado(v.estado)}>
-                                                {ESTADO_LABEL[v.estado]}
-                                            </span>
-                                        {v.canal === "WEB" && (
-                                            <span className="badge-canal" title="Comprado por la web de clientes">
-                                                <i className="ti ti-world"></i> Web
-                                            </span>
-                                        )}
+                                        <span className={badgeEstado(v.estado)}>
+                                            {ESTADO_LABEL[v.estado]}
+                                        </span>
                                     </td>
                                     {puedeVender && (
                                         <td className="acciones-cell">
