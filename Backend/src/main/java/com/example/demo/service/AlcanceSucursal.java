@@ -56,6 +56,6 @@ public class AlcanceSucursal {
         if (viaje == null || alcanza(usuarioNombre, viaje.getSucursalId())) return;
         throw new RuntimeException("Ese viaje es de "
                 + (viaje.getSucursalNombre() != null ? viaje.getSucursalNombre() : "otra sucursal")
-                + ": solo puedes trabajar con los de la tuya.");
+                + ": solo puedes trabajar con los viajes de tu sucursal.");
     }
 }
