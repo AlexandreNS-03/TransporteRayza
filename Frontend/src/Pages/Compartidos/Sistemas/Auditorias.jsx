@@ -4,12 +4,17 @@ import "../Finanzas/Comprobantes.css";
 import { apiFetch } from "../../../Services/api.js";
 import { usePaginacion, Paginacion } from "../../../Components/Paginacion.jsx";
 
-const MODULOS = ["VENTAS", "COMPROBANTES", "USUARIOS", "CAJA", "GASTOS", "ENCOMIENDAS", "SOPORTE"];
+const MODULOS = ["VENTAS", "VIAJES", "EMBARQUE", "COMPROBANTES", "USUARIOS", "CAJA", "GASTOS",
+                 "ENCOMIENDAS", "SORTEOS", "EMBARCACIONES", "SUCURSALES", "RUTAS", "ANUNCIOS",
+                 "SEGURIDAD", "SISTEMA", "SOPORTE"];
 
 const ACCION_BADGE = {
     CREAR: "badge-pagado", EMITIR: "badge-pagado", ABRIR: "badge-pagado", ACTIVAR: "badge-pagado",
+    EMBARCAR: "badge-pagado", PREEMBARCAR: "badge-pagado", SORTEAR: "badge-pagado",
     ANULAR: "badge-anulado", ELIMINAR: "badge-anulado", DESACTIVAR: "badge-anulado",
-    NOTA_CREDITO: "badge-transito", CERRAR: "badge-transito", REPORTE: "badge-transito"
+    CANCELAR: "badge-anulado", DESIERTO: "badge-anulado",
+    NOTA_CREDITO: "badge-transito", CERRAR: "badge-transito", REPORTE: "badge-transito",
+    EDITAR: "badge-transito", DEVOLVER: "badge-transito", REPROGRAMAR: "badge-transito"
 };
 
 function fmtFecha(iso) {
@@ -29,13 +34,45 @@ function Auditorias() {
 
     useEffect(() => { cargar(); }, []);
 
+    /**
+     * Con un rango de fechas la búsqueda la hace el servidor: la pantalla trae
+     * los últimos 500 movimientos, y buscar algo de la semana pasada sobre esos
+     * 500 no encuentra nada si desde entonces hubo más.
+     */
     const cargar = async () => {
         setCargando(true);
         setError(null);
         try {
-            setRegistros(await apiFetch("/api/auditoria"));
+            const p = new URLSearchParams();
+            if (fechaDesde) p.set("desde", fechaDesde);
+            if (fechaHasta) p.set("hasta", fechaHasta);
+            if (filtroModulo !== "todos") p.set("modulo", filtroModulo);
+            const cola = p.toString();
+            setRegistros(await apiFetch("/api/auditoria" + (cola ? `?${cola}` : "")));
         } catch (err) { setError(err.message); }
         finally { setCargando(false); }
+    };
+
+    // Al cambiar el rango o el módulo se vuelve a preguntar; el texto se filtra acá.
+    useEffect(() => { cargar(); /* eslint-disable-next-line */ }, [fechaDesde, fechaHasta, filtroModulo]);
+
+    /** Lo que está a la vista, tal cual, para abrirlo en Excel. */
+    const exportar = async () => {
+        const XLSX = await import("xlsx");
+        const filas = [
+            ["Fecha y hora", "Usuario", "Rol", "Módulo", "Acción", "Detalle", "Equipo (IP)"],
+            ...filtrados.map(r => [
+                fmtFecha(r.createdAt), r.usuarioNombre || "—", r.usuarioRol || "—",
+                r.modulo, r.accion, r.descripcion || "", r.ipOrigen || "—",
+            ]),
+        ];
+        const hoja = XLSX.utils.aoa_to_sheet(filas);
+        // Anchos a ojo de lo que lleva cada columna: sin esto el detalle sale cortado.
+        hoja["!cols"] = [{ wch: 20 }, { wch: 18 }, { wch: 12 }, { wch: 15 }, { wch: 14 }, { wch: 90 }, { wch: 16 }];
+        const libro = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(libro, hoja, "Auditoría");
+        const hoy = new Date().toISOString().slice(0, 10);
+        XLSX.writeFile(libro, `auditoria-${fechaDesde || "inicio"}-a-${fechaHasta || hoy}.xlsx`);
     };
 
     const filtrados = registros.filter(r => {
@@ -62,11 +99,20 @@ function Auditorias() {
             <div className="pasajes-header">
                 <div>
                     <h2>Auditoría</h2>
-                    <p>Registro de acciones del sistema: quién hizo qué y cuándo</p>
+                    <p>
+                        Quién hizo qué, cuándo y desde qué equipo
+                        {!cargando && !error && ` · ${filtrados.length} movimiento(s)`}
+                    </p>
                 </div>
-                <button className="btn-limpiar" onClick={cargar}>
-                    <i className="ti ti-refresh"></i> Actualizar
-                </button>
+                <div className="auditoria-acciones">
+                    <button className="btn-limpiar" onClick={exportar} disabled={filtrados.length === 0}
+                            title="Descarga lo que estás viendo, con los filtros aplicados">
+                        <i className="ti ti-file-spreadsheet"></i> Descargar Excel
+                    </button>
+                    <button className="btn-limpiar" onClick={cargar}>
+                        <i className="ti ti-refresh"></i> Actualizar
+                    </button>
+                </div>
             </div>
 
             {/* FILTROS */}
@@ -112,12 +158,13 @@ function Auditorias() {
                             <th>Usuario</th>
                             <th>Módulo</th>
                             <th>Acción</th>
-                            <th>Descripción</th>
+                            <th>Detalle</th>
+                            <th>Equipo</th>
                         </tr>
                         </thead>
                         <tbody>
                         {pag.items.length === 0 ? (
-                            <tr><td colSpan={5} className="tabla-vacia">
+                            <tr><td colSpan={6} className="tabla-vacia">
                                 <i className="ti ti-clipboard-off"></i><span>Sin registros de auditoría</span>
                             </td></tr>
                         ) : (
@@ -136,7 +183,8 @@ function Auditorias() {
                                             {r.accion.replace("_", " ")}
                                         </span>
                                     </td>
-                                    <td>{r.descripcion}</td>
+                                    <td className="auditoria-detalle">{r.descripcion}</td>
+                                    <td className="codigo auditoria-ip">{r.ipOrigen || "—"}</td>
                                 </tr>
                             ))
                         )}

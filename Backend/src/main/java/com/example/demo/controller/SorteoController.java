@@ -28,14 +28,17 @@ import java.util.UUID;
 public class SorteoController {
 
     private final SorteoService servicio;
+    private final com.example.demo.service.AuditoriaService auditoria;
     private final SorteoVivoService vivo;
     private final SorteoRepository sorteoRepository;
     private final CuponSorteoRepository cuponRepository;
 
     public SorteoController(SorteoService servicio, SorteoVivoService vivo,
                             SorteoRepository sorteoRepository,
-                            CuponSorteoRepository cuponRepository) {
+                            CuponSorteoRepository cuponRepository,
+                            com.example.demo.service.AuditoriaService auditoria) {
         this.servicio = servicio;
+        this.auditoria = auditoria;
         this.vivo = vivo;
         this.sorteoRepository = sorteoRepository;
         this.cuponRepository = cuponRepository;
@@ -167,6 +170,9 @@ public class SorteoController {
                 guardado.setPremioValor(new java.math.BigDecimal(mayor.get("valor").toString()));
             sorteoRepository.save(guardado);
         }
+        auditoria.registrar(preparado ? "PREPARAR" : "CREAR", "SORTEOS", guardado.getId(),
+                "Sorteo \"" + guardado.getNombre() + "\" con " + Math.max(1, premios.size())
+                        + " premio(s) · " + (preparado ? "queda en borrador" : "abierto, ya emite códigos"));
         return ResponseEntity.ok(aMapaAdmin(guardado));
     }
 
@@ -189,6 +195,7 @@ public class SorteoController {
      */
     @PatchMapping("/api/sorteos/{id}/abrir")
     public ResponseEntity<?> abrir(@PathVariable String id) {
+        auditoria.registrar("CERRAR", "SORTEOS", id, "Registro cerrado: ya no se aceptan más códigos");
         return ResponseEntity.ok(aMapaAdmin(servicio.abrir(id)));
     }
 

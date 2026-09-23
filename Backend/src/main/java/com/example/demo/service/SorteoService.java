@@ -39,6 +39,7 @@ public class SorteoService {
     private static final int LARGO_CODIGO = 8;
 
     private final SorteoRepository sorteoRepository;
+    private final AuditoriaService auditoriaService;
     private final CuponSorteoRepository cuponRepository;
     private final PremioSorteoRepository premioRepository;
     private final com.example.demo.repository.VentaRepository ventaRepository;
@@ -49,8 +50,10 @@ public class SorteoService {
                          CuponSorteoRepository cuponRepository,
                          PremioSorteoRepository premioRepository,
                          com.example.demo.repository.VentaRepository ventaRepository,
-                         SorteoVivoService vivo) {
+                         SorteoVivoService vivo,
+                            AuditoriaService auditoriaService) {
         this.sorteoRepository = sorteoRepository;
+        this.auditoriaService = auditoriaService;
         this.cuponRepository = cuponRepository;
         this.premioRepository = premioRepository;
         this.ventaRepository = ventaRepository;
@@ -198,6 +201,8 @@ public class SorteoService {
             throw new RuntimeException("Este sorteo no tiene ningún premio: agrégalo antes de abrirlo.");
 
         s.setEstado(Sorteo.Estado.ABIERTO);
+        auditoriaService.registrar("ABRIR", "SORTEOS", s.getId(),
+                "Sorteo \"" + s.getNombre() + "\" abierto: desde ahora cada pasaje vendido lleva su código");
         return sorteoRepository.save(s);
     }
 
@@ -261,6 +266,8 @@ public class SorteoService {
         s.setSorteadoAt(LocalDateTime.now());
         s.setSorteadoPor(usuario);
         s.setCuponesParticipantes(0);
+        auditoriaService.registrar("DESIERTO", "SORTEOS", s.getId(),
+                "Sorteo \"" + s.getNombre() + "\" declarado desierto: nadie registró su código");
         return sorteoRepository.save(s);
     }
 
@@ -335,6 +342,12 @@ public class SorteoService {
         boolean quedan = premios.stream().anyMatch(p -> !p.estaSorteado() && !p.getId().equals(premio.getId()));
         if (!quedan) s.setEstado(Sorteo.Estado.SORTEADO);
         sorteoRepository.save(s);
+
+        auditoriaService.registrar("SORTEAR", "SORTEOS", s.getId(),
+                "Sorteo \"" + s.getNombre() + "\" · " + premio.getOrden() + "° premio ("
+                        + premio.getDescripcion() + ") para " + ganador.getPasajeroNombre()
+                        + " [" + ganador.getCodigo() + "] entre " + participantes.size()
+                        + " participante(s)" + (quedan ? " · quedan premios por sortear" : " · sorteo completo"));
 
         vivo.avisarGanador(sorteoId, ganador, participantes.size(), premio, quedan);
         return premio;

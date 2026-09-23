@@ -15,9 +15,12 @@ import java.util.stream.Collectors;
 public class SucursalService {
 
     private final SucursalRepository sucursalRepository;
+    private final AuditoriaService auditoriaService;
 
-    public SucursalService(SucursalRepository sucursalRepository) {
+    public SucursalService(SucursalRepository sucursalRepository,
+                              AuditoriaService auditoriaService) {
         this.sucursalRepository = sucursalRepository;
+        this.auditoriaService = auditoriaService;
     }
 
     // Listar todas
@@ -49,6 +52,8 @@ public class SucursalService {
         s.setTelefono(req.getTelefono());
         s.setActivo(req.getActivo() != null ? req.getActivo() : true);
         s.setCreatedAt(LocalDateTime.now());
+        auditoriaService.registrar("CREAR", "SUCURSALES", s.getId(),
+                "Sucursal " + s.getNombre() + " · " + s.getDireccion());
         return toDTO(sucursalRepository.save(s));
     }
 
@@ -93,6 +98,8 @@ public class SucursalService {
         s.setCiudad(req.getCiudad());
         s.setTelefono(req.getTelefono());
         if (req.getActivo() != null) s.setActivo(req.getActivo());
+        auditoriaService.registrar("EDITAR", "SUCURSALES", s.getId(),
+                "Sucursal " + s.getNombre() + " · " + s.getDireccion());
         return toDTO(sucursalRepository.save(s));
     }
 

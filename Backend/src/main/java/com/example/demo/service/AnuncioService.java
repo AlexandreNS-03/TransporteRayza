@@ -16,9 +16,12 @@ import java.util.stream.Collectors;
 public class AnuncioService {
 
     private final AnuncioRepository anuncioRepository;
+    private final AuditoriaService auditoriaService;
 
-    public AnuncioService(AnuncioRepository anuncioRepository) {
+    public AnuncioService(AnuncioRepository anuncioRepository,
+                              AuditoriaService auditoriaService) {
         this.anuncioRepository = anuncioRepository;
+        this.auditoriaService = auditoriaService;
     }
 
     public List<AnuncioDTO> listarTodos() {
@@ -46,6 +49,8 @@ public class AnuncioService {
         aplicar(a, req);
         a.setCreatedAt(java.time.LocalDateTime.now());
         anuncioRepository.save(a);
+        auditoriaService.registrar("CREAR", "ANUNCIOS", a.getId(),
+                "Anuncio " + a.getTipo() + " publicado: " + recorte(a.getMensaje()));
         return toDTO(a);
     }
 
@@ -55,10 +60,19 @@ public class AnuncioService {
                 .orElseThrow(() -> new RuntimeException("Anuncio no encontrado"));
         aplicar(a, req);
         anuncioRepository.save(a);
+        auditoriaService.registrar("EDITAR", "ANUNCIOS", a.getId(),
+                "Anuncio " + a.getTipo() + ": " + recorte(a.getMensaje()));
         return toDTO(a);
     }
 
     @Transactional
+    /** El mensaje entero no entra en un renglón de auditoría; su principio sí. */
+    private static String recorte(String t) {
+        if (t == null) return "(sin texto)";
+        String limpio = t.replaceAll("\\s+", " ").trim();
+        return limpio.length() > 90 ? limpio.substring(0, 90) + "…" : limpio;
+    }
+
     public void eliminar(String id) {
         if (!anuncioRepository.existsById(id))
             throw new RuntimeException("Anuncio no encontrado");
