@@ -608,3 +608,52 @@
     .etapa-btn { transition-duration: .01ms; }
     .etapa-btn:active { transform: none; }
 }
+
+/* ══ Avance del embarque ══
+   Reemplaza cuatro tarjetas, dos de las cuales repetían la embarcación y la
+   ruta que ya muestra el selector. En el muelle la pregunta es cuántos faltan. */
+.embarque-avance {
+    display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
+    padding: 13px 18px; margin-bottom: 14px;
+    background: #fff; border: 1px solid #e5e7eb; border-radius: 10px;
+}
+.avance-cifras { display: flex; align-items: baseline; gap: 8px; }
+.avance-cifras strong {
+    font-size: 26px; font-weight: 700; color: #0f172a; line-height: 1;
+    font-variant-numeric: tabular-nums;
+}
+.avance-cifras span { font-size: 13px; color: #6b7280; }
+.avance-cifras em {
+    font-style: normal; font-size: 12px; font-weight: 600;
+    padding: 3px 9px; border-radius: 999px;
+}
+.avance-faltan { background: #fffbeb; color: #b45309; }
+.avance-listo  { background: #f0fdf4; color: #15803d; }
+
+.avance-barra {
+    flex: 1; min-width: 160px; height: 7px;
+    background: #eef2f7; border-radius: 999px; overflow: hidden;
+}
+.avance-barra span {
+    display: block; height: 100%; border-radius: 999px;
+    background: #15803d; transition: width .3s cubic-bezier(.23,1,.32,1);
+}
+
+/* ══ Lista de pasajeros ══
+   Cada fila traía "30 años — Masculino" debajo del nombre: no sirve para dejar
+   subir a nadie y costaba un renglón por pasajero. */
+.embarque-tabla td { padding: 9px 12px; vertical-align: middle; }
+.embarque-tabla th { padding: 9px 12px; white-space: nowrap; }
+.embarque-tabla .pasajero-info { display: flex; flex-direction: column; gap: 1px; line-height: 1.35; }
+.embarque-tabla .pasajero-info strong { font-size: 13.5px; font-weight: 600; color: #0f172a; }
+.embarque-tabla .pasajero-info span { font-size: 11.5px; color: #6b7280; }
+.embarque-tabla .asiento-tipo { white-space: nowrap; font-size: 11.5px; padding: 4px 9px; }
+.embarque-tabla .tramo-linea { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; font-size: 12.5px; }
+.embarque-tabla .tramo-linea i { color: #94a3b8; }
+.embarque-tabla .th-accion, .embarque-tabla td:last-child { text-align: right; }
+.embarque-tabla tbody tr { transition: background-color .12s ease; }
+.embarque-tabla tbody tr:hover { background: #f8fafc; }
+
+@media (prefers-reduced-motion: reduce) {
+    .avance-barra span { transition: none; }
+}

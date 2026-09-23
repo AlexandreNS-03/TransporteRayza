@@ -328,11 +328,20 @@ function Embarque() {
     const totalEmbarcados  = pasajeros.filter(p => hecho(p)).length;
     const totalPendientes  = pasajeros.length - totalEmbarcados;
 
-    const pasajerosFiltrados = pasajeros.filter(p => {
-        if (filtroEstado === "embarcado" && !hecho(p)) return false;
-        if (filtroEstado === "pendiente" && hecho(p))  return false;
-        return true;
-    });
+    /**
+     * Ordenados por asiento.
+     *
+     * La lista venía en el orden en que se vendieron los pasajes, así que el
+     * #4 salía antes que el #1. En el muelle se llama por asiento y se va
+     * marcando en ese orden: con la lista desordenada hay que buscar cada uno.
+     */
+    const pasajerosFiltrados = pasajeros
+        .filter(p => {
+            if (filtroEstado === "embarcado" && !hecho(p)) return false;
+            if (filtroEstado === "pendiente" && hecho(p))  return false;
+            return true;
+        })
+        .sort((a, b) => (a.asientoNumero ?? 0) - (b.asientoNumero ?? 0));
 
     return (
         <div className="embarque-page">
@@ -405,36 +414,23 @@ function Embarque() {
                 />
             )}
 
-            {/* RESUMEN DEL VIAJE */}
+            {/* AVANCE DEL EMBARQUE
+                Antes había cuatro tarjetas y dos repetían la embarcación y la ruta,
+                que ya dice el selector justo arriba. En el muelle la única pregunta
+                es cuántos faltan, así que eso es lo que ocupa el espacio. */}
             {viajeSeleccionado && (
-                <div className="embarque-resumen">
-                    <div className="resumen-item">
-                        <i className="ti ti-ship"></i>
-                        <div>
-                            <span className="resumen-label">Embarcación</span>
-                            <span className="resumen-valor">{viajeSeleccionado.embarcacionNombre}</span>
-                        </div>
+                <div className="embarque-avance">
+                    <div className="avance-cifras">
+                        <strong>{totalEmbarcados}</strong>
+                        <span>de {pasajeros.length} a bordo</span>
+                        {totalPendientes > 0
+                            ? <em className="avance-faltan">faltan {totalPendientes}</em>
+                            : pasajeros.length > 0 && <em className="avance-listo">subieron todos</em>}
                     </div>
-                    <div className="resumen-item">
-                        <i className="ti ti-route"></i>
-                        <div>
-                            <span className="resumen-label">Ruta</span>
-                            <span className="resumen-valor">{viajeSeleccionado.rutaNombre}</span>
-                        </div>
-                    </div>
-                    <div className="resumen-item resumen-embarcados">
-                        <i className="ti ti-user-check"></i>
-                        <div>
-                            <span className="resumen-label">Embarcados</span>
-                            <span className="resumen-valor">{totalEmbarcados}</span>
-                        </div>
-                    </div>
-                    <div className="resumen-item resumen-pendientes">
-                        <i className="ti ti-user-clock"></i>
-                        <div>
-                            <span className="resumen-label">Pendientes</span>
-                            <span className="resumen-valor">{totalPendientes}</span>
-                        </div>
+                    <div className="avance-barra" role="progressbar"
+                         aria-valuenow={totalEmbarcados} aria-valuemin={0} aria-valuemax={pasajeros.length}
+                         aria-label="Pasajeros embarcados">
+                        <span style={{ width: `${pasajeros.length ? (totalEmbarcados / pasajeros.length) * 100 : 0}%` }} />
                     </div>
                 </div>
             )}
@@ -523,17 +519,16 @@ function Embarque() {
                         <tr>
                             <th>Asiento</th>
                             <th>Pasajero</th>
-                            <th>Documento</th>
                             <th>Tramo</th>
                             <th>Comprobante</th>
                             <th>Estado</th>
-                            {puedeEmbarcar && <th>Acción</th>}
+                            {puedeEmbarcar && <th className="th-accion">Acción</th>}
                         </tr>
                         </thead>
                         <tbody>
                         {pasajerosFiltrados.length === 0 ? (
                             <tr>
-                                <td colSpan={puedeEmbarcar ? 7 : 6} className="tabla-vacia">
+                                <td colSpan={puedeEmbarcar ? 6 : 5} className="tabla-vacia">
                                     <i className="ti ti-users-off"></i>
                                     <span>No hay pasajeros con ese filtro</span>
                                 </td>
@@ -541,32 +536,26 @@ function Embarque() {
                         ) : (
                             pasajerosFiltrados.map(p => (
                                 <tr key={p.id} className={p.embarqueEstado === "EMBARCADO" ? "fila-embarcada" : ""}>
+                                    {/* El asiento es por donde se llama a la gente: va
+                                        primero y en una sola línea. */}
                                     <td>
-                                        <div className="asiento-badge">
-                                                <span className={`asiento-tipo ${p.asientoTipo?.toLowerCase()}`}>
-                                                    {p.asientoTipo}
-                                                </span>
-                                            <strong>#{p.asientoNumero}</strong>
-                                        </div>
+                                        <span className={`asiento-tipo ${p.asientoTipo?.toLowerCase()}`}>
+                                            {p.asientoTipo} #{p.asientoNumero}
+                                        </span>
                                     </td>
+                                    {/* Nombre y documento juntos: en el muelle se compara
+                                        el DNI con el nombre, no por separado. La edad y el
+                                        sexo no sirven para dejar subir a nadie. */}
                                     <td>
                                         <div className="pasajero-info">
                                             <strong>{p.pasajeroNombre}</strong>
-                                            <span>{p.edad} años — {p.sexo}</span>
+                                            <span>{p.tipoDocumento} {p.pasajeroDocumento}</span>
                                         </div>
                                     </td>
                                     <td>
-                                        <div className="pasajero-info">
-                                            <span>{p.tipoDocumento}</span>
-                                            <strong>{p.pasajeroDocumento}</strong>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div className="tramo-info">
-                                            <span>{p.paradaOrigen}</span>
-                                            <i className="ti ti-arrow-right"></i>
-                                            <span>{p.paradaDestino}</span>
-                                        </div>
+                                        <span className="tramo-linea">
+                                            {p.paradaOrigen} <i className="ti ti-arrow-narrow-right"></i> {p.paradaDestino}
+                                        </span>
                                     </td>
                                     <td className="codigo">
                                         {p.serieComprobante}-{p.numeroComprobante}
