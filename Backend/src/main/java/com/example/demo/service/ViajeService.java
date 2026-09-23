@@ -126,6 +126,13 @@ public class ViajeService {
         // Inicializar asientos automáticamente
         asientoService.inicializarAsientosParaViaje(v.getId(), embarcacion.getId());
 
+        // Crear un viaje no se registraba: si aparecía uno duplicado o con la
+        // hora equivocada, no había forma de saber quién lo puso ahí.
+        auditoriaService.registrar("CREAR", "VIAJES", v.getId(),
+                "Viaje " + v.getCodigoViaje() + " · " + v.getRutaNombre()
+                        + " · " + v.getFechaSalida() + " " + v.getHoraSalida()
+                        + " · " + v.getEmbarcacionNombre() + " · " + v.getSucursalNombre());
+
         return toDTO(v);
     }
 
@@ -157,6 +164,9 @@ public class ViajeService {
                 .filter(x -> x.getEstado() != Venta.EstadoVenta.ANULADO)
                 .toList();
 
+        String fechaAntes = String.valueOf(v.getFechaSalida());
+        String horaAntes  = v.getHoraSalida() != null ? v.getHoraSalida().toString().substring(0, 5) : "—";
+        String naveAntes  = v.getEmbarcacionNombre();
         String antes = descripcionHorario(v);
 
         if (req.getFechaSalida() != null) v.setFechaSalida(req.getFechaSalida());
@@ -180,9 +190,18 @@ public class ViajeService {
         viajeRepository.save(v);
 
         String despues = descripcionHorario(v);
+        // Campo por campo: "cambió el viaje" no alcanza para reconstruir qué pasó.
+        String detalle = Cambios.nuevos()
+                .campo("Fecha de salida", fechaAntes, String.valueOf(v.getFechaSalida()))
+                .campo("Hora de salida", horaAntes,
+                        v.getHoraSalida() != null ? v.getHoraSalida().toString().substring(0, 5) : "—")
+                .campo("Embarcación", naveAntes, v.getEmbarcacionNombre())
+                .texto();
+
         auditoriaService.registrar("EDITAR", "VIAJES", v.getId(),
-                "Viaje " + v.getCodigoViaje() + ": " + antes + " → " + despues
-                        + " (" + ventas.size() + " pasaje(s) vendido(s))");
+                "Viaje " + v.getCodigoViaje() + " · " + detalle
+                        + " · " + ventas.size() + " pasaje(s) vendido(s)"
+                        + (avisar ? " · se avisó por correo" : " · sin avisar a los pasajeros"));
 
         int avisados = avisar && !antes.equals(despues) ? avisarPasajeros(v, ventas, antes) : 0;
         return new ResultadoEdicion(toDTO(v), ventas.size(), avisados);

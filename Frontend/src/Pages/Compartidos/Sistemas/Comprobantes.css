@@ -1,0 +1,10 @@
+
+/* ── Auditoría ──
+   El detalle de un cambio ("Hora de salida: 08:00 → 11:30") es el dato que se
+   viene a buscar: se le da el ancho y se deja respirar. */
+.auditoria-acciones { display: flex; gap: 8px; flex-wrap: wrap; }
+.auditoria-detalle {
+    min-width: 320px; max-width: 620px;
+    font-size: 13px; line-height: 1.5; color: #334155;
+}
+.auditoria-ip { white-space: nowrap; font-size: 11.5px; color: #6b7280; }

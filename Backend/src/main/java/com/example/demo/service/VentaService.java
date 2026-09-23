@@ -50,6 +50,11 @@ public class VentaService {
 
         Venta guardada = ventaRepository.save(venta);
 
+        auditoriaService.registrar("EMBARCAR", "EMBARQUE", guardada.getId(),
+                "Embarcó " + guardada.getPasajeroNombre() + " (" + guardada.getPasajeroDocumento()
+                        + ") · asiento " + guardada.getAsientoTipo() + " #" + guardada.getAsientoNumero()
+                        + " · viaje " + guardada.getViajeCodigo());
+
         // Correo de confirmación al pasajero (si registró email) — no bloquea el embarque si falla
         if (guardada.getClienteEmail() != null && !guardada.getClienteEmail().isBlank()) {
             try {
@@ -210,6 +215,9 @@ public class VentaService {
         venta.setPreembarqueEstado(Venta.EmbarqueEstado.EMBARCADO);
         venta.setPreembarcadoAt(LocalDateTime.now());
         venta.setPreembarcadoPor(usuarioNombre);
+        auditoriaService.registrar("PREEMBARCAR", "EMBARQUE", venta.getId(),
+                "Subió al carro en Iquitos: " + venta.getPasajeroNombre()
+                        + " (" + venta.getPasajeroDocumento() + ") · viaje " + venta.getViajeCodigo());
         return toDTO(ventaRepository.save(venta));
     }
 

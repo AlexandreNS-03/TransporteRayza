@@ -22,13 +22,16 @@ import java.util.stream.Collectors;
 public class EmbarcacionService {
 
     private final EmbarcacionRepository embarcacionRepository;
+    private final AuditoriaService auditoriaService;
     private final EmbarcacionAsientoRepository asientoRepository;
     private final EmbarcacionTripulanteRepository tripulanteRepository;
 
     public EmbarcacionService(EmbarcacionRepository embarcacionRepository,
                               EmbarcacionAsientoRepository asientoRepository,
-                              EmbarcacionTripulanteRepository tripulanteRepository) {
+                              EmbarcacionTripulanteRepository tripulanteRepository,
+                              AuditoriaService auditoriaService) {
         this.embarcacionRepository = embarcacionRepository;
+        this.auditoriaService = auditoriaService;
         this.asientoRepository     = asientoRepository;
         this.tripulanteRepository  = tripulanteRepository;
     }
@@ -70,6 +73,10 @@ public class EmbarcacionService {
         generarAsientos(e);
         guardarTripulantes(e, req);
 
+        auditoriaService.registrar("CREAR", "EMBARCACIONES", e.getId(),
+                "Embarcación " + e.getNombre() + " · " + e.getCantidadVip() + " VIP + "
+                        + e.getCantidadNormal() + " normales · VIP en " + e.getVipPosicion()
+                        + " · capitán " + e.getCapitan());
         return toDTO(e, true);
     }
 
@@ -77,6 +84,13 @@ public class EmbarcacionService {
     public EmbarcacionDTO editar(String id, EmbarcacionRequest req) {
         Embarcacion e = embarcacionRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Embarcación no encontrada"));
+
+        // Qué tenía antes: cambiar las cantidades o mover el VIP renumera el bote
+        // entero, y los pasajes ya vendidos quedan apuntando a otros asientos.
+        String nombreAntes = e.getNombre();
+        Integer vipAntes = e.getCantidadVip(), normalAntes = e.getCantidadNormal();
+        Object posAntes = e.getVipPosicion();
+        String capitanAntes = e.getCapitan();
 
         // La numeración depende de las cantidades y de dónde esté la zona VIP
         boolean cambioDistribucion =
@@ -100,6 +114,15 @@ public class EmbarcacionService {
         }
         guardarTripulantes(e, req);
 
+        auditoriaService.registrar("EDITAR", "EMBARCACIONES", e.getId(),
+                "Embarcación " + nombreAntes + " · " + Cambios.nuevos()
+                        .campo("Nombre", nombreAntes, e.getNombre())
+                        .campo("Asientos VIP", vipAntes, e.getCantidadVip())
+                        .campo("Asientos normales", normalAntes, e.getCantidadNormal())
+                        .campo("Posición del VIP", posAntes, e.getVipPosicion())
+                        .campo("Capitán", capitanAntes, e.getCapitan())
+                        .texto()
+                        + (cambioDistribucion ? " · se renumeraron los asientos" : ""));
         return toDTO(embarcacionRepository.save(e), true);
     }
 
