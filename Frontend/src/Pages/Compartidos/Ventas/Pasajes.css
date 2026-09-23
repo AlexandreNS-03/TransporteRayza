@@ -846,3 +846,71 @@
 .precio-fila { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; }
 .precio-fila:last-child { margin-bottom: 0; }
 .precio-fila-quien { font-size: 12px; color: #6b7280; }
+
+/* ══ La lista de pasajes, más apretada ══
+   Cada fila ocupaba casi 180 px porque el código del viaje, la fecha y el
+   nombre se partían en tres renglones: entraban cuatro pasajes en pantalla y
+   el resto era desplazarse. Acá cabe el triple, sin letra más chica. */
+
+.pasajes-tabla td { padding: 9px 12px; vertical-align: middle; }
+.pasajes-tabla th { padding: 9px 12px; white-space: nowrap; }
+
+/* Lo que nunca debe partirse: un código de viaje en tres pedazos no se lee. */
+.pasajes-tabla .codigo-viaje,
+.pasajes-tabla .celda-fecha,
+.pasajes-tabla .celda-precio,
+.pasajes-tabla .asiento-tipo { white-space: nowrap; }
+
+.celda-comprobante { display: flex; flex-direction: column; gap: 1px; line-height: 1.35; }
+.celda-comprobante .celda-sub {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 10.5px; color: #9ca3af;
+}
+.celda-comprobante .celda-sub i { font-size: 12px; color: #2563b0; }
+
+/* Nombre arriba, documento abajo: son la misma persona y se buscan juntos. */
+.pasajes-tabla .pasajero-info { display: flex; flex-direction: column; gap: 1px; line-height: 1.35; }
+.pasajes-tabla .pasajero-info strong { font-size: 13px; font-weight: 600; color: #0f172a; }
+.pasajes-tabla .pasajero-info span { font-size: 11.5px; color: #6b7280; }
+
+.tramo-linea { display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; }
+.tramo-linea i { font-size: 13px; color: #94a3b8; }
+
+/* Los importes se comparan de un vistazo solo si las cifras se alinean. */
+.celda-precio { text-align: right; font-variant-numeric: tabular-nums; }
+.celda-precio strong { font-size: 13.5px; }
+.celda-fecha { font-variant-numeric: tabular-nums; color: #475569; font-size: 12.5px; }
+
+.asiento-tipo { font-size: 11px; padding: 3px 8px; }
+
+.th-acciones { text-align: right; }
+.acciones-cell { white-space: nowrap; text-align: right; }
+
+/* La fila entera se resalta al pasar: con filas apretadas, el ojo necesita
+   una guía para no saltar de renglón. */
+.pasajes-tabla tbody tr { transition: background-color .12s ease; }
+.pasajes-tabla tbody tr:hover { background: #f8fafc; }
+
+/* ══ Resumen de lo filtrado ══
+   Es la primera pregunta de quien abre esta pantalla —cuánto se vendió— y
+   antes había que contarlo a mano. */
+.resumen-barra {
+    display: flex; align-items: baseline; gap: 28px; flex-wrap: wrap;
+    padding: 12px 18px; margin-bottom: 12px;
+    background: #fff; border: 1px solid #e5e7eb; border-radius: 10px;
+}
+.resumen-dato { display: flex; align-items: baseline; gap: 7px; }
+.resumen-dato strong {
+    font-size: 21px; font-weight: 700; color: #0f172a;
+    font-variant-numeric: tabular-nums; line-height: 1;
+}
+.resumen-dato span { font-size: 12.5px; color: #6b7280; }
+.resumen-plata strong { color: #15803d; }
+.resumen-anulados strong { color: #b91c1c; }
+.resumen-nota { margin-left: auto; font-size: 12px; color: #9ca3af; }
+
+@media (max-width: 720px) {
+    .resumen-barra { gap: 18px; padding: 11px 14px; }
+    .resumen-dato strong { font-size: 18px; }
+    .resumen-nota { margin-left: 0; width: 100%; }
+}
