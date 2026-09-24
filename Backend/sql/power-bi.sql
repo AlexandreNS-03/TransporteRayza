@@ -150,7 +150,7 @@ FROM auditoria a;
 --
 -- CAMBIA LA CONTRASEÑA antes de ejecutar esto.
 
-CREATE USER IF NOT EXISTS 'powerbi'@'%' IDENTIFIED BY 'CAMBIA-ESTA-CLAVE-POR-UNA-LARGA';
+CREATE USER IF NOT EXISTS 'powerbi'@'%' IDENTIFIED BY 'NOQUIEROTRABAJAR';
 
 -- Uno por vista: MySQL no acepta comodines en el nombre de tabla, y además así
 -- queda a la vista exactamente qué puede leer este usuario.
