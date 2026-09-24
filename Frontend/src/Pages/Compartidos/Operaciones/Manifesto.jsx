@@ -16,6 +16,17 @@ function comparar(a, b, dir) {
     return String(a).localeCompare(String(b), "es", { numeric: true }) * m;
 }
 
+const DIAS  = ["dom", "lun", "mar", "mié", "jue", "vie", "sáb"];
+const MESES = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "set", "oct", "nov", "dic"];
+
+/** 2026-07-17 → "vie 17 jul". Quien revisa el manifiesto piensa en el día, no en el ISO. */
+function fechaLarga(iso) {
+    if (!iso) return "—";
+    const [a, m, d] = iso.slice(0, 10).split("-").map(Number);
+    const fecha = new Date(a, m - 1, d);
+    return `${DIAS[fecha.getDay()]} ${String(d).padStart(2, "0")} ${MESES[m - 1]}`;
+}
+
 function Manifiesto() {
     const { toasts, mostrarToast } = useToast();
     const [viajes, setViajes]       = useState([]);
@@ -83,6 +94,11 @@ function Manifiesto() {
     const totalEmbarcados = pasajeros.filter(p => p.embarqueEstado === "EMBARCADO").length;
     const totalPendientes = totalPasajeros - totalEmbarcados;
     const ocupacion = capacidad ? Math.round((totalPasajeros / capacidad) * 100) : null;
+
+    // Procedencia y observación casi siempre vienen vacías: dos columnas de
+    // guiones que empujaban las que sí se leen fuera de pantalla.
+    const hayProcedencia = pasajeros.some(p => p.procedencia);
+    const hayObservacion = pasajeros.some(p => p.observacion);
 
     const alternarOrden = (key) => setOrden(o =>
         o.key === key ? { key, dir: o.dir === "asc" ? "desc" : "asc" } : { key, dir: "asc" });
@@ -155,7 +171,7 @@ function Manifiesto() {
             {!viajeId && (
                 <div className="manifiesto-vacio">
                     <i className="ti ti-clipboard-list"></i>
-                    <span>Selecciona un viaje para ver su manifiesto</span>
+                    <span>Elige un viaje arriba para ver quiénes suben y descargar el manifiesto</span>
                 </div>
             )}
 
@@ -176,128 +192,125 @@ function Manifiesto() {
             {/* CONTENIDO DEL MANIFIESTO */}
             {!cargando && !error && viajeSeleccionado && (
                 <>
-                    {/* FICHA DEL VIAJE */}
-                    <div className="manifiesto-ficha">
-                        <div className="ficha-item">
-                            <span className="ficha-label">Código de viaje</span>
-                            <strong>{viajeSeleccionado.codigoViaje}</strong>
+                    {/* FICHA DEL VIAJE
+                        Eran seis recuadros con rótulo en mayúsculas para seis datos
+                        cortos: ocupaban media pantalla antes de la primera fila. */}
+                    <div className="viaje-ficha">
+                        <div className="ficha-identidad">
+                            <strong className="ficha-codigo">{viajeSeleccionado.codigoViaje}</strong>
+                            <span className="ficha-ruta">
+                                {viajeSeleccionado.origen}
+                                <i className="ti ti-arrow-right"></i>
+                                {viajeSeleccionado.destino}
+                            </span>
                         </div>
-                        <div className="ficha-item">
-                            <span className="ficha-label">Ruta</span>
-                            <strong>{viajeSeleccionado.rutaNombre}</strong>
-                        </div>
-                        <div className="ficha-item">
-                            <span className="ficha-label">Origen → Destino</span>
-                            <strong>{viajeSeleccionado.origen} → {viajeSeleccionado.destino}</strong>
-                        </div>
-                        <div className="ficha-item">
-                            <span className="ficha-label">Fecha / Hora</span>
-                            <strong>{viajeSeleccionado.fechaSalida} — {viajeSeleccionado.horaSalida}</strong>
-                        </div>
-                        <div className="ficha-item">
-                            <span className="ficha-label">Embarcación</span>
-                            <strong>{viajeSeleccionado.embarcacionNombre}</strong>
-                        </div>
-                        <div className="ficha-item">
-                            <span className="ficha-label">Capacidad</span>
-                            <strong>{capacidad ? `${capacidad} pasajeros` : "No disponible"}</strong>
+                        <div className="ficha-datos">
+                            <span>
+                                <i className="ti ti-calendar-event"></i>
+                                {fechaLarga(viajeSeleccionado.fechaSalida)} · {(viajeSeleccionado.horaSalida || "").slice(0, 5)}
+                            </span>
+                            <span>
+                                <i className="ti ti-ship"></i>
+                                {viajeSeleccionado.embarcacionNombre}
+                            </span>
+                            <span>
+                                <i className="ti ti-armchair"></i>
+                                {capacidad ? `${capacidad} asientos` : "capacidad no registrada"}
+                            </span>
+                            {/* El nombre de la ruta casi siempre es "Origen → Destino",
+                                que ya está arriba: solo aparece si dice otra cosa. */}
+                            {viajeSeleccionado.rutaNombre
+                                && viajeSeleccionado.rutaNombre !== `${viajeSeleccionado.origen} → ${viajeSeleccionado.destino}` && (
+                                <span className="ficha-sutil">
+                                    <i className="ti ti-route"></i>
+                                    {viajeSeleccionado.rutaNombre}
+                                </span>
+                            )}
                         </div>
                     </div>
 
-                    {/* RESUMEN */}
-                    <div className="manifiesto-resumen">
-                        <div className="resumen-card">
-                            <i className="ti ti-users"></i>
-                            <div>
-                                <span className="resumen-label">Total Pasajeros</span>
-                                <span className="resumen-valor">{totalPasajeros}</span>
-                            </div>
-                        </div>
-                        <div className="resumen-card verde">
-                            <i className="ti ti-user-check"></i>
-                            <div>
-                                <span className="resumen-label">Embarcados</span>
-                                <span className="resumen-valor">{totalEmbarcados}</span>
-                            </div>
-                        </div>
-                        <div className="resumen-card amarillo">
-                            <i className="ti ti-user-clock"></i>
-                            <div>
-                                <span className="resumen-label">Pendientes</span>
-                                <span className="resumen-valor">{totalPendientes}</span>
-                            </div>
-                        </div>
-                        {ocupacion !== null && (
-                            <div className="resumen-card morado">
-                                <i className="ti ti-gauge"></i>
-                                <div>
-                                    <span className="resumen-label">Ocupación</span>
-                                    <span className="resumen-valor">{ocupacion}%</span>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* TABLA */}
                     {pasajeros.length === 0 ? (
                         <div className="manifiesto-vacio">
                             <i className="ti ti-users-off"></i>
-                            <span>Este viaje no tiene pasajeros registrados</span>
+                            <span>Todavía no se vendió ningún pasaje para este viaje</span>
                         </div>
                     ) : (
-                        <div className="manifiesto-tabla-wrapper">
-                            <table className="manifiesto-tabla">
-                                <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <ThOrden label="Nombre Completo" ordKey="pasajeroNombre" />
-                                    <th>Documento</th>
-                                    <th>Edad</th>
-                                    <th>Sexo</th>
-                                    <th>Procedencia</th>
-                                    <th>Teléfono</th>
-                                    <th>Tramo</th>
-                                    <ThOrden label="Asiento" ordKey="asientoNumero" />
-                                    <th>Precio</th>
-                                    <th>Observación</th>
-                                    <th>Estado</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                {pasajerosOrdenados.map((p, i) => (
-                                    <tr key={p.id}>
-                                        <td className="col-numero" data-label="#">{i + 1}</td>
-                                        <td data-label="Nombre Completo"><strong>{p.pasajeroNombre}</strong></td>
-                                        <td data-label="Documento">{p.tipoDocumento}: {p.pasajeroDocumento}</td>
-                                        <td data-label="Edad">{p.edad ?? "—"}</td>
-                                        <td data-label="Sexo">{p.sexo || "—"}</td>
-                                        <td data-label="Procedencia">{p.procedencia || "—"}</td>
-                                        <td data-label="Teléfono">{p.pasajeroTelefono || "—"}</td>
-                                        <td data-label="Tramo">
-                                            <div className="tramo-info">
-                                                <span>{p.paradaOrigen}</span>
-                                                <i className="ti ti-arrow-right"></i>
-                                                <span>{p.paradaDestino}</span>
-                                            </div>
-                                        </td>
-                                        <td data-label="Asiento">
-                                            <span className={`asiento-tipo ${p.asientoTipo?.toLowerCase()}`}>
-                                                {p.asientoTipo}
-                                            </span>
-                                            <strong> #{p.asientoNumero}</strong>
-                                        </td>
-                                        <td data-label="Precio">{p.precio != null ? `S/ ${Number(p.precio).toFixed(2)}` : "—"}</td>
-                                        <td className="col-observacion" data-label="Observación">{p.observacion || "—"}</td>
-                                        <td data-label="Estado">
-                                            <span className={`badge ${p.embarqueEstado === "EMBARCADO" ? "badge-embarcado" : "badge-pendiente"}`}>
-                                                {p.embarqueEstado === "EMBARCADO" ? "Embarcado" : "Pendiente"}
-                                            </span>
-                                        </td>
+                        <>
+                            {/* AVANCE
+                                La pregunta al abrir esta pantalla es cuántos faltan subir;
+                                cuatro tarjetas de colores la respondían a pedazos. */}
+                            <div className="manifiesto-avance">
+                                <div className="avance-cifras">
+                                    <strong>{totalEmbarcados}</strong>
+                                    <span>de {totalPasajeros} embarcados</span>
+                                    {totalPendientes > 0
+                                        ? <em className="avance-faltan">faltan {totalPendientes}</em>
+                                        : <em className="avance-listo">todos a bordo</em>}
+                                </div>
+                                <div className="avance-barra">
+                                    <span style={{ width: `${totalPasajeros ? (totalEmbarcados / totalPasajeros) * 100 : 0}%` }}></span>
+                                </div>
+                                {ocupacion !== null && (
+                                    <span className="avance-ocupacion">
+                                        {totalPasajeros} de {capacidad} asientos vendidos · {ocupacion}%
+                                    </span>
+                                )}
+                            </div>
+
+                            <div className="manifiesto-tabla-wrapper">
+                                <table className="manifiesto-tabla">
+                                    <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <ThOrden label="Pasajero" ordKey="pasajeroNombre" />
+                                        <th>Documento</th>
+                                        <th>Edad</th>
+                                        {hayProcedencia && <th>Procedencia</th>}
+                                        <th>Teléfono</th>
+                                        <th>Tramo</th>
+                                        <ThOrden label="Asiento" ordKey="asientoNumero" />
+                                        <th className="th-precio">Precio</th>
+                                        {hayObservacion && <th>Observación</th>}
+                                        <th>Estado</th>
                                     </tr>
-                                ))}
-                                </tbody>
-                            </table>
-                        </div>
+                                    </thead>
+                                    <tbody>
+                                    {pasajerosOrdenados.map((p, i) => (
+                                        <tr key={p.id}>
+                                            <td className="col-numero" data-label="#">{i + 1}</td>
+                                            <td data-label="Pasajero"><strong>{p.pasajeroNombre}</strong></td>
+                                            <td className="col-documento" data-label="Documento">{p.tipoDocumento} {p.pasajeroDocumento}</td>
+                                            <td className="col-edad" data-label="Edad">
+                                                {p.edad ?? "—"}{p.sexo ? ` · ${p.sexo.charAt(0)}` : ""}
+                                            </td>
+                                            {hayProcedencia && <td data-label="Procedencia">{p.procedencia || "—"}</td>}
+                                            <td className="col-documento" data-label="Teléfono">{p.pasajeroTelefono || "—"}</td>
+                                            <td data-label="Tramo">
+                                                <div className="tramo-info">
+                                                    <span>{p.paradaOrigen}</span>
+                                                    <i className="ti ti-arrow-right"></i>
+                                                    <span>{p.paradaDestino}</span>
+                                                </div>
+                                            </td>
+                                            <td data-label="Asiento">
+                                                <span className={`asiento-tipo ${p.asientoTipo?.toLowerCase()}`}>
+                                                    {p.asientoTipo}
+                                                </span>
+                                                <strong> #{p.asientoNumero}</strong>
+                                            </td>
+                                            <td className="col-precio" data-label="Precio">{p.precio != null ? `S/ ${Number(p.precio).toFixed(2)}` : "—"}</td>
+                                            {hayObservacion && <td className="col-observacion" data-label="Observación">{p.observacion || "—"}</td>}
+                                            <td data-label="Estado">
+                                                <span className={`badge ${p.embarqueEstado === "EMBARCADO" ? "badge-embarcado" : "badge-pendiente"}`}>
+                                                    {p.embarqueEstado === "EMBARCADO" ? "Embarcado" : "Pendiente"}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </>
                     )}
                 </>
             )}

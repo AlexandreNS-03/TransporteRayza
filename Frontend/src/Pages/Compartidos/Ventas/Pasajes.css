@@ -966,3 +966,30 @@
 /* El modal de encomienda lleva dos personas al lado: necesita más ancho que el
    resto de los asistentes. */
 .modal.modal-wizard.modal-encomienda { max-width: 860px; }
+
+/* ══ Todo alineado a la izquierda ══
+   #root lleva text-align: center desde la plantilla de Vite. Los <th> lo
+   corrigen uno por uno, pero las celdas no: los nombres de los pasajeros
+   quedaban centrados en su columna y el ojo no encontraba dónde empieza
+   cada renglón. Se corrige acá, donde se hereda, y las columnas de cifras
+   y de acciones vuelven a pedir la derecha con más especificidad. */
+.pasajes-header,
+.filtro-grupo,
+.pasajes-tabla tbody td { text-align: left; }
+
+.pasajes-tabla tbody td.celda-precio,
+.pasajes-tabla tbody td.acciones-cell { text-align: right; }
+.pasajes-tabla tbody td.tabla-vacia { text-align: center; }
+
+/* ══ La columna de acciones volvió a ser una celda ══
+   .acciones-cell llevaba display: flex sobre un <td>. Eso lo saca del
+   armado de la tabla: la celda deja de compartir el alto de su fila y su
+   línea inferior queda a media altura de la siguiente, que es la raya
+   descuadrada que se veía a la derecha de cada renglón. El flex pasa a los
+   botones, que es donde hacía falta. */
+.pasajes-tabla tbody td.acciones-cell {
+    display: table-cell;
+    vertical-align: middle;
+}
+.acciones-cell .btn-accion { display: inline-flex; vertical-align: middle; }
+.acciones-cell > .btn-accion + .btn-accion { margin-left: 6px; }
