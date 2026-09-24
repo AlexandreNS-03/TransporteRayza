@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import "../Ventas/Pasajes.css";
+import "./PorResolver.css";
 import { apiFetch } from "../../../Services/api.js";
 import { useToast, Toasts } from "../../../Components/Toast.jsx";
 import SelectorViaje from "../../../Components/SelectorViaje.jsx";
@@ -11,6 +12,19 @@ import SelectorViaje from "../../../Components/SelectorViaje.jsx";
  * pantalla alguien decide, pasajero por pasajero, si se devuelve el dinero,
  * se reprograma a otro viaje o se guarda como saldo a favor.
  */
+
+const METODO_LABEL = {
+    EFECTIVO: "Efectivo", YAPE: "Yape", PLIN: "Plin",
+    TARJETA: "Tarjeta", TRANSFERENCIA: "Transferencia",
+};
+
+/** 2026-12-15 → 15/12. El año no entra en una columna angosta y no hace falta. */
+function fechaCorta(iso) {
+    if (!iso) return "";
+    const [, m, d] = iso.slice(0, 10).split("-");
+    return `${d}/${m}`;
+}
+
 function PorResolver() {
     const { toasts, mostrarToast } = useToast();
 
@@ -56,16 +70,17 @@ function PorResolver() {
     };
 
     const devolver = (v) => {
-        if (!confirm(`¿Devolver S/ ${v.precio} a ${v.pasajeroNombre}? Se registrará el egreso en tu caja.`)) return;
+        // Lo cobrado por la web no está en el cajón (entra a Izipay o Mercado
+        // Pago): quien devuelve en efectivo tiene que saberlo antes de abrirlo.
+        const avisoWeb = v.canal === "WEB"
+            ? `\n\nOJO: este pasaje se pagó por la web (${METODO_LABEL[v.metodoPago] || v.metodoPago}). Ese dinero no está en tu cajón.`
+            : "";
+        if (!confirm(`¿Devolver S/ ${Number(v.precio).toFixed(2)} a ${v.pasajeroNombre}? Se registrará el egreso en tu caja.${avisoWeb}`)) return;
         accion(v, "devolver", "dinero devuelto");
     };
 
     const saldoAFavor = (v) => {
-        if (!v.clienteEmail) {
-            mostrarToast("error", "Este pasaje no tiene correo del cliente. Usa devolución.");
-            return;
-        }
-        if (!confirm(`¿Guardar S/ ${v.precio} como saldo a favor de ${v.clienteEmail}?`)) return;
+        if (!confirm(`¿Guardar S/ ${Number(v.precio).toFixed(2)} como saldo a favor de ${v.clienteEmail}?`)) return;
         accion(v, "saldo-favor", "saldo a favor guardado");
     };
 
@@ -75,6 +90,13 @@ function PorResolver() {
     };
 
     const total = pendientes.reduce((s, v) => s + (Number(v.precio) || 0), 0);
+    const viajesAfectados = new Set(pendientes.map(v => v.viajeCodigo)).size;
+
+    // Los pasajeros del mismo viaje cancelado se resuelven de una sentada: van
+    // juntos aunque la lista llegue mezclada.
+    const lista = [...pendientes].sort((a, b) =>
+        (a.viajeCodigo || "").localeCompare(b.viajeCodigo || "", "es", { numeric: true })
+        || (a.pasajeroNombre || "").localeCompare(b.pasajeroNombre || "", "es"));
 
     return (
         <div className="pasajes-page">
@@ -111,74 +133,101 @@ function PorResolver() {
 
             {!cargando && !error && pendientes.length > 0 && (
                 <>
-                    <div className="aviso-cancel">
-                        <i className="ti ti-alert-triangle"></i>
-                        <div>
-                            <strong>{pendientes.length} pasaje(s) por resolver — S/ {total.toFixed(2)}</strong>
-                            <span>
-                                <b>Devolver</b> entrega el dinero y lo descuenta de tu caja.
-                                <b> Reprogramar</b> mueve el pasaje a otro viaje sin cobrar de nuevo.
-                                <b> Saldo a favor</b> le guarda el monto al cliente para su próxima compra.
-                            </span>
+                    <div className="resumen-barra">
+                        <div className="resumen-dato">
+                            <strong>{pendientes.length}</strong>
+                            <span>{pendientes.length === 1 ? "pasaje por resolver" : "pasajes por resolver"}</span>
+                        </div>
+                        <div className="resumen-dato resumen-plata">
+                            <strong>S/ {total.toFixed(2)}</strong>
+                            <span>en juego</span>
+                        </div>
+                        <div className="resumen-dato">
+                            <strong>{viajesAfectados}</strong>
+                            <span>{viajesAfectados === 1 ? "viaje cancelado" : "viajes cancelados"}</span>
                         </div>
                     </div>
 
+                    {/* Los botones dicen qué hacen; esta línea dice qué pasa después,
+                        que es lo que no se puede leer del nombre. */}
+                    <p className="resolver-leyenda">
+                        <b>Devolver</b> saca la plata de tu caja ·
+                        <b> Reprogramar</b> lo mueve a otro viaje sin cobrarle de nuevo ·
+                        <b> Saldo a favor</b> se lo guarda para su próxima compra
+                    </p>
+
                     <div className="pasajes-tabla-wrapper">
-                        <table className="pasajes-tabla">
+                        <table className="pasajes-tabla tabla-resolver">
                             <thead>
                             <tr>
                                 <th>Pasajero</th>
                                 <th>Viaje cancelado</th>
                                 <th>Tramo</th>
-                                <th>Contacto</th>
-                                <th>Monto</th>
+                                <th className="th-pago">Pagó</th>
                                 <th>Qué hacer</th>
                             </tr>
                             </thead>
                             <tbody>
-                            {pendientes.map(v => (
+                            {lista.map(v => {
+                                const ocupado = procesando === v.id;
+                                const sinCorreo = !v.clienteEmail;
+                                return (
                                 <tr key={v.id}>
-                                    <td>
+                                    <td data-label="Pasajero">
                                         <div className="pasajero-info">
                                             <strong>{v.pasajeroNombre}</strong>
                                             <span>{v.tipoDocumento} {v.pasajeroDocumento}</span>
+                                            <span className="resolver-contacto">
+                                                {v.pasajeroTelefono && <em><i className="ti ti-phone"></i>{v.pasajeroTelefono}</em>}
+                                                {v.clienteEmail && <em><i className="ti ti-mail"></i>{v.clienteEmail}</em>}
+                                                {!v.pasajeroTelefono && !v.clienteEmail && <em className="sin-dato">sin teléfono ni correo</em>}
+                                            </span>
                                         </div>
                                     </td>
-                                    <td className="codigo">{v.viajeCodigo}</td>
-                                    <td>
-                                        <div className="tramo-info">
-                                            <span>{v.paradaOrigen}</span>
-                                            <i className="ti ti-arrow-right"></i>
-                                            <span>{v.paradaDestino}</span>
-                                        </div>
-                                    </td>
-                                    <td>
+                                    <td data-label="Viaje cancelado">
                                         <div className="pasajero-info">
-                                            {v.clienteEmail && <span>{v.clienteEmail}</span>}
-                                            {v.pasajeroTelefono && <span>{v.pasajeroTelefono}</span>}
-                                            {!v.clienteEmail && !v.pasajeroTelefono && <span>—</span>}
+                                            <strong className="codigo">{v.viajeCodigo}</strong>
+                                            {v.fechaSalida && (
+                                                <span className="celda-fecha">
+                                                    salía {fechaCorta(v.fechaSalida)} · {(v.horaSalida || "").slice(0, 5)}
+                                                </span>
+                                            )}
                                         </div>
                                     </td>
-                                    <td><strong>S/ {Number(v.precio).toFixed(2)}</strong></td>
-                                    <td className="acciones-cell">
-                                        <button className="btn-accion anular" title="Devolver el dinero"
-                                                disabled={procesando === v.id}
+                                    <td data-label="Tramo">
+                                        <span className="tramo-linea">
+                                            {v.paradaOrigen} <i className="ti ti-arrow-right"></i> {v.paradaDestino}
+                                        </span>
+                                    </td>
+                                    <td className="celda-precio" data-label="Pagó">
+                                        <strong>S/ {Number(v.precio).toFixed(2)}</strong>
+                                        <span className="celda-metodo">
+                                            {METODO_LABEL[v.metodoPago] || v.metodoPago || (v.canal === "WEB" ? "" : "—")}
+                                            {v.canal === "WEB" && <em>{v.metodoPago ? " · web" : "web"}</em>}
+                                        </span>
+                                    </td>
+                                    <td className="acciones-cell" data-label="Qué hacer">
+                                        <button className="btn-resolver devolver" disabled={ocupado}
+                                                title="Entregar el dinero y registrar el egreso en tu caja"
                                                 onClick={() => devolver(v)}>
-                                            <i className="ti ti-cash"></i>
+                                            <i className="ti ti-cash"></i> Devolver
                                         </button>
-                                        <button className="btn-accion comprobante" title="Reprogramar a otro viaje"
-                                                disabled={procesando === v.id}
+                                        <button className="btn-resolver mover" disabled={ocupado}
+                                                title="Mover el pasaje a otro viaje sin volver a cobrar"
                                                 onClick={() => { setReprogramar(v); setViajeDestino(""); setErrorRepro(null); }}>
-                                            <i className="ti ti-calendar-plus"></i>
+                                            <i className="ti ti-calendar-plus"></i> Reprogramar
                                         </button>
-                                        <button className="btn-accion generar" title="Guardar como saldo a favor"
-                                                disabled={procesando === v.id}
+                                        <button className="btn-resolver saldo" disabled={ocupado || sinCorreo}
+                                                title={sinCorreo
+                                                    ? "Sin correo del cliente no se puede guardar saldo: usa Devolver"
+                                                    : `Guardar el monto para ${v.clienteEmail}`}
                                                 onClick={() => saldoAFavor(v)}>
-                                            <i className="ti ti-wallet"></i>
+                                            <i className="ti ti-wallet"></i> Saldo a favor
                                         </button>
                                     </td>
                                 </tr>
-                            ))}
+                                );
+                            })}
                             </tbody>
                         </table>
                     </div>

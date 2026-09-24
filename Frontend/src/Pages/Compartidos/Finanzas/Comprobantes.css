@@ -245,3 +245,35 @@
 .contacto-card strong { display: block; font-size: 14px; color: #1e293b; }
 .contacto-card span   { display: block; font-size: 11.5px; color: var(--txt-3); }
 .contacto-card .contacto-dato { font-size: 12.5px; color: #1a4db5; font-weight: 600; margin-top: 2px; }
+
+/* ══════════════════════════════════════════════════════════════════
+   COMPROBANTES — rediseño
+   La tabla traía dos columnas, "Op. Exonerada" e "IGV", que en esta
+   empresa dicen siempre lo mismo: el IGV es 0.00 y la operación
+   exonerada es el total (Ley 27037, Amazonía). Ocupaban una quinta
+   parte del ancho repitiendo un dato que ahora se dice una vez en el
+   subtítulo y se detalla en el modal.
+   Las cuatro tarjetas de resumen pasaron a la barra compartida
+   (.resumen-barra, en Pasajes.css) y ahora cuentan lo filtrado.
+   ══════════════════════════════════════════════════════════════════ */
+
+.pasajes-tabla .th-total { text-align: right; }
+
+/* Ver e imprimir contra emitir nota de crédito o dar de baja: el hueco
+   evita el clic de más en la acción que no se deshace. */
+.comp-acciones { display: inline-flex; align-items: center; gap: 6px; }
+.comp-acciones-serias {
+    display: inline-flex; align-items: center; gap: 6px;
+    margin-left: 6px; padding-left: 10px;
+    border-left: 1px solid #e5e7eb;
+}
+
+.pasajes-tabla .comp-tipo { margin-top: 1px; }
+
+@media (max-width: 720px) {
+    .comp-acciones { flex-wrap: wrap; justify-content: flex-end; }
+    .comp-acciones-serias { margin-left: 0; padding-left: 0; border-left: none; }
+}
+
+/* El <td> queda como celda de tabla; el flex vive en el envoltorio. */
+.pasajes-tabla tbody td.acciones-cell { white-space: nowrap; }

@@ -14,6 +14,13 @@ const TIPO_LABEL = { BOLETA: "Boleta", FACTURA: "Factura", NOTA_CREDITO: "N. Cr�
 
 function numeroFmt(n) { return String(n).padStart(8, "0"); }
 
+/** 2026-07-24 → 24/07/26. La columna es angosta y el año completo no aporta. */
+function fechaCorta(iso) {
+    if (!iso) return "—";
+    const [a, m, d] = iso.slice(0, 10).split("-");
+    return `${d}/${m}/${a.slice(2)}`;
+}
+
 function Comprobantes() {
     const usuario       = JSON.parse(localStorage.getItem("usuario"));
     const puedeAnular   = usuario?.rol === "ADMIN" || usuario?.rol === "SUPERVISOR";
@@ -145,11 +152,17 @@ function Comprobantes() {
 
     const pag = usePaginacion(filtrados, 10);
 
-    // Resumen
-    const totalBoletas  = comprobantes.filter(c => c.tipoDeComprobante === "BOLETA").length;
-    const totalFacturas = comprobantes.filter(c => c.tipoDeComprobante === "FACTURA").length;
-    const totalAnulados = comprobantes.filter(c => c.estado === "ANULADO").length;
-    const montoEmitido  = comprobantes
+    const hayFiltros = filtroTipo !== "todos" || filtroEstado !== "todos"
+        || !!fechaDesde || !!fechaHasta || !!busqueda.trim();
+
+    // El resumen cuenta lo que se está viendo. Antes sumaba siempre todo el
+    // historial, así que filtrar por un mes dejaba arriba una cifra que no
+    // correspondía a ninguna fila de la tabla.
+    const totalBoletas  = filtrados.filter(c => c.tipoDeComprobante === "BOLETA").length;
+    const totalFacturas = filtrados.filter(c => c.tipoDeComprobante === "FACTURA").length;
+    const totalNotasCr  = filtrados.filter(c => c.tipoDeComprobante === "NOTA_CREDITO").length;
+    const totalAnulados = filtrados.filter(c => c.estado === "ANULADO").length;
+    const montoEmitido  = filtrados
         .filter(c => c.estado === "ACEPTADO" && c.tipoDeComprobante !== "NOTA_CREDITO")
         .reduce((sum, c) => sum + (parseFloat(c.total) || 0), 0);
 
@@ -160,28 +173,37 @@ function Comprobantes() {
             <div className="pasajes-header">
                 <div>
                     <h2>Comprobantes Electrónicos</h2>
-                    <p>Historial de boletas y facturas emitidas (Nubefact)</p>
+                    <p>Historial de lo emitido por Nubefact · todo exonerado de IGV (Ley 27037, Amazonía)</p>
                 </div>
             </div>
 
-            {/* RESUMEN */}
-            <div className="comp-stats">
-                <div className="comp-stat">
-                    <i className="ti ti-receipt"></i>
-                    <div><strong>{totalBoletas}</strong><span>Boletas</span></div>
+            {/* RESUMEN DE LO QUE SE ESTÁ VIENDO */}
+            <div className="resumen-barra">
+                <div className="resumen-dato">
+                    <strong>{totalBoletas}</strong>
+                    <span>{totalBoletas === 1 ? "boleta" : "boletas"}</span>
                 </div>
-                <div className="comp-stat">
-                    <i className="ti ti-file-invoice"></i>
-                    <div><strong>{totalFacturas}</strong><span>Facturas</span></div>
+                <div className="resumen-dato">
+                    <strong>{totalFacturas}</strong>
+                    <span>{totalFacturas === 1 ? "factura" : "facturas"}</span>
                 </div>
-                <div className="comp-stat anulado">
-                    <i className="ti ti-ban"></i>
-                    <div><strong>{totalAnulados}</strong><span>Anulados</span></div>
+                {totalNotasCr > 0 && (
+                    <div className="resumen-dato">
+                        <strong>{totalNotasCr}</strong>
+                        <span>{totalNotasCr === 1 ? "nota de crédito" : "notas de crédito"}</span>
+                    </div>
+                )}
+                <div className="resumen-dato resumen-plata">
+                    <strong>S/ {montoEmitido.toFixed(2)}</strong>
+                    <span>emitido</span>
                 </div>
-                <div className="comp-stat monto">
-                    <i className="ti ti-cash"></i>
-                    <div><strong>S/ {montoEmitido.toFixed(2)}</strong><span>Total emitido</span></div>
-                </div>
+                {totalAnulados > 0 && (
+                    <div className="resumen-dato resumen-anulados">
+                        <strong>{totalAnulados}</strong>
+                        <span>{totalAnulados === 1 ? "anulado" : "anulados"}</span>
+                    </div>
+                )}
+                {hayFiltros && <span className="resumen-nota">con los filtros puestos</span>}
             </div>
 
             {/* FILTROS */}
@@ -241,17 +263,15 @@ function Comprobantes() {
                             <th>Cliente</th>
                             <th>Venta</th>
                             <th>Emisión</th>
-                            <th>Op. Exonerada</th>
-                            <th>IGV</th>
-                            <th>Total</th>
+                            <th className="th-total">Total</th>
                             <th>Estado</th>
-                            <th>Acciones</th>
+                            <th className="th-acciones">Acciones</th>
                         </tr>
                         </thead>
                         <tbody>
                         {pag.items.length === 0 ? (
                             <tr>
-                                <td colSpan={9} className="tabla-vacia">
+                                <td colSpan={7} className="tabla-vacia">
                                     <i className="ti ti-file-off"></i>
                                     <span>No se encontraron comprobantes</span>
                                 </td>
@@ -279,58 +299,66 @@ function Comprobantes() {
                                     <td data-label="Venta">
                                         <div className="pasajero-info">
                                             <strong className="codigo">{c.viajeCodigo || "—"}</strong>
-                                            <span>{c.pasajeroNombre || ""}</span>
+                                            {/* En una boleta el pasajero y el cliente son la misma
+                                                persona; solo vale repetirlo cuando no lo son (factura
+                                                a nombre de una empresa, por ejemplo). */}
+                                            {c.pasajeroNombre && c.pasajeroNombre !== c.clienteDenominacion && (
+                                                <span>{c.pasajeroNombre}</span>
+                                            )}
                                         </div>
                                     </td>
-                                    <td data-label="Emisión">{c.fechaDeEmision}</td>
-                                    <td data-label="Op. Exonerada">S/ {Number(c.totalExonerada).toFixed(2)}</td>
-                                    <td data-label="IGV">S/ {Number(c.totalIgv).toFixed(2)}</td>
-                                    <td data-label="Total"><strong>S/ {Number(c.total).toFixed(2)}</strong></td>
+                                    <td className="celda-fecha" data-label="Emisión">{fechaCorta(c.fechaDeEmision)}</td>
+                                    <td className="celda-precio" data-label="Total"><strong>S/ {Number(c.total).toFixed(2)}</strong></td>
                                     <td data-label="Estado">
                                         <span className={`badge ${c.estado === "ACEPTADO" ? "badge-pagado" : "badge-anulado"}`}>
                                             {c.estado === "ACEPTADO" ? "Aceptado" : "Anulado"}
                                         </span>
                                     </td>
-                                    <td className="acciones-cell">
-                                        <button
-                                            className="btn-accion comprobante"
-                                            onClick={() => verDetalle(c)}
-                                            title="Ver detalle / JSON Nubefact"
-                                        >
-                                            <i className="ti ti-eye"></i>
-                                        </button>
-                                        <button
-                                            className="btn-accion email"
-                                            onClick={() => descargarPDF(c, "a4")}
-                                            title="Descargar PDF A4"
-                                        >
-                                            <i className="ti ti-file-type-pdf"></i>
-                                        </button>
-                                        <button
-                                            className="btn-accion a4"
-                                            onClick={() => descargarPDF(c, "80mm")}
-                                            title="Descargar PDF 80mm (térmica)"
-                                        >
-                                            <i className="ti ti-receipt"></i>
-                                        </button>
-                                        {puedeAnular && c.estado === "ACEPTADO" && c.tipoDeComprobante !== "NOTA_CREDITO" && (
-                                            <>
-                                                <button
-                                                    className="btn-accion generar"
-                                                    onClick={() => abrirNC(c)}
-                                                    title="Emitir nota de crédito (anulación de la operación)"
-                                                >
-                                                    <i className="ti ti-file-minus"></i>
-                                                </button>
-                                                <button
-                                                    className="btn-accion anular"
-                                                    onClick={() => abrirAnular(c)}
-                                                    title="Anular comprobante (comunicación de baja)"
-                                                >
-                                                    <i className="ti ti-ban"></i>
-                                                </button>
-                                            </>
-                                        )}
+                                    <td className="acciones-cell" data-label="Acciones">
+                                        {/* Mirar e imprimir se hacen todo el día; emitir una nota de
+                                            crédito o dar de baja ante SUNAT no se deshace. Van separadas
+                                            para que la mano no se equivoque de botón. */}
+                                        <div className="comp-acciones">
+                                            <button
+                                                className="btn-accion comprobante"
+                                                onClick={() => verDetalle(c)}
+                                                title="Ver detalle / JSON Nubefact"
+                                            >
+                                                <i className="ti ti-eye"></i>
+                                            </button>
+                                            <button
+                                                className="btn-accion email"
+                                                onClick={() => descargarPDF(c, "a4")}
+                                                title="Descargar PDF A4"
+                                            >
+                                                <i className="ti ti-file-type-pdf"></i>
+                                            </button>
+                                            <button
+                                                className="btn-accion a4"
+                                                onClick={() => descargarPDF(c, "80mm")}
+                                                title="Imprimir en la térmica (80 mm)"
+                                            >
+                                                <i className="ti ti-receipt"></i>
+                                            </button>
+                                            {puedeAnular && c.estado === "ACEPTADO" && c.tipoDeComprobante !== "NOTA_CREDITO" && (
+                                                <span className="comp-acciones-serias">
+                                                    <button
+                                                        className="btn-accion generar"
+                                                        onClick={() => abrirNC(c)}
+                                                        title="Emitir nota de crédito (anulación de la operación)"
+                                                    >
+                                                        <i className="ti ti-file-minus"></i>
+                                                    </button>
+                                                    <button
+                                                        className="btn-accion anular"
+                                                        onClick={() => abrirAnular(c)}
+                                                        title="Anular ante SUNAT (comunicación de baja)"
+                                                    >
+                                                        <i className="ti ti-ban"></i>
+                                                    </button>
+                                                </span>
+                                            )}
+                                        </div>
                                     </td>
                                 </tr>
                             ))

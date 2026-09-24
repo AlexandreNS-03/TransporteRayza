@@ -1,0 +1,70 @@
+/* ══ Pasajes por resolver ══
+   Cada fila de esta pantalla mueve plata: devolver la saca de la caja, saldo a
+   favor la guarda y reprogramar no la toca. Antes las tres opciones eran tres
+   iconitos de colores sin texto y había que adivinar cuál era cuál. */
+
+.resolver-leyenda {
+    margin: -4px 0 12px;
+    font-size: 12.5px;
+    color: #6b7280;
+    line-height: 1.6;
+    text-align: left;
+}
+.resolver-leyenda b { color: #334155; font-weight: 600; }
+
+/* ══ Botones con nombre ══
+   La celda se queda como celda de tabla (ver Pasajes.css): la separación
+   entre botones va por margen, no por gap de flex. */
+.tabla-resolver .btn-resolver + .btn-resolver { margin-left: 6px; }
+
+.btn-resolver {
+    display: inline-flex; align-items: center; gap: 5px;
+    height: 30px; padding: 0 11px;
+    border: 1px solid transparent; border-radius: 7px;
+    font-size: 12.5px; font-weight: 600; white-space: nowrap;
+    cursor: pointer;
+    transition: background-color .15s ease, border-color .15s ease;
+}
+.btn-resolver i { font-size: 15px; }
+
+.btn-resolver.devolver       { background: #fef2f2; border-color: #fecaca; color: #b91c1c; }
+.btn-resolver.devolver:hover:not(:disabled) { background: #fee2e2; }
+
+.btn-resolver.mover          { background: #eff6ff; border-color: #bfdbfe; color: #1d4ed8; }
+.btn-resolver.mover:hover:not(:disabled)    { background: #dbeafe; }
+
+.btn-resolver.saldo          { background: #fefce8; border-color: #fde68a; color: #a16207; }
+.btn-resolver.saldo:hover:not(:disabled)    { background: #fef9c3; }
+
+.btn-resolver:disabled { opacity: .45; cursor: not-allowed; }
+.btn-resolver:active:not(:disabled) { transform: translateY(1px); }
+.btn-resolver:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
+
+/* ══ Celdas ══ */
+/* Teléfono y correo van con la persona: son para llamarla, no una columna
+   aparte que solo sirve para ensanchar la tabla. */
+.resolver-contacto { display: flex; flex-direction: column; gap: 1px; margin-top: 2px; }
+.resolver-contacto em {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-style: normal; font-size: 11.5px; color: #64748b;
+}
+.resolver-contacto em i { font-size: 12px; color: #94a3b8; }
+.resolver-contacto .sin-dato { color: #b91c1c; }
+
+.tabla-resolver .th-pago { text-align: right; }
+.tabla-resolver .celda-precio { white-space: nowrap; }
+.tabla-resolver .celda-precio strong { display: block; font-size: 13.5px; }
+.celda-metodo { display: block; font-size: 11.5px; color: #6b7280; }
+/* La venta web se cobró por Izipay o Mercado Pago: ese dinero no está en el cajón. */
+.celda-metodo em { font-style: normal; color: #4338ca; font-weight: 600; }
+
+.tabla-resolver td { vertical-align: top; padding-top: 11px; padding-bottom: 11px; }
+
+@media (max-width: 1100px) {
+    .btn-resolver { padding: 0 9px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .btn-resolver { transition: none; }
+    .btn-resolver:active:not(:disabled) { transform: none; }
+}
