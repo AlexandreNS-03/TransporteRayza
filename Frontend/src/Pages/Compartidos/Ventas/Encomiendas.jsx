@@ -466,43 +466,52 @@ function Encomiendas() {
             {/* MODAL CREAR */}
             {modalCrear && (
                 <div className="modal-overlay" onClick={() => setModalCrear(false)}>
-                    <div className="modal modal-wizard" onClick={e => e.stopPropagation()}>
+                    <div className="modal modal-wizard modal-encomienda" onClick={e => e.stopPropagation()}>
                         <div className="wizard-header">
                             <h3>Nueva Encomienda</h3>
                             <button className="modal-cerrar" onClick={() => setModalCrear(false)}><i className="ti ti-x"></i></button>
                         </div>
                         <div className="modal-body modal-scroll">
                             <div className="wizard-contenido">
-                                <p className="wizard-titulo">Remitente (quien envía y paga)</p>
-                                <div className="form-grupo">
-                                    <label>Nombre completo *</label>
-                                    <input type="text" name="remitenteNombre" value={form.remitenteNombre} onChange={handleChange} placeholder="Juan Pérez García" />
-                                </div>
-                                <div className="form-fila">
-                                    <div className="form-grupo">
-                                        <label>Documento</label>
-                                        <input type="text" name="remitenteDocumento" value={form.remitenteDocumento} onChange={handleChange} placeholder="12345678" />
-                                    </div>
-                                    <div className="form-grupo">
-                                        <label>Teléfono</label>
-                                        <input type="text" name="remitenteTelefono" value={form.remitenteTelefono} onChange={handleChange} placeholder="999888777" />
-                                    </div>
-                                </div>
+                                {/* Las dos personas, una al lado de la otra: se copian del
+                                    mismo papel y antes había que bajar el modal a la mitad
+                                    para pasar de una a la otra. */}
+                                <div className="enc-personas">
+                                    <fieldset className="enc-persona">
+                                        <legend>Remitente <span>quien envía y paga</span></legend>
+                                        <div className="form-grupo">
+                                            <label>Nombre completo *</label>
+                                            <input type="text" name="remitenteNombre" value={form.remitenteNombre} onChange={handleChange} placeholder="Juan Pérez García" />
+                                        </div>
+                                        <div className="form-fila">
+                                            <div className="form-grupo">
+                                                <label>Documento</label>
+                                                <input type="text" name="remitenteDocumento" value={form.remitenteDocumento} onChange={handleChange} placeholder="12345678" />
+                                            </div>
+                                            <div className="form-grupo">
+                                                <label>Teléfono</label>
+                                                <input type="text" name="remitenteTelefono" value={form.remitenteTelefono} onChange={handleChange} placeholder="999888777" />
+                                            </div>
+                                        </div>
+                                    </fieldset>
 
-                                <p className="wizard-titulo">Destinatario (quien recibe)</p>
-                                <div className="form-grupo">
-                                    <label>Nombre completo *</label>
-                                    <input type="text" name="destinatarioNombre" value={form.destinatarioNombre} onChange={handleChange} placeholder="María López" />
-                                </div>
-                                <div className="form-fila">
-                                    <div className="form-grupo">
-                                        <label>Documento</label>
-                                        <input type="text" name="destinatarioDocumento" value={form.destinatarioDocumento} onChange={handleChange} placeholder="87654321" />
-                                    </div>
-                                    <div className="form-grupo">
-                                        <label>Teléfono</label>
-                                        <input type="text" name="destinatarioTelefono" value={form.destinatarioTelefono} onChange={handleChange} placeholder="988777666" />
-                                    </div>
+                                    <fieldset className="enc-persona">
+                                        <legend>Destinatario <span>quien recibe</span></legend>
+                                        <div className="form-grupo">
+                                            <label>Nombre completo *</label>
+                                            <input type="text" name="destinatarioNombre" value={form.destinatarioNombre} onChange={handleChange} placeholder="María López" />
+                                        </div>
+                                        <div className="form-fila">
+                                            <div className="form-grupo">
+                                                <label>Documento</label>
+                                                <input type="text" name="destinatarioDocumento" value={form.destinatarioDocumento} onChange={handleChange} placeholder="87654321" />
+                                            </div>
+                                            <div className="form-grupo">
+                                                <label>Teléfono</label>
+                                                <input type="text" name="destinatarioTelefono" value={form.destinatarioTelefono} onChange={handleChange} placeholder="988777666" />
+                                            </div>
+                                        </div>
+                                    </fieldset>
                                 </div>
 
                                 <p className="wizard-titulo">Paquete y envío</p>

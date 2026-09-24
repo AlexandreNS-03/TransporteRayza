@@ -12,6 +12,9 @@ public interface ViajeRepository extends JpaRepository<Viaje, String> {
 
     List<Viaje> findAllByOrderByFechaSalidaDesc();
 
+    /** Lo último que se creó, primero: es donde mira quien acaba de programar salidas. */
+    List<Viaje> findAllByOrderByCreatedAtDesc();
+
     List<Viaje> findBySucursalId(String sucursalId);
 
     List<Viaje> findByRutaId(String rutaId);
