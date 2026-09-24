@@ -40,19 +40,30 @@ function fechaCorta(iso) {
 }
 
 /** Agrupa los viajes por día, con lo más próximo primero. */
-function agruparPorFecha(viajes) {
+/**
+ * Los viajes agrupados por día.
+ *
+ * El orden de los días lo decide quien mira: recién creados primero —así lo que
+ * acabas de programar está arriba y no al final de todo el año— o por fecha de
+ * salida, para leer el calendario en orden.
+ *
+ * `viajes` llega del servidor ordenado por creación descendente, así que para
+ * "recientes" alcanza con respetar el orden en que aparecen los días.
+ */
+function agruparPorFecha(viajes, orden = "recientes") {
     const dias = new Map();
     for (const v of viajes) {
         const clave = v.fechaSalida || "";
         if (!dias.has(clave)) dias.set(clave, []);
         dias.get(clave).push(v);
     }
-    return [...dias.entries()]
-        .sort((a, b) => a[0].localeCompare(b[0]))
-        .map(([fecha, lista]) => ({
-            fecha,
-            viajes: lista.sort((x, y) => (x.horaSalida || "").localeCompare(y.horaSalida || "")),
-        }));
+    const grupos = [...dias.entries()];
+    if (orden === "fecha") grupos.sort((a, b) => a[0].localeCompare(b[0]));
+
+    return grupos.map(([fecha, lista]) => ({
+        fecha,
+        viajes: lista.sort((x, y) => (x.horaSalida || "").localeCompare(y.horaSalida || "")),
+    }));
 }
 
 function badgeClass(estado) {
@@ -85,6 +96,9 @@ function Viajes() {
     // La vista elegida se recuerda: cada oficina trabaja distinto y no tiene por qué
     // volver a cambiarla cada vez que entra.
     const [vista, setVista] = useState(() => localStorage.getItem("viajes.vista") || "tarjetas");
+    const [ordenLista, setOrdenLista] = useState(() => localStorage.getItem("viajes.orden") || "recientes");
+
+    const cambiarOrden = (o) => { setOrdenLista(o); localStorage.setItem("viajes.orden", o); };
     const cambiarVista = (v) => { setVista(v); localStorage.setItem("viajes.vista", v); };
 
     const [viajes, setViajes]         = useState([]);
@@ -284,7 +298,7 @@ function Viajes() {
         return true;
     });
 
-    const porDia = agruparPorFecha(viajesFiltrados);
+    const porDia = agruparPorFecha(viajesFiltrados, ordenLista);
 
     return (
         <div className="viajes-page">
@@ -294,7 +308,17 @@ function Viajes() {
             <div className="viajes-header">
                 <div>
                     <h2>Viajes</h2>
-                    <p>Gestión administrativa de trayectos fluviales</p>
+                    {/* De qué sucursal son los viajes que se están viendo.
+                        Sin esto, una cuenta a la que se olvidaron de asignarle
+                        sucursal ve las salidas de las dos y nadie se entera:
+                        la lista se ve normal, solo que con viajes de más. */}
+                    <p>
+                        {usuario?.sucursalNombre
+                            ? <>Salidas de <strong>{usuario.sucursalNombre}</strong></>
+                            : esAdmin
+                                ? "Salidas de todas las sucursales"
+                                : <>Salidas de <strong>todas las sucursales</strong> · tu cuenta no tiene una asignada</>}
+                    </p>
                 </div>
                 <div style={{ display: "flex", gap: "10px" }}>
                     {(esAdmin || esSupervisor || esEmpleado) && (
@@ -360,6 +384,23 @@ function Viajes() {
                 </button>
 
                 {/* Tarjetas para el día a día; tabla para revisar o comparar muchos */}
+                {/* Qué va arriba. Por defecto lo último creado: es lo que se acaba
+                    de programar y lo que se viene a revisar. */}
+                {vista === "tarjetas" && (
+                    <div className="vista-selector" role="group" aria-label="Orden de la lista">
+                        <button className={ordenLista === "recientes" ? "activo" : ""}
+                                onClick={() => cambiarOrden("recientes")}
+                                title="Los últimos viajes que creaste, arriba">
+                            <i className="ti ti-clock-plus"></i> Recientes
+                        </button>
+                        <button className={ordenLista === "fecha" ? "activo" : ""}
+                                onClick={() => cambiarOrden("fecha")}
+                                title="En orden de calendario">
+                            <i className="ti ti-calendar"></i> Por fecha
+                        </button>
+                    </div>
+                )}
+
                 <div className="vista-selector" role="group" aria-label="Forma de ver los viajes">
                     <button className={vista === "tarjetas" ? "activo" : ""}
                             onClick={() => cambiarVista("tarjetas")}

@@ -65,6 +65,16 @@ public class Viaje {
     @Column(name = "cancelado_at")
     private java.time.LocalDateTime canceladoAt;
 
+    /**
+     * Cuándo se creó el viaje.
+     *
+     * La columna existía en la tabla desde el principio pero no estaba mapeada,
+     * así que no se podía ordenar por ella: la lista salía por fecha de salida y
+     * lo recién programado quedaba enterrado entre los viajes del año.
+     */
+    @Column(name = "created_at", insertable = false, updatable = false)
+    private java.time.LocalDateTime createdAt;
+
     @OneToMany(mappedBy = "viaje", fetch = FetchType.LAZY)
     @OrderBy("orden ASC")
     private List<ViajeParada> paradas;
@@ -121,6 +131,8 @@ public class Viaje {
 
     public String getMotivoCancelacion() { return motivoCancelacion; }
     public void setMotivoCancelacion(String m) { this.motivoCancelacion = m; }
+
+    public java.time.LocalDateTime getCreatedAt() { return createdAt; }
 
     public java.time.LocalDateTime getCanceladoAt() { return canceladoAt; }
     public void setCanceladoAt(java.time.LocalDateTime c) { this.canceladoAt = c; }

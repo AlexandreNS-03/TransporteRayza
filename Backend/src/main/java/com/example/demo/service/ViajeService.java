@@ -83,7 +83,9 @@ public class ViajeService {
                 catch (IllegalArgumentException ignorado) { /* estado desconocido: se ignora */ }
             }
         }
-        return viajeRepository.findAllByOrderByFechaSalidaDesc()
+        // Por creación y no por fecha de salida: quien programa las salidas de la
+        // semana quiere ver lo que acaba de cargar, no los viajes del año pasado.
+        return viajeRepository.findAllByOrderByCreatedAtDesc()
                 .stream()
                 .filter(v -> filtro.isEmpty() || filtro.contains(v.getEstado()))
                 .filter(v -> miSucursal == null || miSucursal.equals(v.getSucursalId()))
