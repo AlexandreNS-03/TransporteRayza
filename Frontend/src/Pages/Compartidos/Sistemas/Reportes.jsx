@@ -1,5 +1,4 @@
 import { useState, useEffect, useMemo } from "react";
-import * as XLSX from "xlsx";
 import {
     ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
     PieChart, Pie, Cell, Legend, ComposedChart, Line,
@@ -462,6 +461,12 @@ function Reportes() {
     };
 
     const exportarExcel = async () => {
+        // SheetJS se carga recién al exportar. Importada arriba viajaba en el
+        // bundle principal —a todo el que abre el sistema, incluido el empleado
+        // que no tiene acceso a esta pantalla— para una acción que casi nadie
+        // hace. Auditorias.jsx y rutasExcel.js ya la cargaban así, pero este
+        // import estático anulaba los dos.
+        const XLSX = await import("xlsx");
         const meta = TIPOS.find(t => t.key === tipo)?.label || tipo;
         const { cols, filas } = datosDelReporte();
         // Encabezado con el rango + tabla
