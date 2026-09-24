@@ -32,11 +32,17 @@ function etiquetaDia(iso) {
     return txt.charAt(0).toUpperCase() + txt.slice(1);
 }
 
-/** Fecha corta para el subtítulo del día (14/08/2026). */
-function fechaCorta(iso) {
+/**
+ * El año del día, y solo cuando no es el que corre.
+ *
+ * El encabezado decía "Martes, 15 de diciembre" y al lado "15/12/2026": la
+ * misma fecha dos veces. Lo único que agregaba era el año, que en la mayoría
+ * de los días sobra.
+ */
+function anioSiHaceFalta(iso) {
     if (!iso) return "";
-    const [a, m, d] = iso.split("-");
-    return `${d}/${m}/${a}`;
+    const anio = iso.slice(0, 4);
+    return anio === String(new Date().getFullYear()) ? "" : anio;
 }
 
 /** Agrupa los viajes por día, con lo más próximo primero. */
@@ -391,12 +397,12 @@ function Viajes() {
                         <button className={ordenLista === "recientes" ? "activo" : ""}
                                 onClick={() => cambiarOrden("recientes")}
                                 title="Los últimos viajes que creaste, arriba">
-                            <i className="ti ti-clock-plus"></i> Recientes
+                            <i className="ti ti-clock-plus"></i> Recién creados
                         </button>
                         <button className={ordenLista === "fecha" ? "activo" : ""}
                                 onClick={() => cambiarOrden("fecha")}
                                 title="En orden de calendario">
-                            <i className="ti ti-calendar"></i> Por fecha
+                            <i className="ti ti-calendar"></i> Calendario
                         </button>
                     </div>
                 )}
@@ -405,7 +411,7 @@ function Viajes() {
                     <button className={vista === "tarjetas" ? "activo" : ""}
                             onClick={() => cambiarVista("tarjetas")}
                             title="Ver por fechas">
-                        <i className="ti ti-layout-grid"></i> Por fechas
+                        <i className="ti ti-layout-grid"></i> Tarjetas
                     </button>
                     <button className={vista === "tabla" ? "activo" : ""}
                             onClick={() => cambiarVista("tabla")}
@@ -454,7 +460,7 @@ function Viajes() {
                             <section key={fecha} className="dia-bloque">
                                 <header className="dia-cabecera">
                                     <h3>{etiquetaDia(fecha)}</h3>
-                                    <span className="dia-fecha">{fechaCorta(fecha)}</span>
+                                    {anioSiHaceFalta(fecha) && <span className="dia-fecha">{anioSiHaceFalta(fecha)}</span>}
                                     <span className="dia-cuenta">
                                         {delDia.length} {delDia.length === 1 ? "viaje" : "viajes"}
                                     </span>
@@ -470,19 +476,23 @@ function Viajes() {
                                             </div>
 
                                             <div className="tarjeta-cuerpo">
+                                                {/* La ruta es lo que se busca al mirar: va entera, con el
+                                                    código al lado. Antes la tarjeta ocupaba un tercio del
+                                                    ancho y las dos salían cortadas ("Requena → I...", el
+                                                    código partido a la mitad). */}
                                                 <p className="tarjeta-ruta">
                                                     {v.rutaNombre || `${v.origen} → ${v.destino}`}
+                                                    <span className="tarjeta-codigo">{v.codigoViaje}</span>
                                                 </p>
                                                 <p className="tarjeta-datos">
                                                     <span><i className="ti ti-ship"></i> {v.embarcacionNombre || "Sin embarcación"}</span>
                                                     <span><i className="ti ti-building"></i> {v.sucursalNombre || "—"}</span>
-                                                    <span className="tarjeta-codigo">{v.codigoViaje}</span>
+                                                    {v.paradas?.length > 0 && (
+                                                        <span className="tarjeta-paradas" title={v.paradas.map(p => p.nombre).join(" → ")}>
+                                                            <i className="ti ti-map-pin"></i> {v.paradas.map(p => p.nombre).join(" → ")}
+                                                        </span>
+                                                    )}
                                                 </p>
-                                                {v.paradas?.length > 0 && (
-                                                    <p className="tarjeta-paradas" title={v.paradas.map(p => p.nombre).join(" → ")}>
-                                                        {v.paradas.map(p => p.nombre).join(" → ")}
-                                                    </p>
-                                                )}
                                                 {v.estado === "CANCELADO" && v.motivoCancelacion && (
                                                     <p className="tarjeta-motivo">
                                                         <i className="ti ti-alert-circle"></i> {v.motivoCancelacion}

@@ -363,3 +363,7 @@
 .control-grupo,
 .manifiesto-tabla tbody td { text-align: left; }
 .manifiesto-tabla tbody td.col-precio { text-align: right; }
+
+/* Lo que la tripulación cobra al entregar: no es un total más, es plata que
+   alguien tiene que traer de vuelta. */
+.resumen-dato.resumen-cobrar strong { color: #b45309; }

@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, Fragment } from "react";
 import "./Embarcaciones.css";
+import "./Catalogos.css";
 import { motivoDelError } from "../../../Services/api.js";
 import { useToast, Toasts } from "../../../Components/Toast.jsx";
 
@@ -205,7 +206,7 @@ function Embarcaciones() {
             <div className="emb-header">
                 <div>
                     <h2>Embarcaciones</h2>
-                    <p>Gestión de embarcaciones fluviales</p>
+                    <p>Las naves y sus asientos. Una embarcación inactiva no se puede asignar a viajes nuevos.</p>
                 </div>
                 {esAdmin && (
                     <button className="btn-nuevo" onClick={abrirModalCrear}>
@@ -263,67 +264,70 @@ function Embarcaciones() {
                     <table className="emb-tabla">
                         <thead>
                         <tr>
-                            <th>ID</th>
-                            <th>Nombre</th>
-                            <th>Código</th>
-                            <th>VIP</th>
-                            <th>Normal</th>
-                            <th>Total</th>
-                            <th>Estado</th>
+                            <th>Embarcación</th>
                             <th>Asientos</th>
-                            {esAdmin && <th>Acciones</th>}
+                            <th>Estado</th>
+                            <th>Mapa de asientos</th>
+                            {esAdmin && <th className="th-acciones">Acciones</th>}
                         </tr>
                         </thead>
                         <tbody>
                         {embFiltradas.length === 0 ? (
                             <tr>
-                                <td colSpan={esAdmin ? 9 : 8} className="tabla-vacia">
+                                <td colSpan={esAdmin ? 5 : 4} className="tabla-vacia">
                                     <i className="ti ti-ship-off"></i>
                                     <span>No se encontraron embarcaciones</span>
                                 </td>
                             </tr>
                         ) : (
                             embFiltradas.map(emb => (
-                                <>
-                                    <tr key={emb.id}>
-                                        <td className="codigo" data-label="ID">{emb.id}</td>
-                                        <td data-label="Nombre"><strong>{emb.nombre}</strong></td>
-                                        <td data-label="Código">{emb.codigo}</td>
-                                        <td data-label="VIP">
-                                                <span className="cant-badge vip">
-                                                    {emb.cantidadVip} VIP
-                                                </span>
+                                <Fragment key={emb.id}>
+                                    <tr>
+                                        {/* El nombre y el código son la misma nave: iban en dos
+                                            columnas, con el id interno de la base ocupando la
+                                            primera —que a nadie del mostrador le dice nada. */}
+                                        <td data-label="Embarcación">
+                                            <div className="cat-principal">
+                                                <strong>{emb.nombre}</strong>
+                                                <span className="codigo">{emb.codigo}</span>
+                                            </div>
                                         </td>
-                                        <td data-label="Normal">
-                                                <span className="cant-badge normal">
-                                                    {emb.cantidadNormal} Normal
-                                                </span>
+                                        {/* VIP, Normal y Total eran tres columnas para una suma. */}
+                                        <td className="cat-asientos" data-label="Asientos">
+                                            <strong>{emb.capacidadTotal}</strong>
+                                            <span>{emb.cantidadVip} VIP + {emb.cantidadNormal} normales</span>
                                         </td>
-                                        <td data-label="Total"><strong>{emb.capacidadTotal}</strong></td>
                                         <td data-label="Estado">
                                                 <span className={emb.activo ? "badge badge-activo" : "badge badge-inactivo"}>
                                                     {emb.activo ? "Activo" : "Inactivo"}
                                                 </span>
                                         </td>
-                                        <td data-label="Asientos">
+                                        <td data-label="Mapa de asientos">
                                             <button
-                                                className="btn-accion detalle"
+                                                className="btn-catalogo ver"
                                                 onClick={() => verDetalle(emb)}
-                                                title="Ver asientos"
                                             >
                                                 <i className={`ti ${embDetalle?.id === emb.id ? "ti-chevron-up" : "ti-chevron-down"}`}></i>
+                                                {embDetalle?.id === emb.id ? "Ocultar" : "Ver asientos"}
                                             </button>
                                         </td>
                                         {esAdmin && (
                                             <td className="acciones" data-label="Acciones">
-                                                <button className="btn-accion editar" onClick={() => abrirModalEditar(emb)}>
-                                                    <i className="ti ti-pencil"></i>
+                                                <button className="btn-catalogo editar"
+                                                        onClick={() => abrirModalEditar(emb)}>
+                                                    <i className="ti ti-pencil"></i> Editar
                                                 </button>
+                                                {/* Un botón con dos significados opuestos según el
+                                                    estado: sin texto había que deducirlo del color. */}
                                                 <button
-                                                    className={`btn-accion ${emb.activo ? "desactivar" : "activar"}`}
+                                                    className={`btn-catalogo ${emb.activo ? "desactivar" : "activar"}`}
                                                     onClick={() => toggleActivo(emb)}
+                                                    title={emb.activo
+                                                        ? "Deja de estar disponible para nuevos viajes"
+                                                        : "Vuelve a estar disponible para nuevos viajes"}
                                                 >
                                                     <i className={`ti ${emb.activo ? "ti-toggle-right" : "ti-toggle-left"}`}></i>
+                                                    {emb.activo ? "Desactivar" : "Activar"}
                                                 </button>
                                             </td>
                                         )}
@@ -332,7 +336,7 @@ function Embarcaciones() {
                                     {/* FILA DETALLE ASIENTOS */}
                                     {embDetalle?.id === emb.id && (
                                         <tr key={`detalle-${emb.id}`} className="fila-detalle">
-                                            <td colSpan={esAdmin ? 9 : 8}>
+                                            <td colSpan={esAdmin ? 5 : 4}>
                                                 {cargandoDetalle ? (
                                                     <div className="detalle-cargando">
                                                         <i className="ti ti-loader-2 spin"></i> Cargando asientos...
@@ -377,7 +381,7 @@ function Embarcaciones() {
                                             </td>
                                         </tr>
                                     )}
-                                </>
+                                </Fragment>
                             ))
                         )}
                         </tbody>

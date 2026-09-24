@@ -1,0 +1,113 @@
+/* ══════════════════════════════════════════════════════════════════
+   CATÁLOGOS — Embarcaciones, Sucursales y Rutas
+   Las tres listas son lo mismo: pocas filas que casi no cambian, con
+   un editar y un activar/desactivar al final. Compartían también los
+   mismos problemas —la primera columna era el id interno de la base,
+   los datos salían centrados y la acción que saca algo de circulación
+   era un iconito de color— así que se arreglan en un solo sitio.
+   ══════════════════════════════════════════════════════════════════ */
+
+/* #root lleva text-align: center desde la plantilla de Vite y los <td>
+   lo heredan; ver Pasajes.css, donde está el mismo arreglo. */
+.emb-header, .sucursales-header, .rutas-header,
+.filtro-grupo,
+.emb-tabla tbody td,
+.sucursales-tabla tbody td,
+.rutas-tabla tbody td { text-align: left; }
+
+.emb-tabla tbody td.acciones,
+.sucursales-tabla tbody td.acciones,
+.rutas-tabla tbody td.acciones { text-align: right; }
+
+.emb-tabla tbody td.tabla-vacia,
+.sucursales-tabla tbody td.tabla-vacia,
+.rutas-tabla tbody td.tabla-vacia { text-align: center; }
+
+/* Con más peso que la regla de arriba, que alinea todas las celdas a la
+   izquierda: si no, gana ella y las cifras se desalinean. */
+.emb-tabla thead th.th-acciones,
+.sucursales-tabla thead th.th-acciones,
+.rutas-tabla thead th.th-acciones { text-align: right; }
+.rutas-tabla thead th.th-precio   { text-align: right; }
+.rutas-tabla tbody td.cat-precio  { text-align: right; }
+
+/* ══ Primera columna: el nombre y su dato de apoyo ══ */
+.cat-principal { display: flex; flex-direction: column; gap: 1px; line-height: 1.35; }
+.cat-principal strong { font-size: 13.5px; font-weight: 600; color: #0f172a; }
+.cat-principal span   { font-size: 11.5px; color: #6b7280; }
+.cat-principal .codigo { font-family: monospace; }
+
+/* ══ Asientos: el total manda, el reparto es el detalle ══ */
+.cat-asientos { white-space: nowrap; }
+.cat-asientos strong {
+    display: block; font-size: 15px; color: #0f172a;
+    font-variant-numeric: tabular-nums;
+}
+.cat-asientos span { font-size: 11.5px; color: #6b7280; }
+
+/* ══ Ruta ══ */
+.cat-ruta { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.cat-ruta strong { font-size: 13.5px; font-weight: 600; color: #0f172a; }
+.cat-ruta i { font-size: 14px; color: #94a3b8; }
+
+/* Las tarifas se comparan de un vistazo solo si las cifras se alinean. */
+.cat-precio {
+    text-align: right; white-space: nowrap;
+    font-variant-numeric: tabular-nums; font-weight: 600; color: #0f172a;
+}
+.cat-telefono { font-variant-numeric: tabular-nums; }
+
+/* ══ Botones con nombre ══
+   "Editar" y "Desactivar" eran un lápiz y un interruptor de color. El
+   interruptor además significa lo contrario según cómo esté la fila:
+   sin texto había que deducirlo del verde o del rojo. */
+.btn-catalogo {
+    display: inline-flex; align-items: center; gap: 5px;
+    height: 29px; padding: 0 10px;
+    border: 1px solid transparent; border-radius: 7px;
+    font-size: 12.5px; font-weight: 600; white-space: nowrap;
+    cursor: pointer;
+    transition: background-color .15s ease, border-color .15s ease;
+}
+.btn-catalogo i { font-size: 15px; }
+.btn-catalogo + .btn-catalogo { margin-left: 6px; }
+
+.btn-catalogo.ver        { background: #f1f5f9; border-color: #e2e8f0; color: #475569; }
+.btn-catalogo.ver:hover  { background: #e2e8f0; }
+
+.btn-catalogo.editar       { background: #eff6ff; border-color: #bfdbfe; color: #1d4ed8; }
+.btn-catalogo.editar:hover { background: #dbeafe; }
+
+.btn-catalogo.desactivar       { background: #fef2f2; border-color: #fecaca; color: #b91c1c; }
+.btn-catalogo.desactivar:hover { background: #fee2e2; }
+
+.btn-catalogo.activar       { background: #f0fdf4; border-color: #bbf7d0; color: #15803d; }
+.btn-catalogo.activar:hover { background: #dcfce7; }
+
+.btn-catalogo:active { transform: translateY(1px); }
+.btn-catalogo:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+    .btn-catalogo { transition: none; }
+    .btn-catalogo:active { transform: none; }
+}
+
+@media (max-width: 900px) {
+    .emb-tabla tbody td.acciones,
+    .sucursales-tabla tbody td.acciones,
+    .rutas-tabla tbody td.acciones { text-align: left; }
+    .btn-catalogo + .btn-catalogo { margin-left: 0; }
+}
+
+/* ══ La celda de acciones vuelve a ser una celda ══
+   Los tres catálogos traían `.acciones { display: flex }` sobre un <td>.
+   Eso lo saca del armado de la tabla: la celda deja de compartir el alto
+   de su fila y su línea inferior queda a media altura de la siguiente.
+   Es la misma raya descuadrada que había en Pasajes y Comprobantes. */
+.emb-tabla tbody td.acciones,
+.sucursales-tabla tbody td.acciones,
+.rutas-tabla tbody td.acciones {
+    display: table-cell;
+    vertical-align: middle;
+    white-space: nowrap;
+}

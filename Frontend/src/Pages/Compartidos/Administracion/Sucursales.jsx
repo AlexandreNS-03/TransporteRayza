@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import "./Sucursales.css";
+import "./Catalogos.css";
 import { motivoDelError } from "../../../Services/api.js";
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8080";
@@ -168,7 +169,7 @@ function Sucursales() {
             <div className="sucursales-header">
                 <div>
                     <h2>Sucursales</h2>
-                    <p>Gestión de sucursales del sistema</p>
+                    <p>Las oficinas desde donde se vende. Una sucursal inactiva no se puede elegir al programar ni al vender.</p>
                 </div>
                 {esAdmin && (
                     <button className="btn-nuevo" onClick={abrirModalCrear}>
@@ -228,19 +229,17 @@ function Sucursales() {
                     <table className="sucursales-tabla">
                         <thead>
                         <tr>
-                            <th>ID</th>
-                            <th>Nombre</th>
-                            <th>Ciudad</th>
+                            <th>Sucursal</th>
                             <th>Dirección</th>
                             <th>Teléfono</th>
                             <th>Estado</th>
-                            {esAdmin && <th>Acciones</th>}
+                            {esAdmin && <th className="th-acciones">Acciones</th>}
                         </tr>
                         </thead>
                         <tbody>
                         {sucursalesFiltradas.length === 0 ? (
                             <tr>
-                                <td colSpan={esAdmin ? 7 : 6} className="tabla-vacia">
+                                <td colSpan={esAdmin ? 5 : 4} className="tabla-vacia">
                                     <i className="ti ti-building-off"></i>
                                     <span>No se encontraron sucursales</span>
                                 </td>
@@ -248,11 +247,17 @@ function Sucursales() {
                         ) : (
                             sucursalesFiltradas.map(s => (
                                 <tr key={s.id}>
-                                    <td className="codigo" data-label="ID">{s.id}</td>
-                                    <td data-label="Nombre"><strong>{s.nombre}</strong></td>
-                                    <td data-label="Ciudad">{s.ciudad}</td>
+                                    {/* La primera columna era el id interno de la base
+                                        ("suc_iqu"): no se busca ni se lee por ahí. El nombre
+                                        y la ciudad son la misma sucursal. */}
+                                    <td data-label="Sucursal">
+                                        <div className="cat-principal">
+                                            <strong>{s.nombre}</strong>
+                                            <span>{s.ciudad}</span>
+                                        </div>
+                                    </td>
                                     <td data-label="Dirección">{s.direccion || "—"}</td>
-                                    <td data-label="Teléfono">{s.telefono || "—"}</td>
+                                    <td className="cat-telefono" data-label="Teléfono">{s.telefono || "—"}</td>
                                     <td data-label="Estado">
                                             <span className={s.activo ? "badge badge-activo" : "badge badge-inactivo"}>
                                                 {s.activo ? "Activo" : "Inactivo"}
@@ -261,17 +266,20 @@ function Sucursales() {
                                     {esAdmin && (
                                         <td className="acciones" data-label="Acciones">
                                             <button
-                                                className="btn-accion editar"
+                                                className="btn-catalogo editar"
                                                 onClick={() => abrirModalEditar(s)}
                                             >
-                                                <i className="ti ti-pencil"></i>
+                                                <i className="ti ti-pencil"></i> Editar
                                             </button>
                                             <button
-                                                className={`btn-accion ${s.activo ? "desactivar" : "activar"}`}
+                                                className={`btn-catalogo ${s.activo ? "desactivar" : "activar"}`}
                                                 onClick={() => toggleActivo(s)}
-                                                title={s.activo ? "Desactivar" : "Activar"}
+                                                title={s.activo
+                                                    ? "Deja de poder venderse desde esta oficina"
+                                                    : "Vuelve a poder venderse desde esta oficina"}
                                             >
                                                 <i className={`ti ${s.activo ? "ti-toggle-right" : "ti-toggle-left"}`}></i>
+                                                {s.activo ? "Desactivar" : "Activar"}
                                             </button>
                                         </td>
                                     )}

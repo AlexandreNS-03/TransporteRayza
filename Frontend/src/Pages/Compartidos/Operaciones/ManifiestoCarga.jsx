@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import "./Manifiesto.css";
+import "../Ventas/Pasajes.css";   // .resumen-barra, compartida con el resto de las listas
 import generarManifiestoCargaPDF from "./generarManifiestoCargaPDF.jsx";
 import SelectorViaje from "../../../Components/SelectorViaje.jsx";
 import { apiFetch } from "../../../Services/api.js";
@@ -15,6 +16,16 @@ const ESTADO_BADGE = {
     ENTREGADO: "badge-embarcado", DEVUELTO: "badge-pendiente",
 };
 const PAGO_LABEL = { PAGADO: "Pagado", PENDIENTE: "Pendiente", PAGA_DESTINO: "Paga en destino" };
+
+const DIAS  = ["dom", "lun", "mar", "mié", "jue", "vie", "sáb"];
+const MESES = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "set", "oct", "nov", "dic"];
+
+/** 2026-07-18 → "sáb 18 jul". Quien carga el bote piensa en el día, no en el ISO. */
+function fechaLarga(iso) {
+    if (!iso) return "—";
+    const [a, m, d] = iso.slice(0, 10).split("-").map(Number);
+    return `${DIAS[new Date(a, m - 1, d).getDay()]} ${String(d).padStart(2, "0")} ${MESES[m - 1]}`;
+}
 
 /**
  * Manifiesto de carga: la lista de encomiendas que lleva un viaje. Es el
@@ -126,62 +137,62 @@ function ManifiestoCarga() {
 
             {!cargando && !error && viajeSeleccionado && (
                 <>
-                    <div className="manifiesto-ficha">
-                        <div className="ficha-item">
-                            <span className="ficha-label">Código de viaje</span>
-                            <strong>{viajeSeleccionado.codigoViaje}</strong>
+                    {/* Cuatro recuadros de ficha y cuatro tarjetas de colores para
+                        ocho datos cortos: el viaje se identifica en dos renglones,
+                        igual que en el manifiesto de pasajeros. */}
+                    <div className="viaje-ficha">
+                        <div className="ficha-identidad">
+                            <strong className="ficha-codigo">{viajeSeleccionado.codigoViaje}</strong>
+                            <span className="ficha-ruta">
+                                {viajeSeleccionado.origen}
+                                <i className="ti ti-arrow-right"></i>
+                                {viajeSeleccionado.destino}
+                            </span>
                         </div>
-                        <div className="ficha-item">
-                            <span className="ficha-label">Ruta</span>
-                            <strong>{viajeSeleccionado.rutaNombre}</strong>
-                        </div>
-                        <div className="ficha-item">
-                            <span className="ficha-label">Fecha / Hora</span>
-                            <strong>{viajeSeleccionado.fechaSalida} — {viajeSeleccionado.horaSalida}</strong>
-                        </div>
-                        <div className="ficha-item">
-                            <span className="ficha-label">Embarcación</span>
-                            <strong>{viajeSeleccionado.embarcacionNombre}</strong>
-                        </div>
-                    </div>
-
-                    <div className="manifiesto-resumen">
-                        <div className="resumen-card">
-                            <i className="ti ti-package"></i>
-                            <div>
-                                <span className="resumen-label">Bultos</span>
-                                <span className="resumen-valor">{totalBultos}</span>
-                            </div>
-                        </div>
-                        <div className="resumen-card morado">
-                            <i className="ti ti-weight"></i>
-                            <div>
-                                <span className="resumen-label">Peso total</span>
-                                <span className="resumen-valor">{pesoTotal ? `${pesoTotal.toFixed(2)} kg` : "—"}</span>
-                            </div>
-                        </div>
-                        <div className="resumen-card verde">
-                            <i className="ti ti-cash"></i>
-                            <div>
-                                <span className="resumen-label">Monto total</span>
-                                <span className="resumen-valor">S/ {montoTotal.toFixed(2)}</span>
-                            </div>
-                        </div>
-                        <div className="resumen-card amarillo">
-                            <i className="ti ti-alert-circle"></i>
-                            <div>
-                                <span className="resumen-label">Por cobrar</span>
-                                <span className="resumen-valor">S/ {porCobrar.toFixed(2)}</span>
-                            </div>
+                        <div className="ficha-datos">
+                            <span>
+                                <i className="ti ti-calendar-event"></i>
+                                {fechaLarga(viajeSeleccionado.fechaSalida)} · {(viajeSeleccionado.horaSalida || "").slice(0, 5)}
+                            </span>
+                            <span>
+                                <i className="ti ti-ship"></i>
+                                {viajeSeleccionado.embarcacionNombre}
+                            </span>
                         </div>
                     </div>
 
                     {encomiendas.length === 0 ? (
                         <div className="manifiesto-vacio">
                             <i className="ti ti-package-off"></i>
-                            <span>Este viaje no tiene encomiendas asignadas</span>
+                            <span>Todavía no se asignó ninguna encomienda a este viaje</span>
                         </div>
                     ) : (
+                        <>
+                        {/* Lo que la tripulación necesita saber antes de zarpar:
+                            cuántos bultos van y cuánto hay que cobrar al entregar.
+                            "Por cobrar" era una tarjeta más entre cuatro iguales. */}
+                        <div className="resumen-barra">
+                            <div className="resumen-dato">
+                                <strong>{totalBultos}</strong>
+                                <span>{totalBultos === 1 ? "bulto" : "bultos"}</span>
+                            </div>
+                            {pesoTotal > 0 && (
+                                <div className="resumen-dato">
+                                    <strong>{pesoTotal.toFixed(1)}</strong>
+                                    <span>kg en total</span>
+                                </div>
+                            )}
+                            <div className="resumen-dato resumen-plata">
+                                <strong>S/ {montoTotal.toFixed(2)}</strong>
+                                <span>en flete</span>
+                            </div>
+                            {porCobrar > 0 && (
+                                <div className="resumen-dato resumen-cobrar">
+                                    <strong>S/ {porCobrar.toFixed(2)}</strong>
+                                    <span>por cobrar al entregar</span>
+                                </div>
+                            )}
+                        </div>
                         <div className="manifiesto-tabla-wrapper">
                             <table className="manifiesto-tabla">
                                 <thead>
@@ -236,6 +247,7 @@ function ManifiestoCarga() {
                                 </tbody>
                             </table>
                         </div>
+                        </>
                     )}
                 </>
             )}

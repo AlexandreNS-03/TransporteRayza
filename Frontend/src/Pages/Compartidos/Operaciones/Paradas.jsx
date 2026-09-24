@@ -131,7 +131,11 @@ function Paradas() {
     };
 
     const eliminarParada = async (parada) => {
-        if (!confirm(`¿Eliminar la parada "${parada.nombre}"?`)) return;
+        if (!confirm(
+            `¿Eliminar la parada "${parada.nombre}" de esta ruta?\n\n`
+            + "Los viajes ya programados dejan de poder vender los tramos que pasaban por ella. "
+            + "Los pasajes ya vendidos no se tocan."
+        )) return;
         try {
             const nuevasParadas = paradas
                 .filter(p => p.id !== parada.id)
@@ -220,7 +224,7 @@ function Paradas() {
             <div className="paradas-header">
                 <div>
                     <h2>Paradas</h2>
-                    <p>Gestión de paradas por ruta</p>
+                    <p>Dónde para cada ruta y en qué orden. De acá salen los tramos que se pueden vender.</p>
                 </div>
             </div>
 
