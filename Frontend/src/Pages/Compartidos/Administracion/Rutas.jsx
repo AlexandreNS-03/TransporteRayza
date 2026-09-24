@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, Fragment } from "react";
 import "./Rutas.css";
+import "./Catalogos.css";
 import {
     descargarPlantillaParadas, leerParadas,
     descargarPlantillaTarifas, leerTarifas,
@@ -411,7 +412,7 @@ function Rutas() {
             <div className="rutas-header">
                 <div>
                     <h2>Rutas</h2>
-                    <p>Gestión de rutas fluviales</p>
+                    <p>Los trayectos y su tarifa base. Cambiarla no toca los viajes ya programados: cada viaje guarda el precio con el que se creó.</p>
                 </div>
                 {esAdmin && (
                     <button className="btn-nuevo" onClick={abrirModalCrear}>
@@ -469,61 +470,70 @@ function Rutas() {
                     <table className="rutas-tabla">
                         <thead>
                         <tr>
-                            <th>ID</th>
-                            <th>Origen</th>
-                            <th>Destino</th>
+                            <th>Ruta</th>
                             <th>Sucursal</th>
-                            <th>Precio Normal</th>
-                            <th>Precio VIP</th>
+                            <th className="th-precio">Normal</th>
+                            <th className="th-precio">VIP</th>
                             <th>Duración</th>
                             <th>Estado</th>
-                            <th>Detalle</th>
-                            {esAdmin && <th>Acciones</th>}
+                            <th>Paradas y tarifas</th>
+                            {esAdmin && <th className="th-acciones">Acciones</th>}
                         </tr>
                         </thead>
                         <tbody>
                         {rutasFiltradas.length === 0 ? (
                             <tr>
-                                <td colSpan={esAdmin ? 10 : 9} className="tabla-vacia">
+                                <td colSpan={esAdmin ? 8 : 7} className="tabla-vacia">
                                     <i className="ti ti-route-off"></i>
                                     <span>No se encontraron rutas</span>
                                 </td>
                             </tr>
                         ) : (
                             rutasFiltradas.map(r => (
-                                <>
-                                    <tr key={r.id}>
-                                        <td className="codigo" data-label="ID">{r.id}</td>
-                                        <td data-label="Origen"><strong>{r.origen}</strong></td>
-                                        <td data-label="Destino"><strong>{r.destino}</strong></td>
+                                <Fragment key={r.id}>
+                                    <tr>
+                                        {/* Origen y destino eran dos columnas, con el id interno
+                                            de la base ("rut_iqu_req") ocupando la primera. Es un
+                                            solo dato: la ruta. */}
+                                        <td data-label="Ruta">
+                                            <span className="cat-ruta">
+                                                <strong>{r.origen}</strong>
+                                                <i className="ti ti-arrow-right"></i>
+                                                <strong>{r.destino}</strong>
+                                            </span>
+                                        </td>
                                         <td data-label="Sucursal">{r.sucursalAdministradoraNombre || "—"}</td>
-                                        <td data-label="Precio Normal">S/ {r.precioNormal}</td>
-                                        <td data-label="Precio VIP">S/ {r.precioVip}</td>
+                                        <td className="cat-precio" data-label="Precio normal">S/ {Number(r.precioNormal).toFixed(2)}</td>
+                                        <td className="cat-precio" data-label="Precio VIP">S/ {Number(r.precioVip).toFixed(2)}</td>
                                         <td data-label="Duración">{r.duracionAproximada || "—"}</td>
                                         <td data-label="Estado">
                                                 <span className={r.activo ? "badge badge-activo" : "badge badge-inactivo"}>
                                                     {r.activo ? "Activo" : "Inactivo"}
                                                 </span>
                                         </td>
-                                        <td data-label="Detalle">
+                                        <td data-label="Paradas y tarifas">
                                             <button
-                                                className="btn-accion detalle"
+                                                className="btn-catalogo ver"
                                                 onClick={() => verDetalle(r)}
-                                                title="Ver paradas y tarifas"
                                             >
                                                 <i className={`ti ${rutaDetalle?.id === r.id ? "ti-chevron-up" : "ti-chevron-down"}`}></i>
+                                                {rutaDetalle?.id === r.id ? "Ocultar" : "Ver"}
                                             </button>
                                         </td>
                                         {esAdmin && (
                                             <td className="acciones" data-label="Acciones">
-                                                <button className="btn-accion editar" onClick={() => abrirModalEditar(r)}>
-                                                    <i className="ti ti-pencil"></i>
+                                                <button className="btn-catalogo editar" onClick={() => abrirModalEditar(r)}>
+                                                    <i className="ti ti-pencil"></i> Editar
                                                 </button>
                                                 <button
-                                                    className={`btn-accion ${r.activo ? "desactivar" : "activar"}`}
+                                                    className={`btn-catalogo ${r.activo ? "desactivar" : "activar"}`}
                                                     onClick={() => toggleActivo(r)}
+                                                    title={r.activo
+                                                        ? "Deja de poder programarse y venderse"
+                                                        : "Vuelve a poder programarse y venderse"}
                                                 >
                                                     <i className={`ti ${r.activo ? "ti-toggle-right" : "ti-toggle-left"}`}></i>
+                                                    {r.activo ? "Desactivar" : "Activar"}
                                                 </button>
                                             </td>
                                         )}
@@ -532,7 +542,7 @@ function Rutas() {
                                     {/* FILA DE DETALLE */}
                                     {rutaDetalle?.id === r.id && (
                                         <tr key={`detalle-${r.id}`} className="fila-detalle">
-                                            <td colSpan={esAdmin ? 10 : 9}>
+                                            <td colSpan={esAdmin ? 8 : 7}>
                                                 {cargandoDetalle ? (
                                                     <div className="detalle-cargando">
                                                         <i className="ti ti-loader-2 spin"></i> Cargando...
@@ -597,7 +607,7 @@ function Rutas() {
                                             </td>
                                         </tr>
                                     )}
-                                </>
+                                </Fragment>
                             ))
                         )}
                         </tbody>

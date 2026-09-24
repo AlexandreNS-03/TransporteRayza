@@ -377,20 +377,28 @@
     background: #f1f5f9; border-radius: 20px; padding: 3px 12px;
 }
 
+/* ══ Un viaje por renglón ══
+   Las tarjetas iban en una grilla de tres columnas de 340 px. Dentro de cada
+   una, la hora y los botones se quedaban con casi todo el ancho y al cuerpo le
+   sobraban unos 90 px: la ruta salía "Requena → I...", el código partido en
+   dos renglones y las paradas cortadas. Y un día con un solo viaje dejaba dos
+   tercios de la fila en blanco. A lo ancho entra todo sin recortar nada. */
 .dia-viajes {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-    gap: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
 
 .viaje-tarjeta {
     display: flex;
-    gap: 14px;
+    align-items: center;
+    gap: 18px;
     background: #fff;
     border: 1px solid #e5e7eb;
     border-radius: 12px;
-    padding: 15px 17px;
+    padding: 12px 16px;
     min-width: 0;                      /* sin esto una ruta larga desborda la tarjeta */
+    text-align: left;                  /* #root centra todo; ver Pasajes.css */
     box-shadow: var(--sombra-1);
     transition: box-shadow .18s var(--ease-salida), border-color .18s var(--ease-salida);
 }
@@ -419,8 +427,8 @@
 .tarjeta-cuerpo { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
 
 .tarjeta-ruta {
-    margin: 0; font-size: 14px; font-weight: 600; color: #1e293b;
-    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    margin: 0; font-size: 15px; font-weight: 600; color: #1e293b;
+    display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
 }
 
 .tarjeta-datos {
@@ -431,8 +439,10 @@
 .tarjeta-datos span { display: flex; align-items: center; gap: 4px; min-width: 0; }
 .tarjeta-codigo { font-family: monospace; color: var(--txt-3); }
 
+/* Las paradas entran en la misma línea que la nave y la sucursal; si la ruta
+   es larga se recortan solo ellas, que es el dato que se puede consultar. */
 .tarjeta-paradas {
-    margin: 2px 0 0; font-size: 11.5px; color: var(--txt-3);
+    min-width: 0;
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 
@@ -442,7 +452,7 @@
 }
 
 .tarjeta-lado {
-    display: flex; flex-direction: column; align-items: flex-end;
+    display: flex; align-items: center; justify-content: flex-end;
     gap: 8px; flex-shrink: 0;
 }
 
@@ -458,4 +468,18 @@
     .dia-viajes { grid-template-columns: 1fr; }
     .vista-selector { margin-left: 0; width: 100%; }
     .vista-selector button { flex: 1; justify-content: center; }
+}
+
+/* El código, al lado de la ruta y sin partirse nunca. */
+.tarjeta-codigo { font-size: 12px; white-space: nowrap; font-weight: 500; }
+
+/* #root { text-align: center } de la plantilla de Vite se cuela también acá. */
+.viajes-header, .filtro-grupo, .dia-cabecera { text-align: left; }
+.viajes-tabla tbody td { text-align: left; }
+.viajes-tabla tbody td.acciones-viaje { text-align: right; }
+
+@media (max-width: 900px) {
+    /* Apilado: a lo angosto no hay ancho que repartir. */
+    .viaje-tarjeta { flex-wrap: wrap; }
+    .tarjeta-lado { width: 100%; justify-content: flex-start; }
 }
