@@ -914,3 +914,55 @@
     .resumen-dato strong { font-size: 18px; }
     .resumen-nota { margin-left: 0; width: 100%; }
 }
+
+/* ══ El viaje elegido, en el paso 1 ══
+   Vender para el día equivocado es el error más caro del mostrador: el pasajero
+   se entera en el puerto. La fecha cruda (2026-12-15) no avisa de nada, así que
+   lo primero que se lee es si el viaje es hoy, mañana o ya salió. */
+.viaje-card {
+    display: grid; gap: 8px; text-align: left;
+    padding: 14px 16px; margin-top: 4px;
+    border: 1px solid #e5e7eb; border-left-width: 4px; border-radius: 10px;
+    background: #f8fafc;
+}
+.viaje-card-cuando { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.viaje-card-cuando strong { font-size: 17px; font-weight: 700; color: #0f172a; }
+.viaje-card-cuando span { font-size: 13px; color: #475569; }
+
+.viaje-card-datos { display: flex; gap: 18px; flex-wrap: wrap; font-size: 12.5px; color: #6b7280; }
+.viaje-card-datos i { color: #94a3b8; margin-right: 4px; }
+
+.viaje-card-hoy    { border-left-color: #15803d; background: #f4fdf7; }
+.viaje-card-hoy .viaje-card-cuando strong { color: #15803d; }
+.viaje-card-pronto { border-left-color: #1a4db5; background: #f6faff; }
+.viaje-card-futuro { border-left-color: #cbd5e1; }
+.viaje-card-pasado { border-left-color: #b91c1c; background: #fef6f6; }
+.viaje-card-pasado .viaje-card-cuando strong { color: #b91c1c; }
+
+.viaje-card-aviso { margin: 0; font-size: 12.5px; color: #b91c1c; }
+
+/* ══ Formulario de encomienda ══
+   Remitente y destinatario se copian del mismo papel, uno detrás del otro.
+   Apilados obligaban a bajar el modal a la mitad para pasar de uno a otro; en
+   pantallas anchas entran lado a lado y el envío se registra sin desplazarse. */
+.enc-personas {
+    display: grid; gap: 16px; margin-bottom: 4px;
+    grid-template-columns: 1fr;
+}
+@media (min-width: 860px) {
+    .enc-personas { grid-template-columns: 1fr 1fr; gap: 20px; }
+}
+
+.enc-persona {
+    border: 1px solid #e5e7eb; border-radius: 10px;
+    padding: 14px 16px 4px; margin: 0; min-width: 0;
+    background: #fbfcfe;
+}
+.enc-persona legend {
+    padding: 0 6px; font-size: 13px; font-weight: 600; color: #1a4db5;
+}
+.enc-persona legend span { font-weight: 400; color: #6b7280; font-size: 12px; }
+
+/* El modal de encomienda lleva dos personas al lado: necesita más ancho que el
+   resto de los asistentes. */
+.modal.modal-wizard.modal-encomienda { max-width: 860px; }
