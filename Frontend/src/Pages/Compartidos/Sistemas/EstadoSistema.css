@@ -251,3 +251,6 @@
 
 .btn-secundario { background: #fff; color: #1a4db5; border-color: #d1d5db; }
 .btn-secundario:hover:not(:disabled) { border-color: #1a4db5; }
+
+/* #root { text-align: center } de la plantilla de Vite se hereda acá. */
+.estado-header { text-align: left; }

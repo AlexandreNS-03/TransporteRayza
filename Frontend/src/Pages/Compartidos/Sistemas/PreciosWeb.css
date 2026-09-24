@@ -139,22 +139,34 @@
 .input-precio:disabled { background: #f8fafc; color: #94a3b8; cursor: not-allowed; }
 
 /* ACCIONES */
-.acciones { display: flex; }
+/* .acciones llevaba display: flex sobre un <td>, que lo saca del armado de la
+   tabla y descuadra la raya de cada fila a la derecha. */
+.preciosweb-tabla tbody td.acciones {
+    display: table-cell;
+    vertical-align: middle;
+    white-space: nowrap;
+    text-align: right;
+}
 
+/* Era un tilde sin nombre, y es el botón que publica en la web el precio que
+   va a ver el cliente. */
 .btn-guardar-fila {
-    width: 32px;
-    height: 32px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    justify-content: center;
-    font-size: 16px;
+    gap: 5px;
+    height: 30px;
+    padding: 0 12px;
+    border: none;
+    border-radius: 7px;
+    cursor: pointer;
+    font-size: 12.5px;
+    font-weight: 600;
+    white-space: nowrap;
     background: #eff6ff;
     color: #1d4ed8;
     transition: background 0.15s;
 }
+.btn-guardar-fila i { font-size: 15px; }
 .btn-guardar-fila:hover:not(:disabled) { background: #dbeafe; }
 .btn-guardar-fila:disabled { background: #f1f5f9; color: #cbd5e1; cursor: not-allowed; }
 
@@ -203,3 +215,22 @@
     font-size: 11.5px;
     color: #7b8798;
 }
+
+/* ══ Rediseño ══ */
+/* #root { text-align: center } de la plantilla de Vite se hereda acá: el
+   título salía centrado y las celdas también. */
+.preciosweb-header, .preciosweb-tabla tbody td { text-align: left; }
+.preciosweb-tabla tbody td.acciones,
+.preciosweb-tabla tbody td.pw-precio { text-align: right; }
+.preciosweb-tabla thead th.th-precio { text-align: right; }
+
+/* La ruta se partía en dos renglones por falta de ancho. */
+.pw-ruta { display: flex; flex-direction: column; gap: 3px; align-items: flex-start; }
+.pw-ruta strong { white-space: nowrap; font-size: 13.5px; color: #0f172a; }
+
+.pw-precio { font-variant-numeric: tabular-nums; white-space: nowrap; color: #475569; }
+
+/* Ocho columnas, dos de ellas con dos campos de fecha: sin apretar el relleno
+   la última quedaba cortada contra el borde. */
+.preciosweb-tabla thead th { padding-left: 11px; padding-right: 11px; }
+.preciosweb-tabla tbody td { padding-left: 11px; padding-right: 11px; }

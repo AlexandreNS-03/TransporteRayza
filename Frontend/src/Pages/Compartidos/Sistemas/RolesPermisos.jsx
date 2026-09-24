@@ -206,6 +206,11 @@ function Roles() {
         finally { setReseteando(false); }
     };
 
+    /* Una cuenta que no es ADMIN y no tiene sucursal no queda limitada por nada:
+       es el caso que hacía que el personal siguiera viendo los viajes de la
+       otra oficina. Se cuenta arriba para que no pase inadvertido. */
+    const sinSucursal = usuarios.filter(u => u.activo && !u.sucursalId && u.rol !== "ADMIN");
+
     const usuariosFiltrados = usuarios.filter(u => {
         if (filtroRol !== "todos" && u.rol !== filtroRol) return false;
         if (filtroEstado === "activos" && !u.activo) return false;
@@ -226,7 +231,7 @@ function Roles() {
             <div className="roles-header">
                 <div>
                     <h2>Roles y Usuarios</h2>
-                    <p>Gestión de acceso y permisos del sistema</p>
+                    <p>Quién entra al sistema, con qué rol y desde qué oficina. Los cambios de acá quedan en auditoría.</p>
                 </div>
                 <button className="btn-nuevo" onClick={abrirModalCrear}>
                     <i className="ti ti-user-plus"></i> Nuevo Usuario
@@ -271,13 +276,29 @@ function Roles() {
             {cargando && <div className="roles-estado"><i className="ti ti-loader-2 spin"></i> Cargando...</div>}
             {error && !cargando && <div className="roles-estado error"><i className="ti ti-alert-circle"></i> {error}</div>}
 
+            {sinSucursal.length > 0 && (
+                <div className="aviso-cuentas-abiertas">
+                    <i className="ti ti-alert-triangle"></i>
+                    <div>
+                        <strong>
+                            {sinSucursal.length === 1
+                                ? "1 cuenta del personal sin sucursal asignada"
+                                : `${sinSucursal.length} cuentas del personal sin sucursal asignada`}
+                        </strong>
+                        <span>
+                            Mientras no tengan una, ven las salidas de todas las oficinas y pueden vender
+                            en cualquiera: {sinSucursal.map(u => u.nombre || u.username).join(", ")}.
+                        </span>
+                    </div>
+                </div>
+            )}
+
             {!cargando && !error && (
                 <div className="roles-tabla-wrapper">
                     <table className="roles-tabla">
                         <thead>
                         <tr>
                             <th>Usuario</th>
-                            <th>Contacto</th>
                             <th>Rol</th>
                             <th>Sucursal</th>
                             <th>Estado</th>
@@ -288,7 +309,7 @@ function Roles() {
                         <tbody>
                         {usuariosFiltrados.length === 0 ? (
                             <tr>
-                                <td colSpan={7} className="tabla-vacia">
+                                <td colSpan={6} className="tabla-vacia">
                                     <i className="ti ti-users"></i>
                                     <span>No se encontraron usuarios</span>
                                 </td>
@@ -302,11 +323,9 @@ function Roles() {
                                             <div className="usuario-info-texto">
                                                 <strong>{u.nombre}</strong>
                                                 <span>@{u.username}</span>
+                                                {u.email && <span className="usuario-email">{u.email}</span>}
                                             </div>
                                         </div>
-                                    </td>
-                                    <td data-label="Contacto">
-                                        <span className="usuario-email">{u.email || "—"}</span>
                                     </td>
                                     <td data-label="Rol">
                                         <div className="rol-selector">
@@ -323,18 +342,29 @@ function Roles() {
                                         </div>
                                     </td>
                                     <td data-label="Sucursal">
-                                        <select
-                                            className="sucursal-select"
-                                            value={u.sucursalId || ""}
-                                            disabled={accionandoId === u.id}
-                                            onChange={e => cambiarSucursal(u, e.target.value)}
-                                            title="Asignar sucursal (el usuario solo venderá viajes de su sucursal)"
-                                        >
-                                            <option value="">Todas</option>
-                                            {sucursales.map(s => (
-                                                <option key={s.id} value={s.id}>{s.nombre}</option>
-                                            ))}
-                                        </select>
+                                        <div className="celda-sucursal">
+                                            <select
+                                                className="sucursal-select"
+                                                value={u.sucursalId || ""}
+                                                disabled={accionandoId === u.id}
+                                                onChange={e => cambiarSucursal(u, e.target.value)}
+                                                title="El usuario solo trabaja con los viajes de su sucursal"
+                                            >
+                                                <option value="">Todas las sucursales</option>
+                                                {sucursales.map(s => (
+                                                    <option key={s.id} value={s.id}>{s.nombre}</option>
+                                                ))}
+                                            </select>
+                                            {/* Sin sucursal, el filtro por sucursal no filtra nada: la cuenta
+                                                ve las salidas de las dos oficinas y puede vender en cualquiera.
+                                                En un ADMIN eso es a propósito; en el mostrador, no. */}
+                                            {!u.sucursalId && u.rol !== "ADMIN" && (
+                                                <span className="aviso-sin-sucursal">
+                                                    <i className="ti ti-alert-triangle"></i>
+                                                    ve y vende en las dos
+                                                </span>
+                                            )}
+                                        </div>
                                     </td>
                                     <td data-label="Estado">
                                         <button
@@ -353,22 +383,25 @@ function Roles() {
                                         }) : "Nunca"}
                                     </td>
                                     <td className="acciones-cell" data-label="Acciones">
+                                        {/* Dos iconos grises, una llave y un escudo, para las dos acciones
+                                            de seguridad de la cuenta: había que adivinar cuál era cuál. */}
                                         <button
-                                            className="btn-accion password"
+                                            className="btn-usuario password"
                                             onClick={() => abrirModalReset(u)}
-                                            title="Resetear contraseña"
+                                            title="Poner una contraseña nueva y entregársela al usuario"
                                         >
-                                            <i className="ti ti-key"></i>
+                                            <i className="ti ti-key"></i> Contraseña
                                         </button>
                                         <button
-                                            className={`btn-accion ${u.dobleFactor ? "dosfactor-on" : ""}`}
+                                            className={`btn-usuario ${u.dobleFactor ? "dosfactor-on" : ""}`}
                                             onClick={() => toggleDobleFactor(u)}
                                             disabled={accionandoId === u.id}
                                             title={u.dobleFactor
-                                                ? "Verificación en dos pasos activada — clic para desactivar"
-                                                : "Activar verificación en dos pasos"}
+                                                ? "Pide un código además de la contraseña — clic para quitarlo"
+                                                : "Pedirle un código además de la contraseña al entrar"}
                                         >
                                             <i className={u.dobleFactor ? "ti ti-shield-check" : "ti ti-shield"}></i>
+                                            {u.dobleFactor ? "2 pasos activo" : "2 pasos"}
                                         </button>
                                     </td>
                                 </tr>
