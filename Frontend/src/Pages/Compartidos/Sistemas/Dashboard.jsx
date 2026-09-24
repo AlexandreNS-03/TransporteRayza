@@ -51,18 +51,24 @@ function useCountUp(valor, duracion = 700) {
     return n;
 }
 
-function StatCard({ label, valorRaw, formato, icono, color }) {
+/**
+ * Una cifra del tablero.
+ *
+ * Antes cada una era una tarjeta con su icono y su fondo de color propio, y
+ * había dieciocho: todas pedían la misma atención, así que ninguna la tenía.
+ * Ahora el peso lo da el tamaño del número y el color solo aparece cuando
+ * significa algo (plata que entró, algo que está pendiente).
+ */
+function Cifra({ label, valorRaw, formato, tono, nota, grande }) {
     const animado = useCountUp(valorRaw);
     const valorMostrado = formato === "moneda"
         ? `S/ ${animado.toLocaleString("es-PE")}`
         : animado.toLocaleString("es-PE");
     return (
-        <div className={`stat-card stat-${color}`}>
-            <div className="stat-icono"><i className={`ti ${icono}`}></i></div>
-            <div className="stat-info">
-                <span className="stat-label">{label}</span>
-                <strong className="stat-valor">{valorMostrado}</strong>
-            </div>
+        <div className={`dash-cifra${grande ? " cifra-grande" : ""}${tono ? ` cifra-${tono}` : ""}`}>
+            <span className="cifra-label">{label}</span>
+            <strong className="cifra-valor">{valorMostrado}</strong>
+            {nota && <span className="cifra-nota">{nota}</span>}
         </div>
     );
 }
@@ -121,24 +127,23 @@ function Dashboard() {
         finally { setCargando(false); }
     };
 
-    const statsHoy = data ? [
-        { label: "Viajes Hoy",        valorRaw: data.totalViajesHoy,          icono: "ti-ship",        color: "azul" },
-        { label: "Ventas Hoy",        valorRaw: data.totalVentasHoy,          icono: "ti-ticket",      color: "verde" },
-        { label: "Embarcados Hoy",    valorRaw: data.totalPasajerosEmbarcados, icono: "ti-user-check",  color: "amarillo" },
-        { label: "Ingresos Hoy",      valorRaw: data.ingresosHoy, formato: "moneda", icono: "ti-cash",  color: "morado" },
-    ] : [];
+    /* Las pestañas sumaban en vez de elegir: "Este Mes" mostraba las cifras de
+       hoy, más las de la semana, más las del mes, ocho tarjetas a la vez. Ahora
+       cada una responde una pregunta —cómo va hoy, la semana o el mes— y las
+       dos cifras que solo existen para el día de hoy (viajes y embarcados) se
+       muestran aparte, dichas como lo que son. */
+    const PERIODOS = {
+        hoy:    { titulo: "hoy",        ventas: "totalVentasHoy",    ingresos: "ingresosHoy" },
+        semana: { titulo: "esta semana", ventas: "totalVentasSemana", ingresos: "ingresosSemana" },
+        mes:    { titulo: "este mes",   ventas: "totalVentasMes",    ingresos: "ingresosMes" },
+    };
+    const periodo = PERIODOS[tab] || PERIODOS.hoy;
 
-    const statsSemana = data ? [
-        { label: "Ventas Semana",     valorRaw: data.totalVentasSemana,        icono: "ti-ticket",      color: "verde" },
-        { label: "Ingresos Semana",   valorRaw: data.ingresosSemana, formato: "moneda", icono: "ti-cash", color: "morado" },
-    ] : [];
-
-    const statsMes = data ? [
-        { label: "Ventas Mes",        valorRaw: data.totalVentasMes,           icono: "ti-ticket",      color: "verde" },
-        { label: "Ingresos Mes",      valorRaw: data.ingresosMes, formato: "moneda", icono: "ti-cash",   color: "morado" },
-    ] : [];
-
-    const statsActivas = tab === "hoy" ? statsHoy : tab === "semana" ? [...statsHoy, ...statsSemana] : [...statsHoy, ...statsSemana, ...statsMes];
+    /* Efectivo de hoy que el backend no pudo atribuir a Iquitos ni a Requena
+       porque la venta no guardó el lugar de pago. */
+    const sinOficinaHoy = data
+        ? Math.max(0, (data.efectivoHoy || 0) - (data.efectivoIquitosHoy || 0) - (data.efectivoRequenaHoy || 0))
+        : 0;
 
     /* ---------- Datos derivados para los gráficos ----------
        Si el backend ya envía series listas (data.ventasPorDia, data.topRutas,
@@ -225,23 +230,43 @@ function Dashboard() {
                 </button>
             </div>
 
-            {/* TARJETAS STATS (con conteo animado) */}
-            <div className="dash-stats">
-                {statsActivas.map((s, i) => <StatCard key={i} {...s} />)}
-            </div>
+            {/* LO PRINCIPAL DEL PERÍODO ELEGIDO */}
+            {data && (
+                <div className="dash-titulares">
+                    <div className="titulares-periodo">
+                        <Cifra grande label={`Pasajes vendidos ${periodo.titulo}`}
+                               valorRaw={data[periodo.ventas] || 0} />
+                        <Cifra grande tono="plata" label={`Cobrado ${periodo.titulo}`}
+                               valorRaw={data[periodo.ingresos] || 0} formato="moneda" />
+                    </div>
+                    {/* Estas dos son del día, siempre: no tienen versión semanal ni mensual. */}
+                    <div className="titulares-dia">
+                        <Cifra label="Viajes" valorRaw={data.totalViajesHoy || 0} nota="hoy" />
+                        <Cifra label="Embarcados" valorRaw={data.totalPasajerosEmbarcados || 0} nota="hoy" />
+                    </div>
+                </div>
+            )}
 
             {/* EFECTIVO POR OFICINA (HOY) — para cuadrar caja */}
             {data && (
-                <div className="dash-efectivo">
-                    <div className="dash-efectivo-titulo">
-                        <i className="ti ti-cash"></i> Efectivo cobrado hoy por oficina
+                <div className="dash-bloque">
+                    <div className="bloque-titulo">
+                        <h3><i className="ti ti-cash"></i> Lo cobrado hoy, por oficina</h3>
+                        <p>Con esto se cuadra la caja al cierre.</p>
                     </div>
-                    <div className="dash-efectivo-cards">
-                        <StatCard label="Efectivo Iquitos" valorRaw={data.efectivoIquitosHoy || 0} formato="moneda" icono="ti-building-store" color="azul" />
-                        <StatCard label="Efectivo Requena" valorRaw={data.efectivoRequenaHoy || 0} formato="moneda" icono="ti-building-store" color="verde" />
-                        <StatCard label="Total Efectivo" valorRaw={data.efectivoHoy || 0} formato="moneda" icono="ti-cash" color="verde" />
-                        <StatCard label="Total Digital" valorRaw={data.digitalHoy || 0} formato="moneda" icono="ti-device-mobile" color="cyan" />
-                        <StatCard label="Descuentos Hoy" valorRaw={data.descuentosHoy || 0} formato="moneda" icono="ti-discount" color="amarillo" />
+                    <div className="dash-cifras">
+                        <Cifra label="Efectivo Iquitos" valorRaw={data.efectivoIquitosHoy || 0} formato="moneda" />
+                        <Cifra label="Efectivo Requena" valorRaw={data.efectivoRequenaHoy || 0} formato="moneda" />
+                        {/* Una venta en efectivo sin oficina registrada entra al total pero
+                            a ninguna de las dos columnas de arriba. Antes la diferencia no
+                            se veía y al cuadrar caja no cerraba sin saber por qué. */}
+                        {sinOficinaHoy > 0 && (
+                            <Cifra tono="resta" label="Efectivo sin oficina" valorRaw={sinOficinaHoy}
+                                   formato="moneda" nota="la venta no registró dónde se cobró" />
+                        )}
+                        <Cifra tono="plata" label="Total en efectivo" valorRaw={data.efectivoHoy || 0} formato="moneda" />
+                        <Cifra label="Total digital" valorRaw={data.digitalHoy || 0} formato="moneda" nota="Yape, Plin, tarjeta" />
+                        <Cifra tono={data.descuentosHoy > 0 ? "resta" : null} label="Descuentos" valorRaw={data.descuentosHoy || 0} formato="moneda" />
                     </div>
 
                     {/* Cobros de hoy por método */}
@@ -271,19 +296,18 @@ function Dashboard() {
 
             {/* COMPRAS POR LA WEB */}
             {data && (
-                <div className="dash-efectivo">
-                    <div className="dash-efectivo-titulo">
-                        <i className="ti ti-world"></i> Compras por la web
-                        <span className="dash-nota-web">
-                            Esta plata entra a la cuenta de la pasarela, no a la caja de la oficina.
-                        </span>
+                <div className="dash-bloque">
+                    <div className="bloque-titulo">
+                        <h3><i className="ti ti-world"></i> Comprado por la web</h3>
+                        <p>Esta plata entra a la cuenta de la pasarela, no a la caja de la oficina.</p>
                     </div>
-                    <div className="dash-efectivo-cards">
-                        <StatCard label="Ventas web hoy" valorRaw={data.totalVentasWebHoy || 0} icono="ti-shopping-cart" color="cyan" />
-                        <StatCard label="Ingresos web hoy" valorRaw={data.ingresosWebHoy || 0} formato="moneda" icono="ti-world" color="cyan" />
-                        <StatCard label="Cobrado en mostrador hoy" valorRaw={data.ingresosMostradorHoy || 0} formato="moneda" icono="ti-building-store" color="azul" />
-                        <StatCard label="Ventas web del mes" valorRaw={data.totalVentasWebMes || 0} icono="ti-calendar" color="verde" />
-                        <StatCard label="Ingresos web del mes" valorRaw={data.ingresosWebMes || 0} formato="moneda" icono="ti-report-money" color="verde" />
+                    <div className="dash-cifras">
+                        <Cifra label="Ventas web hoy" valorRaw={data.totalVentasWebHoy || 0} />
+                        <Cifra tono="plata" label="Ingresos web hoy" valorRaw={data.ingresosWebHoy || 0} formato="moneda" />
+                        <Cifra label="Cobrado en mostrador hoy" valorRaw={data.ingresosMostradorHoy || 0} formato="moneda" />
+                        {/* Estas dos son del mes aunque el bloque empiece por hoy: lo dice el rótulo. */}
+                        <Cifra label="Ventas web del mes" valorRaw={data.totalVentasWebMes || 0} />
+                        <Cifra label="Ingresos web del mes" valorRaw={data.ingresosWebMes || 0} formato="moneda" />
                     </div>
 
                     {data.cobrosWebHoy?.length > 0 && (
@@ -313,11 +337,17 @@ function Dashboard() {
             {/* ENCOMIENDAS Y CAJA */}
             {extras && (
                 <div className="dash-extras">
-                    <div className="dash-extras-cards">
-                        <StatCard label="Encomiendas Hoy" valorRaw={extras.encomiendasHoy} icono="ti-box-seam" color="cyan" />
-                        <StatCard label="Ingreso Encomiendas" valorRaw={extras.ingresoEncomiendasHoy} formato="moneda" icono="ti-cash" color="verde" />
-                        <StatCard label="Encomiendas Pendientes" valorRaw={extras.encomiendasPendientes} icono="ti-truck-delivery" color="amarillo" />
-                        <StatCard label="Cajas Abiertas" valorRaw={extras.cajasAbiertas} icono="ti-cash" color="morado" />
+                    <div className="dash-bloque">
+                        <div className="bloque-titulo">
+                            <h3><i className="ti ti-box-seam"></i> Encomiendas</h3>
+                        </div>
+                        <div className="dash-cifras">
+                            <Cifra label="Registradas" valorRaw={extras.encomiendasHoy} nota="hoy" />
+                            <Cifra tono="plata" label="Cobrado en flete" valorRaw={extras.ingresoEncomiendasHoy} formato="moneda" nota="hoy" />
+                            <Cifra tono={extras.encomiendasPendientes > 0 ? "pendiente" : null}
+                                   label="Sin entregar" valorRaw={extras.encomiendasPendientes}
+                                   nota="esperando a su destinatario" />
+                        </div>
                     </div>
 
                     <div className="dash-cajas-panel">
