@@ -1,7 +1,24 @@
 -- ============================================================================
 -- Power BI: vistas de lectura y un usuario que solo puede mirar.
 --
---   mysql -u root -p"$MYSQL_ROOT_PASSWORD" railway < Backend/sql/power-bi.sql
+-- CÓMO EJECUTARLO
+--
+--   Opción A (la recomendada) — desde tu máquina, parado en el repo. Necesitas
+--   el host y el puerto públicos de la base: están en Railway, en el servicio
+--   MySQL, pestaña Variables (MYSQL_PUBLIC_URL). El -p va solo, sin la clave
+--   pegada: así la pide por teclado y no queda en el historial del shell.
+--
+--       mysql -h <host-publico> -P <puerto> -u root -p railway < Backend/sql/power-bi.sql
+--
+--   Opción B — desde la consola del contenedor de MySQL en Railway. OJO: ese
+--   contenedor NO tiene el repo, así que "< Backend/sql/power-bi.sql" falla con
+--   "No such file or directory". Hay que pegar el contenido de este archivo
+--   dentro de un heredoc, y el delimitador va entre comillas simples o bash se
+--   come los backticks y los paréntesis:
+--
+--       mysql -u root -p"$MYSQL_ROOT_PASSWORD" railway <<'SQL'
+--       ... acá va pegado todo este archivo ...
+--       SQL
 --
 -- La idea: Power BI NO se conecta a las tablas, se conecta a estas vistas.
 -- Dos razones, y las dos importan.
@@ -16,8 +33,8 @@
 --
 -- Se puede ejecutar las veces que haga falta.
 --
--- OJO: la contraseña del final es un ejemplo. Cámbiala ANTES de ejecutar, por
--- una larga y que no uses en otro lado.
+-- OJO: la contraseña del final es un marcador. No la escribas en este archivo:
+-- el repositorio es público. Ver la nota que está junto al CREATE USER.
 -- ============================================================================
 
 -- ─────────────────────────────────────────────────────────────── Pasajes
@@ -148,9 +165,27 @@ FROM auditoria a;
 -- contraseñas. Si el archivo .pbix se filtra, lo único que se filtra con él es
 -- la capacidad de mirar estos números.
 --
--- CAMBIA LA CONTRASEÑA antes de ejecutar esto.
+-- LA CLAVE NO VA ACÁ. Este repositorio es público: cualquier clave escrita en
+-- este archivo queda publicada, y sigue publicada en el historial de git
+-- aunque después se cambie. La base de Railway se alcanza desde internet.
+--
+-- Poné la clave al ejecutar, de una de estas dos formas:
+--
+--   a) Editás esta línea en tu copia local, ejecutás, y descartás el cambio
+--      sin subirlo:  git checkout Backend/sql/power-bi.sql
+--
+--   b) Ejecutás el script tal cual y después, en la consola de Railway:
+--          ALTER USER 'powerbi'@'%' IDENTIFIED BY '<la clave de verdad>';
+--
+-- Para generar una:  openssl rand -base64 24
 
-CREATE USER IF NOT EXISTS 'powerbi'@'%' IDENTIFIED BY 'NOQUIEROTRABAJAR';
+CREATE USER IF NOT EXISTS 'powerbi'@'%' IDENTIFIED BY 'PONER-LA-CLAVE-AL-EJECUTAR';
+
+-- CREATE USER IF NOT EXISTS no toca la clave si el usuario ya existía, así que
+-- volver a correr el script con otra clave no hacía nada. Con este ALTER, la
+-- clave queda siempre en la que se escribió arriba —y rotarla es volver a
+-- ejecutar el script.
+ALTER USER 'powerbi'@'%' IDENTIFIED BY 'PONER-LA-CLAVE-AL-EJECUTAR';
 
 -- Uno por vista: MySQL no acepta comodines en el nombre de tabla, y además así
 -- queda a la vista exactamente qué puede leer este usuario.
