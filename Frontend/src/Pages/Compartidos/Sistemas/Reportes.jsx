@@ -42,6 +42,26 @@ const METODOS_PAGO = ["EFECTIVO", "YAPE", "PLIN", "TARJETA", "TRANSFERENCIA"];
 const METODO_LABEL = { EFECTIVO: "Efectivo", YAPE: "Yape", PLIN: "Plin", TARJETA: "Tarjeta", TRANSFERENCIA: "Transferencia", SIN: "Sin registrar" };
 const LUGARES_PAGO = [["IQUITOS", "Iquitos"], ["REQUENA", "Requena"], ["OTRO", "Otro / Web"]];
 
+/**
+ * El vacío más común de esta pantalla: el rango elegido no tiene ventas.
+ * Decía "Sin ventas en el rango seleccionado" sin decir cuál era el rango,
+ * que es justo el dato que hace falta para arreglarlo.
+ */
+function SinVentas({ desde, hasta }) {
+    const dia = (iso) => {
+        if (!iso) return "—";
+        const [a, m, d] = iso.split("-");
+        return `${d}/${m}/${a}`;
+    };
+    return (
+        <div className="sin-datos">
+            <i className="ti ti-calendar-off"></i>
+            <strong>No hubo ventas entre el {dia(desde)} y el {dia(hasta)}</strong>
+            <span>Cambia las fechas de arriba para mirar otro período.</span>
+        </div>
+    );
+}
+
 function Reportes() {
     const [tipo, setTipo] = useState("ventas");
 
@@ -136,7 +156,7 @@ function Reportes() {
     const rankingVendedores = useMemo(() => {
         const m = new Map();
         ventasFiltradas.forEach(v => {
-            const nombre = v.usuarioNombre || "Sin registrar";
+            const nombre = v.usuarioNombre || "Sin vendedor registrado";
             const a = m.get(nombre) || { nombre, pasajes: 0, ingreso: 0 };
             a.pasajes += 1;
             a.ingreso += Number(v.precio || 0);
@@ -498,7 +518,7 @@ function Reportes() {
             <div className="reportes-header">
                 <div>
                     <h2>Reportes</h2>
-                    <p>Panel de reportes e indicadores del negocio</p>
+                    <p>Todo se calcula sobre el rango de fechas de abajo. Exportar e imprimir respetan el reporte que estés viendo.</p>
                 </div>
                 <div className="reportes-acciones">
                     <button className="btn-secundario" onClick={exportarExcel}>
@@ -560,24 +580,24 @@ function Reportes() {
                     {tipo === "resumen" && (
                         <div className="reporte-bloque">
                             <div className="kpi-grid">
-                                <div className="kpi-card"><i className="ti ti-cash kpi-icon"></i><div><span className="kpi-label">Ingreso Total</span><span className="kpi-valor">{moneda(ingresoTotal)}</span></div></div>
-                                <div className="kpi-card"><i className="ti ti-ticket kpi-icon"></i><div><span className="kpi-label">Pasajes Vendidos</span><span className="kpi-valor">{ventasFiltradas.length}</span></div></div>
-                                <div className="kpi-card"><i className="ti ti-receipt kpi-icon"></i><div><span className="kpi-label">Ticket Promedio</span><span className="kpi-valor">{moneda(ticketPromedio)}</span></div></div>
-                                <div className="kpi-card"><i className="ti ti-cash kpi-icon"></i><div><span className="kpi-label">Efectivo</span><span className="kpi-valor">{moneda(totEfectivo)}</span></div></div>
-                                <div className="kpi-card"><i className="ti ti-device-mobile kpi-icon"></i><div><span className="kpi-label">Digital</span><span className="kpi-valor">{moneda(totDigital)}</span></div></div>
-                                <div className="kpi-card"><i className="ti ti-percentage kpi-icon"></i><div><span className="kpi-label">% Efectivo</span><span className="kpi-valor">{pctEfectivo.toFixed(0)}%</span></div></div>
-                                <div className="kpi-card"><i className="ti ti-discount kpi-icon"></i><div><span className="kpi-label">Descuentos ({ventasConRebaja})</span><span className="kpi-valor">{moneda(descuentoTotal)}</span></div></div>
-                                <div className="kpi-card kpi-alerta"><i className="ti ti-ban kpi-icon"></i><div><span className="kpi-label">Anuladas ({ventasAnuladas.length})</span><span className="kpi-valor">{moneda(ingresoAnulado)}</span></div></div>
-                                <div className="kpi-card"><i className="ti ti-armchair kpi-icon"></i><div><span className="kpi-label">Ocupación Prom.</span><span className="kpi-valor">{ocupacionProm}%</span></div></div>
-                                <div className="kpi-card"><i className="ti ti-route kpi-icon"></i><div><span className="kpi-label">Ruta Top</span><span className="kpi-valor kpi-texto">{topRuta?.nombre || "—"}</span></div></div>
-                                <div className="kpi-card"><i className="ti ti-user-dollar kpi-icon"></i><div><span className="kpi-label">Vendedor Top</span><span className="kpi-valor kpi-texto">{topVendedor?.nombre || "—"}</span></div></div>
-                                <div className="kpi-card"><i className="ti ti-clock kpi-icon"></i><div><span className="kpi-label">Hora Pico</span><span className="kpi-valor">{horaPico.hora}</span></div></div>
+                                <div className="kpi-card kpi-destacado"><div><span className="kpi-label">Ingreso total</span><span className="kpi-valor">{moneda(ingresoTotal)}</span></div></div>
+                                <div className="kpi-card kpi-destacado"><div><span className="kpi-label">Pasajes vendidos</span><span className="kpi-valor">{ventasFiltradas.length}</span></div></div>
+                                <div className="kpi-card"><div><span className="kpi-label">Ticket promedio</span><span className="kpi-valor">{moneda(ticketPromedio)}</span></div></div>
+                                <div className="kpi-card"><div><span className="kpi-label">Efectivo</span><span className="kpi-valor">{moneda(totEfectivo)}</span></div></div>
+                                <div className="kpi-card"><div><span className="kpi-label">Digital</span><span className="kpi-valor">{moneda(totDigital)}</span></div></div>
+                                <div className="kpi-card"><div><span className="kpi-label">% Efectivo</span><span className="kpi-valor">{pctEfectivo.toFixed(0)}%</span></div></div>
+                                <div className="kpi-card"><div><span className="kpi-label">Descuentos ({ventasConRebaja})</span><span className="kpi-valor">{moneda(descuentoTotal)}</span></div></div>
+                                <div className={`kpi-card ${ventasAnuladas.length > 0 ? "kpi-alerta" : ""}`}><div><span className="kpi-label">Anuladas ({ventasAnuladas.length})</span><span className="kpi-valor">{moneda(ingresoAnulado)}</span></div></div>
+                                <div className="kpi-card"><div><span className="kpi-label">Ocupación promedio</span><span className="kpi-valor">{ocupacionProm}%</span></div></div>
+                                <div className="kpi-card"><div><span className="kpi-label">Ruta más vendida</span><span className="kpi-valor kpi-texto">{topRuta?.nombre || "—"}</span></div></div>
+                                <div className="kpi-card"><div><span className="kpi-label">Quien más vendió</span><span className="kpi-valor kpi-texto">{topVendedor?.nombre || "—"}</span></div></div>
+                                <div className="kpi-card"><div><span className="kpi-label">Hora pico</span><span className="kpi-valor">{horaPico.hora}</span></div></div>
                             </div>
 
                             <div className="reporte-panel">
                                 <h3>Ingresos y Pasajes por Día</h3>
                                 {serieDia.length === 0 ? (
-                                    <div className="sin-datos">Sin ventas en el rango seleccionado</div>
+                                    <SinVentas desde={desde} hasta={hasta} />
                                 ) : (
                                     <div className="chart-print">
                                         <ResponsiveContainer width="100%" height={280}>
@@ -603,35 +623,30 @@ function Reportes() {
                         <div className="reporte-bloque">
                             <div className="kpi-grid">
                                 <div className="kpi-card">
-                                    <i className="ti ti-cash kpi-icon"></i>
                                     <div>
-                                        <span className="kpi-label">Ingreso Total</span>
+                                        <span className="kpi-label">Ingreso total</span>
                                         <span className="kpi-valor">{moneda(ingresoTotal)}</span>
                                     </div>
                                 </div>
                                 <div className="kpi-card">
-                                    <i className="ti ti-ticket kpi-icon"></i>
                                     <div>
-                                        <span className="kpi-label">Pasajes Vendidos</span>
+                                        <span className="kpi-label">Pasajes vendidos</span>
                                         <span className="kpi-valor">{ventasFiltradas.length}</span>
                                     </div>
                                 </div>
                                 <div className="kpi-card">
-                                    <i className="ti ti-receipt kpi-icon"></i>
                                     <div>
-                                        <span className="kpi-label">Ticket Promedio</span>
+                                        <span className="kpi-label">Ticket promedio</span>
                                         <span className="kpi-valor">{moneda(ticketPromedio)}</span>
                                     </div>
                                 </div>
-                                <div className="kpi-card kpi-alerta">
-                                    <i className="ti ti-ban kpi-icon"></i>
+                                <div className={`kpi-card ${ventasAnuladas.length > 0 ? "kpi-alerta" : ""}`}>
                                     <div>
-                                        <span className="kpi-label">Ventas Anuladas</span>
+                                        <span className="kpi-label">Ventas anuladas</span>
                                         <span className="kpi-valor">{ventasAnuladas.length}</span>
                                     </div>
                                 </div>
                                 <div className="kpi-card">
-                                    <i className="ti ti-discount kpi-icon"></i>
                                     <div>
                                         <span className="kpi-label">Descuentos ({ventasConRebaja})</span>
                                         <span className="kpi-valor">{moneda(descuentoTotal)}</span>
@@ -642,7 +657,7 @@ function Reportes() {
                             <div className="reporte-panel">
                                 <h3>Ingresos y Pasajes por Día</h3>
                                 {serieDia.length === 0 ? (
-                                    <div className="sin-datos">Sin ventas en el rango seleccionado</div>
+                                    <SinVentas desde={desde} hasta={hasta} />
                                 ) : (
                                     <div className="chart-print">
                                         <ResponsiveContainer width="100%" height={300}>
@@ -664,7 +679,7 @@ function Reportes() {
                             <div className="reporte-panel">
                                 <h3>Ventas por Tipo de Comprobante</h3>
                                 {ventasPorTipoComprobante.length === 0 ? (
-                                    <div className="sin-datos">Sin datos</div>
+                                    <SinVentas desde={desde} hasta={hasta} />
                                 ) : (
                                     <div className="chip-lista">
                                         {ventasPorTipoComprobante.map(([tipoDoc, cant]) => (
@@ -684,30 +699,26 @@ function Reportes() {
                         <div className="reporte-bloque">
                             <div className="kpi-grid">
                                 <div className="kpi-card">
-                                    <i className="ti ti-cash kpi-icon"></i>
                                     <div>
                                         <span className="kpi-label">Efectivo</span>
                                         <span className="kpi-valor">{moneda(reportePagos.m.EFECTIVO.total.i)}</span>
                                     </div>
                                 </div>
                                 <div className="kpi-card">
-                                    <i className="ti ti-device-mobile kpi-icon"></i>
                                     <div>
                                         <span className="kpi-label">Digital (Yape/Plin/Transf.)</span>
                                         <span className="kpi-valor">{moneda(reportePagos.m.YAPE.total.i + reportePagos.m.PLIN.total.i + reportePagos.m.TRANSFERENCIA.total.i)}</span>
                                     </div>
                                 </div>
                                 <div className="kpi-card">
-                                    <i className="ti ti-credit-card kpi-icon"></i>
                                     <div>
                                         <span className="kpi-label">Tarjeta</span>
                                         <span className="kpi-valor">{moneda(reportePagos.m.TARJETA.total.i)}</span>
                                     </div>
                                 </div>
                                 <div className="kpi-card">
-                                    <i className="ti ti-wallet kpi-icon"></i>
                                     <div>
-                                        <span className="kpi-label">Total Cobrado</span>
+                                        <span className="kpi-label">Total cobrado</span>
                                         <span className="kpi-valor">{moneda(reportePagos.totalCol.total.i)}</span>
                                     </div>
                                 </div>
@@ -716,7 +727,7 @@ function Reportes() {
                             <div className="reporte-panel">
                                 <h3>Distribución por Método</h3>
                                 {reportePagos.filasVisibles.length === 0 ? (
-                                    <div className="sin-datos">Sin ventas en el rango seleccionado</div>
+                                    <SinVentas desde={desde} hasta={hasta} />
                                 ) : (
                                     <div className="chart-print">
                                         <ResponsiveContainer width="100%" height={280}>
@@ -739,7 +750,7 @@ function Reportes() {
                             <div className="reporte-panel">
                                 <h3>Cobros por Método y Oficina</h3>
                                 {reportePagos.filasVisibles.length === 0 ? (
-                                    <div className="sin-datos">Sin ventas en el rango seleccionado</div>
+                                    <SinVentas desde={desde} hasta={hasta} />
                                 ) : (
                                     <div className="tabla-wrapper">
                                         <table className="reportes-tabla">
@@ -779,7 +790,7 @@ function Reportes() {
                             <div className="reporte-panel">
                                 <h3>Ventas por canal y pasarela</h3>
                                 {reporteCanal.filas.length === 0 ? (
-                                    <div className="sin-datos">Sin ventas en el rango seleccionado</div>
+                                    <SinVentas desde={desde} hasta={hasta} />
                                 ) : (
                                     <div className="tabla-wrapper">
                                         <table className="reportes-tabla">
@@ -820,7 +831,7 @@ function Reportes() {
                             <div className="reporte-panel">
                                 <h3>Efectivo vs Digital por Viaje</h3>
                                 {pagosPorViaje.length === 0 ? (
-                                    <div className="sin-datos">Sin ventas en el rango seleccionado</div>
+                                    <SinVentas desde={desde} hasta={hasta} />
                                 ) : (
                                     <div className="chart-print">
                                         <ResponsiveContainer width="100%" height={Math.max(240, pagosPorViaje.length * 40)}>
@@ -865,22 +876,22 @@ function Reportes() {
                     {tipo === "encomiendas" && (
                         <div className="reporte-bloque">
                             <div className="kpi-grid">
-                                <div className="kpi-card"><i className="ti ti-package kpi-icon"></i><div>
+                                <div className="kpi-card"><div>
                                     <span className="kpi-label">Encomiendas</span>
                                     <span className="kpi-valor">{encResumen.total}</span></div></div>
-                                <div className="kpi-card"><i className="ti ti-cash kpi-icon"></i><div>
+                                <div className="kpi-card"><div>
                                     <span className="kpi-label">Ingreso total</span>
                                     <span className="kpi-valor">{moneda(encResumen.ingreso)}</span></div></div>
-                                <div className="kpi-card"><i className="ti ti-circle-check kpi-icon"></i><div>
+                                <div className="kpi-card"><div>
                                     <span className="kpi-label">Ya cobrado</span>
                                     <span className="kpi-valor">{moneda(encResumen.cobrado)}</span></div></div>
-                                <div className="kpi-card kpi-alerta"><i className="ti ti-alert-circle kpi-icon"></i><div>
+                                <div className={`kpi-card ${ventasAnuladas.length > 0 ? "kpi-alerta" : ""}`}><div>
                                     <span className="kpi-label">Por cobrar</span>
                                     <span className="kpi-valor">{moneda(encResumen.porCobrar)}</span></div></div>
-                                <div className="kpi-card"><i className="ti ti-weight kpi-icon"></i><div>
+                                <div className="kpi-card"><div>
                                     <span className="kpi-label">Peso total</span>
                                     <span className="kpi-valor">{encResumen.peso.toFixed(1)} kg</span></div></div>
-                                <div className="kpi-card"><i className="ti ti-truck-delivery kpi-icon"></i><div>
+                                <div className="kpi-card"><div>
                                     <span className="kpi-label">Entregadas</span>
                                     <span className="kpi-valor">{encResumen.entregadas}</span></div></div>
                             </div>
@@ -959,7 +970,7 @@ function Reportes() {
                             <div className="reporte-panel">
                                 <h3>Ingreso por Vendedor</h3>
                                 {rankingVendedores.length === 0 ? (
-                                    <div className="sin-datos">Sin ventas en el rango seleccionado</div>
+                                    <SinVentas desde={desde} hasta={hasta} />
                                 ) : (
                                     <div className="chart-print">
                                         <ResponsiveContainer width="100%" height={Math.max(220, rankingVendedores.length * 44)}>
@@ -1001,7 +1012,7 @@ function Reportes() {
                             <div className="reporte-panel">
                                 <h3>Pasajes por Hora del Día</h3>
                                 {ventasFiltradas.length === 0 ? (
-                                    <div className="sin-datos">Sin ventas en el rango seleccionado</div>
+                                    <SinVentas desde={desde} hasta={hasta} />
                                 ) : (
                                     <div className="chart-print">
                                         <ResponsiveContainer width="100%" height={300}>
@@ -1025,7 +1036,7 @@ function Reportes() {
                             <div className="reporte-panel">
                                 <h3>VIP vs Normal</h3>
                                 {asientosTipo.length === 0 ? (
-                                    <div className="sin-datos">Sin ventas en el rango seleccionado</div>
+                                    <SinVentas desde={desde} hasta={hasta} />
                                 ) : (
                                     <div className="chart-print">
                                         <ResponsiveContainer width="100%" height={280}>
@@ -1111,7 +1122,7 @@ function Reportes() {
                             <div className="reporte-panel">
                                 <h3>Ranking de Rutas por Ingreso</h3>
                                 {rankingRutas.length === 0 ? (
-                                    <div className="sin-datos">Sin ventas en el rango seleccionado</div>
+                                    <SinVentas desde={desde} hasta={hasta} />
                                 ) : (
                                     <div className="ranking-lista">
                                         {rankingRutas.map((r, idx) => (
@@ -1143,7 +1154,7 @@ function Reportes() {
                             <div className="reporte-panel">
                                 <h3>Ventas por Sucursal</h3>
                                 {rankingSucursales.length === 0 ? (
-                                    <div className="sin-datos">Sin datos</div>
+                                    <SinVentas desde={desde} hasta={hasta} />
                                 ) : (
                                     <div className="ranking-lista">
                                         {rankingSucursales.map((s, idx) => (
@@ -1174,28 +1185,24 @@ function Reportes() {
                         <div className="reporte-bloque">
                             <div className="kpi-grid">
                                 <div className="kpi-card">
-                                    <i className="ti ti-calendar-event kpi-icon"></i>
                                     <div>
                                         <span className="kpi-label">Programados</span>
                                         <span className="kpi-valor">{conteoEstados.PROGRAMADO}</span>
                                     </div>
                                 </div>
                                 <div className="kpi-card">
-                                    <i className="ti ti-ship kpi-icon"></i>
                                     <div>
-                                        <span className="kpi-label">En Curso</span>
+                                        <span className="kpi-label">En curso</span>
                                         <span className="kpi-valor">{conteoEstados.EN_CURSO}</span>
                                     </div>
                                 </div>
                                 <div className="kpi-card">
-                                    <i className="ti ti-circle-check kpi-icon"></i>
                                     <div>
                                         <span className="kpi-label">Completados</span>
                                         <span className="kpi-valor">{conteoEstados.COMPLETADO}</span>
                                     </div>
                                 </div>
-                                <div className="kpi-card kpi-alerta">
-                                    <i className="ti ti-circle-x kpi-icon"></i>
+                                <div className={`kpi-card ${ventasAnuladas.length > 0 ? "kpi-alerta" : ""}`}>
                                     <div>
                                         <span className="kpi-label">Cancelados</span>
                                         <span className="kpi-valor">{conteoEstados.CANCELADO}</span>
