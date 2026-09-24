@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "Frontend/src/Pages/Compartidos/Ventas/Pasajes.css"
+        ],
+        "createdAt": "2026-09-24T02:43:05.513Z",
+        "reason": "User confirmed: el borde izquierdo de .viaje-card codifica hoy/pronto/futuro/ya salio en el paso 1 de la venta, junto con fondo y color de texto"
+      }
+    ]
+  }
+}

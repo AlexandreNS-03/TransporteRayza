@@ -10,3 +10,6 @@ Thumbs.db
 
 # Bóveda de Obsidian (memoria de Claude) — solo local, no se versiona
 Transport bOb/
+
+# Impeccable: la config compartida se versiona; la local de cada máquina no
+.impeccable/config.local.json
