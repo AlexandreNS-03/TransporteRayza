@@ -1,11 +1,15 @@
 /* Libro de Reclamaciones. El plazo manda: lo que se sanciona es no responder a
    tiempo, así que lo vencido tiene que saltar a la vista antes que nada. */
 
+/* El borde rojo de 4 px a la izquierda era un adorno de más: el fondo teñido
+   ya dice que es una alerta. Además, el resto de los avisos del sistema
+   (.aviso-cancel, .aviso-cuentas-abiertas) usan un borde de 1 px completo, y
+   este era el único distinto. */
 .rec-alerta {
-    padding: 14px 16px;
+    padding: 13px 16px;
     margin-bottom: 16px;
     border-radius: 10px;
-    border-left: 4px solid #b91c1c;
+    border: 1px solid #fecaca;
     background: #fef2f2;
     color: #7f1d1d;
     font-size: 14px;
@@ -76,3 +80,9 @@
     font-size: 13px; text-decoration: none; word-break: break-all;
 }
 .rec-adjuntos a:hover { background: #dde8fb; }
+
+/* #root { text-align: center } de la plantilla de Vite se hereda en las
+   tarjetas: el nombre del reclamante, la fecha y el texto salían centrados,
+   y un reclamo se lee como un texto, no como un cartel. */
+.rec-lista, .rec-datos, .rec-texto, .rec-respuesta, .rec-adjuntos, .rec-campo,
+.rec-filtros { text-align: left; }

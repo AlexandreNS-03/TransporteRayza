@@ -387,3 +387,20 @@
     font-size: 11.5px;
     color: #6b7280;
 }
+
+/* ══ Rediseño ══
+   .acciones llevaba display: flex sobre un <td>: eso lo saca del armado de la
+   tabla, la celda deja de compartir el alto de su fila y su raya inferior
+   queda a media altura de la siguiente. Y #root { text-align: center }, de la
+   plantilla de Vite, se hereda en las celdas. */
+.anuncios-tabla tbody td.acciones {
+    display: table-cell;
+    vertical-align: middle;
+    white-space: nowrap;
+    text-align: right;
+}
+.anuncios-tabla tbody td.acciones .btn-accion { display: inline-flex; vertical-align: middle; }
+.anuncios-tabla tbody td.acciones .btn-accion + .btn-accion { margin-left: 6px; }
+
+.anuncios-header, .anuncios-tabla tbody td { text-align: left; }
+.anuncios-tabla tbody td.tabla-vacia { text-align: center; }

@@ -107,8 +107,8 @@ function PreciosWeb() {
                         <thead>
                         <tr>
                             <th>Ruta</th>
-                            <th>Precio Normal</th>
-                            <th>Precio VIP</th>
+                            <th className="th-precio">Normal</th>
+                            <th className="th-precio">VIP</th>
                             <th>En oferta</th>
                             <th>Oferta Normal</th>
                             <th>Oferta VIP</th>
@@ -135,11 +135,13 @@ function PreciosWeb() {
                                 return (
                                     <tr key={r.id}>
                                         <td data-label="Ruta">
-                                            <strong>{r.origen} → {r.destino}</strong>
-                                            {r.ofertaActiva && <span className="badge badge-oferta">En oferta</span>}
+                                            <div className="pw-ruta">
+                                                <strong>{r.origen} → {r.destino}</strong>
+                                                {r.ofertaActiva && <span className="badge badge-oferta">En oferta</span>}
+                                            </div>
                                         </td>
-                                        <td data-label="Precio Normal">S/ {r.precioNormal}</td>
-                                        <td data-label="Precio VIP">S/ {r.precioVip}</td>
+                                        <td className="pw-precio" data-label="Precio normal">S/ {Number(r.precioNormal).toFixed(2)}</td>
+                                        <td className="pw-precio" data-label="Precio VIP">S/ {Number(r.precioVip).toFixed(2)}</td>
                                         <td data-label="En oferta">
                                             <label className="switch">
                                                 <input
@@ -196,10 +198,13 @@ function PreciosWeb() {
                                                 className="btn-guardar-fila"
                                                 onClick={() => guardar(r.id)}
                                                 disabled={!cambio || guardandoId === r.id}
+                                                title={cambio
+                                                    ? "Publicar este precio en la web"
+                                                    : "No hay nada cambiado en esta fila"}
                                             >
                                                 {guardandoId === r.id
-                                                    ? <i className="ti ti-loader-2 spin"></i>
-                                                    : <i className="ti ti-check"></i>}
+                                                    ? <><i className="ti ti-loader-2 spin"></i> Publicando...</>
+                                                    : <><i className="ti ti-check"></i> Publicar</>}
                                             </button>
                                         </td>
                                     </tr>
