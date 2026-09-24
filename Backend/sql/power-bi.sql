@@ -1,7 +1,24 @@
 -- ============================================================================
 -- Power BI: vistas de lectura y un usuario que solo puede mirar.
 --
---   mysql -u root -p"$MYSQL_ROOT_PASSWORD" railway < Backend/sql/power-bi.sql
+-- CÓMO EJECUTARLO
+--
+--   Opción A (la recomendada) — desde tu máquina, parado en el repo. Necesitas
+--   el host y el puerto públicos de la base: están en Railway, en el servicio
+--   MySQL, pestaña Variables (MYSQL_PUBLIC_URL). El -p va solo, sin la clave
+--   pegada: así la pide por teclado y no queda en el historial del shell.
+--
+--       mysql -h <host-publico> -P <puerto> -u root -p railway < Backend/sql/power-bi.sql
+--
+--   Opción B — desde la consola del contenedor de MySQL en Railway. OJO: ese
+--   contenedor NO tiene el repo, así que "< Backend/sql/power-bi.sql" falla con
+--   "No such file or directory". Hay que pegar el contenido de este archivo
+--   dentro de un heredoc, y el delimitador va entre comillas simples o bash se
+--   come los backticks y los paréntesis:
+--
+--       mysql -u root -p"$MYSQL_ROOT_PASSWORD" railway <<'SQL'
+--       ... acá va pegado todo este archivo ...
+--       SQL
 --
 -- La idea: Power BI NO se conecta a las tablas, se conecta a estas vistas.
 -- Dos razones, y las dos importan.
