@@ -181,6 +181,12 @@ FROM auditoria a;
 
 CREATE USER IF NOT EXISTS 'powerbi'@'%' IDENTIFIED BY 'PONER-LA-CLAVE-AL-EJECUTAR';
 
+-- CREATE USER IF NOT EXISTS no toca la clave si el usuario ya existía, así que
+-- volver a correr el script con otra clave no hacía nada. Con este ALTER, la
+-- clave queda siempre en la que se escribió arriba —y rotarla es volver a
+-- ejecutar el script.
+ALTER USER 'powerbi'@'%' IDENTIFIED BY 'PONER-LA-CLAVE-AL-EJECUTAR';
+
 -- Uno por vista: MySQL no acepta comodines en el nombre de tabla, y además así
 -- queda a la vista exactamente qué puede leer este usuario.
 GRANT SELECT ON railway.bi_pasajes     TO 'powerbi'@'%';
