@@ -103,68 +103,6 @@
 .dash-tab:hover { background: #f1f5f9; color: #1e293b; }
 .dash-tab.activo { background: #1a4db5; color: #fff; font-weight: 500; }
 
-/* STATS */
-.dash-stats {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 12px;
-}
-
-.stat-card {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding: 16px 20px;
-    border-radius: 10px;
-    border: 1px solid;
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-
-.stat-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.06);
-}
-
-.stat-azul    { background: #eff6ff; border-color: #bfdbfe; }
-.stat-verde   { background: #f0fdf4; border-color: #bbf7d0; }
-.stat-amarillo { background: #fefce8; border-color: #fde68a; }
-.stat-morado  { background: #faf5ff; border-color: #e9d5ff; }
-
-.stat-icono {
-    width: 44px;
-    height: 44px;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 22px;
-    flex-shrink: 0;
-}
-
-.stat-azul .stat-icono    { background: #dbeafe; color: #1d4ed8; }
-.stat-verde .stat-icono   { background: #dcfce7; color: #15803d; }
-.stat-amarillo .stat-icono { background: #fef9c3; color: #a16207; }
-.stat-morado .stat-icono  { background: #f3e8ff; color: #7c3aed; }
-
-.stat-info {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-}
-
-.stat-label {
-    font-size: 12px;
-    color: #6b7280;
-    font-weight: 500;
-}
-
-.stat-valor {
-    font-size: 22px;
-    font-weight: 700;
-    color: #1e293b;
-    font-variant-numeric: tabular-nums;
-}
-
 /* GRÁFICOS */
 .dash-charts {
     display: grid;
@@ -364,19 +302,10 @@
 .badge-encurso    { background: #fefce8; color: #a16207; }
 
 /* Efectivo por oficina (hoy) */
-.dash-efectivo { margin: 6px 0 22px; }
-.dash-efectivo-titulo {
-    display: flex; align-items: center; gap: 8px;
-    font-size: 13px; font-weight: 700; color: #374151; margin-bottom: 10px;
-}
-.dash-efectivo-cards {
-    display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;
-}
+
 /* Sección de encomiendas y caja */
 .dash-extras { display: flex; flex-direction: column; gap: 16px; margin-bottom: 22px; }
-.dash-extras-cards {
-    display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px;
-}
+
 .dash-cajas-panel {
     background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px 18px;
 }
@@ -398,17 +327,80 @@
 .dash-cajas-tabla tbody tr:last-child td { border-bottom: none; }
 
 /* Color cyan para las tarjetas de encomiendas */
-.stat-cyan  { background: #ecfeff; border-color: #a5f3fc; }
-.stat-cyan .stat-icono { background: #cffafe; color: #0891b2; }
 
-/* Aclaración bajo el título de compras web: recuerda que ese dinero no está en
-   la gaveta, para que nadie lo busque al cuadrar la caja. */
-.dash-nota-web {
-    display: block;
-    margin-top: 3px;
-    font-size: 12.5px;
-    font-weight: 500;
-    color: var(--txt-3, #6b7280);
-    letter-spacing: 0;
-    text-transform: none;
+
+/* ══════════════════════════════════════════════════════════════════
+   TABLERO — rediseño
+   Había dieciocho tarjetas pastel en cuatro filas, cada una con su
+   fondo de color y su icono: todas pedían la misma atención, así que
+   ninguna la tenía, y en un día tranquilo era una pared de ceros de
+   colores. Ahora hay una jerarquía —lo del período elegido primero,
+   después los bloques de dónde salió esa plata— sobre una sola
+   superficie, y el color aparece solo cuando significa algo.
+   ══════════════════════════════════════════════════════════════════ */
+
+/* #root { text-align: center } de la plantilla de Vite se hereda acá. */
+.dash-header, .dash-titulares, .dash-bloque, .dash-cajas-panel { text-align: left; }
+
+/* ══ Titulares del período ══ */
+.dash-titulares {
+    display: flex; align-items: stretch; gap: 32px; flex-wrap: wrap;
+    background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
+    padding: 18px 22px;
+}
+.titulares-periodo { display: flex; gap: 40px; flex-wrap: wrap; }
+/* Viajes y embarcados son del día y no cambian con la pestaña: se separan
+   con una línea para que no se lean como parte del período elegido. */
+.titulares-dia {
+    display: flex; gap: 28px; flex-wrap: wrap;
+    margin-left: auto; padding-left: 32px;
+    border-left: 1px solid #eef2f7;
+}
+
+/* ══ Una cifra ══ */
+.dash-cifra { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.cifra-label { font-size: 12.5px; color: #6b7280; }
+.cifra-valor {
+    font-size: 21px; font-weight: 700; color: #0f172a; line-height: 1.15;
+    font-variant-numeric: tabular-nums; letter-spacing: -0.01em;
+}
+.cifra-nota { font-size: 11.5px; color: #9ca3af; }
+
+.cifra-grande .cifra-valor { font-size: 32px; }
+.cifra-grande .cifra-label { font-size: 13px; }
+
+/* El color dice algo o no está: plata que entró, plata que se restó, algo
+   que quedó pendiente. */
+.cifra-plata .cifra-valor     { color: #15803d; }
+.cifra-resta .cifra-valor     { color: #b45309; }
+.cifra-pendiente .cifra-valor { color: #b45309; }
+
+/* ══ Bloques ══ */
+.dash-bloque {
+    background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
+    padding: 16px 20px; margin-bottom: 14px;
+}
+.bloque-titulo { margin-bottom: 14px; }
+.bloque-titulo h3 {
+    display: flex; align-items: center; gap: 7px;
+    margin: 0; font-size: 14px; font-weight: 700; color: #1e293b;
+}
+.bloque-titulo h3 i { font-size: 17px; color: #94a3b8; }
+.bloque-titulo p { margin: 3px 0 0; font-size: 12.5px; color: #6b7280; }
+
+/* Las cifras de un bloque se reparten el ancho y se separan con una línea,
+   que alcanza para agruparlas sin darle a cada una un recuadro propio. */
+.dash-cifras { display: flex; flex-wrap: wrap; gap: 0; }
+.dash-cifras .dash-cifra {
+    flex: 1 1 150px; padding: 2px 20px;
+    border-left: 1px solid #eef2f7;
+}
+.dash-cifras .dash-cifra:first-child { padding-left: 0; border-left: none; }
+
+@media (max-width: 820px) {
+    .titulares-dia { margin-left: 0; padding-left: 0; border-left: none; }
+    .dash-cifras .dash-cifra {
+        flex: 1 1 130px; padding: 8px 0 8px 14px;
+    }
+    .cifra-grande .cifra-valor { font-size: 26px; }
 }
