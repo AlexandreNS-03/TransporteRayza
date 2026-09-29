@@ -20,7 +20,7 @@ public class Usuario {
     @Column(name = "nombre")
     private String nombre;
 
-    @Column(name = "email")
+    @Column(name = "email", unique = true)
     private String email;
 
     @Column(name = "activo")
@@ -93,8 +93,20 @@ public class Usuario {
         return email;
     }
 
+    /**
+     * Un correo en blanco se guarda como NULL, nunca como "".
+     *
+     * La columna tiene índice único, y MySQL admite varios NULL pero no varias
+     * cadenas vacías. El formulario manda "" cuando el campo queda sin llenar,
+     * así que con el segundo usuario sin correo saltaba
+     * "Duplicate entry '' for key 'usuarios.uq_usuario_email'" y no se podía
+     * crear la cuenta.
+     *
+     * Va en el setter y no en el servicio para que valga para todos los caminos
+     * que tocan el correo, incluidos los que se escriban después.
+     */
     public void setEmail(String email) {
-        this.email = email;
+        this.email = (email == null || email.isBlank()) ? null : email.trim();
     }
 
     public Rol getRol() {
