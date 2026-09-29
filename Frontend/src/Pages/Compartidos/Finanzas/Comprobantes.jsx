@@ -14,6 +14,12 @@ const TIPO_LABEL = { BOLETA: "Boleta", FACTURA: "Factura", NOTA_CREDITO: "N. Cr�
 
 function numeroFmt(n) { return String(n).padStart(8, "0"); }
 
+/** Hoy en el formato que entienden <input type="date"> y el servidor. */
+function hoyISO() { return new Date().toLocaleDateString("en-CA"); }
+
+/** La fecha de hace N días, en el mismo formato. */
+function haceDias(n) { return new Date(Date.now() - n * 86400000).toLocaleDateString("en-CA"); }
+
 /** 2026-07-24 → 24/07/26. La columna es angosta y el año completo no aporta. */
 function fechaCorta(iso) {
     if (!iso) return "—";
@@ -33,8 +39,11 @@ function Comprobantes() {
     // Filtros
     const [filtroTipo, setFiltroTipo]     = useState("todos");
     const [filtroEstado, setFiltroEstado] = useState("todos");
-    const [fechaDesde, setFechaDesde]     = useState("");
-    const [fechaHasta, setFechaHasta]     = useState("");
+    /* La pantalla arranca en los últimos 30 días y el servidor devuelve solo eso.
+       Traer todo el historial en cada carga crecía para siempre. Para un
+       comprobante más viejo se amplían las fechas. */
+    const [fechaDesde, setFechaDesde]     = useState(() => haceDias(30));
+    const [fechaHasta, setFechaHasta]     = useState(() => hoyISO());
     const [busqueda, setBusqueda]         = useState("");
 
     // Modales
@@ -48,11 +57,15 @@ function Comprobantes() {
 
     useEffect(() => { fetchComprobantes(); }, []);
 
-    const fetchComprobantes = async () => {
+    const fetchComprobantes = async (desde = fechaDesde, hasta = fechaHasta) => {
         setCargando(true);
         setError(null);
         try {
-            const data = await apiFetch("/api/comprobantes");
+            const params = new URLSearchParams();
+            if (desde) params.set("desde", desde);
+            if (hasta) params.set("hasta", hasta);
+            const cola = params.toString();
+            const data = await apiFetch(`/api/comprobantes${cola ? `?${cola}` : ""}`);
             setComprobantes(data);
         } catch (err) { setError(err.message); }
         finally { setCargando(false); }
@@ -124,11 +137,13 @@ function Comprobantes() {
     };
 
     const limpiarFiltros = () => {
+        const d = haceDias(30), h = hoyISO();
         setFiltroTipo("todos");
         setFiltroEstado("todos");
-        setFechaDesde("");
-        setFechaHasta("");
+        setFechaDesde(d);
+        setFechaHasta(h);
         setBusqueda("");
+        fetchComprobantes(d, h);
     };
 
     const filtrados = comprobantes.filter(c => {
@@ -152,8 +167,7 @@ function Comprobantes() {
 
     const pag = usePaginacion(filtrados, 10);
 
-    const hayFiltros = filtroTipo !== "todos" || filtroEstado !== "todos"
-        || !!fechaDesde || !!fechaHasta || !!busqueda.trim();
+    const hayFiltros = filtroTipo !== "todos" || filtroEstado !== "todos" || !!busqueda.trim();
 
     // El resumen cuenta lo que se está viendo. Antes sumaba siempre todo el
     // historial, así que filtrar por un mes dejaba arriba una cifra que no
@@ -203,7 +217,12 @@ function Comprobantes() {
                         <span>{totalAnulados === 1 ? "anulado" : "anulados"}</span>
                     </div>
                 )}
-                {hayFiltros && <span className="resumen-nota">con los filtros puestos</span>}
+                {/* Que la pantalla diga qué está mostrando: si no, un comprobante
+                    viejo que no aparece se lee como un comprobante perdido. */}
+                <span className="resumen-nota">
+                    emitidos entre el {fechaCorta(fechaDesde)} y el {fechaCorta(fechaHasta)}
+                    {hayFiltros && ", con los filtros puestos"}
+                </span>
             </div>
 
             {/* FILTROS */}
@@ -227,11 +246,13 @@ function Comprobantes() {
                 </div>
                 <div className="filtro-grupo">
                     <label>Desde</label>
-                    <input type="date" value={fechaDesde} onChange={e => setFechaDesde(e.target.value)} />
+                    <input type="date" value={fechaDesde}
+                           onChange={e => { setFechaDesde(e.target.value); fetchComprobantes(e.target.value, fechaHasta); }} />
                 </div>
                 <div className="filtro-grupo">
                     <label>Hasta</label>
-                    <input type="date" value={fechaHasta} onChange={e => setFechaHasta(e.target.value)} />
+                    <input type="date" value={fechaHasta}
+                           onChange={e => { setFechaHasta(e.target.value); fetchComprobantes(fechaDesde, e.target.value); }} />
                 </div>
                 <div className="filtro-grupo">
                     <label>Buscar</label>

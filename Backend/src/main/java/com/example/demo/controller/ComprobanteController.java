@@ -26,9 +26,23 @@ public class ComprobanteController {
         this.comprobantesPendientesService = comprobantesPendientesService;
     }
 
+    /**
+     * Los comprobantes de un rango de fechas de emisión.
+     *
+     * Sin rango trae los últimos {@link ComprobanteService#DIAS_POR_DEFECTO}
+     * días. Traía todo el historial en cada carga, y eso crecía para siempre.
+     */
     @GetMapping
-    public ResponseEntity<List<ComprobanteDTO>> listar() {
-        return ResponseEntity.ok(comprobanteService.listar());
+    public ResponseEntity<List<ComprobanteDTO>> listar(
+            @RequestParam(required = false)
+            @org.springframework.format.annotation.DateTimeFormat(
+                    iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE)
+            java.time.LocalDate desde,
+            @RequestParam(required = false)
+            @org.springframework.format.annotation.DateTimeFormat(
+                    iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE)
+            java.time.LocalDate hasta) {
+        return ResponseEntity.ok(comprobanteService.listar(desde, hasta));
     }
 
     /**

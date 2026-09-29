@@ -58,9 +58,53 @@ public class ComprobanteService {
         this.auditoriaService       = auditoriaService;
     }
 
+    /** Cuántos días hacia atrás trae la pantalla cuando no se pide un rango. */
+    public static final int DIAS_POR_DEFECTO = 30;
+
     public List<ComprobanteDTO> listar() {
-        return comprobanteRepository.findAllByOrderByCreatedAtDesc()
-                .stream().map(this::toDTO).collect(Collectors.toList());
+        return listar(null, null);
+    }
+
+    /**
+     * Los comprobantes de un rango de fechas de emisión.
+     *
+     * Sin rango trae los últimos {@value #DIAS_POR_DEFECTO} días. Antes traía
+     * todo el historial en cada carga, y eso crecía para siempre. Buscar uno
+     * viejo se hace ampliando las fechas.
+     */
+    public List<ComprobanteDTO> listar(java.time.LocalDate desde, java.time.LocalDate hasta) {
+        java.time.LocalDate hastaReal = hasta != null ? hasta : java.time.LocalDate.now();
+        java.time.LocalDate desdeReal = desde != null ? desde : hastaReal.minusDays(DIAS_POR_DEFECTO);
+
+        List<Comprobante> comprobantes = comprobanteRepository
+                .findByFechaDeEmisionBetweenOrderByCreatedAtDesc(desdeReal, hastaReal);
+        return conReferencias(comprobantes);
+    }
+
+    /**
+     * Resuelve de una sola vez a qué venta o encomienda apunta cada comprobante.
+     *
+     * Fila por fila costaba una consulta por comprobante: es lo que hacía lenta
+     * la pantalla cuando el historial creció.
+     */
+    private List<ComprobanteDTO> conReferencias(List<Comprobante> comprobantes) {
+        java.util.Set<String> ventaIds = comprobantes.stream()
+                .map(Comprobante::getVentaId).filter(java.util.Objects::nonNull)
+                .collect(Collectors.toSet());
+        java.util.Set<String> encomiendaIds = comprobantes.stream()
+                .map(Comprobante::getEncomiendaId).filter(java.util.Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        Map<String, Venta> ventas = ventaIds.isEmpty() ? Map.of()
+                : ventaRepository.findAllById(ventaIds).stream()
+                    .collect(Collectors.toMap(Venta::getId, v -> v, (a, b) -> a));
+        Map<String, Encomienda> encomiendas = encomiendaIds.isEmpty() ? Map.of()
+                : encomiendaRepository.findAllById(encomiendaIds).stream()
+                    .collect(Collectors.toMap(Encomienda::getId, e -> e, (a, b) -> a));
+
+        return comprobantes.stream()
+                .map(c -> toDTO(c, ventas, encomiendas))
+                .collect(Collectors.toList());
     }
 
     public List<ComprobanteDTO> listarPorVenta(String ventaId) {
@@ -373,6 +417,15 @@ public class ComprobanteService {
     }
 
     private ComprobanteDTO toDTO(Comprobante c) {
+        return toDTO(c, null, null);
+    }
+
+    /**
+     * @param ventas      ventas ya cargadas (listados); null las busca una por una
+     * @param encomiendas ídem para las encomiendas
+     */
+    private ComprobanteDTO toDTO(Comprobante c, Map<String, Venta> ventas,
+                                 Map<String, Encomienda> encomiendas) {
         ComprobanteDTO dto = new ComprobanteDTO();
         dto.setId(c.getId());
         dto.setVentaId(c.getVentaId());
@@ -404,15 +457,21 @@ public class ComprobanteService {
 
         // Referencia mostrada en el historial: venta (viaje + pasajero) o encomienda (código + remitente)
         if (c.getVentaId() != null) {
-            ventaRepository.findById(c.getVentaId()).ifPresent(v -> {
+            Venta v = ventas != null
+                    ? ventas.get(c.getVentaId())
+                    : ventaRepository.findById(c.getVentaId()).orElse(null);
+            if (v != null) {
                 dto.setViajeCodigo(v.getViajeCodigo());
                 dto.setPasajeroNombre(v.getPasajeroNombre());
-            });
+            }
         } else if (c.getEncomiendaId() != null) {
-            encomiendaRepository.findById(c.getEncomiendaId()).ifPresent(e -> {
+            Encomienda e = encomiendas != null
+                    ? encomiendas.get(c.getEncomiendaId())
+                    : encomiendaRepository.findById(c.getEncomiendaId()).orElse(null);
+            if (e != null) {
                 dto.setViajeCodigo(e.getCodigoEncomienda());
                 dto.setPasajeroNombre(e.getRemitenteNombre() + " → " + e.getDestinatarioNombre());
-            });
+            }
         }
 
         return dto;

@@ -10,6 +10,15 @@ public interface ComprobanteRepository extends JpaRepository<Comprobante, String
 
     List<Comprobante> findAllByOrderByCreatedAtDesc();
 
+    /**
+     * Los comprobantes emitidos en un rango de fechas.
+     *
+     * La pantalla traía todo el historial en cada carga. Con el filtro en la
+     * consulta, la base devuelve solo lo que se va a mostrar.
+     */
+    List<Comprobante> findByFechaDeEmisionBetweenOrderByCreatedAtDesc(
+            java.time.LocalDate desde, java.time.LocalDate hasta);
+
     List<Comprobante> findByVentaId(String ventaId);
 
     // Correlativo por tipo+serie: en modo demo de Nubefact las notas de crédito
