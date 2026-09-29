@@ -140,6 +140,20 @@ public class SorteoService {
     }
 
     /**
+     * Los códigos de varias ventas de una sola consulta.
+     *
+     * Para un listado, preguntar venta por venta cuesta una consulta por fila:
+     * es una de las dos que hacían lenta la pantalla de Pasajes.
+     */
+    public java.util.Map<String, String> codigosDeVentas(java.util.Collection<String> ventaIds) {
+        if (ventaIds == null || ventaIds.isEmpty()) return java.util.Map.of();
+        return cuponRepository.findByVentaIdIn(ventaIds).stream()
+                .filter(c -> c.getVentaId() != null && c.getCodigo() != null)
+                .collect(java.util.stream.Collectors.toMap(
+                        CuponSorteo::getVentaId, CuponSorteo::getCodigo, (a, b) -> a));
+    }
+
+    /**
      * Registra un cupón para que participe.
      *
      * Pide cómo ubicar a la persona: sin eso, ganar no serviría de nada.

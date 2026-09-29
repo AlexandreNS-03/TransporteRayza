@@ -2,6 +2,7 @@ package com.example.demo.repository;
 
 import com.example.demo.model.Venta;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -15,6 +16,16 @@ import java.util.Optional;
 public interface VentaRepository extends JpaRepository<Venta, String> {
     List<Venta> findAllByOrderByFechaVentaDesc();
     List<Venta> findAllByOrderByCreatedAtDesc();
+
+    /**
+     * Las ventas de un rango de fechas.
+     *
+     * La pantalla de Pasajes traía todas las ventas de la historia en cada
+     * carga. Con el filtro en la consulta, la base devuelve solo lo que se va
+     * a mostrar en vez de mandarlo todo para que el navegador lo descarte.
+     */
+    @EntityGraph(attributePaths = "tramosUsados")
+    List<Venta> findByFechaVentaBetweenOrderByCreatedAtDesc(LocalDate desde, LocalDate hasta);
 
     Optional<Venta> findTopByOrderByNumeroComprobanteDesc();
     List<Venta> findByViajeId(String viajeId);

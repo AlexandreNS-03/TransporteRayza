@@ -7,7 +7,10 @@ import com.example.demo.dto.VentaGrupoRequest;
 import com.example.demo.dto.VentaRequest;
 import com.example.demo.model.Usuario;
 import com.example.demo.service.VentaService;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
+
+import java.time.LocalDate;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,9 +27,21 @@ public class VentaController {
         this.ventaService = ventaService;
     }
 
+    /**
+     * Los pasajes de un rango de fechas de venta.
+     *
+     * Sin rango trae los últimos {@link VentaService#DIAS_POR_DEFECTO} días.
+     * Traía todas las ventas de la historia en cada carga, y eso crecía para
+     * siempre. Para un pasaje viejo del que se sabe el documento está
+     * /api/ventas/documento/{documento}, que no mira fechas.
+     */
     @GetMapping
-    public ResponseEntity<List<VentaDTO>> listar(Authentication auth) {
-        return ResponseEntity.ok(ventaService.listarVentas(auth != null ? auth.getName() : null));
+    public ResponseEntity<List<VentaDTO>> listar(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta,
+            Authentication auth) {
+        return ResponseEntity.ok(ventaService.listarVentas(
+                auth != null ? auth.getName() : null, desde, hasta));
     }
 
     @GetMapping("/viaje/{viajeId}")

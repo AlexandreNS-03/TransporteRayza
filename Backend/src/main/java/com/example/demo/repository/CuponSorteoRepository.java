@@ -15,6 +15,9 @@ public interface CuponSorteoRepository extends JpaRepository<CuponSorteo, String
 
     Optional<CuponSorteo> findByVentaId(String ventaId);
 
+    /** Los cupones de varias ventas de una sola vez, para los listados. */
+    List<CuponSorteo> findByVentaIdIn(java.util.Collection<String> ventaIds);
+
     /**
      * Los que entran al sorteo: solo los registrados por su dueño.
      *

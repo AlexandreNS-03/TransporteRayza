@@ -13,6 +13,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -256,9 +257,27 @@ public class VentaService {
     }
 
     // Listar todas
+    /** Cuántos días hacia atrás trae la pantalla cuando no se pide un rango. */
+    public static final int DIAS_POR_DEFECTO = 30;
+
     public List<VentaDTO> listarVentas(String usuarioNombre) {
-        // Orden por creación descendente: la venta más reciente aparece primero.
-        List<Venta> ventas = ventaRepository.findAllByOrderByCreatedAtDesc();
+        return listarVentas(usuarioNombre, null, null);
+    }
+
+    /**
+     * Los pasajes de un rango de fechas de venta.
+     *
+     * Sin rango trae los últimos {@value #DIAS_POR_DEFECTO} días. Antes traía
+     * todas las ventas de la historia en cada carga: con 5 000 pasajes eran
+     * 6 MB de respuesta y más de 6 segundos, y crecía para siempre. Buscar un
+     * pasaje viejo sigue funcionando sin rango por /api/ventas/documento/{doc}.
+     */
+    public List<VentaDTO> listarVentas(String usuarioNombre, LocalDate desde, LocalDate hasta) {
+        LocalDate hastaReal = hasta != null ? hasta : LocalDate.now();
+        LocalDate desdeReal = desde != null ? desde : hastaReal.minusDays(DIAS_POR_DEFECTO);
+
+        List<Venta> ventas = ventaRepository
+                .findByFechaVentaBetweenOrderByCreatedAtDesc(desdeReal, hastaReal);
 
         // Cada usuario ve solo los pasajes de su sucursal (por el viaje). El ADMIN
         // y los usuarios sin sucursal asignada ven todos.
@@ -271,7 +290,44 @@ public class VentaService {
                     .filter(v -> v.getViajeId() != null && misViajes.contains(v.getViajeId()))
                     .collect(Collectors.toList());
         }
-        return ventas.stream().map(this::toDTO).collect(Collectors.toList());
+        Map<String, DatosDelViaje> viajes = datosDeLosViajes(ventas);
+        Map<String, String> codigosSorteo = sorteoService.codigosDeVentas(
+                ventas.stream().map(Venta::getId).collect(Collectors.toList()));
+        return ventas.stream().map(v -> toDTO(v, viajes, codigosSorteo)).collect(Collectors.toList());
+    }
+
+    /**
+     * Lo que cada pasaje necesita saber de su viaje.
+     *
+     * Resolverlo fila por fila costaba caro: dos findById del viaje más uno de
+     * la ruta por venta, y como Ruta tiene tres colecciones perezosas, cada uno
+     * arrastraba más consultas. Una carga de la pantalla con 5 000 pasajes
+     * disparaba más de 85 000 consultas. Acá se cargan de una sola vez.
+     */
+    private record DatosDelViaje(String fechaSalida, String horaSalida,
+                                 String embarcacionNombre, boolean requierePreembarque) {}
+
+    private Map<String, DatosDelViaje> datosDeLosViajes(List<Venta> ventas) {
+        java.util.Set<String> viajeIds = ventas.stream()
+                .map(Venta::getViajeId).filter(java.util.Objects::nonNull)
+                .collect(Collectors.toSet());
+        if (viajeIds.isEmpty()) return Map.of();
+
+        List<Viaje> viajes = viajeRepository.findAllById(viajeIds);
+
+        java.util.Set<String> rutaIds = viajes.stream()
+                .map(Viaje::getRutaId).filter(java.util.Objects::nonNull)
+                .collect(Collectors.toSet());
+        Map<String, Boolean> preembarquePorRuta = rutaIds.isEmpty() ? Map.of()
+                : rutaRepository.findAllById(rutaIds).stream()
+                    .collect(Collectors.toMap(Ruta::getId, Ruta::isRequierePreembarque, (a, b) -> a));
+
+        return viajes.stream().collect(Collectors.toMap(Viaje::getId, vi -> new DatosDelViaje(
+                vi.getFechaSalida() != null ? vi.getFechaSalida().toString() : null,
+                vi.getHoraSalida()  != null ? vi.getHoraSalida().toString()  : null,
+                vi.getEmbarcacionNombre(),
+                vi.getRutaId() != null && preembarquePorRuta.getOrDefault(vi.getRutaId(), false)
+        ), (a, b) -> a));
     }
 
     // Listar por viaje
@@ -675,6 +731,15 @@ public class VentaService {
     public VentaDTO aDTO(Venta v) { return toDTO(v); }
 
     private VentaDTO toDTO(Venta v) {
+        return toDTO(v, null, null);
+    }
+
+    /**
+     * @param viajes datos de viaje ya cargados (listados). Con null los busca
+     *               uno por uno, que es lo correcto para un solo pasaje.
+     */
+    private VentaDTO toDTO(Venta v, Map<String, DatosDelViaje> viajes,
+                           Map<String, String> codigosSorteo) {
         VentaDTO dto = new VentaDTO();
         dto.setId(v.getId());
         dto.setGrupoVentaId(v.getGrupoVentaId());
@@ -682,15 +747,14 @@ public class VentaService {
         dto.setViajeCodigo(v.getViajeCodigo());
         dto.setViajeDescripcion(v.getViajeDescripcion());
 
-        // Fecha y hora de salida del viaje (para el ticket y la ventana de embarque)
-        if (v.getViajeId() != null) {
-            viajeRepository.findById(v.getViajeId()).ifPresent(viaje -> {
-                dto.setFechaSalida(viaje.getFechaSalida() != null ? viaje.getFechaSalida().toString() : null);
-                dto.setHoraSalida(viaje.getHoraSalida() != null ? viaje.getHoraSalida().toString() : null);
-                // La nave sale del viaje: la venta no la guarda, y en el puerto es
-                // el dato que le dice al pasajero a cuál bote subir.
-                dto.setEmbarcacionNombre(viaje.getEmbarcacionNombre());
-            });
+        // Fecha y hora de salida del viaje (para el ticket y la ventana de embarque).
+        // La nave sale del viaje: la venta no la guarda, y en el puerto es el dato
+        // que le dice al pasajero a cuál bote subir.
+        DatosDelViaje datos = datosDelViajeDe(v, viajes);
+        if (datos != null) {
+            dto.setFechaSalida(datos.fechaSalida());
+            dto.setHoraSalida(datos.horaSalida());
+            dto.setEmbarcacionNombre(datos.embarcacionNombre());
         }
         dto.setTipoDocumento(v.getTipoDocumento() != null ? v.getTipoDocumento().name() : null);
         dto.setPasajeroNombre(v.getPasajeroNombre());
@@ -736,20 +800,34 @@ public class VentaService {
         dto.setCreatedAt(v.getCreatedAt() != null ? v.getCreatedAt().toString() : null);
         dto.setEmbarcadoPor(v.getEmbarcadoPor());
         dto.setEmbarcadoAt(v.getEmbarcadoAt() != null ? v.getEmbarcadoAt().toString() : null);
-        dto.setCodigoSorteo(sorteoService.codigoDeVenta(v.getId()));
+        // Del mapa en los listados; una consulta suelta para un solo pasaje.
+        dto.setCodigoSorteo(codigosSorteo != null
+                ? codigosSorteo.get(v.getId())
+                : sorteoService.codigoDeVenta(v.getId()));
         dto.setPreembarqueEstado(v.getPreembarqueEstado() != null ? v.getPreembarqueEstado().name() : null);
         dto.setPreembarcadoPor(v.getPreembarcadoPor());
         dto.setPreembarcadoAt(v.getPreembarcadoAt() != null ? v.getPreembarcadoAt().toString() : null);
         // La pantalla necesita saber si esta ruta usa pre-embarque para mostrar (o no)
         // la pestaña; se resuelve acá y no en el navegador para no exponer la regla.
-        if (v.getViajeId() != null)
-            viajeRepository.findById(v.getViajeId())
-                    .ifPresent(vi -> dto.setRequierePreembarque(usaPreembarque(vi)));
+        if (datos != null) dto.setRequierePreembarque(datos.requierePreembarque());
         dto.setPrecioOriginal(v.getPrecioOriginal());
         dto.setDescuento(v.getDescuento());
         dto.setLugarPago(v.getLugarPago());
 
         return dto;
+    }
+
+    /** Del mapa ya cargado si viene de un listado; del repositorio si es un pasaje suelto. */
+    private DatosDelViaje datosDelViajeDe(Venta v, Map<String, DatosDelViaje> viajes) {
+        if (v.getViajeId() == null) return null;
+        if (viajes != null) return viajes.get(v.getViajeId());
+        return viajeRepository.findById(v.getViajeId())
+                .map(vi -> new DatosDelViaje(
+                        vi.getFechaSalida() != null ? vi.getFechaSalida().toString() : null,
+                        vi.getHoraSalida()  != null ? vi.getHoraSalida().toString()  : null,
+                        vi.getEmbarcacionNombre(),
+                        usaPreembarque(vi)))
+                .orElse(null);
     }
 
     /** Normaliza el lugar de pago a IQUITOS / REQUENA; null si no se indicó. */
