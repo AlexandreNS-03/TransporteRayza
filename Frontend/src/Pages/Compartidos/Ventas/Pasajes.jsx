@@ -46,6 +46,14 @@ function cuandoSale(iso) {
     return { texto: largo, cuando: `en ${dias} días`, tono: "futuro" };
 }
 
+/** Hoy en el formato que entienden <input type="date"> y el servidor. */
+function hoyISO() { return new Date().toLocaleDateString("en-CA"); }
+
+/** La fecha de hace N días, en el mismo formato. */
+function haceDias(n) {
+    return new Date(Date.now() - n * 86400000).toLocaleDateString("en-CA");
+}
+
 /** 2026-07-24 → 24/07/26. La columna es angosta y el año completo no aporta. */
 function fechaCorta(iso) {
     if (!iso) return "—";
@@ -100,8 +108,12 @@ function Pasajes() {
     const [parametros] = useSearchParams();
     const [filtroEstado, setFiltro]   = useState(
         parametros.get("pendientes") === "1" ? "sin-comprobante" : "todos");
-    const [fechaDesde, setFechaDesde] = useState("");
-    const [fechaHasta, setFechaHasta] = useState("");
+    /* El listado arranca en los últimos 30 días y el servidor devuelve solo eso.
+       Traer todas las ventas de la historia en cada carga eran megabytes y
+       segundos, y crecía para siempre. Para un pasaje más viejo se amplían las
+       fechas, o se busca por documento, que no mira el rango. */
+    const [fechaDesde, setFechaDesde] = useState(() => haceDias(30));
+    const [fechaHasta, setFechaHasta] = useState(() => hoyISO());
     const [orden, setOrden] = useState({ key: "createdAt", dir: "desc" });
 
     // Comprobantes electrónicos (Nubefact)
@@ -181,11 +193,15 @@ function Pasajes() {
     const grupoDe = (v) =>
         v.grupoVentaId ? ventas.filter(x => x.grupoVentaId === v.grupoVentaId) : [v];
 
-    const fetchVentas = async () => {
+    const fetchVentas = async (desde = fechaDesde, hasta = fechaHasta) => {
         setCargando(true);
         setError(null);
         try {
-            const data = await apiFetch("/api/ventas");
+            const params = new URLSearchParams();
+            if (desde) params.set("desde", desde);
+            if (hasta) params.set("hasta", hasta);
+            const cola = params.toString();
+            const data = await apiFetch(`/api/ventas${cola ? `?${cola}` : ""}`);
             setVentas(data);
         } catch (err) { setError(err.message); }
         finally { setCargando(false); }
@@ -521,10 +537,11 @@ function Pasajes() {
 
     // Distinguir "no hay nada" de "tu búsqueda no encontró": son situaciones
     // distintas y la salida de cada una también.
-    const hayFiltros = filtroEstado !== "todos" || !!fechaDesde || !!fechaHasta || !!busqueda;
+    const hayFiltros = filtroEstado !== "todos" || !!busqueda;
 
     const limpiarFiltros = () => {
-        setFiltro("todos"); setFechaDesde(""); setFechaHasta(""); setBusqueda("");
+        const d = haceDias(30), h = hoyISO();
+        setFiltro("todos"); setFechaDesde(d); setFechaHasta(h); setBusqueda("");
     };
 
     const ventasFiltradas = ventas.filter(v => {
@@ -674,11 +691,13 @@ function Pasajes() {
                 </div>
                 <div className="filtro-grupo">
                     <label>Desde</label>
-                    <input type="date" value={fechaDesde} onChange={e => setFechaDesde(e.target.value)} />
+                    <input type="date" value={fechaDesde}
+                           onChange={e => { setFechaDesde(e.target.value); fetchVentas(e.target.value, fechaHasta); }} />
                 </div>
                 <div className="filtro-grupo">
                     <label>Hasta</label>
-                    <input type="date" value={fechaHasta} onChange={e => setFechaHasta(e.target.value)} />
+                    <input type="date" value={fechaHasta}
+                           onChange={e => { setFechaHasta(e.target.value); fetchVentas(fechaDesde, e.target.value); }} />
                 </div>
                 <div className="filtro-grupo">
                     <label>Buscar por documento</label>
@@ -694,7 +713,11 @@ function Pasajes() {
                         <button onClick={buscarPorDoc} className="btn-buscar-inline">Buscar</button>
                     </div>
                 </div>
-                <button className="btn-limpiar" onClick={() => { setBusqueda(""); setFiltro("todos"); setFechaDesde(""); setFechaHasta(""); fetchVentas(); }}>
+                <button className="btn-limpiar" onClick={() => {
+                    const d = haceDias(30), h = hoyISO();
+                    setBusqueda(""); setFiltro("todos"); setFechaDesde(d); setFechaHasta(h);
+                    fetchVentas(d, h);
+                }}>
                     <i className="ti ti-filter-off"></i> Limpiar
                 </button>
             </div>
@@ -719,7 +742,12 @@ function Pasajes() {
                             <span>{resumen.anulados === 1 ? "anulado" : "anulados"}</span>
                         </div>
                     )}
-                    {hayFiltros && <span className="resumen-nota">con los filtros puestos</span>}
+                    {/* Que la pantalla diga qué está mostrando: si no, un pasaje
+                        viejo que no aparece se lee como un pasaje perdido. */}
+                    <span className="resumen-nota">
+                        vendidos entre el {fechaCorta(fechaDesde)} y el {fechaCorta(fechaHasta)}
+                        {hayFiltros && ", con los filtros puestos"}
+                    </span>
                 </div>
             )}
 
