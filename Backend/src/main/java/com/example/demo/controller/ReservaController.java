@@ -25,12 +25,15 @@ import java.util.Map;
 public class ReservaController {
 
     private final ReservaService reservaService;
+    private final com.example.demo.service.YapeOnFileService yapeOnFileService;
     private final RecordatorioPagoService recordatorioPagoService;
 
     public ReservaController(ReservaService reservaService,
-                             RecordatorioPagoService recordatorioPagoService) {
+                             RecordatorioPagoService recordatorioPagoService,
+                             com.example.demo.service.YapeOnFileService yapeOnFileService) {
         this.reservaService = reservaService;
         this.recordatorioPagoService = recordatorioPagoService;
+        this.yapeOnFileService = yapeOnFileService;
     }
 
     @ExceptionHandler(RuntimeException.class)
@@ -105,6 +108,14 @@ public class ReservaController {
                 reservaIds(body), (String) body.get("token"), (String) body.get("deviceId")));
     }
 
+    /** Paga el grupo con el Yape guardado del cliente. Un toque, sin código. */
+    @PostMapping("/grupo/pagar/yape-guardado")
+    public ResponseEntity<ConfirmacionGrupoDTO> pagarGrupoYapeGuardado(@RequestBody Map<String, Object> body,
+                                                                       Authentication auth) {
+        if (auth == null) throw new RuntimeException("Iniciá sesión para pagar con tu Yape guardado");
+        return ResponseEntity.ok(reservaService.pagarGrupoYapeGuardado(reservaIds(body), auth.getName()));
+    }
+
     @SuppressWarnings("unchecked")
     private List<String> reservaIds(Map<String, Object> body) {
         Object ids = body.get("reservaIds");
@@ -119,8 +130,32 @@ public class ReservaController {
      * cliente va a pagar con Yape, y no quedan órdenes abandonadas en la pasarela.
      */
     @GetMapping("/metodos-de-pago")
-    public ResponseEntity<?> metodosDePago() {
-        return ResponseEntity.ok(reservaService.metodosDePago());
+    public ResponseEntity<?> metodosDePago(Authentication auth) {
+        // Con sesión se agrega el Yape guardado del cliente, si tiene uno vivo.
+        return ResponseEntity.ok(reservaService.metodosDePago(auth != null ? auth.getName() : null));
+    }
+
+    /**
+     * Pide la autorización para guardar el Yape del cliente.
+     *
+     * Devuelve el enlace que abre Yape. Hace falta sesión: sin saber de quién es
+     * la autorización, guardarla no serviría de nada.
+     */
+    @PostMapping("/yape-guardado/autorizar")
+    public ResponseEntity<?> autorizarYapeGuardado(@RequestBody(required = false) java.util.Map<String, String> body,
+                                                   Authentication auth) {
+        if (auth == null) throw new RuntimeException("Iniciá sesión para guardar tu Yape");
+        return ResponseEntity.ok(yapeOnFileService.pedirAutorizacion(
+                auth.getName(),
+                body != null ? body.get("clienteNombre") : null,
+                body != null ? body.get("celular") : null));
+    }
+
+    /** Cobra la reserva con el Yape que el cliente dejó guardado. Un toque, sin código. */
+    @PostMapping("/{id}/pagar/yape-guardado")
+    public ResponseEntity<?> pagarConYapeGuardado(@PathVariable String id, Authentication auth) {
+        if (auth == null) throw new RuntimeException("Iniciá sesión para pagar con tu Yape guardado");
+        return ResponseEntity.ok(reservaService.pagarConYapeGuardado(id, auth.getName()));
     }
 
     /** Paso previo del pago con tarjeta: pide a Izipay el formulario de esta reserva. */

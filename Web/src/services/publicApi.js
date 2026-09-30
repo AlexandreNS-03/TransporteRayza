@@ -143,6 +143,33 @@ export async function pagarConYape(reservaId, token) {
   } catch (e) { throw desempaquetarError(e); }
 }
 
+/**
+ * Cobra con el Yape que el cliente dejó guardado. Un toque: no hay celular ni
+ * código de 6 dígitos que escribir, porque la autorización ya está dada.
+ */
+export async function pagarConYapeGuardado(reservaId) {
+  try {
+    const { data } = await http.post(`/reservas/${reservaId}/pagar/yape-guardado`);
+    return data;
+  } catch (e) { throw desempaquetarError(e); }
+}
+
+/** Lo mismo para todos los pasajes de la compra, que es como paga la web. */
+export async function pagarConYapeGuardadoGrupo(reservaIds) {
+  try {
+    const { data } = await http.post("/reservas/grupo/pagar/yape-guardado", { reservaIds });
+    return data;
+  } catch (e) { throw desempaquetarError(e); }
+}
+
+/** Pide la autorización para guardar el Yape del cliente; devuelve el enlace que abre la app. */
+export async function autorizarYapeGuardado({ clienteNombre, celular } = {}) {
+  try {
+    const { data } = await http.post("/reservas/yape-guardado/autorizar", { clienteNombre, celular });
+    return data;
+  } catch (e) { throw desempaquetarError(e); }
+}
+
 /** Pide a Izipay el formulario de pago de esta reserva (lo arma el backend). */
 export async function formularioDePago(reservaId) {
   try {
