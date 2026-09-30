@@ -123,13 +123,16 @@ export async function pagarConYapeGrupo(reservaIds, token) {
 
 
 /** Medios de pago configurados y sus claves públicas. Se consulta antes de elegir. */
-export async function metodosDePago() {
+export async function metodosDePago(token) {
   // Consultar los medios de pago es la señal de que se abrió una pantalla de pago:
   // se aprovecha para ir calculando la huella del dispositivo que pide Mercado Pago,
   // así está lista antes de cobrar y no se carga ese script en el resto de la web.
   prepararHuellaDispositivo();
   try {
-    const { data } = await http.get("/reservas/metodos-de-pago");
+    // Con el token, el servidor agrega el Yape guardado del cliente. Sin él
+    // responde igual, pero sin esa opción: no sabría de quién es.
+    const cfg = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
+    const { data } = await http.get("/reservas/metodos-de-pago", cfg);
     return data;
   } catch (e) { throw desempaquetarError(e); }
 }
@@ -139,6 +142,36 @@ export async function pagarConYape(reservaId, token) {
   try {
     const deviceId = await huellaDispositivo();
     const { data } = await http.post(`/reservas/${reservaId}/pagar/yape`, { token, deviceId });
+    return data;
+  } catch (e) { throw desempaquetarError(e); }
+}
+
+/**
+ * Cobra con el Yape que el cliente dejó guardado. Un toque: no hay celular ni
+ * código de 6 dígitos que escribir, porque la autorización ya está dada.
+ */
+export async function pagarConYapeGuardado(reservaId, token) {
+  try {
+    const cfg = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
+    const { data } = await http.post(`/reservas/${reservaId}/pagar/yape-guardado`, {}, cfg);
+    return data;
+  } catch (e) { throw desempaquetarError(e); }
+}
+
+/** Lo mismo para todos los pasajes de la compra, que es como paga la web. */
+export async function pagarConYapeGuardadoGrupo(reservaIds, token) {
+  try {
+    const cfg = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
+    const { data } = await http.post("/reservas/grupo/pagar/yape-guardado", { reservaIds }, cfg);
+    return data;
+  } catch (e) { throw desempaquetarError(e); }
+}
+
+/** Pide la autorización para guardar el Yape del cliente; devuelve el enlace que abre la app. */
+export async function autorizarYapeGuardado({ clienteNombre, celular, token } = {}) {
+  try {
+    const cfg = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
+    const { data } = await http.post("/reservas/yape-guardado/autorizar", { clienteNombre, celular }, cfg);
     return data;
   } catch (e) { throw desempaquetarError(e); }
 }

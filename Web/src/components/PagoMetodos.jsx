@@ -16,11 +16,26 @@ const LARGO_CODIGO = 6;
  * Tarjeta o Yape. El método elegido se marca con un check además del color, porque
  * el color solo no le sirve a quien no lo distingue.
  */
-export function MetodosPago({ metodo, onElegir, deshabilitado }) {
-  const opciones = [
+export function MetodosPago({ metodo, onElegir, deshabilitado, yapeGuardado }) {
+  const opciones = [];
+
+  /* El Yape guardado va primero y a propósito: es el único que se paga de un
+     toque. Pagar con Yape normal obliga a salir del navegador, abrir la app,
+     leer un código de 6 dígitos y volver a escribirlo, con los asientos
+     retenidos corriendo contra el reloj. Solo aparece con sesión iniciada y
+     con una autorización vigente. */
+  if (yapeGuardado?.disponible) {
+    opciones.push({
+      id: "yape-guardado", logo: "yape.png", alt: "Yape", respaldo: <IconPhone />,
+      nombre: "Mi Yape",
+      detalle: yapeGuardado.celularFinal ? `···· ${yapeGuardado.celularFinal} · un toque` : "Un toque",
+    });
+  }
+
+  opciones.push(
     { id: "tarjeta", logo: "izipay.png", alt: "Izipay", respaldo: <IconCard />, nombre: "Tarjeta", detalle: "Débito o crédito" },
     { id: "yape",    logo: "yape.png",   alt: "Yape",   respaldo: <IconPhone />, nombre: "Yape",   detalle: "Con tu celular" },
-  ];
+  );
 
   return (
     <div className="metodos-pago" role="radiogroup" aria-label="Medio de pago">
