@@ -221,7 +221,7 @@ export default function Comprar() {
   };
 
   useEffect(() => {
-    if (paso === 3 && !metodos) metodosDePago().then(setMetodos).catch((e) => console.warn("[Comprar] no se pudo cargar métodos de pago:", e));
+    if (paso === 3 && !metodos) metodosDePago(tokenCliente()).then(setMetodos).catch((e) => console.warn("[Comprar] no se pudo cargar métodos de pago:", e));
   }, [paso, metodos]);
 
   /**
@@ -316,7 +316,7 @@ export default function Comprar() {
     setPagando(true); setErrorPago(null);
     try {
       const ids = await obtenerReservas();
-      terminar(await pagarConYapeGuardadoGrupo(ids));
+      terminar(await pagarConYapeGuardadoGrupo(ids, tokenCliente()));
     } catch (e) { setErrorPago(e.message); }
     finally { setPagando(false); }
   };
