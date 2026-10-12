@@ -1,13 +1,18 @@
 import { useState, useEffect, useMemo } from "react";
 import {
     ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
-    PieChart, Pie, Cell, Legend, ComposedChart, Line,
+    PieChart, Pie, Cell, ComposedChart, Line, Area,
 } from "recharts";
 import "./Reportes.css";
+import {
+    paleta, serie, reja, ejeX, ejeY, ejeCategoria, realce,
+    GloboDatos, Leyenda, Degradado, puntoFinal,
+} from "../../../Utils/graficos.jsx";
 import { guardarArchivo, CARPETAS } from "../../../Utils/descargas.js";
 import { motivoDelError } from "../../../Services/api.js";
 
-const COLORES = ["#1a4db5", "#15803d", "#a16207", "#7c3aed", "#0891b2", "#db2777"];
+// Los colores salen de theme.css (ver Utils/graficos.jsx), no se escriben acá.
+const COLORES = paleta();
 
 const API = (import.meta.env.VITE_API_URL || "http://localhost:8080") + "/api";
 const authHeaders = () => ({ "Authorization": `Bearer ${localStorage.getItem("token")}` });
@@ -592,21 +597,28 @@ function Reportes() {
                             </div>
 
                             <div className="reporte-panel">
-                                <h3>Ingresos y Pasajes por Día</h3>
+                                <div className="panel-encabezado">
+                                    <h3>Ingresos y Pasajes por Día</h3>
+                                    <Leyenda series={[{ nombre: "Ingreso", color: COLORES.azul }, { nombre: "Pasajes", color: COLORES.ambar }]} />
+                                </div>
                                 {serieDia.length === 0 ? (
                                     <div className="sin-datos">Sin ventas en el rango seleccionado</div>
                                 ) : (
                                     <div className="chart-print">
                                         <ResponsiveContainer width="100%" height={280}>
                                             <ComposedChart data={serieDia} margin={{ top: 10, right: 16, left: 0, bottom: 0 }}>
-                                                <CartesianGrid strokeDasharray="3 3" stroke="#eef2f7" />
-                                                <XAxis dataKey="etq" tick={{ fontSize: 11, fill: "#6b7280" }} />
-                                                <YAxis yAxisId="l" tick={{ fontSize: 11, fill: "#6b7280" }} />
-                                                <YAxis yAxisId="r" orientation="right" tick={{ fontSize: 11, fill: "#6b7280" }} allowDecimals={false} />
-                                                <Tooltip formatter={(val, name) => name === "Ingreso" ? moneda(val) : val} />
-                                                <Legend />
-                                                <Bar yAxisId="l" dataKey="ingreso" name="Ingreso" fill="#1a4db5" radius={[4, 4, 0, 0]} maxBarSize={46} />
-                                                <Line yAxisId="r" type="monotone" dataKey="pasajes" name="Pasajes" stroke="#a16207" strokeWidth={2} dot={{ r: 3 }} />
+                                                <defs><Degradado id="gradIngresoDia" color={COLORES.azul} /></defs>
+                                                <CartesianGrid {...reja()} />
+                                                <XAxis dataKey="etq" {...ejeX()} />
+                                                <YAxis yAxisId="l" {...ejeY()} />
+                                                <YAxis yAxisId="r" orientation="right" {...ejeY({ allowDecimals: false })} />
+                                                <Tooltip content={<GloboDatos formato={(v, n) => n === "Ingreso" ? moneda(v) : v} />} cursor={realce()} />
+                                                <Area yAxisId="l" type="monotone" dataKey="ingreso" name="Ingreso"
+                                                      stroke={COLORES.azul} strokeWidth={2} fill="url(#gradIngresoDia)"
+                                                      dot={puntoFinal(serieDia.length, COLORES.azul)} activeDot={{ r: 4 }} />
+                                                <Line yAxisId="r" type="monotone" dataKey="pasajes" name="Pasajes"
+                                                      stroke={COLORES.ambar} strokeWidth={2} strokeDasharray="4 3"
+                                                      dot={false} activeDot={{ r: 4 }} />
                                             </ComposedChart>
                                         </ResponsiveContainer>
                                     </div>
@@ -657,21 +669,28 @@ function Reportes() {
                             </div>
 
                             <div className="reporte-panel">
-                                <h3>Ingresos y Pasajes por Día</h3>
+                                <div className="panel-encabezado">
+                                    <h3>Ingresos y Pasajes por Día</h3>
+                                    <Leyenda series={[{ nombre: "Ingreso", color: COLORES.azul }, { nombre: "Pasajes", color: COLORES.ambar }]} />
+                                </div>
                                 {serieDia.length === 0 ? (
                                     <div className="sin-datos">Sin ventas en el rango seleccionado</div>
                                 ) : (
                                     <div className="chart-print">
                                         <ResponsiveContainer width="100%" height={300}>
                                             <ComposedChart data={serieDia} margin={{ top: 10, right: 16, left: 0, bottom: 0 }}>
-                                                <CartesianGrid strokeDasharray="3 3" stroke="#eef2f7" />
-                                                <XAxis dataKey="etq" tick={{ fontSize: 11, fill: "#6b7280" }} />
-                                                <YAxis yAxisId="l" tick={{ fontSize: 11, fill: "#6b7280" }} />
-                                                <YAxis yAxisId="r" orientation="right" tick={{ fontSize: 11, fill: "#6b7280" }} allowDecimals={false} />
-                                                <Tooltip formatter={(val, name) => name === "Ingreso" ? moneda(val) : val} />
-                                                <Legend />
-                                                <Bar yAxisId="l" dataKey="ingreso" name="Ingreso" fill="#1a4db5" radius={[4, 4, 0, 0]} maxBarSize={46} />
-                                                <Line yAxisId="r" type="monotone" dataKey="pasajes" name="Pasajes" stroke="#a16207" strokeWidth={2} dot={{ r: 3 }} />
+                                                <defs><Degradado id="gradIngresoDia" color={COLORES.azul} /></defs>
+                                                <CartesianGrid {...reja()} />
+                                                <XAxis dataKey="etq" {...ejeX()} />
+                                                <YAxis yAxisId="l" {...ejeY()} />
+                                                <YAxis yAxisId="r" orientation="right" {...ejeY({ allowDecimals: false })} />
+                                                <Tooltip content={<GloboDatos formato={(v, n) => n === "Ingreso" ? moneda(v) : v} />} cursor={realce()} />
+                                                <Area yAxisId="l" type="monotone" dataKey="ingreso" name="Ingreso"
+                                                      stroke={COLORES.azul} strokeWidth={2} fill="url(#gradIngresoDia)"
+                                                      dot={puntoFinal(serieDia.length, COLORES.azul)} activeDot={{ r: 4 }} />
+                                                <Line yAxisId="r" type="monotone" dataKey="pasajes" name="Pasajes"
+                                                      stroke={COLORES.ambar} strokeWidth={2} strokeDasharray="4 3"
+                                                      dot={false} activeDot={{ r: 4 }} />
                                             </ComposedChart>
                                         </ResponsiveContainer>
                                     </div>
@@ -744,9 +763,9 @@ function Reportes() {
                                                     innerRadius={60} outerRadius={95} paddingAngle={3}
                                                     label={({ nombre, percent }) => `${nombre} ${(percent * 100).toFixed(0)}%`}
                                                 >
-                                                    {reportePagos.filasVisibles.map((f, i) => <Cell key={f} fill={COLORES[i % COLORES.length]} />)}
+                                                    {reportePagos.filasVisibles.map((f, i) => <Cell key={f} fill={serie(i)} stroke="none" />)}
                                                 </Pie>
-                                                <Tooltip formatter={(val) => moneda(val)} />
+                                                <Tooltip content={<GloboDatos formato={(v) => moneda(v)} />} cursor={realce(true)} />
                                             </PieChart>
                                         </ResponsiveContainer>
                                     </div>
@@ -835,20 +854,22 @@ function Reportes() {
                     {tipo === "pagosviaje" && (
                         <div className="reporte-bloque">
                             <div className="reporte-panel">
-                                <h3>Efectivo vs Digital por Viaje</h3>
+                                <div className="panel-encabezado">
+                                    <h3>Efectivo vs Digital por Viaje</h3>
+                                    <Leyenda series={[{ nombre: "Efectivo", color: COLORES.verde }, { nombre: "Digital", color: COLORES.cyan }]} />
+                                </div>
                                 {pagosPorViaje.length === 0 ? (
                                     <div className="sin-datos">Sin ventas en el rango seleccionado</div>
                                 ) : (
                                     <div className="chart-print">
                                         <ResponsiveContainer width="100%" height={Math.max(240, pagosPorViaje.length * 40)}>
                                             <BarChart data={pagosPorViaje.slice(0, 20)} layout="vertical" margin={{ top: 5, right: 24, left: 10, bottom: 5 }}>
-                                                <CartesianGrid strokeDasharray="3 3" stroke="#eef2f7" horizontal={false} />
-                                                <XAxis type="number" tick={{ fontSize: 11, fill: "#6b7280" }} />
-                                                <YAxis type="category" dataKey="codigo" width={130} tick={{ fontSize: 10, fill: "#374151" }} />
-                                                <Tooltip formatter={(val) => moneda(val)} />
-                                                <Legend />
-                                                <Bar dataKey="efectivo" name="Efectivo" stackId="a" fill="#15803d" maxBarSize={24} />
-                                                <Bar dataKey="digital" name="Digital" stackId="a" fill="#0891b2" maxBarSize={24} radius={[0, 4, 4, 0]} />
+                                                <CartesianGrid {...reja({ horizontal: false })} />
+                                                <XAxis type="number" {...ejeX()} />
+                                                <YAxis dataKey="codigo" width={130} {...ejeCategoria({ tick: { fontSize: 10, fill: COLORES.etiqueta } })} />
+                                                <Tooltip content={<GloboDatos formato={(v) => moneda(v)} />} cursor={realce(true)} />
+                                                <Bar dataKey="efectivo" name="Efectivo" stackId="a" fill={COLORES.verde} maxBarSize={24} />
+                                                <Bar dataKey="digital" name="Digital" stackId="a" fill={COLORES.cyan} maxBarSize={24} radius={[0, 3, 3, 0]} />
                                             </BarChart>
                                         </ResponsiveContainer>
                                     </div>
@@ -947,21 +968,28 @@ function Reportes() {
                             </div>
 
                             <div className="reporte-panel">
-                                <h3>Encomiendas e Ingresos por Día</h3>
+                                <div className="panel-encabezado">
+                                    <h3>Encomiendas e Ingresos por Día</h3>
+                                    <Leyenda series={[{ nombre: "Ingreso", color: COLORES.cyan }, { nombre: "Bultos", color: COLORES.ambar }]} />
+                                </div>
                                 {encPorDia.length === 0 ? (
                                     <div className="sin-datos">Sin encomiendas en el rango seleccionado</div>
                                 ) : (
                                     <div className="chart-print">
                                         <ResponsiveContainer width="100%" height={280}>
                                             <ComposedChart data={encPorDia} margin={{ top: 10, right: 16, left: 0, bottom: 0 }}>
-                                                <CartesianGrid strokeDasharray="3 3" stroke="#eef2f7" />
-                                                <XAxis dataKey="etq" tick={{ fontSize: 11, fill: "#6b7280" }} />
-                                                <YAxis yAxisId="l" tick={{ fontSize: 11, fill: "#6b7280" }} />
-                                                <YAxis yAxisId="r" orientation="right" allowDecimals={false} tick={{ fontSize: 11, fill: "#6b7280" }} />
-                                                <Tooltip formatter={(val, name) => name === "Ingreso" ? moneda(val) : val} />
-                                                <Legend />
-                                                <Bar yAxisId="l" dataKey="ingreso" name="Ingreso" fill="#0891b2" radius={[4, 4, 0, 0]} maxBarSize={46} />
-                                                <Line yAxisId="r" type="monotone" dataKey="bultos" name="Bultos" stroke="#a16207" strokeWidth={2} dot={{ r: 3 }} />
+                                                <defs><Degradado id="gradIngresoEnc" color={COLORES.cyan} /></defs>
+                                                <CartesianGrid {...reja()} />
+                                                <XAxis dataKey="etq" {...ejeX()} />
+                                                <YAxis yAxisId="l" {...ejeY()} />
+                                                <YAxis yAxisId="r" orientation="right" {...ejeY({ allowDecimals: false })} />
+                                                <Tooltip content={<GloboDatos formato={(v, n) => n === "Ingreso" ? moneda(v) : v} />} cursor={realce()} />
+                                                <Area yAxisId="l" type="monotone" dataKey="ingreso" name="Ingreso"
+                                                      stroke={COLORES.cyan} strokeWidth={2} fill="url(#gradIngresoEnc)"
+                                                      dot={puntoFinal(encPorDia.length, COLORES.cyan)} activeDot={{ r: 4 }} />
+                                                <Line yAxisId="r" type="monotone" dataKey="bultos" name="Bultos"
+                                                      stroke={COLORES.ambar} strokeWidth={2} strokeDasharray="4 3"
+                                                      dot={false} activeDot={{ r: 4 }} />
                                             </ComposedChart>
                                         </ResponsiveContainer>
                                     </div>
@@ -981,11 +1009,11 @@ function Reportes() {
                                     <div className="chart-print">
                                         <ResponsiveContainer width="100%" height={Math.max(220, rankingVendedores.length * 44)}>
                                             <BarChart data={rankingVendedores} layout="vertical" margin={{ top: 5, right: 24, left: 10, bottom: 5 }}>
-                                                <CartesianGrid strokeDasharray="3 3" stroke="#eef2f7" horizontal={false} />
-                                                <XAxis type="number" tick={{ fontSize: 11, fill: "#6b7280" }} />
-                                                <YAxis type="category" dataKey="nombre" width={140} tick={{ fontSize: 11, fill: "#374151" }} />
-                                                <Tooltip formatter={(val) => moneda(val)} />
-                                                <Bar dataKey="ingreso" name="Ingreso" fill="#15803d" radius={[0, 4, 4, 0]} maxBarSize={26} />
+                                                <CartesianGrid {...reja({ horizontal: false })} />
+                                                <XAxis type="number" {...ejeX()} />
+                                                <YAxis dataKey="nombre" width={140} {...ejeCategoria()} />
+                                                <Tooltip content={<GloboDatos formato={(v) => moneda(v)} />} cursor={realce(true)} />
+                                                <Bar dataKey="ingreso" name="Ingreso" fill={COLORES.verde} radius={[0, 3, 3, 0]} maxBarSize={26} />
                                             </BarChart>
                                         </ResponsiveContainer>
                                     </div>
@@ -1023,11 +1051,11 @@ function Reportes() {
                                     <div className="chart-print">
                                         <ResponsiveContainer width="100%" height={300}>
                                             <BarChart data={ventasPorHora} margin={{ top: 10, right: 16, left: 0, bottom: 0 }}>
-                                                <CartesianGrid strokeDasharray="3 3" stroke="#eef2f7" />
-                                                <XAxis dataKey="hora" tick={{ fontSize: 10, fill: "#6b7280" }} interval={1} />
-                                                <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: "#6b7280" }} />
-                                                <Tooltip formatter={(val, name) => name === "Ingreso" ? moneda(val) : val} />
-                                                <Bar dataKey="pasajes" name="Pasajes" fill="#0891b2" radius={[4, 4, 0, 0]} maxBarSize={22} />
+                                                <CartesianGrid {...reja()} />
+                                                <XAxis dataKey="hora" {...ejeX({ interval: 1, tick: { fontSize: 10, fill: COLORES.eje } })} />
+                                                <YAxis {...ejeY({ allowDecimals: false })} />
+                                                <Tooltip content={<GloboDatos formato={(v, n) => n === "Ingreso" ? moneda(v) : v} />} cursor={realce()} />
+                                                <Bar dataKey="pasajes" name="Pasajes" fill={COLORES.cyan} radius={[3, 3, 0, 0]} maxBarSize={22} />
                                             </BarChart>
                                         </ResponsiveContainer>
                                     </div>
@@ -1050,9 +1078,9 @@ function Reportes() {
                                                 <Pie data={asientosTipo} dataKey="pasajes" nameKey="tipo" cx="50%" cy="50%"
                                                      innerRadius={60} outerRadius={95} paddingAngle={3}
                                                      label={({ tipo, percent }) => `${tipo} ${(percent * 100).toFixed(0)}%`}>
-                                                    {asientosTipo.map((a, i) => <Cell key={a.tipo} fill={COLORES[i % COLORES.length]} />)}
+                                                    {asientosTipo.map((a, i) => <Cell key={a.tipo} fill={serie(i)} stroke="none" />)}
                                                 </Pie>
-                                                <Tooltip formatter={(val) => `${val} pasajes`} />
+                                                <Tooltip content={<GloboDatos formato={(v) => `${v} pasajes`} />} />
                                             </PieChart>
                                         </ResponsiveContainer>
                                     </div>
