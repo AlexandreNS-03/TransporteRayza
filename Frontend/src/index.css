@@ -1,115 +1,77 @@
+/* ============================================================
+   BASE — lo que hereda todo el sistema
+
+   Acá vivía la plantilla de Vite: su paleta (un acento morado que no usaba
+   nadie), su tipografía, su contenedor de demo y un bloque de modo oscuro.
+   Nada de eso era del sistema; se fue entero. Lo que quedó está puesto a
+   propósito y explicado.
+   ============================================================ */
 :root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
-
-  /* Restos de la plantilla de Vite. Apuntan a los tokens del tema para que
-     todo el sistema —panel, login, pantallas de error— use la misma letra. */
-  --sans: var(--fuente);
-  --heading: var(--fuente);
-  --mono: var(--fuente-mono);
-
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
+  /* El panel es claro. Antes esto seguía el modo oscuro del sistema
+     operativo y redefinía los colores de la plantilla: en una máquina con
+     modo oscuro, los títulos de pantalla quedaban casi blancos sobre blanco.
+     Nadie lo había visto porque las máquinas del mostrador están en claro. */
   color-scheme: light;
-  color: var(--text);
-  background: var(--bg);
+
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: var(--color-gris-tenue);
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
+/* Un solo reset, acá. Estaba repetido en Login.css y en DashboardLayout.css. */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
 
-  #social .button-icon {
-    filter: invert(1) brightness(2);
-  }
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
 }
 
 body {
-  margin: 0;
+  font-family: var(--fuente);
+  font-size: 16px;
+  line-height: 1.45;
+  color: var(--color-texto);
+  background: var(--color-lienzo);
 }
 
+/* El contenedor de la aplicación. La plantilla lo dejaba en 1126 px de ancho,
+   centrado y con una línea vertical a cada lado: en el monitor del mostrador
+   el panel no usaba la pantalla. Y lo dejaba con text-align: center, que se
+   heredaba hasta las celdas de las tablas — de ahí las correcciones de
+   `text-align: left` repartidas por el CSS de las pantallas. */
 #root {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
   min-height: 100svh;
   display: flex;
   flex-direction: column;
-  box-sizing: border-box;
 }
 
+/* Lo único que la base dice de los títulos: el espaciado entre letras. El
+   tamaño, el peso y el color los pone cada pantalla; el tracking no, y a 22 px
+   el espaciado por defecto se ve suelto. La plantilla lo traía dentro de su
+   propia regla de h1/h2, mezclado con tamaños que no eran de este sistema. */
 h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 500;
-  color: var(--text-h);
+h2,
+h3 {
+  letter-spacing: -0.015em;
 }
 
-h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
-  }
-}
-h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
-}
-p {
-  margin: 0;
-}
-
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: var(--radio-1);
-  color: var(--text-h);
-}
-
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
+/* Texto de apoyo. La clase se usa en 19 lugares del JSX, pero solo estaba
+   definida dentro de tres pantallas: suelta no hacía nada. No se notaba
+   porque el color que la plantilla de Vite le daba a todo el documento ya era
+   gris, así que parecía apagada por casualidad. Las versiones de cada
+   pantalla siguen mandando, que para eso son más específicas. */
+.muted {
+  color: var(--color-texto-suave);
+  font-size: 13.5px;
 }
 
 /* ---------- Pantalla de error (red de seguridad) ---------- */

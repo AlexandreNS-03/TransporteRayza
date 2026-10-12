@@ -1,12 +1,8 @@
-* { margin: 0; padding: 0; box-sizing: border-box; }
-
-html, body, #root { width: 100%; height: 100%; }
-
 .login-container {
     display: flex;
     width: 100%;
     min-height: 100vh;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-family: var(--fuente);
 }
 
 /* ── PANEL IZQUIERDO (marca) ── */
@@ -104,6 +100,17 @@ html, body, #root { width: 100%; height: 100%; }
     background: #fff;
     margin: 0 auto 18px;
     box-shadow: 0 6px 20px rgba(15,23,42,0.12);
+}
+
+/* La cabecera de la tarjeta va centrada y el formulario alineado a la
+   izquierda. Hasta ahora todo salía centrado —etiquetas incluidas— pero por
+   accidente: lo centraba #root, de la plantilla de Vite. Un rótulo de campo
+   centrado encima de un campo alineado a la izquierda se lee mal, así que al
+   sacar aquello solo se repone lo que sí tiene que ir al medio. */
+.login-card > h2,
+.login-card > .subtitle,
+.login-card > .login-ayuda {
+    text-align: center;
 }
 
 .login-card > h2 {
