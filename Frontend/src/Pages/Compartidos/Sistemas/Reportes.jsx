@@ -56,34 +56,46 @@ function Reportes() {
     const [desde, setDesde] = useState(haceDias(30));
     const [hasta, setHasta] = useState(hoy());
 
+    // Las ventas se piden por el rango que está elegido en pantalla. Si no se le
+    // mandan fechas, /ventas devuelve solo los últimos 30 días, así que pedir
+    // "90 días" sin decirlo mostraba un mes y el reporte quedaba corto sin avisar.
     useEffect(() => {
-        const cargarTodo = async () => {
+        const cargarVentas = async () => {
             setCargando(true);
             setError(null);
             try {
-                const [rVentas, rViajes, rSucursales, rEmbarcaciones, rEncomiendas] = await Promise.all([
-                    fetch(`${API}/ventas`, { headers: authHeaders() }),
-                    fetch(`${API}/viajes`, { headers: authHeaders() }),
-                    fetch(`${API}/sucursales`, { headers: authHeaders() }),
-                    fetch(`${API}/embarcaciones`, { headers: authHeaders() }),
-                    fetch(`${API}/encomiendas`, { headers: authHeaders() }),
-                ]);
-                // Se explica cuál de las dos consultas falló: no es lo mismo que no
-                // carguen las ventas que los viajes.
-                if (!rVentas.ok) throw new Error(await motivoDelError(rVentas, "No se pudieron cargar las ventas del periodo"));
-                if (!rViajes.ok) throw new Error(await motivoDelError(rViajes, "No se pudieron cargar los viajes del periodo"));
-                setVentas(await rVentas.json());
-                setViajes(await rViajes.json());
-                setSucursales(rSucursales.ok ? await rSucursales.json() : []);
-                setEmbarcaciones(rEmbarcaciones.ok ? await rEmbarcaciones.json() : []);
-                setEncomiendas(rEncomiendas.ok ? await rEncomiendas.json() : []);
+                const r = await fetch(`${API}/ventas?desde=${desde}&hasta=${hasta}`, { headers: authHeaders() });
+                if (!r.ok) throw new Error(await motivoDelError(r, "No se pudieron cargar las ventas del periodo"));
+                setVentas(await r.json());
             } catch (err) {
                 setError(err.message);
             } finally {
                 setCargando(false);
             }
         };
-        cargarTodo();
+        cargarVentas();
+    }, [desde, hasta]);
+
+    // Los catálogos no dependen del rango: se traen una sola vez.
+    useEffect(() => {
+        const cargarCatalogos = async () => {
+            try {
+                const [rViajes, rSucursales, rEmbarcaciones, rEncomiendas] = await Promise.all([
+                    fetch(`${API}/viajes`, { headers: authHeaders() }),
+                    fetch(`${API}/sucursales`, { headers: authHeaders() }),
+                    fetch(`${API}/embarcaciones`, { headers: authHeaders() }),
+                    fetch(`${API}/encomiendas`, { headers: authHeaders() }),
+                ]);
+                if (!rViajes.ok) throw new Error(await motivoDelError(rViajes, "No se pudieron cargar los viajes del periodo"));
+                setViajes(await rViajes.json());
+                setSucursales(rSucursales.ok ? await rSucursales.json() : []);
+                setEmbarcaciones(rEmbarcaciones.ok ? await rEmbarcaciones.json() : []);
+                setEncomiendas(rEncomiendas.ok ? await rEncomiendas.json() : []);
+            } catch (err) {
+                setError(err.message);
+            }
+        };
+        cargarCatalogos();
     }, []);
 
     // ---------- Helpers ----------

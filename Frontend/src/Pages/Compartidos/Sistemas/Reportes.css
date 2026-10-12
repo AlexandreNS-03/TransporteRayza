@@ -191,6 +191,20 @@
     margin: 0 0 14px;
 }
 
+/* Cabecera del panel: el título a la izquierda y la leyenda del gráfico a la
+   derecha. La leyenda va acá y no flotando debajo del dibujo, para que se lea
+   antes de mirar los datos y el gráfico use todo el alto de su caja. */
+.panel-encabezado {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+}
+
+.panel-encabezado h3 { margin: 0; }
+
 /* KPI */
 .kpi-grid {
     display: grid;

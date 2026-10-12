@@ -1,9 +1,13 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import {
     ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
-    PieChart, Pie, Cell, Legend, AreaChart, Area,
+    PieChart, Pie, Cell, AreaChart, Area,
 } from "recharts";
 import "./Dashboard.css";
+import {
+    paleta, serie, reja, ejeX, ejeY, ejeCategoria, realce,
+    GloboDatos, Leyenda, Degradado, puntoFinal,
+} from "../../../Utils/graficos.jsx";
 
 import { apiFetch } from "../../../Services/api.js";
 
@@ -16,7 +20,8 @@ function badgeViaje(estado) {
     }
 }
 
-const COLORES = { azul: "#1a4db5", verde: "#15803d", amarillo: "#a16207", morado: "#7c3aed", cyan: "#0891b2" };
+// Los colores salen de theme.css (ver Utils/graficos.jsx), no se escriben acá.
+const COLORES = paleta();
 const METODO_LABEL = {
     EFECTIVO: "Efectivo", YAPE: "Yape", PLIN: "Plin", TARJETA: "Tarjeta", TRANSFERENCIA: "Transferencia",
     "WEB SIN REGISTRAR": "Web (sin registrar)",
@@ -74,21 +79,6 @@ function Cifra({ label, valorRaw, formato, tono, nota, grande }) {
 }
 
 /* ---------- Tooltip propio para que combine con el estilo del dashboard ---------- */
-function ChartTooltip({ active, payload, label }) {
-    if (!active || !payload?.length) return null;
-    return (
-        <div className="chart-tooltip">
-            <strong>{label}</strong>
-            {payload.map((p, i) => (
-                <div key={i} className="chart-tooltip-row">
-                    <span className="chart-tooltip-dot" style={{ background: p.color }}></span>
-                    <span>{p.name}: {typeof p.value === "number" ? p.value.toLocaleString("es-PE") : p.value}</span>
-                </div>
-            ))}
-        </div>
-    );
-}
-
 function Dashboard() {
     const usuario  = JSON.parse(localStorage.getItem("usuario"));
     const [data, setData]       = useState(null);
@@ -282,10 +272,10 @@ function Dashboard() {
                                              cx="50%" cy="50%" innerRadius={55} outerRadius={85} paddingAngle={3}
                                              label={({ metodo, percent }) => `${METODO_LABEL[metodo] || metodo} ${(percent * 100).toFixed(0)}%`}>
                                             {data.cobrosMetodoHoy.map((_, i) => (
-                                                <Cell key={i} fill={Object.values(COLORES)[i % 5]} />
+                                                <Cell key={i} fill={serie(i)} stroke="none" />
                                             ))}
                                         </Pie>
-                                        <Tooltip content={<ChartTooltip />} />
+                                        <Tooltip content={<GloboDatos />} />
                                     </PieChart>
                                 </ResponsiveContainer>
                             </div>
@@ -322,10 +312,10 @@ function Dashboard() {
                                              cx="50%" cy="50%" innerRadius={55} outerRadius={85} paddingAngle={3}
                                              label={({ metodo, percent }) => `${PASARELA_LABEL[metodo] || metodo} ${(percent * 100).toFixed(0)}%`}>
                                             {data.cobrosWebHoy.map((_, i) => (
-                                                <Cell key={i} fill={Object.values(COLORES)[i % 5]} />
+                                                <Cell key={i} fill={serie(i)} stroke="none" />
                                             ))}
                                         </Pie>
-                                        <Tooltip content={<ChartTooltip />} />
+                                        <Tooltip content={<GloboDatos />} />
                                     </PieChart>
                                 </ResponsiveContainer>
                             </div>
@@ -391,18 +381,15 @@ function Dashboard() {
                             <div className="dash-vacio"><i className="ti ti-chart-line"></i><span>Sin datos suficientes</span></div>
                         ) : (
                             <ResponsiveContainer width="100%" height={260}>
-                                <AreaChart data={ventasPorDia} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
-                                    <defs>
-                                        <linearGradient id="gradVentas" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor={COLORES.azul} stopOpacity={0.35} />
-                                            <stop offset="95%" stopColor={COLORES.azul} stopOpacity={0} />
-                                        </linearGradient>
-                                    </defs>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                                    <XAxis dataKey="dia" tick={{ fontSize: 11, fill: "#6b7280" }} axisLine={false} tickLine={false} />
-                                    <YAxis tick={{ fontSize: 11, fill: "#6b7280" }} axisLine={false} tickLine={false} />
-                                    <Tooltip content={<ChartTooltip />} />
-                                    <Area type="monotone" dataKey="ventas" name="Ventas" stroke={COLORES.azul} fill="url(#gradVentas)" strokeWidth={2} />
+                                <AreaChart data={ventasPorDia} margin={{ top: 10, right: 12, left: -8, bottom: 0 }}>
+                                    <defs><Degradado id="gradVentas" color={COLORES.azul} /></defs>
+                                    <CartesianGrid {...reja()} />
+                                    <XAxis dataKey="dia" {...ejeX()} />
+                                    <YAxis {...ejeY()} />
+                                    <Tooltip content={<GloboDatos />} cursor={realce()} />
+                                    <Area type="monotone" dataKey="ventas" name="Ventas"
+                                          stroke={COLORES.azul} strokeWidth={2} fill="url(#gradVentas)"
+                                          dot={puntoFinal(ventasPorDia.length, COLORES.azul)} activeDot={{ r: 4 }} />
                                 </AreaChart>
                             </ResponsiveContainer>
                         )}
@@ -420,11 +407,11 @@ function Dashboard() {
                         ) : (
                             <ResponsiveContainer width="100%" height={260}>
                                 <BarChart data={topRutas} layout="vertical" margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" horizontal={false} />
-                                    <XAxis type="number" tick={{ fontSize: 11, fill: "#6b7280" }} axisLine={false} tickLine={false} allowDecimals={false} />
-                                    <YAxis type="category" dataKey="ruta" width={110} tick={{ fontSize: 11, fill: "#374151" }} axisLine={false} tickLine={false} />
-                                    <Tooltip content={<ChartTooltip />} cursor={{ fill: "#f8fafc" }} />
-                                    <Bar dataKey="ventas" name="Ventas" fill={COLORES.verde} radius={[0, 6, 6, 0]} barSize={18} />
+                                    <CartesianGrid {...reja({ horizontal: false })} />
+                                    <XAxis type="number" {...ejeX({ allowDecimals: false })} />
+                                    <YAxis dataKey="ruta" width={110} {...ejeCategoria()} />
+                                    <Tooltip content={<GloboDatos />} cursor={realce(true)} />
+                                    <Bar dataKey="ventas" name="Ventas" fill={COLORES.verde} radius={[0, 4, 4, 0]} barSize={18} />
                                 </BarChart>
                             </ResponsiveContainer>
                         )}
@@ -434,7 +421,9 @@ function Dashboard() {
                 <div className="dash-card chart-card">
                     <div className="dash-card-header">
                         <h3><i className="ti ti-chart-pie"></i> Ocupación por Tipo</h3>
-                        <span className="dash-card-sub">VIP vs Normal</span>
+                        {ocupacionPorTipo.length > 0 && (
+                            <Leyenda series={ocupacionPorTipo.map((o, i) => ({ nombre: o.tipo, color: serie(i) }))} />
+                        )}
                     </div>
                     <div className="dash-card-body chart-body">
                         {!ocupacionPorTipo.length ? (
@@ -453,11 +442,10 @@ function Dashboard() {
                                         paddingAngle={3}
                                     >
                                         {ocupacionPorTipo.map((_, i) => (
-                                            <Cell key={i} fill={[COLORES.amarillo, COLORES.azul, COLORES.cyan][i % 3]} />
+                                            <Cell key={i} fill={serie(i)} stroke="none" />
                                         ))}
                                     </Pie>
-                                    <Tooltip content={<ChartTooltip />} />
-                                    <Legend wrapperStyle={{ fontSize: 12 }} />
+                                    <Tooltip content={<GloboDatos />} />
                                 </PieChart>
                             </ResponsiveContainer>
                         )}
