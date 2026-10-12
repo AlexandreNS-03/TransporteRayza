@@ -1,10 +1,34 @@
 <!doctype html>
-<html lang="en">
+<html lang="es">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/logo-tr.png?v=20260725" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Sistema de Ventas Transportes Rayza</title>
+
+    <!-- Tipografías. Van acá y no como @import dentro de un .css: un @import
+         encadena pedidos (el navegador tiene que bajar el CSS para recién
+         enterarse de que hay otro CSS), y desde el mostrador eso se nota.
+         display=swap: el texto se lee de entrada con la fuente del sistema y
+         cambia cuando llega la propia; nunca una pantalla en blanco. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+    />
+
+    <!-- Iconos, con versión fija. Antes decía @latest, que acá engañaba: ese
+         archivo ya no existe en las versiones 3.x, así que jsDelivr servía la
+         última que sí lo tiene — la 2.47.0. O sea que el panel venía usando
+         iconos viejos creyendo que usaba los nuevos, y el día que jsDelivr
+         cambiara ese criterio los iconos se rompían solos.
+         2.47.0 es byte por byte lo que el panel ya está mostrando. -->
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css"
+    />
   </head>
   <body>
     <div id="root"></div>

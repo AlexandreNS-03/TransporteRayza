@@ -187,7 +187,7 @@
 
 .rutas-tabla tbody tr:last-child td { border-bottom: none; }
 .rutas-tabla tbody tr:hover { background: var(--color-fondo); }
-.rutas-tabla .codigo { font-size: 11px; color: var(--color-texto-suave); font-family: monospace; }
+.rutas-tabla .codigo { font-size: 11px; color: var(--color-texto-suave); font-family: var(--fuente-mono); }
 
 .badge {
     display: inline-block;

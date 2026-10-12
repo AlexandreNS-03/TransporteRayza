@@ -267,7 +267,7 @@
 .embarque-tabla tbody tr:hover { background: var(--color-fondo); }
 .fila-embarcada { background: var(--color-exito-bg) !important; }
 
-.codigo { font-size: 11px; color: var(--color-texto-suave); font-family: monospace; }
+.codigo { font-size: 11px; color: var(--color-texto-suave); font-family: var(--fuente-mono); }
 
 /* ASIENTO */
 .asiento-badge {

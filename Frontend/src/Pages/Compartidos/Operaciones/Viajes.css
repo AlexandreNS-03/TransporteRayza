@@ -231,7 +231,7 @@
 .viajes-tabla .codigo {
     font-size: 11px;
     color: var(--color-texto-suave);
-    font-family: monospace;
+    font-family: var(--fuente-mono);
     white-space: nowrap;
 }
 
@@ -437,7 +437,7 @@
 }
 
 .tarjeta-datos span { display: flex; align-items: center; gap: 4px; min-width: 0; }
-.tarjeta-codigo { font-family: monospace; color: var(--txt-3); }
+.tarjeta-codigo { font-family: var(--fuente-mono); color: var(--txt-3); }
 
 /* Las paradas entran en la misma línea que la nave y la sucursal; si la ruta
    es larga se recortan solo ellas, que es el dato que se puede consultar. */

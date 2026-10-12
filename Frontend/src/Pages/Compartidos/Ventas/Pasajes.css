@@ -191,7 +191,7 @@
 .pasajes-tabla tbody tr:last-child td { border-bottom: none; }
 .pasajes-tabla tbody tr:hover { background: var(--color-fondo); }
 .fila-anulada { opacity: 0.6; }
-.codigo { font-size: 11px; color: var(--color-texto-suave); font-family: monospace; }
+.codigo { font-size: 11px; color: var(--color-texto-suave); font-family: var(--fuente-mono); }
 
 .pasajero-info { display: flex; flex-direction: column; gap: 2px; }
 .pasajero-info strong { font-size: 13px; }

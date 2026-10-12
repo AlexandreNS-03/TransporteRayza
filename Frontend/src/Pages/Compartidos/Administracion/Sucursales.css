@@ -201,7 +201,7 @@
 .sucursales-tabla .codigo {
     font-size: 11px;
     color: var(--color-texto-suave);
-    font-family: monospace;
+    font-family: var(--fuente-mono);
 }
 
 /* BADGES */

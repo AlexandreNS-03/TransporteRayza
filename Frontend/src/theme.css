@@ -66,7 +66,17 @@
     --color-borde-suave:     #e2e8f0;
     --color-fondo-2:         #f1f5f9;  /* cabeceras de tabla, celdas de apoyo */
     --color-fondo-3:         #eef2f7;
-    --color-fondo:           #f8fafc;  /* fondo de página */
+    --color-fondo:           #f8fafc;  /* celdas de apoyo, hover de fila */
+
+    /* El lienzo de la página. Es deliberadamente más oscuro que las tarjetas:
+       eso es lo que las hace flotar, no la sombra. Cuando el fondo y la
+       tarjeta valen casi lo mismo (antes: #f4f5f7 contra #fff) todo se ve
+       plano por más sombra que se le ponga. */
+    --color-lienzo:          #eceff3;
+
+    /* La barra lateral. Azul de río, no negro: tiene el mismo tono que el azul
+       de la marca, varias paradas más abajo. */
+    --color-barra:           #0d1a2b;
 
     /* ── Neutros cálidos (familia gray) ──
        Conviven con los de arriba desde antes. Tener dos familias de gris es
@@ -99,6 +109,9 @@
     --radio:    8px;
     --radio-md: 10px;
     --radio-lg: 14px;
+    /* El radio de una tarjeta. Grande afuera y chico adentro: así se nota
+       qué contiene a qué. Un mismo radio en todo aplana la jerarquía. */
+    --radio-xl: 18px;
 
     /* ── Sombras ──
        Profundidad real: desplazamiento + desenfoque. Un halo sin
@@ -106,6 +119,16 @@
     --sombra-sm: 0 1px 3px rgba(15, 23, 42, 0.08);
     --sombra:    0 4px 14px rgba(15, 23, 42, 0.08);
     --sombra-lg: 0 12px 40px rgba(15, 23, 42, 0.12);
+
+    /* La sombra de una tarjeta sobre el lienzo. Dos capas: un filo cerca del
+       borde y una caída larga y suave. Y tintada con el azul del panel, no
+       negra: una sombra negra sobre un fondo frío se ve sucia. */
+    --sombra-tarjeta: 0 1px 2px rgba(13, 26, 43, 0.05),
+                      0 10px 28px -16px rgba(13, 26, 43, 0.18);
+
+    /* La luz de arriba. Es lo que hace que una superficie parezca de vidrio
+       sin desenfocar nada y sin costar un repintado. */
+    --luz-superior: inset 0 1px 0 rgba(255, 255, 255, 0.75);
 
     --sombra-1: 0 1px 2px rgba(16, 24, 40, .06), 0 1px 3px rgba(16, 24, 40, .10);
     --sombra-2: 0 4px 8px -2px rgba(16, 24, 40, .10), 0 2px 4px -2px rgba(16, 24, 40, .06);
@@ -120,7 +143,13 @@
     --dur-rapida:  0.16s;                            /* pulsación, hover */
     --dur-modal:   0.2s;
 
-    /* ── Tipografía ── */
-    --fuente: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    --fuente-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    /* ── Tipografía ──
+       Hanken Grotesk para la interfaz: letras altas, que es lo que se necesita
+       a 13 px en la pantalla del mostrador con luz de día.
+       Mono para lo que se compara en columna o se dicta por teléfono: códigos
+       de viaje, DNI, asientos y montos. Un 0 y una O tienen que distinguirse.
+       Las dos se cargan en index.html. Detrás va siempre la fuente del sistema:
+       si no llega la propia, el panel se sigue leyendo igual. */
+    --fuente: "Hanken Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --fuente-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }

@@ -407,7 +407,7 @@
 .reportes-tabla tbody tr.fila-total:hover { background: var(--color-fondo-2); }
 .reportes-tabla tbody tr.fila-total td { border-top: 2px solid var(--color-borde-suave); }
 
-.codigo { font-size: 11px; color: var(--color-texto-suave); font-family: monospace; }
+.codigo { font-size: 11px; color: var(--color-texto-suave); font-family: var(--fuente-mono); }
 
 /* OCUPACIÓN */
 .ocupacion-barra-wrapper {

@@ -187,7 +187,7 @@
 
 .emb-tabla tbody tr:last-child td { border-bottom: none; }
 .emb-tabla tbody tr:hover { background: var(--color-fondo); }
-.emb-tabla .codigo { font-size: 11px; color: var(--color-texto-suave); font-family: monospace; }
+.emb-tabla .codigo { font-size: 11px; color: var(--color-texto-suave); font-family: var(--fuente-mono); }
 
 .cant-badge {
     display: inline-block;

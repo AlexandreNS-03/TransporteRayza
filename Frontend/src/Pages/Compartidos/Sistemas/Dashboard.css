@@ -116,36 +116,6 @@
     overflow: visible;
 }
 
-.chart-tooltip {
-    background: var(--color-texto);
-    color: #fff;
-    padding: 8px 12px;
-    border-radius: 8px;
-    font-size: 12px;
-    box-shadow: 0 6px 16px rgba(0,0,0,0.2);
-}
-
-.chart-tooltip strong {
-    display: block;
-    margin-bottom: 4px;
-    font-size: 12px;
-}
-
-.chart-tooltip-row {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    color: var(--color-borde-2);
-}
-
-.chart-tooltip-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    display: inline-block;
-    flex-shrink: 0;
-}
-
 /* GRID */
 .dash-grid {
     display: grid;
@@ -158,9 +128,10 @@
 }
 
 .dash-card {
-    background: #fff;
-    border: 1px solid var(--color-borde);
-    border-radius: 10px;
+    background: var(--color-blanco);
+    border: 1px solid var(--color-borde-suave);
+    border-radius: var(--radio-xl);
+    box-shadow: var(--sombra-tarjeta), var(--luz-superior);
     overflow: hidden;
 }
 
@@ -168,8 +139,10 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 14px 16px;
-    border-bottom: 1px solid var(--color-fondo-2);
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--color-borde-suave);
 }
 
 .dash-card-header h3 {
@@ -242,7 +215,7 @@
 
 .viaje-item-info strong { font-size: 13px; color: var(--color-texto); }
 .viaje-item-info span   { font-size: 11px; color: var(--color-texto-suave); }
-.viaje-codigo { font-family: monospace; font-size: 10px !important; color: var(--txt-3) !important; }
+.viaje-codigo { font-family: var(--fuente-mono); font-size: 10px !important; color: var(--txt-3) !important; }
 
 /* VENTAS */
 .venta-item {
@@ -283,6 +256,7 @@
 .venta-comp { font-size: 10px !important; color: var(--txt-3) !important; }
 
 .venta-precio {
+    font-variant-numeric: tabular-nums;
     font-size: 14px;
     color: var(--color-exito);
     white-space: nowrap;
@@ -307,7 +281,9 @@
 .dash-extras { display: flex; flex-direction: column; gap: 16px; margin-bottom: 22px; }
 
 .dash-cajas-panel {
-    background: #fff; border: 1px solid var(--color-borde); border-radius: 12px; padding: 16px 18px;
+    background: var(--color-blanco); border: 1px solid var(--color-borde-suave);
+    border-radius: var(--radio-xl); box-shadow: var(--sombra-tarjeta), var(--luz-superior);
+    padding: 18px 20px;
 }
 .dash-cajas-header {
     display: flex; align-items: center; justify-content: space-between; gap: 10px;
@@ -318,7 +294,7 @@
 .dash-cajas-header span { font-size: 12px; color: var(--color-texto-suave); }
 .dash-cajas-header b { color: var(--color-exito); }
 .dash-cajas-vacio { display: flex; align-items: center; gap: 8px; color: var(--txt-3); font-size: 13px; padding: 10px 0; }
-.dash-cajas-tabla { width: 100%; border-collapse: collapse; font-size: 13px; }
+.dash-cajas-tabla { width: 100%; border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; }
 .dash-cajas-tabla th {
     text-align: left; padding: 8px 10px; font-size: 11px; text-transform: uppercase;
     letter-spacing: 0.4px; color: var(--color-texto-suave); border-bottom: 1px solid var(--color-borde);
@@ -345,8 +321,9 @@
 /* ══ Titulares del período ══ */
 .dash-titulares {
     display: flex; align-items: stretch; gap: 32px; flex-wrap: wrap;
-    background: #fff; border: 1px solid var(--color-borde); border-radius: 12px;
-    padding: 18px 22px;
+    background: var(--color-blanco); border: 1px solid var(--color-borde-suave);
+    border-radius: var(--radio-xl); box-shadow: var(--sombra-tarjeta), var(--luz-superior);
+    padding: 20px 24px;
 }
 .titulares-periodo { display: flex; gap: 40px; flex-wrap: wrap; }
 /* Viajes y embarcados son del día y no cambian con la pestaña: se separan
@@ -362,7 +339,7 @@
 .cifra-label { font-size: 12.5px; color: var(--color-texto-suave); }
 .cifra-valor {
     font-size: 21px; font-weight: 700; color: var(--color-texto-fuerte); line-height: 1.15;
-    font-variant-numeric: tabular-nums; letter-spacing: -0.01em;
+    font-variant-numeric: tabular-nums; letter-spacing: -0.02em;
 }
 .cifra-nota { font-size: 11.5px; color: var(--color-gris-tenue); }
 
@@ -377,7 +354,8 @@
 
 /* ══ Bloques ══ */
 .dash-bloque {
-    background: #fff; border: 1px solid var(--color-borde); border-radius: 12px;
+    background: var(--color-blanco); border: 1px solid var(--color-borde-suave);
+    border-radius: var(--radio-xl); box-shadow: var(--sombra-tarjeta), var(--luz-superior);
     padding: 16px 20px; margin-bottom: 14px;
 }
 .bloque-titulo { margin-bottom: 14px; }
@@ -402,5 +380,7 @@
     .dash-cifras .dash-cifra {
         flex: 1 1 130px; padding: 8px 0 8px 14px;
     }
-    .cifra-grande .cifra-valor { font-size: 26px; }
+    .cifra-grande .cifra-valor {
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em; font-size: 26px; }
 }
