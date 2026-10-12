@@ -12,7 +12,7 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    background: #fff;
+    background: var(--color-superficie);
     border: 1px solid var(--color-borde);
     border-left: 4px solid var(--color-primario);
     border-radius: var(--radio-4);

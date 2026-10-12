@@ -50,7 +50,7 @@
 .btn-cerrar-caja:hover { background: var(--color-peligro-bg-2); }
 
 .caja-cerrada-card {
-    background: #fff;
+    background: var(--color-superficie);
     border: 1px dashed var(--color-borde-2);
     border-radius: var(--radio-5);
     padding: 48px 24px;
@@ -106,7 +106,7 @@
        cifras salen centradas y cuesta compararlas de una a otra. */
     text-align: left;
     padding: 14px 16px; border-radius: var(--radio-5);
-    background: #fff; border: 1px solid var(--color-borde-suave);
+    background: var(--color-superficie); border: 1px solid var(--color-borde-suave);
     display: grid; gap: 3px; align-content: start;
 }
 .caja-eti { font-size: 12px; color: var(--color-texto-suave); }
@@ -120,10 +120,10 @@
 .caja-salidas strong { color: var(--color-advertencia-osc); }
 
 /* El que se compara contra el conteo manual: va destacado, no de adorno. */
-.caja-esperado { border-color: var(--color-azul-borde); background: #f8fbff; }
+.caja-esperado { border-color: var(--color-azul-borde); background: var(--color-azul-bg); }
 .caja-esperado strong { color: var(--color-primario); font-size: 26px; }
 
-.caja-digital { background: #fafafa; }
+.caja-digital { background: var(--color-fondo); }
 
 /* ── Movimientos del turno ── */
 .col-hora { font-variant-numeric: tabular-nums; color: var(--color-texto-medio); white-space: nowrap; width: 70px; }

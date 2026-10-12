@@ -23,7 +23,7 @@
     height: 30px;
     border: 1px solid var(--color-borde-input);
     border-radius: var(--radio-3);
-    background: #fff;
+    background: var(--color-superficie);
     color: var(--color-gris-texto);
     cursor: pointer;
     display: flex;

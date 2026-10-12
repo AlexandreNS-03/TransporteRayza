@@ -31,7 +31,7 @@
     height: 36px;
     padding: 0 16px;
     background: var(--color-primario);
-    color: #fff;
+    color: var(--color-sobre-color);
     border: none;
     border-radius: var(--radio-3);
     font-size: 13px;
@@ -43,7 +43,7 @@
 
 /* FILTROS */
 .anuncios-filtros {
-    background: #fff;
+    background: var(--color-superficie);
     border: 1px solid var(--color-borde-suave);
     border-radius: var(--radio-7);
     box-shadow: var(--sombra-tarjeta), var(--luz-superior);
@@ -75,7 +75,7 @@
     padding: 0 10px;
     font-size: 13px;
     color: var(--color-texto);
-    background: #fff;
+    background: var(--color-superficie);
     outline: none;
     cursor: pointer;
 }
@@ -91,7 +91,7 @@
     padding: 40px;
     color: var(--color-texto-suave);
     font-size: 14px;
-    background: #fff;
+    background: var(--color-superficie);
     border: 1px solid var(--color-borde-suave);
     border-radius: var(--radio-7);
     box-shadow: var(--sombra-tarjeta), var(--luz-superior);
@@ -118,7 +118,7 @@
 
 /* TABLA */
 .anuncios-tabla-wrapper {
-    background: #fff;
+    background: var(--color-superficie);
     border: 1px solid var(--color-borde-suave);
     border-radius: var(--radio-7);
     box-shadow: var(--sombra-tarjeta), var(--luz-superior);
@@ -230,7 +230,7 @@
 }
 
 .modal {
-    background: #fff;
+    background: var(--color-superficie);
     border-radius: var(--radio-5);
     width: 100%;
     max-width: 480px;
@@ -370,7 +370,7 @@
     background: var(--color-primario);
     border: none;
     border-radius: var(--radio-2);
-    color: #fff;
+    color: var(--color-sobre-color);
     font-size: 13px;
     cursor: pointer;
     display: flex;

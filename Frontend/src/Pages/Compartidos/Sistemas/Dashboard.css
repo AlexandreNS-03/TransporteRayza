@@ -14,7 +14,7 @@
     padding: 60px;
     color: var(--color-texto-suave);
     font-size: 14px;
-    background: #fff;
+    background: var(--color-superficie);
     border: 1px solid var(--color-borde-suave);
     border-radius: var(--radio-7);
     box-shadow: var(--sombra-tarjeta), var(--luz-superior);
@@ -62,7 +62,7 @@
     height: 36px;
     padding: 0 16px;
     background: var(--color-primario);
-    color: #fff;
+    color: var(--color-sobre-color);
     border: none;
     border-radius: var(--radio-3);
     font-size: 13px;
@@ -76,7 +76,7 @@
 .dash-tabs {
     display: flex;
     gap: 8px;
-    background: #fff;
+    background: var(--color-superficie);
     border: 1px solid var(--color-borde-suave);
     border-radius: var(--radio-7);
     box-shadow: var(--sombra-tarjeta), var(--luz-superior);
@@ -103,7 +103,7 @@
 }
 
 .dash-tab:hover { background: var(--color-fondo-2); color: var(--color-texto); }
-.dash-tab.activo { background: var(--color-primario); color: #fff; font-weight: 500; }
+.dash-tab.activo { background: var(--color-primario); color: var(--color-sobre-color); font-weight: 500; }
 
 /* GRÁFICOS */
 .dash-charts {
@@ -130,7 +130,7 @@
 }
 
 .dash-card {
-    background: var(--color-blanco);
+    background: var(--color-superficie);
     border: 1px solid var(--color-borde-suave);
     border-radius: var(--radio-xl);
     box-shadow: var(--sombra-tarjeta), var(--luz-superior);
@@ -283,7 +283,7 @@
 .dash-extras { display: flex; flex-direction: column; gap: 16px; margin-bottom: 22px; }
 
 .dash-cajas-panel {
-    background: var(--color-blanco); border: 1px solid var(--color-borde-suave);
+    background: var(--color-superficie); border: 1px solid var(--color-borde-suave);
     border-radius: var(--radio-xl); box-shadow: var(--sombra-tarjeta), var(--luz-superior);
     padding: 18px 20px;
 }
@@ -323,7 +323,7 @@
 /* ══ Titulares del período ══ */
 .dash-titulares {
     display: flex; align-items: stretch; gap: 32px; flex-wrap: wrap;
-    background: var(--color-blanco); border: 1px solid var(--color-borde-suave);
+    background: var(--color-superficie); border: 1px solid var(--color-borde-suave);
     border-radius: var(--radio-xl); box-shadow: var(--sombra-tarjeta), var(--luz-superior);
     padding: 20px 24px;
 }
@@ -356,7 +356,7 @@
 
 /* ══ Bloques ══ */
 .dash-bloque {
-    background: var(--color-blanco); border: 1px solid var(--color-borde-suave);
+    background: var(--color-superficie); border: 1px solid var(--color-borde-suave);
     border-radius: var(--radio-xl); box-shadow: var(--sombra-tarjeta), var(--luz-superior);
     padding: 16px 20px; margin-bottom: 14px;
 }

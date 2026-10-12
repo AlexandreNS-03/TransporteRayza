@@ -30,7 +30,7 @@
     height: 36px;
     padding: 0 16px;
     background: var(--color-primario);
-    color: #fff;
+    color: var(--color-sobre-color);
     border: none;
     border-radius: var(--radio-3);
     font-size: 13px;
@@ -42,7 +42,7 @@
 
 /* FILTROS */
 .pasajes-filtros {
-    background: #fff;
+    background: var(--color-superficie);
     border: 1px solid var(--color-borde-suave);
     border-radius: var(--radio-7);
     box-shadow: var(--sombra-tarjeta), var(--luz-superior);
@@ -80,7 +80,7 @@
     padding: 0 10px;
     font-size: 13px;
     color: var(--color-texto);
-    background: #fff;
+    background: var(--color-superficie);
     outline: none;
 }
 
@@ -92,7 +92,7 @@
     border-radius: var(--radio-2);
     padding: 0 10px;
     height: 34px;
-    background: #fff;
+    background: var(--color-superficie);
 }
 
 .filtro-buscar i { color: var(--txt-3); font-size: 16px; }
@@ -108,7 +108,7 @@
 
 .btn-buscar-inline {
     background: var(--color-primario);
-    color: #fff;
+    color: var(--color-sobre-color);
     border: none;
     border-radius: var(--radio-1);
     padding: 4px 10px;
@@ -142,7 +142,7 @@
     padding: 40px;
     color: var(--color-texto-suave);
     font-size: 14px;
-    background: #fff;
+    background: var(--color-superficie);
     border: 1px solid var(--color-borde-suave);
     border-radius: var(--radio-7);
     box-shadow: var(--sombra-tarjeta), var(--luz-superior);
@@ -155,7 +155,7 @@
 
 /* TABLA */
 .pasajes-tabla-wrapper {
-    background: #fff;
+    background: var(--color-superficie);
     border: 1px solid var(--color-borde-suave);
     border-radius: var(--radio-7);
     box-shadow: var(--sombra-tarjeta), var(--luz-superior);
@@ -222,7 +222,7 @@
 .badge-canal {
     display: inline-flex; align-items: center; gap: 3px;
     margin-left: 6px; padding: 3px 8px; border-radius: var(--radio-8);
-    background: #eef2ff; color: #4338ca; font-size: 11px; font-weight: 600;
+    background: var(--color-azul-bg); color: var(--color-primario-vivo); font-size: 11px; font-weight: 600;
 }
 
 .btn-accion {
@@ -255,7 +255,7 @@
 }
 
 .modal-wizard {
-    background: #fff; border-radius: var(--radio-5);
+    background: var(--color-superficie); border-radius: var(--radio-5);
     width: 100%; max-width: 580px;
     box-shadow: 0 20px 60px rgba(0,0,0,0.2);
     display: flex; flex-direction: column;
@@ -297,9 +297,9 @@
     font-size: 11px; font-weight: 600; flex-shrink: 0;
 }
 
-.wizard-paso.activo .wizard-paso-num { background: var(--color-primario); color: #fff; }
+.wizard-paso.activo .wizard-paso-num { background: var(--color-primario); color: var(--color-sobre-color); }
 .wizard-paso.activo { color: var(--color-primario); font-weight: 600; }
-.wizard-paso.completado .wizard-paso-num { background: var(--color-exito); color: #fff; }
+.wizard-paso.completado .wizard-paso-num { background: var(--color-exito); color: var(--color-sobre-color); }
 .wizard-paso.completado { color: var(--color-exito); }
 
 /* CONTENIDO */
@@ -321,7 +321,7 @@
 .form-grupo select {
     height: 36px; border: 1px solid var(--color-borde-input); border-radius: var(--radio-2);
     padding: 0 12px; font-size: 13px; color: var(--color-texto);
-    outline: none; transition: border-color 0.15s; background: #fff;
+    outline: none; transition: border-color 0.15s; background: var(--color-superficie);
 }
 
 .form-grupo input:focus,
@@ -396,8 +396,8 @@
 .asiento-btn.vip    { background: var(--color-advertencia-bg-2); color: var(--color-advertencia); border-color: var(--color-advertencia-borde); }
 .asiento-btn.normal { background: var(--color-azul-bg); color: var(--color-primario-vivo); border-color: var(--color-azul-borde); }
 
-.asiento-btn.vip.seleccionado    { background: var(--color-primario); color: #fff; border-color: var(--color-primario); }
-.asiento-btn.normal.seleccionado { background: var(--color-primario); color: #fff; border-color: var(--color-primario); }
+.asiento-btn.vip.seleccionado    { background: var(--color-primario); color: var(--color-sobre-color); border-color: var(--color-primario); }
+.asiento-btn.normal.seleccionado { background: var(--color-primario); color: var(--color-sobre-color); border-color: var(--color-primario); }
 
 .asiento-btn:hover { transform: scale(1.1); }
 
@@ -409,9 +409,9 @@
 }
 
 .asiento-btn.ocupado {
-    background: #f7f1f1;
-    color: #e1cbcb;
-    border-color: #f0e2e2;
+    background: var(--color-peligro-bg);
+    color: var(--color-texto-tenue);
+    border-color: var(--color-peligro-borde);
     cursor: not-allowed;
     opacity: 0.6;
 }
@@ -424,7 +424,7 @@
 
 .comp-btn {
     flex: 1; height: 36px; border: 1px solid var(--color-borde-input);
-    border-radius: var(--radio-2); background: #fff;
+    border-radius: var(--radio-2); background: var(--color-superficie);
     font-size: 13px; color: var(--color-gris-texto); cursor: pointer;
     transition: background-color .15s var(--ease-salida),
                 border-color .15s var(--ease-salida),
@@ -433,7 +433,7 @@
                 transform .15s var(--ease-salida);
 }
 
-.comp-btn.activo { background: var(--color-primario); color: #fff; border-color: var(--color-primario); }
+.comp-btn.activo { background: var(--color-primario); color: var(--color-sobre-color); border-color: var(--color-primario); }
 .comp-btn:hover:not(.activo) { border-color: var(--color-primario); color: var(--color-primario); }
 
 .precio-hint {
@@ -497,7 +497,7 @@
 
 .btn-guardar {
     height: 36px; padding: 0 16px; background: var(--color-primario);
-    border: none; border-radius: var(--radio-2); color: #fff;
+    border: none; border-radius: var(--radio-2); color: var(--color-sobre-color);
     font-size: 13px; cursor: pointer;
     display: flex; align-items: center; gap: 6px;
 }
@@ -585,14 +585,14 @@
 
 .barco-asiento.vip {
     background: var(--color-advertencia-bg-2);
-    border-color: #ef9f27;
-    color: #854f0b;
+    border-color: var(--color-ambar);
+    color: var(--color-advertencia-fuerte);
 }
 
 .barco-asiento.normal {
-    background: #e6f1fb;
-    border-color: #378add;
-    color: #185fa5;
+    background: var(--color-azul-bg-2);
+    border-color: var(--color-azul-borde-2);
+    color: var(--color-primario);
 }
 
 .barco-asiento.ocupado {
@@ -605,8 +605,8 @@
 
 .barco-asiento.seleccionado {
     background: var(--color-primario) !important;
-    border-color: #0c447c !important;
-    color: #fff !important;
+    border-color: var(--color-primario-osc) !important;
+    color: var(--color-sobre-color) !important;
     transform: scale(1.05);
 }
 
@@ -633,18 +633,18 @@
     flex-shrink: 0;
 }
 
-.ley-vip     { background: var(--color-advertencia-bg-2); border-color: #ef9f27; }
-.ley-libre   { background: #e6f1fb; border-color: #378add; }
+.ley-vip     { background: var(--color-advertencia-bg-2); border-color: var(--color-ambar); }
+.ley-libre   { background: var(--color-azul-bg-2); border-color: var(--color-azul-borde-2); }
 .ley-ocupado { background: var(--color-fondo-2); border-color: var(--color-borde-suave); opacity: 0.6; }
-.ley-sel     { background: var(--color-primario); border-color: #0c447c; }
+.ley-sel     { background: var(--color-primario); border-color: var(--color-primario-osc); }
 
-.btn-accion.email       { background: #f0f9ff; color: #0369a1; }
-.btn-accion.email:hover { background: #e0f2fe; }
+.btn-accion.email       { background: var(--color-azul-bg); color: var(--color-info); }
+.btn-accion.email:hover { background: var(--color-azul-bg-2); }
 /* Botones de acción adicionales */
-.btn-accion.a4          { background: #f5f3ff; color: #6d28d9; }
-.btn-accion.a4:hover    { background: #ede9fe; }
-.btn-accion.editar      { background: var(--color-info-bg); color: #0e7490; }
-.btn-accion.editar:hover{ background: #cffafe; }
+.btn-accion.a4          { background: var(--color-morado-bg); color: var(--color-morado); }
+.btn-accion.a4:hover    { background: var(--color-morado-bg); }
+.btn-accion.editar      { background: var(--color-info-bg); color: var(--color-info); }
+.btn-accion.editar:hover{ background: var(--color-info-bg); }
 
 /* Nota informativa del modal de edición */
 .edit-nota {
@@ -653,7 +653,7 @@
     gap: 8px;
     background: var(--color-azul-bg);
     border: 1px solid var(--color-azul-borde);
-    color: #1e40af;
+    color: var(--color-primario-osc);
     border-radius: var(--radio-3);
     padding: 10px 12px;
     font-size: 12px;
@@ -669,7 +669,7 @@
 .btn-consulta {
     display: flex; align-items: center; gap: 5px;
     padding: 0 12px;
-    background: var(--color-primario); color: #fff;
+    background: var(--color-primario); color: var(--color-sobre-color);
     border: none; border-radius: var(--radio-3);
     font-size: 12px; font-weight: 600;
     cursor: pointer; white-space: nowrap;
@@ -692,11 +692,11 @@
         margin-bottom: 12px;
         border: 1px solid var(--color-borde);
         border-radius: var(--radio-md);
-        background: var(--color-blanco);
+        background: var(--color-superficie);
         box-shadow: var(--sombra-sm);
         overflow: hidden;
     }
-    .pasajes-tabla tbody tr:hover { background: var(--color-blanco); }
+    .pasajes-tabla tbody tr:hover { background: var(--color-superficie); }
 
     .pasajes-tabla td {
         display: flex;
@@ -752,14 +752,14 @@
 }
 
 .barco-cabina {
-    background: #e0e7ff;
-    color: #3730a3;
-    border: 1px dashed #a5b4fc;
+    background: var(--color-azul-bg-2);
+    color: var(--color-primario-vivo);
+    border: 1px dashed var(--color-azul-borde-2);
 }
 
 .barco-motor {
     background: var(--color-peligro-bg-2);
-    color: #991b1b;
+    color: var(--color-peligro);
     border: 1px dashed var(--color-peligro-borde-2);
 }
 
@@ -789,7 +789,7 @@
 
 .cantidad-pax button {
     width: 34px; height: 34px;
-    border: 1px solid var(--color-borde-input); background: #fff;
+    border: 1px solid var(--color-borde-input); background: var(--color-superficie);
     border-radius: var(--radio-3); cursor: pointer;
     color: var(--color-primario); font-size: 16px;
     display: flex; align-items: center; justify-content: center;
@@ -809,7 +809,7 @@
 .pax-bloque {
     border: 1px solid var(--color-borde); border-radius: var(--radio-4);
     padding: 14px 16px; margin-bottom: 14px;
-    background: #fcfcfd;
+    background: var(--color-fondo);
 }
 
 .pax-titulo {
@@ -840,7 +840,7 @@
 
 .asiento-pax {
     position: absolute; top: -6px; right: -6px;
-    background: var(--color-primario); color: #fff;
+    background: var(--color-primario); color: var(--color-sobre-color);
     border-radius: var(--radio-4); padding: 0 5px;
     font-size: 9px; font-weight: 700; line-height: 14px;
 }
@@ -900,7 +900,7 @@
 .resumen-barra {
     display: flex; align-items: baseline; gap: 28px; flex-wrap: wrap;
     padding: 12px 18px; margin-bottom: 12px;
-    background: #fff; border: 1px solid var(--color-borde-suave); border-radius: var(--radio-7);
+    background: var(--color-superficie); border: 1px solid var(--color-borde-suave); border-radius: var(--radio-7);
     box-shadow: var(--sombra-tarjeta), var(--luz-superior);
 }
 .resumen-dato { display: flex; align-items: baseline; gap: 7px; }
@@ -936,11 +936,11 @@
 .viaje-card-datos { display: flex; gap: 18px; flex-wrap: wrap; font-size: 12.5px; color: var(--color-texto-suave); }
 .viaje-card-datos i { color: var(--color-texto-tenue); margin-right: 4px; }
 
-.viaje-card-hoy    { border-left-color: var(--color-exito); background: #f4fdf7; }
+.viaje-card-hoy    { border-left-color: var(--color-exito); background: var(--color-exito-bg); }
 .viaje-card-hoy .viaje-card-cuando strong { color: var(--color-exito); }
-.viaje-card-pronto { border-left-color: var(--color-primario); background: #f6faff; }
+.viaje-card-pronto { border-left-color: var(--color-primario); background: var(--color-azul-bg); }
 .viaje-card-futuro { border-left-color: var(--color-borde-2); }
-.viaje-card-pasado { border-left-color: var(--color-peligro); background: #fef6f6; }
+.viaje-card-pasado { border-left-color: var(--color-peligro); background: var(--color-peligro-bg); }
 .viaje-card-pasado .viaje-card-cuando strong { color: var(--color-peligro); }
 
 .viaje-card-aviso { margin: 0; font-size: 12.5px; color: var(--color-peligro); }
@@ -960,7 +960,7 @@
 .enc-persona {
     border: 1px solid var(--color-borde); border-radius: var(--radio-4);
     padding: 14px 16px 4px; margin: 0; min-width: 0;
-    background: #fbfcfe;
+    background: var(--color-fondo);
 }
 .enc-persona legend {
     padding: 0 6px; font-size: 13px; font-weight: 600; color: var(--color-primario);

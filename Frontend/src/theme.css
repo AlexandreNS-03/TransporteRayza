@@ -53,6 +53,7 @@
     --color-info-bg:         #ecfeff;
     --color-morado:          #7c3aed;
     --color-morado-bg:       #faf5ff;
+    --color-morado-borde:    #e9d5ff;
 
     /* ── Neutros fríos (familia slate) ──
        Son los que usan las pantallas rediseñadas: texto, bordes y fondos. */
@@ -61,7 +62,11 @@
     --color-texto-oscuro:    #334155;
     --color-texto-medio:     #475569;
     --color-texto-slate:     #64748b;
-    --color-texto-tenue:     #94a3b8;
+    /* Era #94a3b8: 2.56:1 sobre blanco, por debajo del mínimo legible. Lo
+       usan el correo en Roles, la nota del resumen en Pasajes y el tipo de
+       comprobante — texto chico que igual hay que poder leer. Es el mismo
+       error que ya se había corregido en --txt-3, con otro nombre. */
+    --color-texto-tenue:     #687381;
     --color-borde-2:         #cbd5e1;
     --color-borde-suave:     #e2e8f0;
     --color-fondo-2:         #f1f5f9;  /* cabeceras de tabla, celdas de apoyo */
@@ -82,12 +87,33 @@
        Conviven con los de arriba desde antes. Tener dos familias de gris es
        una deuda: unificarlas cambia el aspecto, así que se hace aparte. */
     --color-gris-texto:      #374151;
-    --color-texto-suave:     #6b7280;
-    --color-gris-tenue:      #9ca3af;
+    /* 4.83:1 sobre blanco, pero el lienzo nuevo es más oscuro que el blanco
+       y ahí caía a 4.19:1. Se ajusta para que cumpla sobre las dos
+       superficies, que es donde realmente se lee. */
+    --color-texto-suave:     #626b78;
+    /* Era #9ca3af: 2.54:1 sobre blanco. Es el mismo gris que ya se había
+       sacado de --txt-3 por ilegible y que había vuelto a entrar por otro
+       nombre; lo usan la nota del resumen en Pasajes y el tipo de
+       comprobante debajo del número. */
+    --color-gris-tenue:      #687381;
     --color-borde-input:     #d1d5db;
     --color-borde:           #e5e7eb;
 
     --color-blanco:          #ffffff;
+
+    /* La superficie de una tarjeta. No es "blanco": es "lo que está encima del
+       lienzo". De noche no es blanca, por eso tiene nombre propio. */
+    --color-superficie:      #ffffff;
+
+    /* Lo que se escribe ENCIMA de un color de marca o de estado: la etiqueta
+       de un botón azul, el número de un asiento seleccionado. De día es
+       blanco; de noche el botón se aclara, así que el texto se oscurece.
+       No confundir con el blanco del panel lateral, que es blanco siempre
+       porque el panel es oscuro en los dos modos. */
+    --color-sobre-color:     #ffffff;
+
+    /* El vidrio de la barra superior. */
+    --vidrio-barra:          color-mix(in srgb, #ffffff 72%, transparent);
 
     /* ── Texto con contraste verificado sobre blanco ──
        Medido, no elegido a ojo. El gris que había antes (#9ca3af) daba 2.54:1
@@ -170,4 +196,109 @@
        si no llega la propia, el panel se sigue leyendo igual. */
     --fuente: "Hanken Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     --fuente-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+/* ============================================================
+   MODO NOCHE
+
+   Se enciende con data-tema="oscuro" en <html>. No sigue al sistema
+   operativo a propósito: las máquinas del mostrador son compartidas y el
+   turno de madrugada no es el mismo que el de la tarde, así que la decisión
+   es de quien está sentado y se recuerda en esa máquina.
+
+   Solo se redefinen tokens. Ninguna pantalla tiene reglas propias de noche:
+   si algo no cambia bien acá, es que tiene un color escrito a mano.
+
+   Los colores de marca y de estado se aclaran. Un azul de 4.5:1 sobre blanco
+   queda en 2:1 sobre un fondo oscuro, y deja de leerse: no alcanza con
+   invertir los grises.
+   ============================================================ */
+:root[data-tema="oscuro"] {
+    color-scheme: dark;
+
+    /* Marca */
+    --color-primario:        #6d9bff;
+    --color-primario-osc:    #5a8af0;
+    --color-primario-hover:  #86adff;
+    --color-primario-vivo:   #86adff;
+    --color-azul-vivo:       #86adff;
+    --color-navy:            #e8edf5;
+
+    --color-azul-bg:         rgba(109, 155, 255, 0.14);
+    --color-azul-bg-2:       rgba(109, 155, 255, 0.20);
+    --color-azul-borde:      rgba(109, 155, 255, 0.32);
+    --color-azul-borde-2:    rgba(109, 155, 255, 0.45);
+
+    /* Estados */
+    --color-exito:           #6ed394;
+    --color-exito-vivo:      #7fdca3;
+    --color-exito-bg:        rgba(110, 211, 148, 0.14);
+    --color-exito-bg-2:      rgba(110, 211, 148, 0.20);
+    --color-exito-borde:     rgba(110, 211, 148, 0.32);
+
+    --color-advertencia:     #efb365;
+    --color-advertencia-osc: #f5c27f;
+    --color-advertencia-fuerte: #ffd9a3;
+    --color-ambar:           #fbbf4a;
+    --color-advertencia-bg:  rgba(239, 179, 101, 0.14);
+    --color-advertencia-bg-2:rgba(239, 179, 101, 0.20);
+    --color-ambar-bg:        rgba(251, 191, 74, 0.12);
+    --color-advertencia-borde: rgba(239, 179, 101, 0.32);
+
+    --color-peligro:         #f28b84;
+    --color-peligro-bg:      rgba(242, 139, 132, 0.14);
+    --color-peligro-bg-2:    rgba(242, 139, 132, 0.20);
+    --color-peligro-borde:   rgba(242, 139, 132, 0.32);
+    --color-peligro-borde-2: rgba(242, 139, 132, 0.45);
+
+    --color-info:            #4fd0e8;
+    --color-info-bg:         rgba(79, 208, 232, 0.14);
+    --color-morado:          #b18aff;
+    --color-morado-bg:       rgba(177, 138, 255, 0.14);
+    --color-morado-borde:    rgba(177, 138, 255, 0.32);
+
+    /* Neutros fríos */
+    --color-texto-fuerte:    #f3f6fa;
+    --color-texto:           #e2e8f0;
+    --color-texto-oscuro:    #cbd5e1;
+    --color-texto-medio:     #b6c2d0;
+    --color-texto-slate:     #9aa7b6;
+    --color-texto-tenue:     #7f8c9c;
+    --color-borde-2:         #3a4553;
+    --color-borde-suave:     #252e3a;
+    --color-fondo-2:         #1e2630;
+    --color-fondo-3:         #1b222b;
+    --color-fondo:           #1b222b;
+
+    /* Neutros cálidos */
+    --color-gris-texto:      #c3ccd8;
+    --color-texto-suave:     #94a3b8;
+    --color-gris-tenue:      #7f8c9c;
+    --color-borde-input:     #333e4c;
+    --color-borde:           #2a333f;
+
+    /* Superficies */
+    --color-lienzo:          #0e1319;
+    --color-superficie:      #161c24;
+    --color-sobre-color:     #0b1220;
+    --color-barra:           #0a0f15;
+    --vidrio-barra:          color-mix(in srgb, #161c24 76%, transparent);
+
+    /* Texto con contraste verificado, ahora sobre la superficie oscura */
+    --txt-1: #f3f6fa;
+    --txt-2: #b6c2d0;
+    --txt-3: #94a3b8;
+
+    /* La sombra se nota menos sobre fondo oscuro y la luz de arriba casi nada:
+       de noche lo que separa una tarjeta del lienzo es el borde. */
+    --sombra-tarjeta: 0 1px 2px rgba(0, 0, 0, 0.45),
+                      0 12px 32px -18px rgba(0, 0, 0, 0.75);
+    --luz-superior: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+
+    --sombra-sm: 0 1px 3px rgba(0, 0, 0, 0.5);
+    --sombra:    0 4px 14px rgba(0, 0, 0, 0.5);
+    --sombra-lg: 0 12px 40px rgba(0, 0, 0, 0.6);
+    --sombra-1: 0 1px 2px rgba(0, 0, 0, 0.4), 0 1px 3px rgba(0, 0, 0, 0.5);
+    --sombra-2: 0 4px 8px -2px rgba(0, 0, 0, 0.5), 0 2px 4px -2px rgba(0, 0, 0, 0.4);
+    --sombra-3: 0 12px 16px -4px rgba(0, 0, 0, 0.45), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
 }

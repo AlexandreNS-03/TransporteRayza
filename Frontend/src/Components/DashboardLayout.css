@@ -58,7 +58,7 @@
 .sb-logo-text span {
     display: block;
     font-size: 11px;
-    color: rgba(255, 255, 255, 0.45);
+    color: rgba(255, 255, 255, 0.52);
 }
 
 .sb-menu {
@@ -70,9 +70,13 @@
 }
 
 /* Línea separadora entre secciones */
+/* Los rótulos de sección estaban a 0.3 de opacidad: 2.65:1 contra el azul del
+   panel, por debajo del mínimo legible, y a 10.5 px. En la pantalla del
+   mostrador con luz de día no se leían. No es cosa del modo noche: el panel
+   lateral siempre fue oscuro, así que esto venía mal desde antes. */
 .sb-section {
     font-size: 10.5px;
-    color: rgba(255, 255, 255, 0.3);
+    color: rgba(255, 255, 255, 0.58);
     font-weight: 600;
     padding: 10px 16px 5px;
     letter-spacing: 0.8px;
@@ -135,7 +139,7 @@
 /* ── NAVBAR ── */
 .navbar {
     height: 54px;
-    background: color-mix(in srgb, var(--color-blanco) 72%, transparent);
+    background: var(--vidrio-barra);
     backdrop-filter: saturate(1.6) blur(18px);
     -webkit-backdrop-filter: saturate(1.6) blur(18px);
     border-bottom: 1px solid var(--color-borde-suave);
@@ -182,7 +186,7 @@
     height: 34px;
     border-radius: 50%;
     background: var(--color-primario);
-    color: #fff;
+    color: var(--color-sobre-color);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -190,10 +194,31 @@
     font-weight: 600;
 }
 
+/* Interruptor de día/noche. Mismo tamaño y forma que el de salir, pero sin
+   color: no es una acción que haya que pensar dos veces. */
+.tema-btn {
+    background: none;
+    border: 1px solid var(--color-borde-input);
+    color: var(--color-texto-suave);
+    border-radius: var(--radio-2);
+    padding: 6px 10px;
+    cursor: pointer;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    transition: background var(--dur-rapida) var(--ease-salida),
+                color var(--dur-rapida) var(--ease-salida);
+}
+
+.tema-btn:hover {
+    background: var(--color-fondo-2);
+    color: var(--color-texto);
+}
+
 .logout-btn {
     background: none;
-    border: 1px solid #e24b4a;
-    color: #e24b4a;
+    border: 1px solid var(--color-peligro);
+    color: var(--color-peligro);
     border-radius: var(--radio-2);
     padding: 6px 10px;
     cursor: pointer;

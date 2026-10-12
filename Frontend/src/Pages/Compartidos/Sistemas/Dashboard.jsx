@@ -5,7 +5,7 @@ import {
 } from "recharts";
 import "./Dashboard.css";
 import {
-    paleta, serie, reja, ejeX, ejeY, ejeCategoria, realce,
+    usarPaleta, serie, reja, ejeX, ejeY, ejeCategoria, realce,
     GloboDatos, Leyenda, Degradado, puntoFinal,
 } from "../../../Utils/graficos.jsx";
 
@@ -20,8 +20,6 @@ function badgeViaje(estado) {
     }
 }
 
-// Los colores salen de theme.css (ver Utils/graficos.jsx), no se escriben acá.
-const COLORES = paleta();
 const METODO_LABEL = {
     EFECTIVO: "Efectivo", YAPE: "Yape", PLIN: "Plin", TARJETA: "Tarjeta", TRANSFERENCIA: "Transferencia",
     "WEB SIN REGISTRAR": "Web (sin registrar)",
@@ -80,6 +78,9 @@ function Cifra({ label, valorRaw, formato, tono, nota, grande }) {
 
 /* ---------- Tooltip propio para que combine con el estilo del dashboard ---------- */
 function Dashboard() {
+    // Los colores salen de theme.css (ver Utils/graficos.jsx). Se leen acá
+    // dentro y no al cargar el archivo, porque de noche valen otra cosa.
+    const COLORES = usarPaleta();
     const usuario  = JSON.parse(localStorage.getItem("usuario"));
     const [data, setData]       = useState(null);
     const [extras, setExtras]   = useState(null); // encomiendas + caja

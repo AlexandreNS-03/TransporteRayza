@@ -31,6 +31,14 @@
     />
   </head>
   <body>
+    <!-- El tema se aplica antes de que arranque React. Si esperara a React, el
+         que trabaja de noche vería un destello blanco cada vez que abre. -->
+    <script>
+      try {
+        var t = localStorage.getItem("rayza_tema");
+        if (t === "oscuro") document.documentElement.setAttribute("data-tema", "oscuro");
+      } catch (e) {}
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

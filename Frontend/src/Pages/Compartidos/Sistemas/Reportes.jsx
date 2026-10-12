@@ -5,14 +5,12 @@ import {
 } from "recharts";
 import "./Reportes.css";
 import {
-    paleta, serie, reja, ejeX, ejeY, ejeCategoria, realce,
+    usarPaleta, serie, reja, ejeX, ejeY, ejeCategoria, realce,
     GloboDatos, Leyenda, Degradado, puntoFinal,
 } from "../../../Utils/graficos.jsx";
 import { guardarArchivo, CARPETAS } from "../../../Utils/descargas.js";
 import { motivoDelError } from "../../../Services/api.js";
 
-// Los colores salen de theme.css (ver Utils/graficos.jsx), no se escriben acá.
-const COLORES = paleta();
 
 const API = (import.meta.env.VITE_API_URL || "http://localhost:8080") + "/api";
 const authHeaders = () => ({ "Authorization": `Bearer ${localStorage.getItem("token")}` });
@@ -47,6 +45,9 @@ const METODO_LABEL = { EFECTIVO: "Efectivo", YAPE: "Yape", PLIN: "Plin", TARJETA
 const LUGARES_PAGO = [["IQUITOS", "Iquitos"], ["REQUENA", "Requena"], ["OTRO", "Otro / Web"]];
 
 function Reportes() {
+    // Los colores salen de theme.css (ver Utils/graficos.jsx). Se leen acá
+    // dentro y no al cargar el archivo, porque de noche valen otra cosa.
+    const COLORES = usarPaleta();
     const [tipo, setTipo] = useState("ventas");
 
     const [ventas, setVentas]           = useState([]);

@@ -25,7 +25,7 @@
     padding: 40px;
     color: var(--color-texto-suave);
     font-size: 14px;
-    background: #fff;
+    background: var(--color-superficie);
     border: 1px solid var(--color-borde-suave);
     border-radius: var(--radio-7);
     box-shadow: var(--sombra-tarjeta), var(--luz-superior);
@@ -51,7 +51,7 @@
 @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
 .preciosweb-tabla-wrapper {
-    background: #fff;
+    background: var(--color-superficie);
     border: 1px solid var(--color-borde-suave);
     border-radius: var(--radio-7);
     box-shadow: var(--sombra-tarjeta), var(--luz-superior);
@@ -119,7 +119,7 @@
 .switch-track::before {
     content: ""; position: absolute; top: 3px; left: 3px;
     width: 16px; height: 16px; border-radius: 50%;
-    background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.2);
+    background: var(--color-superficie); box-shadow: 0 1px 3px rgba(0,0,0,.2);
     transition: transform 0.15s;
 }
 .switch input:checked + .switch-track { background: var(--color-exito); }
@@ -170,7 +170,9 @@
 }
 .btn-guardar-fila i { font-size: 15px; }
 .btn-guardar-fila:hover:not(:disabled) { background: var(--color-azul-bg-2); }
-.btn-guardar-fila:disabled { background: var(--color-fondo-2); color: var(--color-borde-2); cursor: not-allowed; }
+/* El texto del botón apagado estaba en color de borde: 1.36:1 de día, o sea
+   que no se leía qué decía. Apagado no quiere decir invisible. */
+.btn-guardar-fila:disabled { background: var(--color-fondo-2); color: var(--color-texto-tenue); cursor: not-allowed; }
 
 /* ── Vigencia de la oferta (rango de fechas de viaje) ── */
 .preciosweb-tabla .th-nota {
@@ -189,16 +191,16 @@
     width: 100%;
     min-width: 0;
     padding: 7px 8px;
-    border: 1px solid var(--borde, #d8dee9);
+    border: 1px solid var(--borde, var(--color-borde-input));
     border-radius: var(--radio-3);
     font: inherit;
     font-size: 13px;
     color: inherit;
-    background: #fff;
+    background: var(--color-superficie);
 }
 .rango-fechas input[type="date"]:disabled {
-    background: #f1f4f8;
-    color: #9aa5b4;
+    background: var(--color-azul-bg);
+    color: var(--color-texto-slate);
     cursor: not-allowed;
 }
 .rango-fechas input[type="date"]:focus-visible {
@@ -208,14 +210,14 @@
 }
 .rango-sep {
     flex: none;
-    color: #9aa5b4;
+    color: var(--color-texto-slate);
     font-size: 13px;
 }
 .rango-nota {
     display: block;
     margin-top: 5px;
     font-size: 11.5px;
-    color: #7b8798;
+    color: var(--color-texto-suave);
 }
 
 /* ══ Rediseño ══ */

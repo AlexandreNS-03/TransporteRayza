@@ -21,7 +21,7 @@
     /* #root centra todo el panel; un texto de confirmación centrado se lee
        peor, sobre todo cuando explica algo que no se puede deshacer. */
     text-align: left;
-    background: #fff;
+    background: var(--color-superficie);
     border-radius: var(--radio-6);
     width: 100%;
     max-width: 480px;
@@ -49,7 +49,7 @@
     border-radius: var(--radio-3);
     font-size: 14px;
     font-family: inherit;
-    background: #fff;
+    background: var(--color-superficie);
     width: 100%;
 }
 .campo-s input:focus, .campo-s select:focus, .campo-s textarea:focus {

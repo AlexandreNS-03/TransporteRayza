@@ -31,7 +31,7 @@
     height: 38px;
     padding: 0 18px;
     background: var(--color-primario);
-    color: #fff;
+    color: var(--color-sobre-color);
     border: none;
     border-radius: var(--radio-3);
     font-size: 13px;
@@ -46,7 +46,7 @@
 /* CONTROLES */
 .manifiesto-controles {
     display: flex;
-    background: #fff;
+    background: var(--color-superficie);
     border: 1px solid var(--color-borde-suave);
     border-radius: var(--radio-7);
     box-shadow: var(--sombra-tarjeta), var(--luz-superior);
@@ -73,7 +73,7 @@
     border-radius: var(--radio-2);
     font-size: 13px;
     color: var(--color-texto);
-    background: #fff;
+    background: var(--color-superficie);
 }
 
 /* ESTADOS */
@@ -87,7 +87,7 @@
     padding: 50px;
     color: var(--txt-3);
     font-size: 14px;
-    background: #fff;
+    background: var(--color-superficie);
     border: 1px solid var(--color-borde-suave);
     border-radius: var(--radio-7);
     box-shadow: var(--sombra-tarjeta), var(--luz-superior);
@@ -106,7 +106,7 @@
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     gap: 14px;
-    background: #fff;
+    background: var(--color-superficie);
     border: 1px solid var(--color-borde-suave);
     border-radius: var(--radio-7);
     box-shadow: var(--sombra-tarjeta), var(--luz-superior);
@@ -157,7 +157,7 @@
 .resumen-card.amarillo   { background: var(--color-advertencia-bg); border-color: var(--color-advertencia-borde); }
 .resumen-card.amarillo i { color: var(--color-advertencia); }
 
-.resumen-card.morado     { background: var(--color-morado-bg); border-color: #e9d5ff; }
+.resumen-card.morado     { background: var(--color-morado-bg); border-color: var(--color-morado-borde); }
 .resumen-card.morado i   { color: var(--color-morado); }
 
 .resumen-label {
@@ -176,7 +176,7 @@
 
 /* TABLA */
 .manifiesto-tabla-wrapper {
-    background: #fff;
+    background: var(--color-superficie);
     border: 1px solid var(--color-borde-suave);
     border-radius: var(--radio-7);
     box-shadow: var(--sombra-tarjeta), var(--luz-superior);
@@ -218,7 +218,7 @@
 .th-orden span { margin-right: 4px; }
 .th-orden i { font-size: 13px; vertical-align: -1px; opacity: 0.55; }
 .th-orden:hover i { opacity: 1; }
-.col-observacion { max-width: 200px; color: #4b5563; font-size: 12px; white-space: normal; }
+.col-observacion { max-width: 200px; color: var(--color-texto-medio); font-size: 12px; white-space: normal; }
 
 .tramo-info {
     display: flex;
@@ -268,7 +268,7 @@
 
 .viaje-ficha {
     display: flex; flex-direction: column; gap: 8px;
-    background: #fff; border: 1px solid var(--color-borde-suave); border-radius: var(--radio-7);
+    background: var(--color-superficie); border: 1px solid var(--color-borde-suave); border-radius: var(--radio-7);
     box-shadow: var(--sombra-tarjeta), var(--luz-superior);
     padding: 14px 18px;
     text-align: left;
@@ -301,7 +301,7 @@
 .manifiesto-avance {
     display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
     padding: 13px 18px;
-    background: #fff; border: 1px solid var(--color-borde-suave); border-radius: var(--radio-7);
+    background: var(--color-superficie); border: 1px solid var(--color-borde-suave); border-radius: var(--radio-7);
     box-shadow: var(--sombra-tarjeta), var(--luz-superior);
     text-align: left;
 }

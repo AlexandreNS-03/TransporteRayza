@@ -12,7 +12,7 @@
 }
 
 .aviso-caja {
-    background: #fff;
+    background: var(--color-superficie);
     border-radius: var(--radio-6);
     width: 100%;
     max-width: 520px;
@@ -78,10 +78,10 @@
     border: 1px solid transparent;
 }
 
-.aviso-btn-principal { background: var(--color-primario); color: #fff; }
+.aviso-btn-principal { background: var(--color-primario); color: var(--color-sobre-color); }
 .aviso-btn-principal:hover { background: var(--color-primario-osc); }
 
-.aviso-btn-secundario { background: #fff; color: var(--color-texto-suave); border-color: var(--color-borde-input); }
+.aviso-btn-secundario { background: var(--color-superficie); color: var(--color-texto-suave); border-color: var(--color-borde-input); }
 .aviso-btn-secundario:hover { border-color: var(--txt-3); }
 
 .aviso-pie { margin: 0; font-size: 11px; color: var(--txt-3); text-align: center; }

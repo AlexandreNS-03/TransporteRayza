@@ -64,6 +64,14 @@ h3 {
   letter-spacing: -0.015em;
 }
 
+/* Mientras se cambia de día a noche. Ver Utils/tema.js. */
+.sin-transiciones,
+.sin-transiciones *,
+.sin-transiciones *::before,
+.sin-transiciones *::after {
+  transition: none !important;
+}
+
 /* Texto de apoyo. La clase se usa en 19 lugares del JSX, pero solo estaba
    definida dentro de tres pantallas: suelta no hacía nada. No se notaba
    porque el color que la plantilla de Vite le daba a todo el documento ya era
@@ -280,15 +288,15 @@ html :is(button, a, input, select, textarea, [tabindex]):focus-visible {
   .rutas-tabla tr, .sucursales-tabla tr, .emb-tabla tr, .roles-tabla tr, .manifiesto-tabla tr,
   .anuncios-tabla tr, .preciosweb-tabla tr {
     margin-bottom: 12px;
-    border: 1px solid var(--color-borde, var(--color-borde-suave));
-    border-radius: var(--radio-md, 10px);
-    background: var(--color-blanco, #fff);
+    border: 1px solid var(--color-borde);
+    border-radius: var(--radio-4);
+    background: var(--color-superficie);
     box-shadow: var(--sombra-sm, 0 1px 3px rgba(0, 0, 0, .06));
     overflow: hidden;
   }
   .rutas-tabla tbody tr:hover, .sucursales-tabla tbody tr:hover, .emb-tabla tbody tr:hover,
   .roles-tabla tbody tr:hover, .manifiesto-tabla tbody tr:hover,
-  .anuncios-tabla tbody tr:hover, .preciosweb-tabla tbody tr:hover { background: var(--color-blanco, #fff); }
+  .anuncios-tabla tbody tr:hover, .preciosweb-tabla tbody tr:hover { background: var(--color-superficie); }
 
   .rutas-tabla td, .sucursales-tabla td, .emb-tabla td, .roles-tabla td, .manifiesto-tabla td,
   .anuncios-tabla td, .preciosweb-tabla td {
@@ -357,7 +365,7 @@ html :is(button, a, input, select, textarea, [tabindex]):focus-visible {
    Una tarjeta clara con borde fino, no el recuadro negro por defecto: se lee
    encima del gráfico sin tapar lo que hay debajo. */
 .grafico-globo {
-  background: var(--color-blanco);
+  background: var(--color-superficie);
   border: 1px solid var(--color-borde-suave);
   border-radius: var(--radio-md);
   box-shadow: var(--sombra-2);

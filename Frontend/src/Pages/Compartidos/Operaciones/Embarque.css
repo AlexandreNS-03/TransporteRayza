@@ -25,7 +25,7 @@
 
 /* CONTROLES */
 .embarque-controles {
-    background: #fff;
+    background: var(--color-superficie);
     border: 1px solid var(--color-borde-suave);
     border-radius: var(--radio-7);
     box-shadow: var(--sombra-tarjeta), var(--luz-superior);
@@ -59,7 +59,7 @@
     padding: 0 10px;
     font-size: 13px;
     color: var(--color-texto);
-    background: #fff;
+    background: var(--color-superficie);
     outline: none;
 }
 
@@ -92,7 +92,7 @@
     height: 36px;
     padding: 0 14px;
     background: var(--color-primario);
-    color: #fff;
+    color: var(--color-sobre-color);
     border: none;
     border-radius: var(--radio-2);
     font-size: 13px;
@@ -109,7 +109,7 @@
     height: 36px;
     padding: 0 14px;
     background: var(--color-info);
-    color: #fff;
+    color: var(--color-sobre-color);
     border: none;
     border-radius: var(--radio-2);
     font-size: 13px;
@@ -120,7 +120,7 @@
     white-space: nowrap;
 }
 
-.btn-escanear:hover { background: #0e7490; }
+.btn-escanear:hover { background: var(--color-info); }
 
 /* RESUMEN */
 .embarque-resumen {
@@ -133,7 +133,7 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    background: #fff;
+    background: var(--color-superficie);
     border: 1px solid var(--color-borde-suave);
     border-radius: var(--radio-5);
     padding: 12px 16px;
@@ -173,7 +173,7 @@
     height: 32px;
     padding: 0 14px;
     border: 1px solid var(--color-borde);
-    background: #fff;
+    background: var(--color-superficie);
     border-radius: var(--radio-8);
     font-size: 12px;
     color: var(--color-texto-suave);
@@ -186,7 +186,7 @@
 }
 
 .filtro-btn:hover { border-color: var(--color-primario); color: var(--color-primario); }
-.filtro-btn.activo { background: var(--color-primario); color: #fff; border-color: var(--color-primario); }
+.filtro-btn.activo { background: var(--color-primario); color: var(--color-sobre-color); border-color: var(--color-primario); }
 
 /* ESTADO */
 .embarque-estado {
@@ -197,7 +197,7 @@
     padding: 40px;
     color: var(--color-texto-suave);
     font-size: 14px;
-    background: #fff;
+    background: var(--color-superficie);
     border: 1px solid var(--color-borde-suave);
     border-radius: var(--radio-7);
     box-shadow: var(--sombra-tarjeta), var(--luz-superior);
@@ -218,7 +218,7 @@
     padding: 60px;
     color: var(--txt-3);
     font-size: 14px;
-    background: #fff;
+    background: var(--color-superficie);
     border: 1px solid var(--color-borde-suave);
     border-radius: var(--radio-7);
     box-shadow: var(--sombra-tarjeta), var(--luz-superior);
@@ -231,7 +231,7 @@
 
 /* TABLA */
 .embarque-tabla-wrapper {
-    background: #fff;
+    background: var(--color-superficie);
     border: 1px solid var(--color-borde-suave);
     border-radius: var(--radio-7);
     box-shadow: var(--sombra-tarjeta), var(--luz-superior);
@@ -332,7 +332,7 @@
     height: 30px;
     padding: 0 12px;
     background: var(--color-primario);
-    color: #fff;
+    color: var(--color-sobre-color);
     border: none;
     border-radius: var(--radio-2);
     font-size: 12px;
@@ -361,7 +361,7 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    background: #fff;
+    background: var(--color-superficie);
     border: 1px solid var(--color-borde);
     border-radius: var(--radio-4);
     padding: 14px 16px;
@@ -422,7 +422,7 @@
     gap: 6px;
     height: 36px;
     padding: 0 16px;
-    background: #fff;
+    background: var(--color-superficie);
     color: var(--color-primario);
     border: 1px solid var(--color-primario);
     border-radius: var(--radio-2);
@@ -437,7 +437,7 @@
     white-space: nowrap;
 }
 
-.btn-mi-turno:hover { background: var(--color-primario); color: #fff; }
+.btn-mi-turno:hover { background: var(--color-primario); color: var(--color-sobre-color); }
 .btn-mi-turno i { font-size: 15px; }
 
 /* ===== MODAL OVERLAY ===== */
@@ -459,7 +459,7 @@
 
 /* ===== MODAL TURNO ===== */
 .modal-turno {
-    background: #fff;
+    background: var(--color-superficie);
     border-radius: var(--radio-5);
     width: 100%;
     max-width: 440px;
@@ -567,7 +567,7 @@
     padding: 12px 14px;
     border: 1.5px solid var(--color-borde);
     border-radius: var(--radio-4);
-    background: #fff;
+    background: var(--color-superficie);
     text-align: left;
     cursor: pointer;
     color: var(--color-texto-suave);
@@ -587,7 +587,7 @@
 
 .etapa-btn.activo {
     border-color: var(--color-primario);
-    background: #eef3fd;
+    background: var(--color-azul-bg);
     color: var(--color-primario);
 }
 
@@ -619,7 +619,7 @@
 .embarque-avance {
     display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
     padding: 13px 18px; margin-bottom: 14px;
-    background: #fff; border: 1px solid var(--color-borde-suave); border-radius: var(--radio-7);
+    background: var(--color-superficie); border: 1px solid var(--color-borde-suave); border-radius: var(--radio-7);
     box-shadow: var(--sombra-tarjeta), var(--luz-superior);
 }
 .avance-cifras { display: flex; align-items: baseline; gap: 8px; }

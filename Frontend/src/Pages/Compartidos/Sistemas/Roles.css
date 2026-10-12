@@ -31,7 +31,7 @@
     height: 38px;
     padding: 0 18px;
     background: var(--color-primario);
-    color: #fff;
+    color: var(--color-sobre-color);
     border: none;
     border-radius: var(--radio-3);
     font-size: 13px;
@@ -47,7 +47,7 @@
     display: flex;
     align-items: flex-end;
     gap: 16px;
-    background: #fff;
+    background: var(--color-superficie);
     border: 1px solid var(--color-borde-suave);
     border-radius: var(--radio-7);
     box-shadow: var(--sombra-tarjeta), var(--luz-superior);
@@ -74,7 +74,7 @@
     border-radius: var(--radio-2);
     font-size: 13px;
     color: var(--color-texto);
-    background: #fff;
+    background: var(--color-superficie);
     min-width: 140px;
 }
 
@@ -129,7 +129,7 @@
     padding: 40px;
     color: var(--txt-3);
     font-size: 14px;
-    background: #fff;
+    background: var(--color-superficie);
     border: 1px solid var(--color-borde-suave);
     border-radius: var(--radio-7);
     box-shadow: var(--sombra-tarjeta), var(--luz-superior);
@@ -142,7 +142,7 @@
 
 /* TABLA */
 .roles-tabla-wrapper {
-    background: #fff;
+    background: var(--color-superficie);
     border: 1px solid var(--color-borde-suave);
     border-radius: var(--radio-7);
     box-shadow: var(--sombra-tarjeta), var(--luz-superior);
@@ -289,7 +289,7 @@
     white-space: nowrap;
 }
 
-.badge-admin      { background: #f3e8ff; color: var(--color-morado); }
+.badge-admin      { background: var(--color-morado-bg); color: var(--color-morado); }
 .badge-supervisor { background: var(--color-azul-bg); color: var(--color-primario-vivo); }
 .badge-empleado   { background: var(--color-exito-bg); color: var(--color-exito); }
 
@@ -304,7 +304,7 @@
     height: 30px;
     border-radius: var(--radio-2);
     border: 1px solid var(--color-borde);
-    background: #fff;
+    background: var(--color-superficie);
     color: var(--txt-3);
     display: flex;
     align-items: center;
@@ -332,7 +332,7 @@
 }
 
 .modal {
-    background: #fff;
+    background: var(--color-superficie);
     border-radius: var(--radio-5);
     width: 100%;
     max-width: 480px;
@@ -468,7 +468,7 @@
     background: var(--color-primario);
     border: none;
     border-radius: var(--radio-3);
-    color: #fff;
+    color: var(--color-sobre-color);
     font-size: 13px;
     font-weight: 500;
     cursor: pointer;
@@ -490,7 +490,7 @@
     border: 1px solid var(--color-borde-input);
     border-radius: var(--radio-3);
     font-size: 12px;
-    background: #fff;
+    background: var(--color-superficie);
     color: var(--color-texto);
     cursor: pointer;
     outline: none;
@@ -528,7 +528,7 @@
     display: inline-flex; align-items: center; gap: 5px;
     height: 29px; padding: 0 10px;
     border: 1px solid var(--color-borde); border-radius: 7px;
-    background: #fff; color: var(--color-texto-medio);
+    background: var(--color-superficie); color: var(--color-texto-medio);
     font-size: 12.5px; font-weight: 600; white-space: nowrap;
     cursor: pointer;
     transition: background-color .15s ease, border-color .15s ease, color .15s ease;

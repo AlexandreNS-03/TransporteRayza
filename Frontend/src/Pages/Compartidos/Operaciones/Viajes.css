@@ -31,7 +31,7 @@
     height: 36px;
     padding: 0 16px;
     background: var(--color-primario);
-    color: #fff;
+    color: var(--color-sobre-color);
     border: none;
     border-radius: var(--radio-3);
     font-size: 13px;
@@ -45,7 +45,7 @@
 
 /* FILTROS */
 .viajes-filtros {
-    background: #fff;
+    background: var(--color-superficie);
     border: 1px solid var(--color-borde-suave);
     border-radius: var(--radio-7);
     box-shadow: var(--sombra-tarjeta), var(--luz-superior);
@@ -78,7 +78,7 @@
     padding: 0 10px;
     font-size: 13px;
     color: var(--color-texto);
-    background: #fff;
+    background: var(--color-superficie);
     outline: none;
     cursor: pointer;
 }
@@ -106,7 +106,7 @@
     border-radius: var(--radio-2);
     padding: 0 10px;
     height: 34px;
-    background: #fff;
+    background: var(--color-superficie);
 }
 
 .filtro-buscar i {
@@ -152,7 +152,7 @@
     padding: 40px;
     color: var(--color-texto-suave);
     font-size: 14px;
-    background: #fff;
+    background: var(--color-superficie);
     border: 1px solid var(--color-borde-suave);
     border-radius: var(--radio-7);
     box-shadow: var(--sombra-tarjeta), var(--luz-superior);
@@ -186,7 +186,7 @@
 
 /* TABLA */
 .viajes-tabla-wrapper {
-    background: #fff;
+    background: var(--color-superficie);
     border: 1px solid var(--color-borde-suave);
     border-radius: var(--radio-7);
     box-shadow: var(--sombra-tarjeta), var(--luz-superior);
@@ -327,9 +327,9 @@
 .btn-peligro {
     display: inline-flex; align-items: center; gap: 6px;
     height: 36px; padding: 0 16px; cursor: pointer;
-    background: var(--color-peligro); color: #fff; border: none; border-radius: var(--radio-3); font-size: 13px;
+    background: var(--color-peligro); color: var(--color-sobre-color); border: none; border-radius: var(--radio-3); font-size: 13px;
 }
-.btn-peligro:hover { background: #991b1b; }
+.btn-peligro:hover { background: var(--color-peligro); }
 .btn-peligro:disabled { opacity: .6; cursor: not-allowed; }
 
 /* ── Vista por fechas ──
@@ -350,14 +350,14 @@
 .vista-selector button {
     display: flex; align-items: center; gap: 6px;
     height: 36px; padding: 0 14px;
-    border: none; background: #fff;
+    border: none; background: var(--color-superficie);
     font-size: 13px; color: var(--color-texto-suave); cursor: pointer;
     white-space: nowrap;
 }
 
 .vista-selector button + button { border-left: 1px solid var(--color-borde); }
 .vista-selector button:hover { background: var(--color-fondo); color: var(--color-primario); }
-.vista-selector button.activo { background: var(--color-primario); color: #fff; }
+.vista-selector button.activo { background: var(--color-primario); color: var(--color-sobre-color); }
 
 .viajes-dias { display: flex; flex-direction: column; gap: 22px; }
 
@@ -396,7 +396,7 @@
     display: flex;
     align-items: center;
     gap: 18px;
-    background: #fff;
+    background: var(--color-superficie);
     border: 1px solid var(--color-borde-suave);
     border-radius: var(--radio-7);
     padding: 12px 16px;
@@ -406,7 +406,7 @@
     transition: box-shadow .18s var(--ease-salida), border-color .18s var(--ease-salida);
 }
 
-.viaje-tarjeta:hover { box-shadow: var(--sombra-2); border-color: #d8dde5; }
+.viaje-tarjeta:hover { box-shadow: var(--sombra-2); border-color: var(--color-borde-2); }
 
 /* El estado ya lo dice la etiqueta de la derecha, con su color. Agregar además
    un punto sería repetir el mismo dato dos veces; lo que sí ayuda es teñir la
@@ -414,8 +414,8 @@
 
 /* El prefijo t- es a propósito: "estado-programado" ya existe como clase global de
    otra pantalla y las tarjetas terminaban heredando su color por accidente. */
-.viaje-tarjeta.t-en_curso  { background: #fffdf5; border-color: var(--color-advertencia-borde); }
-.viaje-tarjeta.t-cancelado { background: #fffafa; border-color: var(--color-peligro-borde); }
+.viaje-tarjeta.t-en_curso  { background: var(--color-advertencia-bg); border-color: var(--color-advertencia-borde); }
+.viaje-tarjeta.t-cancelado { background: var(--color-peligro-bg); border-color: var(--color-peligro-borde); }
 
 /* La hora, lo primero que se lee */
 .tarjeta-hora {
@@ -461,7 +461,7 @@
 
 .viajes-vacio {
     display: flex; flex-direction: column; align-items: center; gap: 8px;
-    background: #fff; border: 1px solid var(--color-borde-suave); border-radius: var(--radio-7);
+    background: var(--color-superficie); border: 1px solid var(--color-borde-suave); border-radius: var(--radio-7);
     box-shadow: var(--sombra-tarjeta), var(--luz-superior);
     padding: 44px; color: var(--txt-3); font-size: 14px;
 }

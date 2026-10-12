@@ -6,7 +6,7 @@
 }
 
 .qr-modal {
-    background: #fff; border-radius: 16px; width: 100%; max-width: 420px;
+    background: var(--color-superficie); border-radius: 16px; width: 100%; max-width: 420px;
     overflow: hidden; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
 }
 
@@ -15,11 +15,11 @@
     padding: 14px 18px; border-bottom: 1px solid var(--color-fondo-3);
 }
 .qr-modal-header h3 {
-    margin: 0; font-size: 16px; color: #111827;
+    margin: 0; font-size: 16px; color: var(--color-texto-fuerte);
     display: flex; align-items: center; gap: 8px;
 }
 .qr-cerrar {
-    border: none; background: #f3f4f6; width: 32px; height: 32px;
+    border: none; background: var(--color-fondo-2); width: 32px; height: 32px;
     border-radius: var(--radio-3); cursor: pointer; color: var(--color-gris-texto); font-size: 16px;
     display: flex; align-items: center; justify-content: center;
 }

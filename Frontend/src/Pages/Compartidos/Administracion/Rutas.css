@@ -30,7 +30,7 @@
     height: 36px;
     padding: 0 16px;
     background: var(--color-primario);
-    color: #fff;
+    color: var(--color-sobre-color);
     border: none;
     border-radius: var(--radio-3);
     font-size: 13px;
@@ -41,7 +41,7 @@
 .btn-nuevo:hover { background: var(--color-primario-osc); }
 
 .rutas-filtros {
-    background: #fff;
+    background: var(--color-superficie);
     border: 1px solid var(--color-borde-suave);
     border-radius: var(--radio-7);
     box-shadow: var(--sombra-tarjeta), var(--luz-superior);
@@ -73,7 +73,7 @@
     padding: 0 10px;
     font-size: 13px;
     color: var(--color-texto);
-    background: #fff;
+    background: var(--color-superficie);
     outline: none;
     cursor: pointer;
 }
@@ -86,7 +86,7 @@
     border-radius: var(--radio-2);
     padding: 0 10px;
     height: 34px;
-    background: #fff;
+    background: var(--color-superficie);
 }
 
 .filtro-buscar i { color: var(--txt-3); font-size: 16px; }
@@ -126,7 +126,7 @@
     padding: 40px;
     color: var(--color-texto-suave);
     font-size: 14px;
-    background: #fff;
+    background: var(--color-superficie);
     border: 1px solid var(--color-borde-suave);
     border-radius: var(--radio-7);
     box-shadow: var(--sombra-tarjeta), var(--luz-superior);
@@ -152,7 +152,7 @@
 @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
 .rutas-tabla-wrapper {
-    background: #fff;
+    background: var(--color-superficie);
     border: 1px solid var(--color-borde-suave);
     border-radius: var(--radio-7);
     box-shadow: var(--sombra-tarjeta), var(--luz-superior);
@@ -289,7 +289,7 @@
     width: 24px;
     height: 24px;
     background: var(--color-primario);
-    color: #fff;
+    color: var(--color-sobre-color);
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -333,7 +333,7 @@
 }
 
 .modal {
-    background: #fff;
+    background: var(--color-superficie);
     border-radius: var(--radio-5);
     width: 100%;
     max-width: 460px;
@@ -421,7 +421,7 @@
     color: var(--color-texto);
     outline: none;
     transition: border-color 0.15s;
-    background: #fff;
+    background: var(--color-superficie);
 }
 
 .form-grupo input:focus,
@@ -486,7 +486,7 @@
     font-size: 12px; cursor: pointer;
     transition: background 0.15s, border-color 0.15s, color 0.15s;
 }
-.tramo-bloqueado-chip:hover { border-color: #86efac; }
+.tramo-bloqueado-chip:hover { border-color: var(--color-exito-borde); }
 .tramo-bloqueado-chip.activo {
     background: var(--color-peligro-bg); border-color: var(--color-peligro-borde); color: var(--color-peligro);
 }
@@ -531,7 +531,7 @@
     background: var(--color-primario);
     border: none;
     border-radius: var(--radio-2);
-    color: #fff;
+    color: var(--color-sobre-color);
     font-size: 13px;
     cursor: pointer;
     display: flex;
@@ -555,12 +555,12 @@
 .btn-plantilla, .btn-importar {
     display: inline-flex; align-items: center; gap: 6px;
     padding: 8px 14px; border-radius: var(--radio-2); font-size: 13px; font-weight: 600;
-    cursor: pointer; border: 1px solid var(--color-borde-2); background: #fff; color: var(--color-texto-oscuro);
+    cursor: pointer; border: 1px solid var(--color-borde-2); background: var(--color-superficie); color: var(--color-texto-oscuro);
     transition: background 0.15s, border-color 0.15s;
 }
 .btn-plantilla:hover, .btn-importar:hover { background: var(--color-fondo-2); border-color: var(--txt-3); }
-.btn-importar { background: var(--color-primario-vivo); border-color: var(--color-primario-vivo); color: #fff; }
-.btn-importar:hover { background: #1e40af; border-color: #1e40af; }
+.btn-importar { background: var(--color-primario-vivo); border-color: var(--color-primario-vivo); color: var(--color-sobre-color); }
+.btn-importar:hover { background: var(--color-primario-osc); border-color: var(--color-primario-osc); }
 .btn-plantilla:disabled { opacity: 0.6; cursor: not-allowed; }
 
 .carga-excel-msg { margin: 10px 0 0; font-size: 13px; color: var(--color-exito); font-weight: 500; }
@@ -576,6 +576,6 @@
 
 .combinaciones-badge {
     margin-left: 8px; padding: 2px 9px; border-radius: var(--radio-8);
-    background: #eef2ff; color: #4338ca; font-size: 11px; font-weight: 700;
+    background: var(--color-azul-bg); color: var(--color-primario-vivo); font-size: 11px; font-weight: 700;
     vertical-align: middle;
 }

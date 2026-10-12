@@ -25,7 +25,7 @@
 
 /* SELECTOR */
 .paradas-selector {
-    background: #fff;
+    background: var(--color-superficie);
     border: 1px solid var(--color-borde-suave);
     border-radius: var(--radio-7);
     box-shadow: var(--sombra-tarjeta), var(--luz-superior);
@@ -54,7 +54,7 @@
     padding: 0 10px;
     font-size: 13px;
     color: var(--color-texto);
-    background: #fff;
+    background: var(--color-superficie);
     outline: none;
 }
 
@@ -70,7 +70,7 @@
     padding: 60px;
     color: var(--txt-3);
     font-size: 14px;
-    background: #fff;
+    background: var(--color-superficie);
     border: 1px solid var(--color-borde-suave);
     border-radius: var(--radio-7);
     box-shadow: var(--sombra-tarjeta), var(--luz-superior);
@@ -86,7 +86,7 @@
     padding: 40px;
     color: var(--color-texto-suave);
     font-size: 14px;
-    background: #fff;
+    background: var(--color-superficie);
     border: 1px solid var(--color-borde-suave);
     border-radius: var(--radio-7);
     box-shadow: var(--sombra-tarjeta), var(--luz-superior);
@@ -110,7 +110,7 @@
 
 /* INFO RUTA */
 .ruta-info-card {
-    background: #fff;
+    background: var(--color-superficie);
     border: 1px solid var(--color-borde-suave);
     border-radius: var(--radio-7);
     box-shadow: var(--sombra-tarjeta), var(--luz-superior);
@@ -144,7 +144,7 @@
     height: 36px;
     padding: 0 16px;
     background: var(--color-primario);
-    color: #fff;
+    color: var(--color-sobre-color);
     border: none;
     border-radius: var(--radio-3);
     font-size: 13px;
@@ -182,14 +182,14 @@
     height: 36px;
     padding: 0 16px;
     background: var(--color-exito);
-    color: #fff;
+    color: var(--color-sobre-color);
     border: none;
     border-radius: var(--radio-3);
     font-size: 13px;
     cursor: pointer;
 }
 
-.btn-guardar-orden:disabled { background: #86efac; cursor: not-allowed; }
+.btn-guardar-orden:disabled { background: var(--color-exito-borde); cursor: not-allowed; }
 
 .btn-cancelar-orden {
     height: 36px;
@@ -208,7 +208,7 @@
     flex-direction: column;
     gap: 0;
     position: relative;
-    background: #fff;
+    background: var(--color-superficie);
     border: 1px solid var(--color-borde-suave);
     border-radius: var(--radio-7);
     box-shadow: var(--sombra-tarjeta), var(--luz-superior);
@@ -245,7 +245,7 @@
     height: 28px;
     border-radius: 50%;
     background: var(--color-primario);
-    color: #fff;
+    color: var(--color-sobre-color);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -337,7 +337,7 @@
 }
 
 .modal {
-    background: #fff;
+    background: var(--color-superficie);
     border-radius: var(--radio-5);
     width: 100%;
     max-width: 400px;
@@ -434,7 +434,7 @@
     background: var(--color-primario);
     border: none;
     border-radius: var(--radio-2);
-    color: #fff;
+    color: var(--color-sobre-color);
     font-size: 13px;
     cursor: pointer;
     display: flex;
@@ -447,7 +447,7 @@
 
 /* TABS */
 .tabs-container {
-    background: #fff;
+    background: var(--color-superficie);
     border: 1px solid var(--color-borde-suave);
     border-radius: var(--radio-7);
     box-shadow: var(--sombra-tarjeta), var(--luz-superior);
@@ -486,7 +486,7 @@
     color: var(--color-primario);
     border-bottom-color: var(--color-primario);
     font-weight: 600;
-    background: #fff;
+    background: var(--color-superficie);
 }
 
 .tabs-body { padding: 16px 20px; }

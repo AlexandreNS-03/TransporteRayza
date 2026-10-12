@@ -38,7 +38,7 @@
 }
 
 .semaforo-card, .conexion-card, .respaldo-card {
-    background: #fff;
+    background: var(--color-superficie);
     border: 1px solid var(--color-borde-suave);
     border-radius: var(--radio-7);
     box-shadow: var(--sombra-tarjeta), var(--luz-superior);
@@ -141,7 +141,7 @@
 
 .resumen-item {
     display: flex; align-items: baseline; gap: 6px;
-    background: #fff; border: 1px solid var(--color-borde);
+    background: var(--color-superficie); border: 1px solid var(--color-borde);
     border-radius: var(--radio-8); padding: 8px 16px;
     font-size: 12.5px; color: var(--color-texto-suave);
 }
@@ -155,12 +155,12 @@
     margin-left: auto;
     display: flex; align-items: center; gap: 6px;
     height: 36px; padding: 0 18px;
-    background: var(--color-peligro); color: #fff;
+    background: var(--color-peligro); color: var(--color-sobre-color);
     border: none; border-radius: var(--radio-2);
     font-size: 13px; cursor: pointer;
 }
 
-.btn-soporte:hover:not(:disabled) { background: #991b1b; }
+.btn-soporte:hover:not(:disabled) { background: var(--color-peligro); }
 .btn-soporte:disabled { opacity: 0.6; cursor: not-allowed; }
 
 /* REVISIONES */
@@ -169,7 +169,7 @@
 .chequeo {
     display: flex;
     gap: 12px;
-    background: #fff;
+    background: var(--color-superficie);
     border: 1px solid var(--color-borde-suave);
     border-radius: var(--radio-5);
     padding: 14px 16px;
@@ -183,9 +183,9 @@
     box-shadow: 0 0 0 3px var(--color-exito-bg-2);
 }
 
-.chequeo-advertencia .chequeo-luz { background: var(--color-ambar); box-shadow: 0 0 0 3px #fef3c7; }
+.chequeo-advertencia .chequeo-luz { background: var(--color-ambar); box-shadow: 0 0 0 3px var(--color-advertencia-bg); }
 .chequeo-critico     .chequeo-luz { background: #dc2626; box-shadow: 0 0 0 3px var(--color-peligro-bg-2); }
-.chequeo-critico     { border-color: var(--color-peligro-borde); background: #fffafa; }
+.chequeo-critico     { border-color: var(--color-peligro-borde); background: var(--color-peligro-bg); }
 .chequeo { box-shadow: var(--sombra-1); }
 
 .chequeo-cuerpo { min-width: 0; flex: 1; }
@@ -202,12 +202,12 @@
 }
 
 .crit-alta  { background: var(--color-peligro-bg-2); color: var(--color-peligro); }
-.crit-media { background: #fef3c7; color: var(--color-advertencia-osc); }
+.crit-media { background: var(--color-advertencia-bg); color: var(--color-advertencia-osc); }
 .crit-baja  { background: var(--color-fondo-2); color: var(--color-texto-slate); }
 
 .chequeo-ms { font-size: 11px; color: var(--txt-3); margin-left: auto; }
 
-.chequeo-mensaje { margin: 5px 0 0; font-size: 13px; color: #4b5563; line-height: 1.5; }
+.chequeo-mensaje { margin: 5px 0 0; font-size: 13px; color: var(--color-texto-medio); line-height: 1.5; }
 
 .chequeo-recomendacion {
     margin: 8px 0 0;
@@ -220,7 +220,7 @@
 .chequeo-recomendacion i { color: var(--color-advertencia-osc); flex-shrink: 0; margin-top: 2px; }
 
 .chequeo-cargando {
-    background: #fff; border: 1px solid var(--color-borde-suave); border-radius: var(--radio-5);
+    background: var(--color-superficie); border: 1px solid var(--color-borde-suave); border-radius: var(--radio-5);
     padding: 30px; text-align: center; color: var(--txt-3); font-size: 13px;
 }
 
@@ -234,7 +234,7 @@
 }
 
 .respaldo-texto {
-    margin: 0; font-size: 13px; color: #4b5563;
+    margin: 0; font-size: 13px; color: var(--color-texto-medio);
     line-height: 1.6; max-width: 640px;
 }
 
@@ -246,11 +246,11 @@
     flex-shrink: 0;
 }
 
-.btn-primario { background: var(--color-primario); color: #fff; }
+.btn-primario { background: var(--color-primario); color: var(--color-sobre-color); }
 .btn-primario:hover:not(:disabled) { background: var(--color-primario-osc); }
 .btn-primario:disabled { opacity: 0.6; cursor: not-allowed; }
 
-.btn-secundario { background: #fff; color: var(--color-primario); border-color: var(--color-borde-input); }
+.btn-secundario { background: var(--color-superficie); color: var(--color-primario); border-color: var(--color-borde-input); }
 .btn-secundario:hover:not(:disabled) { border-color: var(--color-primario); }
 
 /* #root { text-align: center } de la plantilla de Vite se hereda acá. */

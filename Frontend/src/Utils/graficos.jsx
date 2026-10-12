@@ -11,7 +11,10 @@
    leen una vez en el navegador y se guardan.
    ============================================================ */
 import { useMemo } from "react";
+import { useTema } from "./tema.js";
 
+/* Los respaldos son los del modo día. Solo se usan si se piden los colores
+   antes de que haya hoja de estilos aplicada, cosa que no debería pasar. */
 const RESPALDO = {
     azul:     "#1a4db5",
     verde:    "#15803d",
@@ -38,11 +41,19 @@ const TOKEN = {
     realce:   "--color-fondo",
 };
 
-let cache = null;
+/* Un juego de colores por tema: de noche los tokens valen otra cosa, así que
+   guardar uno solo dejaría los gráficos pintados de día. */
+const cache = new Map();
 
-/** Los colores del tema, leídos del CSS una sola vez. */
+function temaActual() {
+    if (typeof document === "undefined") return "claro";
+    return document.documentElement.getAttribute("data-tema") || "claro";
+}
+
+/** Los colores del tema, leídos del CSS una sola vez por tema. */
 export function paleta() {
-    if (cache) return cache;
+    const tema = temaActual();
+    if (cache.has(tema)) return cache.get(tema);
     if (typeof window === "undefined") return RESPALDO;
     const raiz = getComputedStyle(document.documentElement);
     let resuelto = false;
@@ -55,7 +66,7 @@ export function paleta() {
     );
     // Si todavía no hay hoja de estilos aplicada, esto devuelve los respaldos
     // pero no los guarda: la próxima llamada vuelve a mirar el CSS.
-    if (resuelto) cache = leido;
+    if (resuelto) cache.set(tema, leido);
     return leido;
 }
 
@@ -185,7 +196,9 @@ export function puntoFinal(total, color) {
     };
 }
 
-/** Atajo para no repetir useMemo en cada pantalla. */
+/** Los colores del tema que está puesto ahora. Vuelve a pintar la pantalla
+ *  cuando alguien cambia de día a noche. */
 export function usarPaleta() {
-    return useMemo(() => paleta(), []);
+    const tema = useTema();
+    return useMemo(() => paleta(), [tema]);
 }
