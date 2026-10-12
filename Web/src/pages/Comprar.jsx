@@ -11,7 +11,7 @@ import FormularioPasajero, { FormularioContacto } from "../components/Formulario
 import Confirmacion from "../components/Confirmacion";
 import { MetodosPago, FormularioYape, PanelTarjeta } from "../components/PagoMetodos";
 import { buscarViajes, crearReservaGrupo, pagarGrupo, formularioDePagoGrupo,
-         metodosDePago, pagarConYapeGrupo, avisarAbandono, soles } from "../services/publicApi";
+         metodosDePago, pagarConYapeGrupo, avisarAbandono, soles, pagarConYapeGuardadoGrupo } from "../services/publicApi";
 import { tokenizarYape } from "../services/yape";
 import { pagarConIzipay, limpiarIzipay } from "../services/izipay";
 import { tokenCliente } from "../services/authCliente";
@@ -221,7 +221,7 @@ export default function Comprar() {
   };
 
   useEffect(() => {
-    if (paso === 3 && !metodos) metodosDePago().then(setMetodos).catch((e) => console.warn("[Comprar] no se pudo cargar métodos de pago:", e));
+    if (paso === 3 && !metodos) metodosDePago(tokenCliente()).then(setMetodos).catch((e) => console.warn("[Comprar] no se pudo cargar métodos de pago:", e));
   }, [paso, metodos]);
 
   /**
@@ -305,6 +305,18 @@ export default function Comprar() {
       });
       const ids = await obtenerReservas();
       terminar(await pagarConYapeGrupo(ids, token));
+    } catch (e) { setErrorPago(e.message); }
+    finally { setPagando(false); }
+  };
+
+  /* Con el Yape ya autorizado no hay nada que escribir: ni celular, ni código.
+     Es el mismo cierre que el Yape normal; lo único distinto es de dónde sale
+     el permiso para cobrar. */
+  const pagarConYapeGuardadoAhora = async () => {
+    setPagando(true); setErrorPago(null);
+    try {
+      const ids = await obtenerReservas();
+      terminar(await pagarConYapeGuardadoGrupo(ids, tokenCliente()));
     } catch (e) { setErrorPago(e.message); }
     finally { setPagando(false); }
   };
@@ -456,8 +468,18 @@ export default function Comprar() {
                       <MetodosPago
                         metodo={metodo}
                         deshabilitado={pagando}
+                        yapeGuardado={metodos?.yapeGuardado}
                         onElegir={(m) => { setMetodo(m); setErrorPago(null); }}
                       />
+                    )}
+
+                    {metodo === "yape-guardado" && !formularioVisible && (
+                      <div className="alert" style={{ marginTop: 12 }}>
+                        Vas a pagar con tu Yape guardado
+                        {metodos?.yapeGuardado?.celularFinal
+                          ? ` (···· ${metodos.yapeGuardado.celularFinal})` : ""}.
+                        No hace falta abrir la app ni escribir el código.
+                      </div>
                     )}
 
                     {metodo === "yape" && !formularioVisible && (
@@ -470,7 +492,8 @@ export default function Comprar() {
                     )}
 
                     {((metodo === "tarjeta" && metodos?.tarjeta?.simulado) ||
-                      (metodo === "yape" && metodos?.yape?.simulado)) && (
+                      (metodo === "yape" && metodos?.yape?.simulado) ||
+                      (metodo === "yape-guardado" && metodos?.yapeGuardado?.simulado)) && (
                       <div className="alert alert-warn" style={{ marginTop: 12 }}>
                         Modo prueba: el pago se <strong>simula</strong> (no se cobra). Igual se generan tus boletos con QR.
                       </div>
@@ -504,8 +527,9 @@ export default function Comprar() {
                       )}
                       {!formularioVisible && (
                         <button className="btn btn-primary" disabled={pagando}
-                                onClick={metodo === "yape" ? pagarConYape : pagar}>
-                          {pagando ? (metodo === "yape" ? "Cobrando…" : "Abriendo el pago…")
+                                onClick={metodo === "yape-guardado" ? pagarConYapeGuardadoAhora
+                                       : metodo === "yape" ? pagarConYape : pagar}>
+                          {pagando ? (metodo === "tarjeta" ? "Abriendo el pago…" : "Cobrando…")
                                    : `Pagar ${soles(totalACobrar)}`}
                         </button>
                       )}

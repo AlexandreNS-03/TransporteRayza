@@ -65,6 +65,7 @@ public class ReservaService {
     private final AsientoService asientoService;
     private final IzipayService izipayService;
     private final MercadoPagoService mercadoPagoService;
+    private final YapeOnFileService yapeOnFileService;
     private final VentaService ventaService;
     private final ComprobanteService comprobanteService;
     private final PublicService publicService;
@@ -79,6 +80,7 @@ public class ReservaService {
                           AsientoService asientoService,
                           IzipayService izipayService,
                           MercadoPagoService mercadoPagoService,
+                          YapeOnFileService yapeOnFileService,
                           VentaService ventaService,
                           ComprobanteService comprobanteService,
                           PublicService publicService,
@@ -95,6 +97,7 @@ public class ReservaService {
         this.asientoService = asientoService;
         this.izipayService = izipayService;
         this.mercadoPagoService = mercadoPagoService;
+        this.yapeOnFileService = yapeOnFileService;
         this.ventaService = ventaService;
         this.sorteoService = sorteoService;
     }
@@ -371,8 +374,18 @@ public class ReservaService {
         return r;
     }
 
-    /** Qué medios de pago están configurados, con las claves públicas del navegador. */
     public java.util.Map<String, Object> metodosDePago() {
+        return metodosDePago(null);
+    }
+
+    /**
+     * Qué medios de pago están configurados, con las claves públicas del navegador.
+     *
+     * @param clienteEmail el cliente con sesión, o null si compra sin cuenta. Solo
+     *                     con sesión se puede ofrecer su Yape guardado: hay que
+     *                     saber de quién es la autorización para usarla.
+     */
+    public java.util.Map<String, Object> metodosDePago(String clienteEmail) {
         java.util.Map<String, Object> tarjeta = new java.util.LinkedHashMap<>();
         tarjeta.put("habilitado", true);
         tarjeta.put("simulado", !izipayService.estaActiva());
@@ -385,10 +398,46 @@ public class ReservaService {
         // que usar los celulares de prueba de Mercado Pago, y conviene decirlo en pantalla
         yape.put("prueba", mercadoPagoService.esDePrueba());
 
+        // Yape guardado: pagar de un toque, sin salir a buscar el código de 6
+        // dígitos. Solo aparece con sesión iniciada y con una autorización viva.
+        java.util.Map<String, Object> yapeGuardado = new java.util.LinkedHashMap<>();
+        var autorizacion = clienteEmail == null ? java.util.Optional.<com.example.demo.model.AutorizacionYape>empty()
+                : yapeOnFileService.autorizacionVigenteDe(clienteEmail);
+        yapeGuardado.put("disponible", autorizacion.isPresent());
+        yapeGuardado.put("puedeGuardar", clienteEmail != null && autorizacion.isEmpty());
+        yapeGuardado.put("celularFinal", autorizacion.map(com.example.demo.model.AutorizacionYape::getCelularFinal).orElse(null));
+        yapeGuardado.put("simulado", yapeOnFileService.esSimulado());
+
         java.util.Map<String, Object> r = new java.util.LinkedHashMap<>();
         r.put("tarjeta", tarjeta);
         r.put("yape", yape);
+        r.put("yapeGuardado", yapeGuardado);
         return r;
+    }
+
+    /**
+     * Cobra una reserva con el Yape que el cliente dejó guardado.
+     *
+     * Es el mismo cierre que el pago con Yape normal —misma venta, mismo método
+     * registrado, mismo comprobante—: lo único distinto es de dónde sale la
+     * autorización. Para la caja sigue siendo plata de la pasarela, no del cajón.
+     */
+    public ConfirmacionDTO pagarConYapeGuardado(String reservaId, String clienteEmail) {
+        if (clienteEmail == null || clienteEmail.isBlank())
+            throw new RuntimeException("Para pagar con tu Yape guardado tenés que iniciar sesión");
+
+        Venta v = reservaLista(reservaId);
+        if (v == null) return confirmacion(ventaRepository.findById(reservaId).orElseThrow(),
+                                           false, "Esta compra ya estaba pagada");
+
+        String descripcion = "Pasaje Rayza " + safe(v.getParadaOrigen()) + " → " + safe(v.getParadaDestino());
+        var pago = yapeOnFileService.cobrar(clienteEmail, v.getPrecio(), descripcion);
+
+        if (!pago.pagado())
+            throw new RuntimeException(pago.motivo() != null ? pago.motivo()
+                    : "El pago con tu Yape guardado no se pudo confirmar");
+
+        return confirmarPago(v, pago.referencia(), METODO_YAPE);
     }
 
     /**
@@ -536,6 +585,36 @@ public class ReservaService {
             throw new RuntimeException(pago.motivo != null ? pago.motivo : "El pago con Yape no se pudo confirmar");
 
         return confirmarPagoGrupo(reservaIds, pendientes, pago.referencia, METODO_YAPE);
+    }
+
+    /**
+     * Cobra un grupo de reservas con el Yape guardado del cliente.
+     *
+     * Es el camino que usa la compra de la web, que paga todos los pasajes de
+     * una sola vez. Mismo cierre que el Yape normal: misma venta, mismo método
+     * registrado y mismo comprobante.
+     */
+    public ConfirmacionGrupoDTO pagarGrupoYapeGuardado(List<String> reservaIds, String clienteEmail) {
+        if (clienteEmail == null || clienteEmail.isBlank())
+            throw new RuntimeException("Para pagar con tu Yape guardado tenés que iniciar sesión");
+
+        List<Venta> pendientes = grupoPendiente(reservaIds);
+        if (pendientes.isEmpty())
+            return confirmarPagoGrupo(reservaIds, pendientes, null, null);
+
+        BigDecimal total = BigDecimal.ZERO;
+        for (Venta v : pendientes) total = total.add(v.getPrecio());
+
+        Venta primera = pendientes.get(0);
+        String descripcion = "Pasajes Rayza " + safe(primera.getParadaOrigen()) + " → "
+                + safe(primera.getParadaDestino()) + " (" + pendientes.size() + ")";
+
+        var pago = yapeOnFileService.cobrar(clienteEmail, total, descripcion);
+        if (!pago.pagado())
+            throw new RuntimeException(pago.motivo() != null ? pago.motivo()
+                    : "El pago con tu Yape guardado no se pudo confirmar");
+
+        return confirmarPagoGrupo(reservaIds, pendientes, pago.referencia(), METODO_YAPE);
     }
 
     /**

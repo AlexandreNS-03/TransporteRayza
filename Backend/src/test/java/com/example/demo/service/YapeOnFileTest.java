@@ -25,6 +25,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class YapeOnFileTest {
 
     @Autowired private YapeOnFileService servicio;
+    @Autowired private ReservaService reservaService;
 
     private static final String CLIENTE = "cliente@ejemplo.pe";
 
@@ -82,6 +83,51 @@ class YapeOnFileTest {
         autorizado();
         assertFalse(servicio.cobrar(CLIENTE, BigDecimal.ZERO, "x").pagado());
         assertFalse(servicio.cobrar(CLIENTE, new BigDecimal("-10"), "x").pagado());
+    }
+
+    /* ── Lo que ve el cliente en el paso de pago de la web ── */
+
+    @SuppressWarnings("unchecked")
+    private java.util.Map<String, Object> yapeGuardadoDe(String email) {
+        return (java.util.Map<String, Object>) reservaService.metodosDePago(email).get("yapeGuardado");
+    }
+
+    @Test
+    void sinSesionNoSeOfreceNingunYapeGuardado() {
+        autorizado();   // existe una autorización, pero de OTRO cliente
+
+        var opcion = yapeGuardadoDe(null);
+        assertEquals(false, opcion.get("disponible"),
+                "sin sesión no se puede ofrecer el medio de pago guardado de nadie");
+        assertEquals(false, opcion.get("puedeGuardar"));
+        assertNull(opcion.get("celularFinal"), "ni siquiera el celular parcial de otro");
+    }
+
+    @Test
+    void aCadaClienteSeLeOfreceSoloElSuyo() {
+        autorizado();   // autorización de CLIENTE
+
+        assertEquals(true, yapeGuardadoDe(CLIENTE).get("disponible"));
+        assertEquals(false, yapeGuardadoDe("otro@ejemplo.pe").get("disponible"),
+                "la autorización de un cliente no puede aparecerle a otro");
+    }
+
+    @Test
+    void alClienteSinAutorizacionSeLeOfreceGuardarla() {
+        var opcion = yapeGuardadoDe("nuevo@ejemplo.pe");
+        assertEquals(false, opcion.get("disponible"));
+        assertEquals(true, opcion.get("puedeGuardar"),
+                "con sesión y sin autorización, corresponde invitarlo a guardarla");
+    }
+
+    @Test
+    void revocarQuitaLaOpcionDelPasoDePago() {
+        var a = autorizado();
+        assertEquals(true, yapeGuardadoDe(CLIENTE).get("disponible"));
+
+        servicio.revocar(a.getId(), "El cliente la dio de baja");
+        assertEquals(false, yapeGuardadoDe(CLIENTE).get("disponible"),
+                "si la dio de baja, la opción no puede seguir apareciendo");
     }
 
     @Test
