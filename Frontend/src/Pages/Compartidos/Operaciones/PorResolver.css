@@ -6,11 +6,11 @@
 .resolver-leyenda {
     margin: -4px 0 12px;
     font-size: 12.5px;
-    color: #6b7280;
+    color: var(--color-texto-suave);
     line-height: 1.6;
     text-align: left;
 }
-.resolver-leyenda b { color: #334155; font-weight: 600; }
+.resolver-leyenda b { color: var(--color-texto-oscuro); font-weight: 600; }
 
 /* ══ Botones con nombre ══
    La celda se queda como celda de tabla (ver Pasajes.css): la separación
@@ -27,18 +27,18 @@
 }
 .btn-resolver i { font-size: 15px; }
 
-.btn-resolver.devolver       { background: #fef2f2; border-color: #fecaca; color: #b91c1c; }
-.btn-resolver.devolver:hover:not(:disabled) { background: #fee2e2; }
+.btn-resolver.devolver       { background: var(--color-peligro-bg); border-color: var(--color-peligro-borde); color: var(--color-peligro); }
+.btn-resolver.devolver:hover:not(:disabled) { background: var(--color-peligro-bg-2); }
 
-.btn-resolver.mover          { background: #eff6ff; border-color: #bfdbfe; color: #1d4ed8; }
-.btn-resolver.mover:hover:not(:disabled)    { background: #dbeafe; }
+.btn-resolver.mover          { background: var(--color-azul-bg); border-color: var(--color-azul-borde); color: var(--color-primario-vivo); }
+.btn-resolver.mover:hover:not(:disabled)    { background: var(--color-azul-bg-2); }
 
-.btn-resolver.saldo          { background: #fefce8; border-color: #fde68a; color: #a16207; }
-.btn-resolver.saldo:hover:not(:disabled)    { background: #fef9c3; }
+.btn-resolver.saldo          { background: var(--color-advertencia-bg); border-color: var(--color-advertencia-borde); color: var(--color-advertencia); }
+.btn-resolver.saldo:hover:not(:disabled)    { background: var(--color-advertencia-bg-2); }
 
 .btn-resolver:disabled { opacity: .45; cursor: not-allowed; }
 .btn-resolver:active:not(:disabled) { transform: translateY(1px); }
-.btn-resolver:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
+.btn-resolver:focus-visible { outline: 2px solid var(--color-azul-vivo); outline-offset: 2px; }
 
 /* ══ Celdas ══ */
 /* Teléfono y correo van con la persona: son para llamarla, no una columna
@@ -46,17 +46,17 @@
 .resolver-contacto { display: flex; flex-direction: column; gap: 1px; margin-top: 2px; }
 .resolver-contacto em {
     display: inline-flex; align-items: center; gap: 4px;
-    font-style: normal; font-size: 11.5px; color: #64748b;
+    font-style: normal; font-size: 11.5px; color: var(--color-texto-slate);
 }
-.resolver-contacto em i { font-size: 12px; color: #94a3b8; }
-.resolver-contacto .sin-dato { color: #b91c1c; }
+.resolver-contacto em i { font-size: 12px; color: var(--color-texto-tenue); }
+.resolver-contacto .sin-dato { color: var(--color-peligro); }
 
 .tabla-resolver .th-pago { text-align: right; }
 .tabla-resolver .celda-precio { white-space: nowrap; }
 .tabla-resolver .celda-precio strong { display: block; font-size: 13.5px; }
-.celda-metodo { display: block; font-size: 11.5px; color: #6b7280; }
+.celda-metodo { display: block; font-size: 11.5px; color: var(--color-texto-suave); }
 /* La venta web se cobró por Izipay o Mercado Pago: ese dinero no está en el cajón. */
-.celda-metodo em { font-style: normal; color: #4338ca; font-weight: 600; }
+.celda-metodo em { font-style: normal; color: var(--color-primario-vivo); font-weight: 600; }
 
 .tabla-resolver td { vertical-align: top; padding-top: 11px; padding-bottom: 11px; }
 

@@ -6,29 +6,29 @@
 }
 
 .qr-modal {
-    background: #fff; border-radius: 16px; width: 100%; max-width: 420px;
+    background: var(--color-superficie); border-radius: 16px; width: 100%; max-width: 420px;
     overflow: hidden; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
 }
 
 .qr-modal-header {
     display: flex; align-items: center; justify-content: space-between;
-    padding: 14px 18px; border-bottom: 1px solid #eef2f7;
+    padding: 14px 18px; border-bottom: 1px solid var(--color-fondo-3);
 }
 .qr-modal-header h3 {
-    margin: 0; font-size: 16px; color: #111827;
+    margin: 0; font-size: 16px; color: var(--color-texto-fuerte);
     display: flex; align-items: center; gap: 8px;
 }
 .qr-cerrar {
-    border: none; background: #f3f4f6; width: 32px; height: 32px;
-    border-radius: 8px; cursor: pointer; color: #374151; font-size: 16px;
+    border: none; background: var(--color-fondo-2); width: 32px; height: 32px;
+    border-radius: var(--radio-3); cursor: pointer; color: var(--color-gris-texto); font-size: 16px;
     display: flex; align-items: center; justify-content: center;
 }
-.qr-cerrar:hover { background: #e5e7eb; }
+.qr-cerrar:hover { background: var(--color-borde); }
 
 /* Zona del video (cuadrada) */
 .qr-video-wrap {
     position: relative; width: 100%; aspect-ratio: 1 / 1;
-    background: #0f172a; overflow: hidden;
+    background: var(--color-texto-fuerte); overflow: hidden;
 }
 .qr-video {
     width: 100%; height: 100%; object-fit: cover; display: block;
@@ -39,7 +39,7 @@
     position: absolute; top: 50%; left: 50%;
     width: 62%; height: 62%; transform: translate(-50%, -50%);
     box-shadow: 0 0 0 2000px rgba(15, 23, 42, 0.35); /* oscurece fuera del recuadro */
-    border-radius: 14px;
+    border-radius: var(--radio-6);
 }
 .qr-esq {
     position: absolute; width: 26px; height: 26px;
@@ -67,14 +67,14 @@
 .qr-estado {
     position: absolute; inset: 0; display: flex; flex-direction: column;
     align-items: center; justify-content: center; gap: 10px;
-    color: #e5e7eb; text-align: center; padding: 24px; font-size: 14px;
+    color: var(--color-borde); text-align: center; padding: 24px; font-size: 14px;
 }
 .qr-estado i { font-size: 34px; }
-.qr-estado.qr-error { color: #fca5a5; }
+.qr-estado.qr-error { color: var(--color-peligro-borde-2); }
 
 .qr-ayuda {
     margin: 0; padding: 12px 18px 16px; text-align: center;
-    font-size: 13px; color: #6b7280;
+    font-size: 13px; color: var(--color-texto-suave);
 }
 
 .qr-video-wrap .spin { animation: spin 0.9s linear infinite; }

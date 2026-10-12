@@ -13,21 +13,22 @@
 .embarque-header h2 {
     font-size: 22px;
     font-weight: 700;
-    color: #1e293b;
+    color: var(--color-texto);
     margin: 0;
 }
 
 .embarque-header p {
     font-size: 13px;
-    color: #6b7280;
+    color: var(--color-texto-suave);
     margin: 2px 0 0;
 }
 
 /* CONTROLES */
 .embarque-controles {
-    background: #fff;
-    border: 1px solid #e5e7eb;
-    border-radius: 10px;
+    background: var(--color-superficie);
+    border: 1px solid var(--color-borde-suave);
+    border-radius: var(--radio-7);
+    box-shadow: var(--sombra-tarjeta), var(--luz-superior);
     padding: 16px 20px;
     display: flex;
     align-items: flex-end;
@@ -46,19 +47,19 @@
 .control-grupo label {
     font-size: 11px;
     font-weight: 600;
-    color: #6b7280;
+    color: var(--color-texto-suave);
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
 .control-grupo select {
     height: 36px;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
+    border: 1px solid var(--color-borde-input);
+    border-radius: var(--radio-2);
     padding: 0 10px;
     font-size: 13px;
-    color: #1e293b;
-    background: #fff;
+    color: var(--color-texto);
+    background: var(--color-superficie);
     outline: none;
 }
 
@@ -77,23 +78,23 @@
 .buscar-doc input {
     flex: 1;
     height: 36px;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
+    border: 1px solid var(--color-borde-input);
+    border-radius: var(--radio-2);
     padding: 0 12px;
     font-size: 13px;
-    color: #1e293b;
+    color: var(--color-texto);
     outline: none;
 }
 
-.buscar-doc input:focus { border-color: #2563b0; }
+.buscar-doc input:focus { border-color: var(--color-primario-hover); }
 
 .btn-buscar {
     height: 36px;
     padding: 0 14px;
-    background: #1a4db5;
-    color: #fff;
+    background: var(--color-primario);
+    color: var(--color-sobre-color);
     border: none;
-    border-radius: 6px;
+    border-radius: var(--radio-2);
     font-size: 13px;
     cursor: pointer;
     display: flex;
@@ -102,15 +103,15 @@
     white-space: nowrap;
 }
 
-.btn-buscar:hover { background: #1440a0; }
+.btn-buscar:hover { background: var(--color-primario-osc); }
 
 .btn-escanear {
     height: 36px;
     padding: 0 14px;
-    background: #0891b2;
-    color: #fff;
+    background: var(--color-info);
+    color: var(--color-sobre-color);
     border: none;
-    border-radius: 6px;
+    border-radius: var(--radio-2);
     font-size: 13px;
     cursor: pointer;
     display: flex;
@@ -119,7 +120,7 @@
     white-space: nowrap;
 }
 
-.btn-escanear:hover { background: #0e7490; }
+.btn-escanear:hover { background: var(--color-info); }
 
 /* RESUMEN */
 .embarque-resumen {
@@ -132,17 +133,17 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    background: #fff;
-    border: 1px solid #e5e7eb;
-    border-radius: 10px;
+    background: var(--color-superficie);
+    border: 1px solid var(--color-borde-suave);
+    border-radius: var(--radio-5);
     padding: 12px 16px;
     flex: 1;
     min-width: 150px;
 }
 
-.resumen-item i { font-size: 22px; color: #6b7280; }
-.resumen-embarcados i { color: #15803d; }
-.resumen-pendientes i { color: #a16207; }
+.resumen-item i { font-size: 22px; color: var(--color-texto-suave); }
+.resumen-embarcados i { color: var(--color-exito); }
+.resumen-pendientes i { color: var(--color-advertencia); }
 
 .resumen-item div {
     display: flex;
@@ -152,14 +153,14 @@
 
 .resumen-label {
     font-size: 11px;
-    color: #6b7280;
+    color: var(--color-texto-suave);
     font-weight: 500;
 }
 
 .resumen-valor {
     font-size: 15px;
     font-weight: 700;
-    color: #1e293b;
+    color: var(--color-texto);
 }
 
 /* FILTROS */
@@ -171,11 +172,11 @@
 .filtro-btn {
     height: 32px;
     padding: 0 14px;
-    border: 1px solid #e5e7eb;
-    background: #fff;
-    border-radius: 20px;
+    border: 1px solid var(--color-borde);
+    background: var(--color-superficie);
+    border-radius: var(--radio-8);
     font-size: 12px;
-    color: #6b7280;
+    color: var(--color-texto-suave);
     cursor: pointer;
     transition: background-color .15s var(--ease-salida),
                 border-color .15s var(--ease-salida),
@@ -184,8 +185,8 @@
                 transform .15s var(--ease-salida);
 }
 
-.filtro-btn:hover { border-color: #1a4db5; color: #1a4db5; }
-.filtro-btn.activo { background: #1a4db5; color: #fff; border-color: #1a4db5; }
+.filtro-btn:hover { border-color: var(--color-primario); color: var(--color-primario); }
+.filtro-btn.activo { background: var(--color-primario); color: var(--color-sobre-color); border-color: var(--color-primario); }
 
 /* ESTADO */
 .embarque-estado {
@@ -194,17 +195,18 @@
     justify-content: center;
     gap: 10px;
     padding: 40px;
-    color: #6b7280;
+    color: var(--color-texto-suave);
     font-size: 14px;
-    background: #fff;
-    border: 1px solid #e5e7eb;
-    border-radius: 10px;
+    background: var(--color-superficie);
+    border: 1px solid var(--color-borde-suave);
+    border-radius: var(--radio-7);
+    box-shadow: var(--sombra-tarjeta), var(--luz-superior);
 }
 
 .embarque-estado.error {
-    color: #b91c1c;
-    background: #fef2f2;
-    border-color: #fecaca;
+    color: var(--color-peligro);
+    background: var(--color-peligro-bg);
+    border-color: var(--color-peligro-borde);
 }
 
 .embarque-vacio {
@@ -216,9 +218,10 @@
     padding: 60px;
     color: var(--txt-3);
     font-size: 14px;
-    background: #fff;
-    border: 1px solid #e5e7eb;
-    border-radius: 10px;
+    background: var(--color-superficie);
+    border: 1px solid var(--color-borde-suave);
+    border-radius: var(--radio-7);
+    box-shadow: var(--sombra-tarjeta), var(--luz-superior);
 }
 
 .embarque-vacio i { font-size: 40px; }
@@ -228,9 +231,10 @@
 
 /* TABLA */
 .embarque-tabla-wrapper {
-    background: #fff;
-    border: 1px solid #e5e7eb;
-    border-radius: 10px;
+    background: var(--color-superficie);
+    border: 1px solid var(--color-borde-suave);
+    border-radius: var(--radio-7);
+    box-shadow: var(--sombra-tarjeta), var(--luz-superior);
     overflow-x: auto;
 }
 
@@ -241,8 +245,8 @@
 }
 
 .embarque-tabla thead tr {
-    background: #f8fafc;
-    border-bottom: 1px solid #e5e7eb;
+    background: var(--color-fondo);
+    border-bottom: 1px solid var(--color-borde);
 }
 
 .embarque-tabla th {
@@ -250,7 +254,7 @@
     text-align: left;
     font-size: 12px;
     font-weight: 600;
-    color: #6b7280;
+    color: var(--color-texto-suave);
     text-transform: uppercase;
     letter-spacing: 0.4px;
     white-space: nowrap;
@@ -258,16 +262,16 @@
 
 .embarque-tabla td {
     padding: 12px 14px;
-    color: #1e293b;
-    border-bottom: 1px solid #f1f5f9;
+    color: var(--color-texto);
+    border-bottom: 1px solid var(--color-fondo-2);
     vertical-align: middle;
 }
 
 .embarque-tabla tbody tr:last-child td { border-bottom: none; }
-.embarque-tabla tbody tr:hover { background: #f8fafc; }
-.fila-embarcada { background: #f0fdf4 !important; }
+.embarque-tabla tbody tr:hover { background: var(--color-fondo); }
+.fila-embarcada { background: var(--color-exito-bg) !important; }
 
-.codigo { font-size: 11px; color: #6b7280; font-family: monospace; }
+.codigo { font-size: 11px; color: var(--color-texto-suave); font-family: var(--fuente-mono); }
 
 /* ASIENTO */
 .asiento-badge {
@@ -281,11 +285,11 @@
     font-size: 10px;
     font-weight: 600;
     padding: 2px 6px;
-    border-radius: 4px;
+    border-radius: var(--radio-1);
 }
 
-.asiento-tipo.vip    { background: #fef9c3; color: #a16207; }
-.asiento-tipo.normal { background: #eff6ff; color: #1d4ed8; }
+.asiento-tipo.vip    { background: var(--color-advertencia-bg-2); color: var(--color-advertencia); }
+.asiento-tipo.normal { background: var(--color-azul-bg); color: var(--color-primario-vivo); }
 
 /* PASAJERO */
 .pasajero-info {
@@ -294,8 +298,8 @@
     gap: 2px;
 }
 
-.pasajero-info strong { font-size: 13px; color: #1e293b; }
-.pasajero-info span   { font-size: 11px; color: #6b7280; }
+.pasajero-info strong { font-size: 13px; color: var(--color-texto); }
+.pasajero-info span   { font-size: 11px; color: var(--color-texto-suave); }
 
 /* TRAMO */
 .tramo-info {
@@ -303,7 +307,7 @@
     align-items: center;
     gap: 6px;
     font-size: 12px;
-    color: #374151;
+    color: var(--color-gris-texto);
 }
 
 .tramo-info i { font-size: 12px; color: var(--txt-3); }
@@ -312,13 +316,13 @@
 .badge {
     display: inline-block;
     padding: 3px 10px;
-    border-radius: 20px;
+    border-radius: var(--radio-8);
     font-size: 11px;
     font-weight: 600;
 }
 
-.badge-embarcado { background: #f0fdf4; color: #15803d; }
-.badge-pendiente { background: #fefce8; color: #a16207; }
+.badge-embarcado { background: var(--color-exito-bg); color: var(--color-exito); }
+.badge-pendiente { background: var(--color-advertencia-bg); color: var(--color-advertencia); }
 
 /* BOTÓN EMBARCAR */
 .btn-embarcar {
@@ -327,25 +331,25 @@
     gap: 6px;
     height: 30px;
     padding: 0 12px;
-    background: #1a4db5;
-    color: #fff;
+    background: var(--color-primario);
+    color: var(--color-sobre-color);
     border: none;
-    border-radius: 6px;
+    border-radius: var(--radio-2);
     font-size: 12px;
     cursor: pointer;
     transition: background 0.15s;
     white-space: nowrap;
 }
 
-.btn-embarcar:hover    { background: #1440a0; }
-.btn-embarcar:disabled { background: #93c5fd; cursor: not-allowed; }
+.btn-embarcar:hover    { background: var(--color-primario-osc); }
+.btn-embarcar:disabled { background: var(--color-azul-borde-2); cursor: not-allowed; }
 
 .ya-embarcado {
     display: flex;
     align-items: center;
     gap: 4px;
     font-size: 12px;
-    color: #15803d;
+    color: var(--color-exito);
     font-weight: 500;
 }
 
@@ -357,13 +361,13 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    background: #fff;
-    border: 1px solid #e5e7eb;
-    border-radius: 10px;
+    background: var(--color-superficie);
+    border: 1px solid var(--color-borde);
+    border-radius: var(--radio-4);
     padding: 14px 16px;
     font-size: 13px;
     font-weight: 500;
-    color: #1e293b;
+    color: var(--color-texto);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
     z-index: 1000;
     min-width: 280px;
@@ -381,20 +385,20 @@
 .toast span { flex: 1; line-height: 1.4; }
 
 .toast-success {
-    background: #f0fdf4;
-    border-color: #bbf7d0;
-    color: #15803d;
+    background: var(--color-exito-bg);
+    border-color: var(--color-exito-borde);
+    color: var(--color-exito);
 }
 
-.toast-success i:first-child { color: #15803d; }
+.toast-success i:first-child { color: var(--color-exito); }
 
 .toast-error {
-    background: #fef2f2;
-    border-color: #fecaca;
-    color: #b91c1c;
+    background: var(--color-peligro-bg);
+    border-color: var(--color-peligro-borde);
+    color: var(--color-peligro);
 }
 
-.toast-error i:first-child { color: #b91c1c; }
+.toast-error i:first-child { color: var(--color-peligro); }
 
 .toast-cerrar {
     background: none;
@@ -418,10 +422,10 @@
     gap: 6px;
     height: 36px;
     padding: 0 16px;
-    background: #fff;
-    color: #1a4db5;
-    border: 1px solid #1a4db5;
-    border-radius: 6px;
+    background: var(--color-superficie);
+    color: var(--color-primario);
+    border: 1px solid var(--color-primario);
+    border-radius: var(--radio-2);
     font-size: 13px;
     font-weight: 600;
     cursor: pointer;
@@ -433,7 +437,7 @@
     white-space: nowrap;
 }
 
-.btn-mi-turno:hover { background: #1a4db5; color: #fff; }
+.btn-mi-turno:hover { background: var(--color-primario); color: var(--color-sobre-color); }
 .btn-mi-turno i { font-size: 15px; }
 
 /* ===== MODAL OVERLAY ===== */
@@ -455,8 +459,8 @@
 
 /* ===== MODAL TURNO ===== */
 .modal-turno {
-    background: #fff;
-    border-radius: 12px;
+    background: var(--color-superficie);
+    border-radius: var(--radio-5);
     width: 100%;
     max-width: 440px;
     max-height: 80vh;
@@ -477,7 +481,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 16px 20px;
-    border-bottom: 1px solid #e5e7eb;
+    border-bottom: 1px solid var(--color-borde);
 }
 
 .modal-turno-header h3 {
@@ -486,35 +490,35 @@
     gap: 8px;
     font-size: 16px;
     font-weight: 700;
-    color: #1e293b;
+    color: var(--color-texto);
     margin: 0;
 }
 
-.modal-turno-header h3 i { color: #1a4db5; font-size: 18px; }
+.modal-turno-header h3 i { color: var(--color-primario); font-size: 18px; }
 
 .modal-turno-header button {
     background: none;
     border: none;
     cursor: pointer;
-    color: #6b7280;
+    color: var(--color-texto-suave);
     display: flex;
     align-items: center;
     padding: 4px;
-    border-radius: 6px;
+    border-radius: var(--radio-2);
     transition: background 0.15s;
 }
 
-.modal-turno-header button:hover { background: #f1f5f9; color: #1e293b; }
+.modal-turno-header button:hover { background: var(--color-fondo-2); color: var(--color-texto); }
 .modal-turno-header button i { font-size: 18px; }
 
 .modal-turno-resumen {
     padding: 14px 20px 0;
     font-size: 13px;
-    color: #6b7280;
+    color: var(--color-texto-suave);
     margin: 0;
 }
 
-.modal-turno-resumen strong { color: #1a4db5; }
+.modal-turno-resumen strong { color: var(--color-primario); }
 
 .modal-turno-lista {
     list-style: none;
@@ -532,18 +536,18 @@
     justify-content: space-between;
     gap: 12px;
     padding: 10px 14px;
-    background: #f8fafc;
-    border: 1px solid #f1f5f9;
-    border-radius: 8px;
+    background: var(--color-fondo);
+    border: 1px solid var(--color-fondo-2);
+    border-radius: var(--radio-3);
 }
 
 .modal-turno-hora {
     font-size: 12px;
     font-weight: 600;
-    color: #15803d;
-    background: #f0fdf4;
+    color: var(--color-exito);
+    background: var(--color-exito-bg);
     padding: 4px 10px;
-    border-radius: 20px;
+    border-radius: var(--radio-8);
     white-space: nowrap;
 }
 /* ---- Etapas del embarque (solo rutas que se abordan en dos momentos) ----
@@ -561,12 +565,12 @@
     align-items: center;
     gap: 10px;
     padding: 12px 14px;
-    border: 1.5px solid #e5e7eb;
-    border-radius: 10px;
-    background: #fff;
+    border: 1.5px solid var(--color-borde);
+    border-radius: var(--radio-4);
+    background: var(--color-superficie);
     text-align: left;
     cursor: pointer;
-    color: #6b7280;
+    color: var(--color-texto-suave);
     transition: border-color .15s var(--ease-salida),
                 background-color .15s var(--ease-salida),
                 color .15s var(--ease-salida),
@@ -578,13 +582,13 @@
 .etapa-btn strong { font-size: 13.5px; font-weight: 700; }
 .etapa-btn small { font-size: 11.5px; opacity: .85; }
 
-.etapa-btn:hover:not(.activo) { border-color: #1a4db5; color: #1a4db5; }
+.etapa-btn:hover:not(.activo) { border-color: var(--color-primario); color: var(--color-primario); }
 .etapa-btn:active { transform: scale(.99); }
 
 .etapa-btn.activo {
-    border-color: #1a4db5;
-    background: #eef3fd;
-    color: #1a4db5;
+    border-color: var(--color-primario);
+    background: var(--color-azul-bg);
+    color: var(--color-primario);
 }
 
 /* Aviso de que este pasajero no pasó por el carro. No bloquea nada: hay gente
@@ -595,7 +599,7 @@
     gap: 4px;
     margin-top: 4px;
     font-size: 11px;
-    color: #b45309;
+    color: var(--color-advertencia-osc);
     white-space: nowrap;
 }
 .aviso-sin-preembarque i { font-size: 13px; }
@@ -615,28 +619,29 @@
 .embarque-avance {
     display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
     padding: 13px 18px; margin-bottom: 14px;
-    background: #fff; border: 1px solid #e5e7eb; border-radius: 10px;
+    background: var(--color-superficie); border: 1px solid var(--color-borde-suave); border-radius: var(--radio-7);
+    box-shadow: var(--sombra-tarjeta), var(--luz-superior);
 }
 .avance-cifras { display: flex; align-items: baseline; gap: 8px; }
 .avance-cifras strong {
-    font-size: 26px; font-weight: 700; color: #0f172a; line-height: 1;
+    font-size: 26px; font-weight: 700; color: var(--color-texto-fuerte); line-height: 1;
     font-variant-numeric: tabular-nums;
 }
-.avance-cifras span { font-size: 13px; color: #6b7280; }
+.avance-cifras span { font-size: 13px; color: var(--color-texto-suave); }
 .avance-cifras em {
     font-style: normal; font-size: 12px; font-weight: 600;
-    padding: 3px 9px; border-radius: 999px;
+    padding: 3px 9px; border-radius: var(--radio-pleno);
 }
-.avance-faltan { background: #fffbeb; color: #b45309; }
-.avance-listo  { background: #f0fdf4; color: #15803d; }
+.avance-faltan { background: var(--color-ambar-bg); color: var(--color-advertencia-osc); }
+.avance-listo  { background: var(--color-exito-bg); color: var(--color-exito); }
 
 .avance-barra {
     flex: 1; min-width: 160px; height: 7px;
-    background: #eef2f7; border-radius: 999px; overflow: hidden;
+    background: var(--color-fondo-3); border-radius: var(--radio-pleno); overflow: hidden;
 }
 .avance-barra span {
-    display: block; height: 100%; border-radius: 999px;
-    background: #15803d; transition: width .3s cubic-bezier(.23,1,.32,1);
+    display: block; height: 100%; border-radius: var(--radio-pleno);
+    background: var(--color-exito); transition: width .3s cubic-bezier(.23,1,.32,1);
 }
 
 /* ══ Lista de pasajeros ══
@@ -645,14 +650,14 @@
 .embarque-tabla td { padding: 9px 12px; vertical-align: middle; }
 .embarque-tabla th { padding: 9px 12px; white-space: nowrap; }
 .embarque-tabla .pasajero-info { display: flex; flex-direction: column; gap: 1px; line-height: 1.35; }
-.embarque-tabla .pasajero-info strong { font-size: 13.5px; font-weight: 600; color: #0f172a; }
-.embarque-tabla .pasajero-info span { font-size: 11.5px; color: #6b7280; }
+.embarque-tabla .pasajero-info strong { font-size: 13.5px; font-weight: 600; color: var(--color-texto-fuerte); }
+.embarque-tabla .pasajero-info span { font-size: 11.5px; color: var(--color-texto-suave); }
 .embarque-tabla .asiento-tipo { white-space: nowrap; font-size: 11.5px; padding: 4px 9px; }
 .embarque-tabla .tramo-linea { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; font-size: 12.5px; }
-.embarque-tabla .tramo-linea i { color: #94a3b8; }
+.embarque-tabla .tramo-linea i { color: var(--color-texto-tenue); }
 .embarque-tabla .th-accion, .embarque-tabla td:last-child { text-align: right; }
 .embarque-tabla tbody tr { transition: background-color .12s ease; }
-.embarque-tabla tbody tr:hover { background: #f8fafc; }
+.embarque-tabla tbody tr:hover { background: var(--color-fondo); }
 
 @media (prefers-reduced-motion: reduce) {
     .avance-barra span { transition: none; }

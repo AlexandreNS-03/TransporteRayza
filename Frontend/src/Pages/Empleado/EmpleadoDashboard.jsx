@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate, Outlet, NavLink } from "react-router-dom";
+import BotonTema from "../../Components/BotonTema.jsx";
 import "../../Components/DashboardLayout.css";
 import AvisoComprobantes from "../../Components/AvisoComprobantes.jsx";
 
@@ -145,6 +146,7 @@ function EmpleadoDashboard() {
                             <span>{usuario?.rol}</span>
                         </div>
                         <div className="user-avatar">{iniciales}</div>
+                        <BotonTema />
                         <button className="logout-btn" onClick={cerrarSesion}>
                             <i className="ti ti-logout"></i>
                         </button>

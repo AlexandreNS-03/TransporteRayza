@@ -21,8 +21,8 @@
     /* #root centra todo el panel; un texto de confirmación centrado se lee
        peor, sobre todo cuando explica algo que no se puede deshacer. */
     text-align: left;
-    background: #fff;
-    border-radius: 14px;
+    background: var(--color-superficie);
+    border-radius: var(--radio-6);
     width: 100%;
     max-width: 480px;
     padding: 22px;
@@ -31,9 +31,9 @@
     overflow-y: auto;
 }
 
-.modal h3 { margin: 0 0 10px; font-size: 17px; font-weight: 700; color: #0f172a; }
-.modal p  { margin: 0 0 8px; font-size: 14px; line-height: 1.55; color: #334155; }
-.modal p.muted { color: #6b7280; font-size: 13px; }
+.modal h3 { margin: 0 0 10px; font-size: 17px; font-weight: 700; color: var(--color-texto-fuerte); }
+.modal p  { margin: 0 0 8px; font-size: 14px; line-height: 1.55; color: var(--color-texto-oscuro); }
+.modal p.muted { color: var(--color-texto-suave); font-size: 13px; }
 
 .modal-acciones {
     display: flex; justify-content: flex-end; gap: 10px;
@@ -42,20 +42,20 @@
 
 /* Campo compacto para los formularios de estas pantallas. */
 .campo-s { display: grid; gap: 6px; text-align: left; }
-.campo-s > span { font-size: 12.5px; font-weight: 700; color: #6b7280; }
+.campo-s > span { font-size: 12.5px; font-weight: 700; color: var(--color-texto-suave); }
 .campo-s input, .campo-s select, .campo-s textarea {
     padding: 9px 11px;
-    border: 1px solid #d1d5db;
-    border-radius: 8px;
+    border: 1px solid var(--color-borde-input);
+    border-radius: var(--radio-3);
     font-size: 14px;
     font-family: inherit;
-    background: #fff;
+    background: var(--color-superficie);
     width: 100%;
 }
 .campo-s input:focus, .campo-s select:focus, .campo-s textarea:focus {
-    outline: none; border-color: #1a4db5;
+    outline: none; border-color: var(--color-primario);
 }
-.campo-s small { font-size: 11.5px; color: #9ca3af; }
+.campo-s small { font-size: 11.5px; color: var(--color-gris-tenue); }
 
 @media (max-width: 480px) {
     .modal { padding: 18px; }

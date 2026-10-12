@@ -1,113 +1,85 @@
+/* ============================================================
+   BASE — lo que hereda todo el sistema
+
+   Acá vivía la plantilla de Vite: su paleta (un acento morado que no usaba
+   nadie), su tipografía, su contenedor de demo y un bloque de modo oscuro.
+   Nada de eso era del sistema; se fue entero. Lo que quedó está puesto a
+   propósito y explicado.
+   ============================================================ */
 :root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
-
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
-
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
+  /* El panel es claro. Antes esto seguía el modo oscuro del sistema
+     operativo y redefinía los colores de la plantilla: en una máquina con
+     modo oscuro, los títulos de pantalla quedaban casi blancos sobre blanco.
+     Nadie lo había visto porque las máquinas del mostrador están en claro. */
   color-scheme: light;
-  color: var(--text);
-  background: var(--bg);
+
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
+/* Un solo reset, acá. Estaba repetido en Login.css y en DashboardLayout.css. */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
 
-  #social .button-icon {
-    filter: invert(1) brightness(2);
-  }
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
 }
 
 body {
-  margin: 0;
+  font-family: var(--fuente);
+  font-size: 16px;
+  line-height: 1.45;
+  color: var(--color-texto);
+  background: var(--color-lienzo);
 }
 
+/* El contenedor de la aplicación. La plantilla lo dejaba en 1126 px de ancho,
+   centrado y con una línea vertical a cada lado: en el monitor del mostrador
+   el panel no usaba la pantalla. Y lo dejaba con text-align: center, que se
+   heredaba hasta las celdas de las tablas — de ahí las correcciones de
+   `text-align: left` repartidas por el CSS de las pantallas. */
 #root {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
   min-height: 100svh;
   display: flex;
   flex-direction: column;
-  box-sizing: border-box;
 }
 
+/* Lo único que la base dice de los títulos: el espaciado entre letras. El
+   tamaño, el peso y el color los pone cada pantalla; el tracking no, y a 22 px
+   el espaciado por defecto se ve suelto. La plantilla lo traía dentro de su
+   propia regla de h1/h2, mezclado con tamaños que no eran de este sistema. */
 h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 500;
-  color: var(--text-h);
+h2,
+h3 {
+  letter-spacing: -0.015em;
 }
 
-h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
-  }
-}
-h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
-}
-p {
-  margin: 0;
+/* Mientras se cambia de día a noche. Ver Utils/tema.js. */
+.sin-transiciones,
+.sin-transiciones *,
+.sin-transiciones *::before,
+.sin-transiciones *::after {
+  transition: none !important;
 }
 
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
-}
-
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
+/* Texto de apoyo. La clase se usa en 19 lugares del JSX, pero solo estaba
+   definida dentro de tres pantallas: suelta no hacía nada. No se notaba
+   porque el color que la plantilla de Vite le daba a todo el documento ya era
+   gris, así que parecía apagada por casualidad. Las versiones de cada
+   pantalla siguen mandando, que para eso son más específicas. */
+.muted {
+  color: var(--color-texto-suave);
+  font-size: 13.5px;
 }
 
 /* ---------- Pantalla de error (red de seguridad) ---------- */
@@ -123,24 +95,17 @@ code {
     padding: 40px 24px;
 }
 
-.pantalla-error i { font-size: 44px; color: #b45309; }
-.pantalla-error h2 { margin: 0; font-size: 22px; color: #1e293b; }
-.pantalla-error p { margin: 0; max-width: 52ch; color: #6b7280; line-height: 1.6; font-size: 14px; }
+.pantalla-error i { font-size: 44px; color: var(--color-advertencia-osc); }
+.pantalla-error h2 { margin: 0; font-size: 22px; color: var(--color-texto); }
+.pantalla-error p { margin: 0; max-width: 52ch; color: var(--color-texto-suave); line-height: 1.6; font-size: 14px; }
 .pantalla-error-acciones { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 8px; }
 .pantalla-error-acciones a { text-decoration: none; }
 
 /* ============================================================
-   MOVIMIENTO — tokens y reglas comunes
-   Las curvas de CSS (ease, ease-out) son demasiado suaves para que el
-   movimiento se sienta deliberado: estas son más marcadas y se usan en todo
-   el sistema, para que nada se mueva "distinto" según la pantalla.
+   MOVIMIENTO — reglas comunes
+   Las curvas y duraciones viven en theme.css (--ease-salida, --ease-mover,
+   --dur-rapida, --dur-modal). Acá van las reglas que las usan.
    ============================================================ */
-:root {
-  --ease-salida: cubic-bezier(0.23, 1, 0.32, 1);      /* entra y sale: arranca rápido */
-  --ease-mover:  cubic-bezier(0.77, 0, 0.175, 1);     /* se desplaza en pantalla */
-  --dur-rapida:  0.16s;                               /* pulsación, hover */
-  --dur-modal:   0.2s;
-}
 
 /* ── Modales ──
    Antes aparecían de golpe, en las 20 pantallas que los usan. @starting-style
@@ -206,22 +171,10 @@ button:not(:disabled):active,
 }
 
 /* ============================================================
-   CALIDAD VISUAL — escala de texto, foco y profundidad
+   CALIDAD VISUAL — foco y ritmo
+   La escala de texto (--txt-1/2/3) y las sombras (--sombra-1/2/3) viven
+   en theme.css. Acá van las reglas que las usan.
    ============================================================ */
-:root {
-  /* Contraste verificado sobre blanco. El gris que había antes (#9ca3af)
-     daba 2.54:1: por debajo del mínimo legible, y en la pantalla del
-     mostrador con luz de día directamente no se leía. */
-  --txt-1: #111827;   /* 16.1:1 — títulos y datos */
-  --txt-2: #4b5563;   /*  7.6:1 — texto normal */
-  --txt-3: #6b7280;   /*  4.8:1 — apoyo; es el más claro admisible */
-
-  /* Profundidad real: desplazamiento + desenfoque. Un halo sin
-     desplazamiento no es sombra, es decoración. */
-  --sombra-1: 0 1px 2px rgba(16, 24, 40, .06), 0 1px 3px rgba(16, 24, 40, .10);
-  --sombra-2: 0 4px 8px -2px rgba(16, 24, 40, .10), 0 2px 4px -2px rgba(16, 24, 40, .06);
-  --sombra-3: 0 12px 16px -4px rgba(16, 24, 40, .08), 0 4px 6px -2px rgba(16, 24, 40, .03);
-}
 
 /* ── Foco de teclado ──
    Había 31 reglas que quitaban el contorno y ninguna que lo devolviera al
@@ -229,9 +182,9 @@ button:not(:disabled):active,
    selector es deliberadamente específico para ganarle a esas reglas sin
    recurrir a !important. */
 html :is(button, a, input, select, textarea, [tabindex]):focus-visible {
-  outline: 2px solid #1a4db5;
+  outline: 2px solid var(--color-primario);
   outline-offset: 2px;
-  border-radius: 6px;
+  border-radius: var(--radio-2);
 }
 
 /* Ritmo: más aire encima de un encabezado que debajo, para que el título
@@ -335,20 +288,20 @@ html :is(button, a, input, select, textarea, [tabindex]):focus-visible {
   .rutas-tabla tr, .sucursales-tabla tr, .emb-tabla tr, .roles-tabla tr, .manifiesto-tabla tr,
   .anuncios-tabla tr, .preciosweb-tabla tr {
     margin-bottom: 12px;
-    border: 1px solid var(--color-borde, #e2e8f0);
-    border-radius: var(--radio-md, 10px);
-    background: var(--color-blanco, #fff);
+    border: 1px solid var(--color-borde);
+    border-radius: var(--radio-4);
+    background: var(--color-superficie);
     box-shadow: var(--sombra-sm, 0 1px 3px rgba(0, 0, 0, .06));
     overflow: hidden;
   }
   .rutas-tabla tbody tr:hover, .sucursales-tabla tbody tr:hover, .emb-tabla tbody tr:hover,
   .roles-tabla tbody tr:hover, .manifiesto-tabla tbody tr:hover,
-  .anuncios-tabla tbody tr:hover, .preciosweb-tabla tbody tr:hover { background: var(--color-blanco, #fff); }
+  .anuncios-tabla tbody tr:hover, .preciosweb-tabla tbody tr:hover { background: var(--color-superficie); }
 
   .rutas-tabla td, .sucursales-tabla td, .emb-tabla td, .roles-tabla td, .manifiesto-tabla td,
   .anuncios-tabla td, .preciosweb-tabla td {
     display: flex; justify-content: space-between; align-items: center;
-    gap: 14px; padding: 10px 14px; border: none; border-bottom: 1px solid #f1f5f9;
+    gap: 14px; padding: 10px 14px; border: none; border-bottom: 1px solid var(--color-fondo-2);
     text-align: right;
   }
   .rutas-tabla tr td:last-child, .sucursales-tabla tr td:last-child, .emb-tabla tr td:last-child,
@@ -358,7 +311,7 @@ html :is(button, a, input, select, textarea, [tabindex]):focus-visible {
   .rutas-tabla td::before, .sucursales-tabla td::before, .emb-tabla td::before,
   .roles-tabla td::before, .manifiesto-tabla td::before,
   .anuncios-tabla td::before, .preciosweb-tabla td::before {
-    content: attr(data-label); font-weight: 600; color: var(--color-texto-suave, #64748b);
+    content: attr(data-label); font-weight: 600; color: var(--color-texto-suave, var(--color-texto-slate));
     font-size: 11px; text-transform: uppercase; letter-spacing: .3px; text-align: left; flex-shrink: 0;
   }
 
@@ -369,7 +322,7 @@ html :is(button, a, input, select, textarea, [tabindex]):focus-visible {
   .manifiesto-tabla td.acciones, .manifiesto-tabla td.acciones-cell,
   .anuncios-tabla td.acciones, .anuncios-tabla td.acciones-cell,
   .preciosweb-tabla td.acciones, .preciosweb-tabla td.acciones-cell {
-    justify-content: flex-end; flex-wrap: wrap; background: #f8fafc;
+    justify-content: flex-end; flex-wrap: wrap; background: var(--color-fondo);
   }
   .rutas-tabla td.acciones::before, .rutas-tabla td.acciones-cell::before,
   .sucursales-tabla td.acciones::before, .sucursales-tabla td.acciones-cell::before,
@@ -401,3 +354,85 @@ html :is(button, a, input, select, textarea, [tabindex]):focus-visible {
 
   .manifiesto-tabla td .pasajero-info, .manifiesto-tabla td .tramo-info { align-items: flex-end; }
 }
+
+/* ============================================================
+   GRÁFICOS — piezas comunes a todas las pantallas
+   La forma de los gráficos vive en Utils/graficos.jsx; acá solo lo que se
+   dibuja con HTML encima del SVG: el globo de datos y la leyenda.
+   ============================================================ */
+
+/* ── Globo de datos ──
+   Una tarjeta clara con borde fino, no el recuadro negro por defecto: se lee
+   encima del gráfico sin tapar lo que hay debajo. */
+.grafico-globo {
+  background: var(--color-superficie);
+  border: 1px solid var(--color-borde-suave);
+  border-radius: var(--radio-md);
+  box-shadow: var(--sombra-2);
+  padding: 9px 11px;
+  font-size: 12px;
+  min-width: 140px;
+}
+
+.grafico-globo strong {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-texto-suave);
+  letter-spacing: 0.02em;
+}
+
+.grafico-globo-fila {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  line-height: 1.7;
+}
+
+.grafico-globo-punto {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.grafico-globo-nombre {
+  color: var(--color-texto-suave);
+  margin-right: auto;
+}
+
+/* Las cifras se comparan en columna: ancho fijo o no se alinean. */
+.grafico-globo-valor {
+  font-weight: 600;
+  color: var(--color-texto-fuerte);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Leyenda ──
+   En la cabecera del gráfico y no flotando debajo, para que el dibujo use
+   todo el alto de su caja. */
+.grafico-leyenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  font-size: 11.5px;
+  color: var(--color-texto-suave);
+}
+
+.grafico-leyenda-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.grafico-leyenda-punto {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+/* Las etiquetas de los ejes también en cifras de ancho fijo: si no, el eje
+   "baila" cuando cambian los valores. */
+.recharts-cartesian-axis-tick-value { font-variant-numeric: tabular-nums; }

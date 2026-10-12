@@ -8,10 +8,10 @@
 .rec-alerta {
     padding: 13px 16px;
     margin-bottom: 16px;
-    border-radius: 10px;
-    border: 1px solid #fecaca;
-    background: #fef2f2;
-    color: #7f1d1d;
+    border-radius: var(--radio-4);
+    border: 1px solid var(--color-peligro-borde);
+    background: var(--color-peligro-bg);
+    color: var(--color-peligro);
     font-size: 14px;
     line-height: 1.5;
 }
@@ -22,13 +22,14 @@
 
 .rec-hoja {
     padding: 18px;
-    border: 1px solid #e5e7eb;
-    border-radius: 12px;
-    background: #fff;
+    border: 1px solid var(--color-borde-suave);
+    border-radius: var(--radio-7);
+    box-shadow: var(--sombra-tarjeta), var(--luz-superior);
+    background: var(--color-superficie);
     display: grid;
     gap: 12px;
 }
-.rec-hoja.vencida { border-color: #fca5a5; background: #fffbfb; }
+.rec-hoja.vencida { border-color: var(--color-peligro-borde-2); background: var(--color-peligro-bg); }
 
 .rec-hoja header {
     display: flex; align-items: center; justify-content: space-between;
@@ -37,49 +38,49 @@
 .rec-hoja header > div { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 
 .rec-numero {
-    font-weight: 800; font-size: 15px; color: #0f172a;
+    font-weight: 800; font-size: 15px; color: var(--color-texto-fuerte);
     font-variant-numeric: tabular-nums;
 }
 
-.rec-plazo { font-size: 12.5px; color: #6b7280; }
-.rec-plazo-vencido { color: #b91c1c; font-weight: 700; }
+.rec-plazo { font-size: 12.5px; color: var(--color-texto-suave); }
+.rec-plazo-vencido { color: var(--color-peligro); font-weight: 700; }
 
-.rec-datos p { margin: 0 0 3px; font-size: 14px; color: #0f172a; }
-.rec-datos .muted { font-size: 12.5px; color: #6b7280; }
+.rec-datos p { margin: 0 0 3px; font-size: 14px; color: var(--color-texto-fuerte); }
+.rec-datos .muted { font-size: 12.5px; color: var(--color-texto-suave); }
 
 .rec-texto { display: grid; gap: 4px; }
 .rec-etiqueta {
-    font-size: 11.5px; font-weight: 700; color: #6b7280; letter-spacing: .03em;
+    font-size: 11.5px; font-weight: 700; color: var(--color-texto-suave); letter-spacing: .03em;
 }
 .rec-texto p {
-    margin: 0; font-size: 14px; line-height: 1.55; color: #0f172a;
+    margin: 0; font-size: 14px; line-height: 1.55; color: var(--color-texto-fuerte);
     white-space: pre-wrap;
 }
 
 .rec-respuesta {
     display: grid; gap: 4px;
-    padding: 12px 14px; border-radius: 10px; background: #eef3fd;
+    padding: 12px 14px; border-radius: var(--radio-4); background: var(--color-azul-bg);
 }
 .rec-respuesta p { margin: 0; font-size: 14px; line-height: 1.55; white-space: pre-wrap; }
 
 .rec-modal { max-width: 620px; }
 .rec-campo { display: grid; gap: 6px; margin-top: 14px; }
-.rec-campo > span { font-size: 12.5px; font-weight: 700; color: #6b7280; }
+.rec-campo > span { font-size: 12.5px; font-weight: 700; color: var(--color-texto-suave); }
 .rec-campo textarea {
     width: 100%; padding: 12px 13px;
-    border: 1.5px solid #d1d5db; border-radius: 10px;
+    border: 1.5px solid var(--color-borde-input); border-radius: var(--radio-4);
     font-family: inherit; font-size: 14.5px; line-height: 1.5; resize: vertical;
 }
-.rec-campo textarea:focus { outline: none; border-color: #1a4db5; }
+.rec-campo textarea:focus { outline: none; border-color: var(--color-primario); }
 
 .rec-adjuntos { display: flex; flex-wrap: wrap; gap: 8px; }
 .rec-adjuntos a {
     display: inline-flex; align-items: center; gap: 6px;
-    padding: 6px 11px; border-radius: 8px;
-    background: #eef3fd; color: #1a4db5;
+    padding: 6px 11px; border-radius: var(--radio-3);
+    background: var(--color-azul-bg); color: var(--color-primario);
     font-size: 13px; text-decoration: none; word-break: break-all;
 }
-.rec-adjuntos a:hover { background: #dde8fb; }
+.rec-adjuntos a:hover { background: var(--color-azul-bg-2); }
 
 /* #root { text-align: center } de la plantilla de Vite se hereda en las
    tarjetas: el nombre del reclamante, la fecha y el texto salían centrados,
