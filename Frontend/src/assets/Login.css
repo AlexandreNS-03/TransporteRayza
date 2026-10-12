@@ -67,7 +67,7 @@ html, body, #root { width: 100%; height: 100%; }
 .left-content p {
     font-size: 15px;
     line-height: 1.7;
-    color: #cbd5e1;
+    color: var(--color-borde-2);
 }
 
 .left-footer {
@@ -79,7 +79,7 @@ html, body, #root { width: 100%; height: 100%; }
 /* ── PANEL DERECHO (formulario) ── */
 .right-panel {
     width: 48%;
-    background: #f1f5f9;
+    background: var(--color-fondo-2);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -109,12 +109,12 @@ html, body, #root { width: 100%; height: 100%; }
 .login-card > h2 {
     font-size: 26px;
     font-weight: 700;
-    color: #0f172a;
+    color: var(--color-texto-fuerte);
     margin-bottom: 6px;
 }
 
 .subtitle {
-    color: #64748b;
+    color: var(--color-texto-slate);
     margin-bottom: 26px;
     font-size: 14px;
 }
@@ -122,7 +122,7 @@ html, body, #root { width: 100%; height: 100%; }
 .login-card label {
     display: block;
     margin: 16px 0 7px;
-    color: #334155;
+    color: var(--color-texto-oscuro);
     font-size: 13px;
     font-weight: 600;
 }
@@ -132,16 +132,16 @@ html, body, #root { width: 100%; height: 100%; }
     display: flex;
     align-items: center;
     gap: 10px;
-    border: 1.5px solid #e2e8f0;
+    border: 1.5px solid var(--color-borde-suave);
     border-radius: 10px;
-    background: #f8fafc;
+    background: var(--color-fondo);
     padding: 0 14px;
     transition: border-color 0.15s, background 0.15s;
     color-scheme: light;
 }
 
 .input-wrap:focus-within {
-    border-color: #1a4db5;
+    border-color: var(--color-primario);
     background: #fff;
 }
 
@@ -159,7 +159,7 @@ html, body, #root { width: 100%; height: 100%; }
     background: transparent;
     padding: 14px 0;
     font-size: 15px;
-    color: #0f172a;              /* ← FIX: texto siempre oscuro y visible */
+    color: var(--color-texto-fuerte);              /* ← FIX: texto siempre oscuro y visible */
     color-scheme: light;
 }
 
@@ -175,16 +175,16 @@ html, body, #root { width: 100%; height: 100%; }
     align-items: center;
     padding: 4px;
 }
-.toggle-pass:hover { color: #1a4db5; }
+.toggle-pass:hover { color: var(--color-primario); }
 
 .login-error {
     display: flex;
     align-items: center;
     gap: 8px;
     margin-top: 16px;
-    background: #fef2f2;
-    border: 1px solid #fecaca;
-    color: #b91c1c;
+    background: var(--color-peligro-bg);
+    border: 1px solid var(--color-peligro-borde);
+    color: var(--color-peligro);
     border-radius: 10px;
     padding: 10px 12px;
     font-size: 13px;
@@ -196,7 +196,7 @@ html, body, #root { width: 100%; height: 100%; }
     padding: 14px;
     border: none;
     border-radius: 11px;
-    background: #1a4db5;
+    background: var(--color-primario);
     color: #fff;
     font-size: 15px;
     font-weight: 600;
@@ -207,8 +207,8 @@ html, body, #root { width: 100%; height: 100%; }
     gap: 8px;
     transition: background 0.2s;
 }
-.btn-login:hover:not(:disabled) { background: #1440a0; }
-.btn-login:disabled { background: #93c5fd; cursor: not-allowed; }
+.btn-login:hover:not(:disabled) { background: var(--color-primario-osc); }
+.btn-login:disabled { background: var(--color-azul-borde-2); cursor: not-allowed; }
 
 .spin { animation: login-spin 1s linear infinite; }
 @keyframes login-spin { to { transform: rotate(360deg); } }
@@ -261,8 +261,8 @@ html, body, #root { width: 100%; height: 100%; }
     padding: 10px;
     border: 0;
     background: transparent;
-    color: #6b7280;
+    color: var(--color-texto-suave);
     font-size: 13px;
     cursor: pointer;
 }
-.btn-volver-login:hover { color: #1a4db5; text-decoration: underline; }
+.btn-volver-login:hover { color: var(--color-primario); text-decoration: underline; }

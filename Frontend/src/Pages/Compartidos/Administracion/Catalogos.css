@@ -33,27 +33,27 @@
 
 /* ══ Primera columna: el nombre y su dato de apoyo ══ */
 .cat-principal { display: flex; flex-direction: column; gap: 1px; line-height: 1.35; }
-.cat-principal strong { font-size: 13.5px; font-weight: 600; color: #0f172a; }
-.cat-principal span   { font-size: 11.5px; color: #6b7280; }
+.cat-principal strong { font-size: 13.5px; font-weight: 600; color: var(--color-texto-fuerte); }
+.cat-principal span   { font-size: 11.5px; color: var(--color-texto-suave); }
 .cat-principal .codigo { font-family: monospace; }
 
 /* ══ Asientos: el total manda, el reparto es el detalle ══ */
 .cat-asientos { white-space: nowrap; }
 .cat-asientos strong {
-    display: block; font-size: 15px; color: #0f172a;
+    display: block; font-size: 15px; color: var(--color-texto-fuerte);
     font-variant-numeric: tabular-nums;
 }
-.cat-asientos span { font-size: 11.5px; color: #6b7280; }
+.cat-asientos span { font-size: 11.5px; color: var(--color-texto-suave); }
 
 /* ══ Ruta ══ */
 .cat-ruta { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
-.cat-ruta strong { font-size: 13.5px; font-weight: 600; color: #0f172a; }
-.cat-ruta i { font-size: 14px; color: #94a3b8; }
+.cat-ruta strong { font-size: 13.5px; font-weight: 600; color: var(--color-texto-fuerte); }
+.cat-ruta i { font-size: 14px; color: var(--color-texto-tenue); }
 
 /* Las tarifas se comparan de un vistazo solo si las cifras se alinean. */
 .cat-precio {
     text-align: right; white-space: nowrap;
-    font-variant-numeric: tabular-nums; font-weight: 600; color: #0f172a;
+    font-variant-numeric: tabular-nums; font-weight: 600; color: var(--color-texto-fuerte);
 }
 .cat-telefono { font-variant-numeric: tabular-nums; }
 
@@ -72,20 +72,20 @@
 .btn-catalogo i { font-size: 15px; }
 .btn-catalogo + .btn-catalogo { margin-left: 6px; }
 
-.btn-catalogo.ver        { background: #f1f5f9; border-color: #e2e8f0; color: #475569; }
-.btn-catalogo.ver:hover  { background: #e2e8f0; }
+.btn-catalogo.ver        { background: var(--color-fondo-2); border-color: var(--color-borde-suave); color: var(--color-texto-medio); }
+.btn-catalogo.ver:hover  { background: var(--color-borde-suave); }
 
-.btn-catalogo.editar       { background: #eff6ff; border-color: #bfdbfe; color: #1d4ed8; }
-.btn-catalogo.editar:hover { background: #dbeafe; }
+.btn-catalogo.editar       { background: var(--color-azul-bg); border-color: var(--color-azul-borde); color: var(--color-primario-vivo); }
+.btn-catalogo.editar:hover { background: var(--color-azul-bg-2); }
 
-.btn-catalogo.desactivar       { background: #fef2f2; border-color: #fecaca; color: #b91c1c; }
-.btn-catalogo.desactivar:hover { background: #fee2e2; }
+.btn-catalogo.desactivar       { background: var(--color-peligro-bg); border-color: var(--color-peligro-borde); color: var(--color-peligro); }
+.btn-catalogo.desactivar:hover { background: var(--color-peligro-bg-2); }
 
-.btn-catalogo.activar       { background: #f0fdf4; border-color: #bbf7d0; color: #15803d; }
-.btn-catalogo.activar:hover { background: #dcfce7; }
+.btn-catalogo.activar       { background: var(--color-exito-bg); border-color: var(--color-exito-borde); color: var(--color-exito); }
+.btn-catalogo.activar:hover { background: var(--color-exito-bg-2); }
 
 .btn-catalogo:active { transform: translateY(1px); }
-.btn-catalogo:focus-visible { outline: 2px solid #2563eb; outline-offset: 2px; }
+.btn-catalogo:focus-visible { outline: 2px solid var(--color-azul-vivo); outline-offset: 2px; }
 
 @media (prefers-reduced-motion: reduce) {
     .btn-catalogo { transition: none; }

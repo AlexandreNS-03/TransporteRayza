@@ -12,7 +12,7 @@
     flex: 1;
     min-width: 160px;
     background: #fff;
-    border: 1px solid #e5e7eb;
+    border: 1px solid var(--color-borde);
     border-radius: 10px;
     padding: 14px 16px;
     display: flex;
@@ -22,17 +22,17 @@
 
 .comp-stat i {
     font-size: 24px;
-    color: #1a4db5;
-    background: #eff6ff;
+    color: var(--color-primario);
+    background: var(--color-azul-bg);
     border-radius: 8px;
     width: 42px; height: 42px;
     display: flex; align-items: center; justify-content: center;
 }
 
-.comp-stat.anulado i { color: #b91c1c; background: #fef2f2; }
-.comp-stat.monto i   { color: #15803d; background: #f0fdf4; }
+.comp-stat.anulado i { color: var(--color-peligro); background: var(--color-peligro-bg); }
+.comp-stat.monto i   { color: var(--color-exito); background: var(--color-exito-bg); }
 
-.comp-stat strong { display: block; font-size: 18px; color: #1e293b; }
+.comp-stat strong { display: block; font-size: 18px; color: var(--color-texto); }
 .comp-stat span   { font-size: 11px; color: var(--txt-3); }
 
 /* Badge de tipo boleta / factura */
@@ -45,8 +45,8 @@
     width: fit-content;
 }
 
-.comp-tipo.boleta       { background: #eff6ff; color: #1d4ed8; }
-.comp-tipo.factura      { background: #fef9c3; color: #a16207; }
+.comp-tipo.boleta       { background: var(--color-azul-bg); color: var(--color-primario-vivo); }
+.comp-tipo.factura      { background: var(--color-advertencia-bg-2); color: var(--color-advertencia); }
 .comp-tipo.nota_credito { background: #fdf2f8; color: #be185d; }
 
 .comp-ref {
@@ -57,7 +57,7 @@
 
 /* Vista JSON Nubefact */
 .comp-json {
-    background: #0f172a;
+    background: var(--color-texto-fuerte);
     color: #a5f3fc;
     border-radius: 8px;
     padding: 14px;
@@ -86,9 +86,9 @@
     display: flex;
     align-items: flex-start;
     gap: 10px;
-    background: #fffbeb;
-    border: 1px solid #fde68a;
-    color: #92400e;
+    background: var(--color-ambar-bg);
+    border: 1px solid var(--color-advertencia-borde);
+    color: var(--color-advertencia-fuerte);
     border-radius: 8px;
     padding: 12px 14px;
     font-size: 12.5px;
@@ -99,7 +99,7 @@
 
 .modal-anular textarea {
     padding: 9px 12px;
-    border: 1px solid #d1d5db;
+    border: 1px solid var(--color-borde-input);
     border-radius: 8px;
     font-size: 13px;
     outline: none;
@@ -107,10 +107,10 @@
     font-family: inherit;
 }
 
-.modal-anular textarea:focus { border-color: #2563b0; }
+.modal-anular textarea:focus { border-color: var(--color-primario-hover); }
 
 .btn-anular-confirmar {
-    background: #b91c1c;
+    background: var(--color-peligro);
     color: #fff;
     border: none;
     border-radius: 8px;
@@ -125,29 +125,29 @@
 }
 
 .btn-anular-confirmar:hover    { background: #991b1b; }
-.btn-anular-confirmar:disabled { background: #fca5a5; cursor: not-allowed; }
+.btn-anular-confirmar:disabled { background: var(--color-peligro-borde-2); cursor: not-allowed; }
 
 /* Inputs de fecha en filtros */
 .pasajes-filtros input[type="date"] {
     padding: 8px 12px;
-    border: 1px solid #d1d5db;
+    border: 1px solid var(--color-borde-input);
     border-radius: 8px;
     font-size: 13px;
     outline: none;
     background: #fff;
-    color: #1e293b;
+    color: var(--color-texto);
 }
 
-.pasajes-filtros input[type="date"]:focus { border-color: #2563b0; }
+.pasajes-filtros input[type="date"]:focus { border-color: var(--color-primario-hover); }
 
 /* Estados de encomiendas */
-.badge-transito  { background: #fef9c3; color: #a16207; }
+.badge-transito  { background: var(--color-advertencia-bg-2); color: var(--color-advertencia); }
 .badge-entregado { background: #ecfdf5; color: #047857; }
 
 /* Página de soporte */
 .soporte-form {
     background: #fff;
-    border: 1px solid #e5e7eb;
+    border: 1px solid var(--color-borde);
     border-radius: 12px;
     padding: 20px;
     display: flex;
@@ -158,7 +158,7 @@
 
 .soporte-form textarea {
     padding: 9px 12px;
-    border: 1px solid #d1d5db;
+    border: 1px solid var(--color-borde-input);
     border-radius: 8px;
     font-size: 13px;
     outline: none;
@@ -166,7 +166,7 @@
     font-family: inherit;
 }
 
-.soporte-form textarea:focus { border-color: #2563b0; }
+.soporte-form textarea:focus { border-color: var(--color-primario-hover); }
 
 .soporte-severidades { flex-wrap: wrap; }
 
@@ -193,36 +193,36 @@
 .btn-consulta {
     display: flex; align-items: center; gap: 5px;
     padding: 0 12px;
-    background: #1a4db5; color: #fff;
+    background: var(--color-primario); color: #fff;
     border: none; border-radius: 8px;
     font-size: 12px; font-weight: 600;
     cursor: pointer; white-space: nowrap;
     transition: background 0.15s;
 }
-.btn-consulta:hover:not(:disabled) { background: #1440a0; }
-.btn-consulta:disabled { background: #cbd5e1; cursor: not-allowed; }
+.btn-consulta:hover:not(:disabled) { background: var(--color-primario-osc); }
+.btn-consulta:disabled { background: var(--color-borde-2); cursor: not-allowed; }
 
 .consulta-resultado {
     display: flex; align-items: center; justify-content: space-between;
     gap: 10px; flex-wrap: wrap;
-    background: #eff6ff; border: 1px solid #bfdbfe;
+    background: var(--color-azul-bg); border: 1px solid var(--color-azul-borde);
     border-radius: 8px; padding: 10px 12px;
 }
 .consulta-empresa { display: flex; align-items: flex-start; gap: 8px; }
-.consulta-empresa i { font-size: 18px; color: #1a4db5; flex-shrink: 0; margin-top: 2px; }
-.consulta-empresa strong { display: block; font-size: 12.5px; color: #1e293b; }
+.consulta-empresa i { font-size: 18px; color: var(--color-primario); flex-shrink: 0; margin-top: 2px; }
+.consulta-empresa strong { display: block; font-size: 12.5px; color: var(--color-texto); }
 .consulta-empresa span { display: block; font-size: 11px; color: var(--txt-3); }
-.consulta-estado { color: #15803d !important; font-weight: 600; }
+.consulta-estado { color: var(--color-exito) !important; font-weight: 600; }
 
 .btn-usar-empresa {
     display: flex; align-items: center; gap: 5px;
     padding: 6px 12px;
-    background: #fff; color: #1a4db5;
-    border: 1px solid #1a4db5; border-radius: 8px;
+    background: #fff; color: var(--color-primario);
+    border: 1px solid var(--color-primario); border-radius: 8px;
     font-size: 12px; font-weight: 600; cursor: pointer;
     white-space: nowrap;
 }
-.btn-usar-empresa:hover { background: #dbeafe; }
+.btn-usar-empresa:hover { background: var(--color-azul-bg-2); }
 
 /* Contactos de soporte */
 .soporte-contactos {
@@ -231,20 +231,20 @@
 .contacto-card {
     flex: 1; min-width: 220px;
     display: flex; align-items: center; gap: 12px;
-    background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
+    background: #fff; border: 1px solid var(--color-borde); border-radius: 12px;
     padding: 14px 16px; text-decoration: none;
     transition: border-color 0.15s, box-shadow 0.15s;
 }
-.contacto-card:hover { border-color: #cbd5e1; box-shadow: 0 4px 14px rgba(15,23,42,0.08); }
+.contacto-card:hover { border-color: var(--color-borde-2); box-shadow: 0 4px 14px rgba(15,23,42,0.08); }
 .contacto-card i {
     font-size: 24px; width: 44px; height: 44px; border-radius: 10px;
     display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
-.contacto-card.whatsapp i { color: #15803d; background: #f0fdf4; }
-.contacto-card.correo i   { color: #1a4db5; background: #eff6ff; }
-.contacto-card strong { display: block; font-size: 14px; color: #1e293b; }
+.contacto-card.whatsapp i { color: var(--color-exito); background: var(--color-exito-bg); }
+.contacto-card.correo i   { color: var(--color-primario); background: var(--color-azul-bg); }
+.contacto-card strong { display: block; font-size: 14px; color: var(--color-texto); }
 .contacto-card span   { display: block; font-size: 11.5px; color: var(--txt-3); }
-.contacto-card .contacto-dato { font-size: 12.5px; color: #1a4db5; font-weight: 600; margin-top: 2px; }
+.contacto-card .contacto-dato { font-size: 12.5px; color: var(--color-primario); font-weight: 600; margin-top: 2px; }
 
 /* ══════════════════════════════════════════════════════════════════
    COMPROBANTES — rediseño
@@ -265,7 +265,7 @@
 .comp-acciones-serias {
     display: inline-flex; align-items: center; gap: 6px;
     margin-left: 6px; padding-left: 10px;
-    border-left: 1px solid #e5e7eb;
+    border-left: 1px solid var(--color-borde);
 }
 
 .pasajes-tabla .comp-tipo { margin-top: 1px; }

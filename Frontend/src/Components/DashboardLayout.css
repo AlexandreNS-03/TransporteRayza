@@ -120,7 +120,7 @@
 
 /* Item activo con gradiente izquierda → derecha */
 .sb-item.active {
-    background: linear-gradient(90deg, #1a3a7c 0%, #2563b0 100%);
+    background: linear-gradient(90deg, #1a3a7c 0%, var(--color-primario-hover) 100%);
     color: #ffffff;
     border-left: 5px solid #4d9fff;
     font-weight: 500;
@@ -147,7 +147,7 @@
 .navbar {
     height: 54px;
     background: #fff;
-    border-bottom: 1px solid #e5e7eb;
+    border-bottom: 1px solid var(--color-borde);
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -158,7 +158,7 @@
 .navbar-title {
     font-size: 17px;
     font-weight: 600;
-    color: #1e293b;
+    color: var(--color-texto);
     letter-spacing: 0.3px;
 }
 
@@ -177,20 +177,20 @@
     display: block;
     font-size: 13px;
     font-weight: 600;
-    color: #1e293b;
+    color: var(--color-texto);
 }
 
 .user-info span {
     display: block;
     font-size: 11px;
-    color: #6b7280;
+    color: var(--color-texto-suave);
 }
 
 .user-avatar {
     width: 34px;
     height: 34px;
     border-radius: 50%;
-    background: #1a4db5;
+    background: var(--color-primario);
     color: #fff;
     display: flex;
     align-items: center;
@@ -213,7 +213,7 @@
 }
 
 .logout-btn:hover {
-    background: #fef2f2;
+    background: var(--color-peligro-bg);
 }
 
 /* ── CONTENT ── */
@@ -229,7 +229,7 @@
     display: none;
     background: none;
     border: none;
-    color: #1e293b;
+    color: var(--color-texto);
     font-size: 24px;
     cursor: pointer;
     padding: 4px 8px;

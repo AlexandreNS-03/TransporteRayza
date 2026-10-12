@@ -2,37 +2,91 @@
    TEMA CENTRAL — Transportes Rayza
    Fuente única de colores, espaciados, radios y sombras.
    Úsalos en el CSS como: color: var(--color-primario);
+
+   Antes este archivo existía pero casi nadie lo usaba: había 1,582 colores
+   escritos a mano repartidos en 32 archivos. Cambiar un token aquí no movía
+   nada en pantalla. Ahora el CSS del panel lee estos tokens, así que el color
+   se cambia en un solo lugar.
+
+   Regla: ningún color nuevo se escribe en hex dentro de una pantalla. Si hace
+   falta un tono que no está acá, se agrega acá primero.
    ============================================================ */
 :root {
-    /* Marca / primarios */
-    --color-primario:      #1a4db5;
-    --color-primario-osc:  #1440a0;
-    --color-navy:          #0f172a;
-    --color-azul-bg:       #eff6ff;
-    --color-azul-borde:    #bfdbfe;
+    /* ── Marca ── */
+    --color-primario:        #1a4db5;  /* azul Rayza; es lo único que la gente ya reconoce */
+    --color-primario-osc:    #1440a0;  /* pulsado / activo */
+    --color-primario-hover:  #2563b0;
+    --color-primario-vivo:   #1d4ed8;
+    --color-azul-vivo:       #2563eb;
+    --color-navy:            #0f172a;  /* igual que --color-texto-fuerte; se conserva por compatibilidad */
 
-    /* Estados */
-    --color-exito:         #15803d;
-    --color-exito-bg:      #f0fdf4;
-    --color-advertencia:   #a16207;
-    --color-advertencia-bg:#fefce8;
-    --color-peligro:       #b91c1c;
-    --color-peligro-bg:    #fef2f2;
-    --color-info:          #0891b2;
-    --color-info-bg:       #ecfeff;
-    --color-morado:        #7c3aed;
-    --color-morado-bg:     #faf5ff;
+    --color-azul-bg:         #eff6ff;  /* fondo de aviso informativo */
+    --color-azul-bg-2:       #dbeafe;
+    --color-azul-borde:      #bfdbfe;
+    --color-azul-borde-2:    #93c5fd;
 
-    /* Neutros / texto */
-    --color-texto:         #1e293b;
-    --color-texto-fuerte:  #0f172a;
-    --color-texto-suave:   #6b7280;
-    --color-borde:         #e5e7eb;
-    --color-borde-input:   #d1d5db;
-    --color-fondo:         #f8fafc;
-    --color-blanco:        #ffffff;
+    /* ── Estados ──
+       Cada estado viene en terna: texto / fondo / borde. Si usás uno, usá los
+       tres de la misma familia, para que el aviso no quede a dos colores. */
+    --color-exito:           #15803d;
+    --color-exito-vivo:      #16a34a;
+    --color-exito-bg:        #f0fdf4;
+    --color-exito-bg-2:      #dcfce7;
+    --color-exito-borde:     #bbf7d0;
 
-    /* Espaciado (escala) */
+    --color-advertencia:     #a16207;
+    --color-advertencia-osc: #b45309;
+    --color-advertencia-fuerte: #92400e;
+    --color-ambar:           #f59e0b;
+    --color-advertencia-bg:  #fefce8;
+    --color-advertencia-bg-2:#fef9c3;
+    --color-ambar-bg:        #fffbeb;
+    --color-advertencia-borde: #fde68a;
+
+    --color-peligro:         #b91c1c;
+    --color-peligro-bg:      #fef2f2;
+    --color-peligro-bg-2:    #fee2e2;
+    --color-peligro-borde:   #fecaca;
+    --color-peligro-borde-2: #fca5a5;
+
+    --color-info:            #0891b2;
+    --color-info-bg:         #ecfeff;
+    --color-morado:          #7c3aed;
+    --color-morado-bg:       #faf5ff;
+
+    /* ── Neutros fríos (familia slate) ──
+       Son los que usan las pantallas rediseñadas: texto, bordes y fondos. */
+    --color-texto-fuerte:    #0f172a;
+    --color-texto:           #1e293b;
+    --color-texto-oscuro:    #334155;
+    --color-texto-medio:     #475569;
+    --color-texto-slate:     #64748b;
+    --color-texto-tenue:     #94a3b8;
+    --color-borde-2:         #cbd5e1;
+    --color-borde-suave:     #e2e8f0;
+    --color-fondo-2:         #f1f5f9;  /* cabeceras de tabla, celdas de apoyo */
+    --color-fondo-3:         #eef2f7;
+    --color-fondo:           #f8fafc;  /* fondo de página */
+
+    /* ── Neutros cálidos (familia gray) ──
+       Conviven con los de arriba desde antes. Tener dos familias de gris es
+       una deuda: unificarlas cambia el aspecto, así que se hace aparte. */
+    --color-gris-texto:      #374151;
+    --color-texto-suave:     #6b7280;
+    --color-gris-tenue:      #9ca3af;
+    --color-borde-input:     #d1d5db;
+    --color-borde:           #e5e7eb;
+
+    --color-blanco:          #ffffff;
+
+    /* ── Texto con contraste verificado sobre blanco ──
+       Medido, no elegido a ojo. El gris que había antes (#9ca3af) daba 2.54:1
+       y en la pantalla del mostrador con luz de día no se leía. */
+    --txt-1: #111827;   /* 16.1:1 — títulos y datos */
+    --txt-2: #4b5563;   /*  7.6:1 — texto normal */
+    --txt-3: #6b7280;   /*  4.8:1 — apoyo; es el más claro admisible */
+
+    /* ── Espaciado (escala) ── */
     --sp-1: 4px;
     --sp-2: 8px;
     --sp-3: 12px;
@@ -40,17 +94,33 @@
     --sp-5: 20px;
     --sp-6: 24px;
 
-    /* Radios */
+    /* ── Radios ── */
     --radio-sm: 6px;
     --radio:    8px;
     --radio-md: 10px;
     --radio-lg: 14px;
 
-    /* Sombras */
+    /* ── Sombras ──
+       Profundidad real: desplazamiento + desenfoque. Un halo sin
+       desplazamiento no es sombra, es decoración. */
     --sombra-sm: 0 1px 3px rgba(15, 23, 42, 0.08);
     --sombra:    0 4px 14px rgba(15, 23, 42, 0.08);
     --sombra-lg: 0 12px 40px rgba(15, 23, 42, 0.12);
 
-    /* Tipografía */
+    --sombra-1: 0 1px 2px rgba(16, 24, 40, .06), 0 1px 3px rgba(16, 24, 40, .10);
+    --sombra-2: 0 4px 8px -2px rgba(16, 24, 40, .10), 0 2px 4px -2px rgba(16, 24, 40, .06);
+    --sombra-3: 0 12px 16px -4px rgba(16, 24, 40, .08), 0 4px 6px -2px rgba(16, 24, 40, .03);
+
+    /* ── Movimiento ──
+       Las curvas de CSS (ease, ease-out) son demasiado suaves para que el
+       movimiento se sienta deliberado: estas son más marcadas y se usan en
+       todo el sistema, para que nada se mueva "distinto" según la pantalla. */
+    --ease-salida: cubic-bezier(0.23, 1, 0.32, 1);   /* entra y sale: arranca rápido */
+    --ease-mover:  cubic-bezier(0.77, 0, 0.175, 1);  /* se desplaza en pantalla */
+    --dur-rapida:  0.16s;                            /* pulsación, hover */
+    --dur-modal:   0.2s;
+
+    /* ── Tipografía ── */
     --fuente: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --fuente-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }

@@ -4,7 +4,7 @@
     display: flex;
     gap: 8px;
     margin-bottom: 18px;
-    border-bottom: 1px solid #e5e7eb;
+    border-bottom: 1px solid var(--color-borde);
     padding-bottom: 0;
 }
 
@@ -15,7 +15,7 @@
     padding: 10px 16px;
     font-size: 13px;
     font-weight: 600;
-    color: #6b7280;
+    color: var(--color-texto-suave);
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -23,8 +23,8 @@
     transition: color 0.15s, border-color 0.15s;
 }
 
-.caja-tabs button:hover  { color: #1a4db5; }
-.caja-tabs button.activo { color: #1a4db5; border-bottom-color: #1a4db5; }
+.caja-tabs button:hover  { color: var(--color-primario); }
+.caja-tabs button.activo { color: var(--color-primario); border-bottom-color: var(--color-primario); }
 
 .caja-acciones {
     display: flex;
@@ -33,9 +33,9 @@
 }
 
 .btn-cerrar-caja {
-    background: #fef2f2;
-    color: #b91c1c;
-    border: 1px solid #fecaca;
+    background: var(--color-peligro-bg);
+    color: var(--color-peligro);
+    border: 1px solid var(--color-peligro-borde);
     border-radius: 8px;
     padding: 9px 16px;
     font-size: 13px;
@@ -47,11 +47,11 @@
     transition: background 0.15s;
 }
 
-.btn-cerrar-caja:hover { background: #fee2e2; }
+.btn-cerrar-caja:hover { background: var(--color-peligro-bg-2); }
 
 .caja-cerrada-card {
     background: #fff;
-    border: 1px dashed #cbd5e1;
+    border: 1px dashed var(--color-borde-2);
     border-radius: 12px;
     padding: 48px 24px;
     text-align: center;
@@ -66,8 +66,8 @@
     color: var(--txt-3);
 }
 
-.caja-cerrada-card h3 { margin: 0; font-size: 17px; color: #1e293b; }
-.caja-cerrada-card p  { margin: 0 0 8px; font-size: 13px; color: #6b7280; }
+.caja-cerrada-card h3 { margin: 0; font-size: 17px; color: var(--color-texto); }
+.caja-cerrada-card p  { margin: 0 0 8px; font-size: 13px; color: var(--color-texto-suave); }
 
 .caja-dif {
     border-radius: 8px;
@@ -76,22 +76,22 @@
     font-weight: 600;
 }
 
-.caja-dif.ok  { background: #f0fdf4; color: #15803d; }
-.caja-dif.neg { background: #fef2f2; color: #b91c1c; }
+.caja-dif.ok  { background: var(--color-exito-bg); color: var(--color-exito); }
+.caja-dif.neg { background: var(--color-peligro-bg); color: var(--color-peligro); }
 
 .caja-check {
     display: flex;
     align-items: center;
     gap: 8px;
     font-size: 13px;
-    color: #374151;
+    color: var(--color-gris-texto);
     cursor: pointer;
 }
 
-.badge-cerrada { background: #f1f5f9; color: #475569; }
+.badge-cerrada { background: var(--color-fondo-2); color: var(--color-texto-medio); }
 
-.dif-ok       { color: #15803d; }
-.dif-negativa { color: #b91c1c; }
+.dif-ok       { color: var(--color-exito); }
+.dif-negativa { color: var(--color-peligro); }
 
 /* ══ Las cifras del turno ══
    En el orden en que se pregunta al cerrar: cuánto entró, cuánto salió y
@@ -106,30 +106,30 @@
        cifras salen centradas y cuesta compararlas de una a otra. */
     text-align: left;
     padding: 14px 16px; border-radius: 10px;
-    background: #fff; border: 1px solid #e5e7eb;
+    background: #fff; border: 1px solid var(--color-borde);
     display: grid; gap: 3px; align-content: start;
 }
-.caja-eti { font-size: 12px; color: #6b7280; }
+.caja-eti { font-size: 12px; color: var(--color-texto-suave); }
 .caja-cifra strong {
-    font-size: 23px; font-weight: 700; color: #0f172a; line-height: 1.1;
+    font-size: 23px; font-weight: 700; color: var(--color-texto-fuerte); line-height: 1.1;
     font-variant-numeric: tabular-nums;
 }
-.caja-nota { font-size: 11px; color: #9ca3af; }
+.caja-nota { font-size: 11px; color: var(--color-gris-tenue); }
 
-.caja-cobrado strong { color: #15803d; }
-.caja-salidas strong { color: #b45309; }
+.caja-cobrado strong { color: var(--color-exito); }
+.caja-salidas strong { color: var(--color-advertencia-osc); }
 
 /* El que se compara contra el conteo manual: va destacado, no de adorno. */
-.caja-esperado { border-color: #bfdbfe; background: #f8fbff; }
-.caja-esperado strong { color: #1a4db5; font-size: 26px; }
+.caja-esperado { border-color: var(--color-azul-borde); background: #f8fbff; }
+.caja-esperado strong { color: var(--color-primario); font-size: 26px; }
 
 .caja-digital { background: #fafafa; }
 
 /* ── Movimientos del turno ── */
-.col-hora { font-variant-numeric: tabular-nums; color: #475569; white-space: nowrap; width: 70px; }
+.col-hora { font-variant-numeric: tabular-nums; color: var(--color-texto-medio); white-space: nowrap; width: 70px; }
 .col-monto { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
-.mov-ingreso strong { color: #15803d; }
-.mov-egreso strong  { color: #b91c1c; }
+.mov-ingreso strong { color: var(--color-exito); }
+.mov-egreso strong  { color: var(--color-peligro); }
 .mov-motivo { display: flex; flex-direction: column; gap: 1px; line-height: 1.35; }
-.mov-motivo strong { font-size: 13.5px; font-weight: 600; color: #0f172a; }
-.mov-motivo span { font-size: 11.5px; color: #6b7280; }
+.mov-motivo strong { font-size: 13.5px; font-weight: 600; color: var(--color-texto-fuerte); }
+.mov-motivo span { font-size: 11.5px; color: var(--color-texto-suave); }

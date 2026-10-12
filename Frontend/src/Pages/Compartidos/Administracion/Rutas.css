@@ -13,13 +13,13 @@
 .rutas-header h2 {
     font-size: 22px;
     font-weight: 700;
-    color: #1e293b;
+    color: var(--color-texto);
     margin: 0;
 }
 
 .rutas-header p {
     font-size: 13px;
-    color: #6b7280;
+    color: var(--color-texto-suave);
     margin: 2px 0 0;
 }
 
@@ -29,7 +29,7 @@
     gap: 6px;
     height: 36px;
     padding: 0 16px;
-    background: #1a4db5;
+    background: var(--color-primario);
     color: #fff;
     border: none;
     border-radius: 8px;
@@ -38,11 +38,11 @@
     transition: background 0.15s;
 }
 
-.btn-nuevo:hover { background: #1440a0; }
+.btn-nuevo:hover { background: var(--color-primario-osc); }
 
 .rutas-filtros {
     background: #fff;
-    border: 1px solid #e5e7eb;
+    border: 1px solid var(--color-borde);
     border-radius: 10px;
     padding: 16px 20px;
     display: flex;
@@ -60,18 +60,18 @@
 .filtro-grupo label {
     font-size: 11px;
     font-weight: 600;
-    color: #6b7280;
+    color: var(--color-texto-suave);
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
 .filtro-grupo select {
     height: 34px;
-    border: 1px solid #d1d5db;
+    border: 1px solid var(--color-borde-input);
     border-radius: 6px;
     padding: 0 10px;
     font-size: 13px;
-    color: #1e293b;
+    color: var(--color-texto);
     background: #fff;
     outline: none;
     cursor: pointer;
@@ -81,7 +81,7 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    border: 1px solid #d1d5db;
+    border: 1px solid var(--color-borde-input);
     border-radius: 6px;
     padding: 0 10px;
     height: 34px;
@@ -94,7 +94,7 @@
     border: none;
     outline: none;
     font-size: 13px;
-    color: #1e293b;
+    color: var(--color-texto);
     width: 180px;
     background: transparent;
 }
@@ -105,9 +105,9 @@
     gap: 6px;
     height: 34px;
     padding: 0 14px;
-    border: 1px solid #2563b0;
+    border: 1px solid var(--color-primario-hover);
     background: transparent;
-    color: #2563b0;
+    color: var(--color-primario-hover);
     border-radius: 6px;
     font-size: 13px;
     cursor: pointer;
@@ -115,7 +115,7 @@
     align-self: flex-end;
 }
 
-.btn-limpiar:hover { background: #eff6ff; }
+.btn-limpiar:hover { background: var(--color-azul-bg); }
 
 .rutas-estado {
     display: flex;
@@ -123,23 +123,23 @@
     justify-content: center;
     gap: 10px;
     padding: 40px;
-    color: #6b7280;
+    color: var(--color-texto-suave);
     font-size: 14px;
     background: #fff;
-    border: 1px solid #e5e7eb;
+    border: 1px solid var(--color-borde);
     border-radius: 10px;
 }
 
 .rutas-estado.error {
-    color: #b91c1c;
-    background: #fef2f2;
-    border-color: #fecaca;
+    color: var(--color-peligro);
+    background: var(--color-peligro-bg);
+    border-color: var(--color-peligro-borde);
 }
 
 .rutas-estado.error button {
     background: none;
-    border: 1px solid #b91c1c;
-    color: #b91c1c;
+    border: 1px solid var(--color-peligro);
+    color: var(--color-peligro);
     padding: 4px 12px;
     border-radius: 6px;
     cursor: pointer;
@@ -151,7 +151,7 @@
 
 .rutas-tabla-wrapper {
     background: #fff;
-    border: 1px solid #e5e7eb;
+    border: 1px solid var(--color-borde);
     border-radius: 10px;
     overflow-x: auto;
 }
@@ -163,8 +163,8 @@
 }
 
 .rutas-tabla thead tr {
-    background: #f8fafc;
-    border-bottom: 1px solid #e5e7eb;
+    background: var(--color-fondo);
+    border-bottom: 1px solid var(--color-borde);
 }
 
 .rutas-tabla th {
@@ -172,7 +172,7 @@
     text-align: left;
     font-size: 12px;
     font-weight: 600;
-    color: #6b7280;
+    color: var(--color-texto-suave);
     text-transform: uppercase;
     letter-spacing: 0.4px;
     white-space: nowrap;
@@ -180,14 +180,14 @@
 
 .rutas-tabla td {
     padding: 12px 14px;
-    color: #1e293b;
-    border-bottom: 1px solid #f1f5f9;
+    color: var(--color-texto);
+    border-bottom: 1px solid var(--color-fondo-2);
     vertical-align: middle;
 }
 
 .rutas-tabla tbody tr:last-child td { border-bottom: none; }
-.rutas-tabla tbody tr:hover { background: #f8fafc; }
-.rutas-tabla .codigo { font-size: 11px; color: #6b7280; font-family: monospace; }
+.rutas-tabla tbody tr:hover { background: var(--color-fondo); }
+.rutas-tabla .codigo { font-size: 11px; color: var(--color-texto-suave); font-family: monospace; }
 
 .badge {
     display: inline-block;
@@ -197,8 +197,8 @@
     font-weight: 600;
 }
 
-.badge-activo   { background: #f0fdf4; color: #15803d; }
-.badge-inactivo { background: #f1f5f9; color: #6b7280; }
+.badge-activo   { background: var(--color-exito-bg); color: var(--color-exito); }
+.badge-inactivo { background: var(--color-fondo-2); color: var(--color-texto-suave); }
 
 .acciones { display: flex; gap: 6px; }
 
@@ -215,14 +215,14 @@
     transition: background 0.15s;
 }
 
-.btn-accion.editar     { background: #eff6ff; color: #1d4ed8; }
-.btn-accion.editar:hover { background: #dbeafe; }
-.btn-accion.desactivar { background: #fef2f2; color: #b91c1c; }
-.btn-accion.desactivar:hover { background: #fee2e2; }
-.btn-accion.activar    { background: #f0fdf4; color: #15803d; }
-.btn-accion.activar:hover { background: #dcfce7; }
-.btn-accion.detalle    { background: #f8fafc; color: #6b7280; }
-.btn-accion.detalle:hover { background: #e2e8f0; }
+.btn-accion.editar     { background: var(--color-azul-bg); color: var(--color-primario-vivo); }
+.btn-accion.editar:hover { background: var(--color-azul-bg-2); }
+.btn-accion.desactivar { background: var(--color-peligro-bg); color: var(--color-peligro); }
+.btn-accion.desactivar:hover { background: var(--color-peligro-bg-2); }
+.btn-accion.activar    { background: var(--color-exito-bg); color: var(--color-exito); }
+.btn-accion.activar:hover { background: var(--color-exito-bg-2); }
+.btn-accion.detalle    { background: var(--color-fondo); color: var(--color-texto-suave); }
+.btn-accion.detalle:hover { background: var(--color-borde-suave); }
 
 .tabla-vacia {
     text-align: center;
@@ -234,14 +234,14 @@
 
 /* FILA DETALLE */
 .fila-detalle td {
-    background: #f8fafc;
+    background: var(--color-fondo);
     padding: 0 !important;
-    border-bottom: 2px solid #e5e7eb !important;
+    border-bottom: 2px solid var(--color-borde) !important;
 }
 
 .detalle-cargando {
     padding: 20px;
-    color: #6b7280;
+    color: var(--color-texto-suave);
     display: flex;
     align-items: center;
     gap: 8px;
@@ -259,7 +259,7 @@
 .detalle-seccion h4 {
     font-size: 12px;
     font-weight: 600;
-    color: #6b7280;
+    color: var(--color-texto-suave);
     text-transform: uppercase;
     letter-spacing: 0.4px;
     margin: 0 0 10px;
@@ -279,13 +279,13 @@
     align-items: center;
     gap: 10px;
     font-size: 13px;
-    color: #1e293b;
+    color: var(--color-texto);
 }
 
 .parada-orden {
     width: 24px;
     height: 24px;
-    background: #1a4db5;
+    background: var(--color-primario);
     color: #fff;
     border-radius: 50%;
     display: flex;
@@ -307,15 +307,15 @@
     text-align: left;
     font-size: 11px;
     font-weight: 600;
-    color: #6b7280;
+    color: var(--color-texto-suave);
     text-transform: uppercase;
-    border-bottom: 1px solid #e5e7eb;
+    border-bottom: 1px solid var(--color-borde);
 }
 
 .tarifas-tabla td {
     padding: 6px 10px;
-    color: #1e293b;
-    border-bottom: 1px solid #f1f5f9;
+    color: var(--color-texto);
+    border-bottom: 1px solid var(--color-fondo-2);
 }
 
 /* MODAL */
@@ -349,24 +349,24 @@
     align-items: center;
     justify-content: space-between;
     padding: 18px 20px;
-    border-bottom: 1px solid #e5e7eb;
+    border-bottom: 1px solid var(--color-borde);
 }
 
-.modal-header h3 { font-size: 16px; font-weight: 600; color: #1e293b; margin: 0; }
+.modal-header h3 { font-size: 16px; font-weight: 600; color: var(--color-texto); margin: 0; }
 
 .modal-cerrar {
     background: none;
     border: none;
     cursor: pointer;
     font-size: 18px;
-    color: #6b7280;
+    color: var(--color-texto-suave);
     padding: 4px;
     border-radius: 6px;
     display: flex;
     align-items: center;
 }
 
-.modal-cerrar:hover { background: #f1f5f9; }
+.modal-cerrar:hover { background: var(--color-fondo-2); }
 
 .modal-body {
     padding: 20px;
@@ -378,7 +378,7 @@
 .modal-seccion-titulo {
     font-size: 12px;
     font-weight: 600;
-    color: #6b7280;
+    color: var(--color-texto-suave);
     text-transform: uppercase;
     letter-spacing: 0.5px;
     margin: 0;
@@ -389,7 +389,7 @@
 
 .modal-separador {
     height: 1px;
-    background: #e5e7eb;
+    background: var(--color-borde);
     margin: 4px 0;
 }
 
@@ -406,23 +406,23 @@
     flex: 1;
 }
 
-.form-grupo label { font-size: 12px; font-weight: 600; color: #374151; }
+.form-grupo label { font-size: 12px; font-weight: 600; color: var(--color-gris-texto); }
 
 .form-grupo input,
 .form-grupo select {
     height: 36px;
-    border: 1px solid #d1d5db;
+    border: 1px solid var(--color-borde-input);
     border-radius: 6px;
     padding: 0 12px;
     font-size: 13px;
-    color: #1e293b;
+    color: var(--color-texto);
     outline: none;
     transition: border-color 0.15s;
     background: #fff;
 }
 
 .form-grupo input:focus,
-.form-grupo select:focus { border-color: #2563b0; }
+.form-grupo select:focus { border-color: var(--color-primario-hover); }
 
 .form-grupo-check {
     display: flex;
@@ -431,17 +431,17 @@
 }
 
 .form-grupo-check input { width: 16px; height: 16px; cursor: pointer; }
-.form-grupo-check label { font-size: 13px; color: #374151; cursor: pointer; }
+.form-grupo-check label { font-size: 13px; color: var(--color-gris-texto); cursor: pointer; }
 
 .form-fila-parada { align-items: flex-end; }
 
 .btn-eliminar-fila {
     width: 34px;
     height: 34px;
-    background: #fef2f2;
+    background: var(--color-peligro-bg);
     border: none;
     border-radius: 6px;
-    color: #b91c1c;
+    color: var(--color-peligro);
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -451,7 +451,7 @@
     margin-bottom: 1px;
 }
 
-.btn-eliminar-fila:hover { background: #fee2e2; }
+.btn-eliminar-fila:hover { background: var(--color-peligro-bg-2); }
 
 .btn-agregar-fila {
     display: flex;
@@ -459,45 +459,45 @@
     gap: 6px;
     height: 32px;
     padding: 0 12px;
-    background: #f1f5f9;
-    border: 1px dashed #cbd5e1;
+    background: var(--color-fondo-2);
+    border: 1px dashed var(--color-borde-2);
     border-radius: 6px;
-    color: #475569;
+    color: var(--color-texto-medio);
     font-size: 12px;
     cursor: pointer;
     transition: background 0.15s;
     width: fit-content;
 }
 
-.btn-agregar-fila:hover { background: #e2e8f0; }
+.btn-agregar-fila:hover { background: var(--color-borde-suave); }
 
 .tarifa-fila { display: flex; flex-direction: column; gap: 8px; }
-.tarifa-separador { height: 1px; background: #f1f5f9; margin: 4px 0; }
+.tarifa-separador { height: 1px; background: var(--color-fondo-2); margin: 4px 0; }
 
 .tramos-bloqueados-grid { display: flex; flex-wrap: wrap; gap: 8px; }
 .tramo-bloqueado-chip {
     display: flex; align-items: center; gap: 6px;
     height: 32px; padding: 0 12px;
-    background: #f0fdf4; border: 1px solid #bbf7d0;
-    border-radius: 999px; color: #15803d;
+    background: var(--color-exito-bg); border: 1px solid var(--color-exito-borde);
+    border-radius: 999px; color: var(--color-exito);
     font-size: 12px; cursor: pointer;
     transition: background 0.15s, border-color 0.15s, color 0.15s;
 }
 .tramo-bloqueado-chip:hover { border-color: #86efac; }
 .tramo-bloqueado-chip.activo {
-    background: #fef2f2; border-color: #fecaca; color: #b91c1c;
+    background: var(--color-peligro-bg); border-color: var(--color-peligro-borde); color: var(--color-peligro);
 }
-.tramo-bloqueado-chip.activo:hover { border-color: #fca5a5; }
+.tramo-bloqueado-chip.activo:hover { border-color: var(--color-peligro-borde-2); }
 
 .modal-error {
     display: flex;
     align-items: center;
     gap: 8px;
     padding: 10px 12px;
-    background: #fef2f2;
-    border: 1px solid #fecaca;
+    background: var(--color-peligro-bg);
+    border: 1px solid var(--color-peligro-borde);
     border-radius: 6px;
-    color: #b91c1c;
+    color: var(--color-peligro);
     font-size: 13px;
 }
 
@@ -506,26 +506,26 @@
     justify-content: flex-end;
     gap: 10px;
     padding: 16px 20px;
-    border-top: 1px solid #e5e7eb;
+    border-top: 1px solid var(--color-borde);
 }
 
 .btn-cancelar {
     height: 36px;
     padding: 0 16px;
-    background: #f1f5f9;
+    background: var(--color-fondo-2);
     border: none;
     border-radius: 6px;
-    color: #374151;
+    color: var(--color-gris-texto);
     font-size: 13px;
     cursor: pointer;
 }
 
-.btn-cancelar:hover { background: #e2e8f0; }
+.btn-cancelar:hover { background: var(--color-borde-suave); }
 
 .btn-guardar {
     height: 36px;
     padding: 0 16px;
-    background: #1a4db5;
+    background: var(--color-primario);
     border: none;
     border-radius: 6px;
     color: #fff;
@@ -536,40 +536,40 @@
     gap: 6px;
 }
 
-.btn-guardar:hover { background: #1440a0; }
-.btn-guardar:disabled { background: #93c5fd; cursor: not-allowed; }
+.btn-guardar:hover { background: var(--color-primario-osc); }
+.btn-guardar:disabled { background: var(--color-azul-borde-2); cursor: not-allowed; }
 /* Carga masiva de tarifas por Excel: con 7 paradas son 21 tramos, una por una es inviable */
 .carga-excel {
-    background: #f8fafc;
-    border: 1px dashed #cbd5e1;
+    background: var(--color-fondo);
+    border: 1px dashed var(--color-borde-2);
     border-radius: 8px;
     padding: 12px 14px;
     margin-bottom: 14px;
 }
-.carga-excel-ayuda { margin: 0 0 10px; font-size: 13px; color: #475569; }
+.carga-excel-ayuda { margin: 0 0 10px; font-size: 13px; color: var(--color-texto-medio); }
 .carga-excel-acciones { display: flex; gap: 10px; flex-wrap: wrap; }
 
 .btn-plantilla, .btn-importar {
     display: inline-flex; align-items: center; gap: 6px;
     padding: 8px 14px; border-radius: 6px; font-size: 13px; font-weight: 600;
-    cursor: pointer; border: 1px solid #cbd5e1; background: #fff; color: #334155;
+    cursor: pointer; border: 1px solid var(--color-borde-2); background: #fff; color: var(--color-texto-oscuro);
     transition: background 0.15s, border-color 0.15s;
 }
-.btn-plantilla:hover, .btn-importar:hover { background: #f1f5f9; border-color: var(--txt-3); }
-.btn-importar { background: #1d4ed8; border-color: #1d4ed8; color: #fff; }
+.btn-plantilla:hover, .btn-importar:hover { background: var(--color-fondo-2); border-color: var(--txt-3); }
+.btn-importar { background: var(--color-primario-vivo); border-color: var(--color-primario-vivo); color: #fff; }
 .btn-importar:hover { background: #1e40af; border-color: #1e40af; }
 .btn-plantilla:disabled { opacity: 0.6; cursor: not-allowed; }
 
-.carga-excel-msg { margin: 10px 0 0; font-size: 13px; color: #15803d; font-weight: 500; }
-.carga-excel-msg.es-error { color: #b91c1c; }
+.carga-excel-msg { margin: 10px 0 0; font-size: 13px; color: var(--color-exito); font-weight: 500; }
+.carga-excel-msg.es-error { color: var(--color-peligro); }
 
 @media (max-width: 640px) {
     .carga-excel-acciones { flex-direction: column; }
     .btn-plantilla, .btn-importar { justify-content: center; }
 }
 
-.carga-excel.bloqueado { background: #f1f5f9; border-style: solid; opacity: 0.8; }
-.carga-excel.bloqueado .carga-excel-ayuda { color: #64748b; font-style: italic; }
+.carga-excel.bloqueado { background: var(--color-fondo-2); border-style: solid; opacity: 0.8; }
+.carga-excel.bloqueado .carga-excel-ayuda { color: var(--color-texto-slate); font-style: italic; }
 
 .combinaciones-badge {
     margin-left: 8px; padding: 2px 9px; border-radius: 20px;

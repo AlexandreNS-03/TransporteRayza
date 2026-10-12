@@ -10,8 +10,8 @@
     padding: 13px 15px;
     margin-bottom: 18px;
     border-radius: 10px;
-    border-left: 4px solid #b45309;
-    background: #fffbeb;
+    border-left: 4px solid var(--color-advertencia-osc);
+    background: var(--color-ambar-bg);
     color: #78350f;
     font-size: 13.5px;
     line-height: 1.55;
@@ -20,11 +20,11 @@
 .sorteo-nuevo {
     padding: 18px;
     margin-bottom: 20px;
-    border: 1px solid #e5e7eb;
+    border: 1px solid var(--color-borde);
     border-radius: 12px;
     background: #fff;
 }
-.sorteo-nuevo h3 { margin: 0 0 14px; font-size: 15px; font-weight: 700; color: #0f172a; }
+.sorteo-nuevo h3 { margin: 0 0 14px; font-size: 15px; font-weight: 700; color: var(--color-texto-fuerte); }
 
 .sorteo-grid {
     display: grid;
@@ -38,7 +38,7 @@
 
 .sorteo-tarjeta {
     padding: 18px;
-    border: 1px solid #e5e7eb;
+    border: 1px solid var(--color-borde);
     border-radius: 12px;
     background: #fff;
     display: grid;
@@ -49,38 +49,38 @@
     display: flex; align-items: flex-start; justify-content: space-between;
     gap: 12px; flex-wrap: wrap;
 }
-.sorteo-tarjeta h3 { margin: 0 0 2px; font-size: 16px; font-weight: 700; color: #0f172a; }
+.sorteo-tarjeta h3 { margin: 0 0 2px; font-size: 16px; font-weight: 700; color: var(--color-texto-fuerte); }
 .sorteo-tarjeta p  { margin: 0; font-size: 13.5px; }
-.sorteo-tarjeta .muted { color: #6b7280; }
+.sorteo-tarjeta .muted { color: var(--color-texto-suave); }
 
-.badge.estado-borrador { background: #f1f5f9; color: #475569; }
-.badge.estado-abierto  { background: #f0fdf4; color: #15803d; }
-.badge.estado-cerrado  { background: #fff7ed; color: #b45309; }
+.badge.estado-borrador { background: var(--color-fondo-2); color: var(--color-texto-medio); }
+.badge.estado-abierto  { background: var(--color-exito-bg); color: var(--color-exito); }
+.badge.estado-cerrado  { background: #fff7ed; color: var(--color-advertencia-osc); }
 .badge.estado-sorteado { background: #eef2ff; color: #4338ca; }
 
 /* Las cifras son lo que se mira de reojo antes de decidir si ya toca sortear. */
 .sorteo-cifras {
     display: flex; gap: 26px; flex-wrap: wrap;
     padding: 12px 0;
-    border-top: 1px solid #f1f5f9;
-    border-bottom: 1px solid #f1f5f9;
+    border-top: 1px solid var(--color-fondo-2);
+    border-bottom: 1px solid var(--color-fondo-2);
 }
 .sorteo-cifras > div { display: grid; gap: 2px; }
 .sorteo-cifras strong {
-    font-size: 22px; font-weight: 800; color: #0f172a;
+    font-size: 22px; font-weight: 800; color: var(--color-texto-fuerte);
     font-variant-numeric: tabular-nums; line-height: 1.1;
 }
-.sorteo-cifras span { font-size: 12px; color: #6b7280; }
+.sorteo-cifras span { font-size: 12px; color: var(--color-texto-suave); }
 
 .sorteo-ganador-caja {
     padding: 14px 16px;
     border-radius: 10px;
-    background: #f8fafc;
-    border-left: 4px solid #1a4db5;
+    background: var(--color-fondo);
+    border-left: 4px solid var(--color-primario);
 }
 .sorteo-ganador-caja .rec-etiqueta {
     display: block; font-size: 11.5px; font-weight: 700;
-    color: #6b7280; text-transform: uppercase; letter-spacing: .04em;
+    color: var(--color-texto-suave); text-transform: uppercase; letter-spacing: .04em;
     margin-bottom: 6px;
 }
 .sorteo-ganador-caja p { margin: 0 0 4px; font-size: 14px; }
@@ -143,7 +143,7 @@
     position: absolute; top: -12px; left: 50%; z-index: 4;
     transform: translateX(-50%);
     filter: drop-shadow(0 3px 4px rgba(15, 23, 42, .35));
-    color: #0f172a;
+    color: var(--color-texto-fuerte);
 }
 
 .ruleta-centro {
@@ -154,20 +154,20 @@
     display: grid; place-content: center; text-align: center; padding: 10px;
 }
 
-.ruleta-eti { font-size: 11.5px; color: #6b7280; letter-spacing: .04em; }
+.ruleta-eti { font-size: 11.5px; color: var(--color-texto-suave); letter-spacing: .04em; }
 .ruleta-cifra {
-    display: block; font-size: 30px; font-weight: 800; color: #0f172a;
+    display: block; font-size: 30px; font-weight: 800; color: var(--color-texto-fuerte);
     line-height: 1; font-variant-numeric: tabular-nums;
 }
 
 /* Entra desde 0.94, nunca desde 0: nada en el mundo real aparece de la nada. */
 .ruleta-ganador {
-    display: block; font-size: 17px; font-weight: 800; color: #1a4db5;
+    display: block; font-size: 17px; font-weight: 800; color: var(--color-primario);
     line-height: 1.2; margin: 4px 0;
     animation: ruleta-revelar 320ms var(--ease-salida) both 60ms;
 }
 .ruleta-codigo {
-    font-size: 11px; color: #6b7280; letter-spacing: .1em;
+    font-size: 11px; color: var(--color-texto-suave); letter-spacing: .1em;
     animation: ruleta-revelar 320ms var(--ease-salida) both 140ms;
 }
 .ruleta-eti-girando { animation: ruleta-latir 1.4s ease-in-out infinite; }
@@ -180,7 +180,7 @@
 
 .ruleta-nota {
     margin: 10px auto 0; max-width: 40ch;
-    font-size: 12px; color: #6b7280; text-align: center;
+    font-size: 12px; color: var(--color-texto-suave); text-align: center;
 }
 
 .sorteo-vivo .sorteo-ganador-caja { text-align: left; margin-top: 10px; }
@@ -203,7 +203,7 @@
 .premio-fila { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
 .premio-puesto {
     flex: 0 0 auto; width: 26px; text-align: center;
-    font-size: 12.5px; font-weight: 800; color: #1a4db5;
+    font-size: 12.5px; font-weight: 800; color: var(--color-primario);
 }
 .premio-fila input { flex: 1; min-width: 0; }
 .premio-fila .premio-valor { flex: 0 0 110px; }
@@ -211,31 +211,31 @@
 .premio-quitar {
     flex: 0 0 auto; width: 30px; height: 30px; cursor: pointer;
     display: grid; place-items: center;
-    border: 1px solid #e5e7eb; border-radius: 7px;
-    background: #fff; color: #6b7280;
+    border: 1px solid var(--color-borde); border-radius: 7px;
+    background: #fff; color: var(--color-texto-suave);
 }
-.premio-quitar:hover { background: #fef2f2; border-color: #fecaca; color: #b91c1c; }
+.premio-quitar:hover { background: var(--color-peligro-bg); border-color: var(--color-peligro-borde); color: var(--color-peligro); }
 
 .premio-agregar {
     display: inline-flex; align-items: center; gap: 5px;
     padding: 6px 11px; margin-top: 2px; cursor: pointer;
-    border: 1px dashed #cbd5e1; border-radius: 7px;
-    background: #fff; color: #1a4db5; font-size: 12.5px;
+    border: 1px dashed var(--color-borde-2); border-radius: 7px;
+    background: #fff; color: var(--color-primario); font-size: 12.5px;
 }
-.premio-agregar:hover { background: #eff6ff; border-color: #93c5fd; }
+.premio-agregar:hover { background: var(--color-azul-bg); border-color: var(--color-azul-borde-2); }
 
 /* La lista de premios de un sorteo ya creado, con quién ganó cada uno. */
 .premios-lista, .premios-entregados {
     list-style: none; margin: 0; padding: 0;
     display: grid; gap: 5px; text-align: left;
 }
-.premios-lista li, .premios-entregados li { font-size: 13px; color: #334155; }
-.premios-lista b, .premios-entregados b { color: #1a4db5; margin-right: 4px; }
-.premio-ganador { font-weight: 600; color: #0f172a; }
+.premios-lista li, .premios-entregados li { font-size: 13px; color: var(--color-texto-oscuro); }
+.premios-lista b, .premios-entregados b { color: var(--color-primario); margin-right: 4px; }
+.premio-ganador { font-weight: 600; color: var(--color-texto-fuerte); }
 
 .premios-entregados {
     margin-top: 12px; padding: 11px 13px;
-    background: #f8fafc; border-radius: 9px;
+    background: var(--color-fondo); border-radius: 9px;
 }
 
 /* La casilla de "dejarlo preparado": decide si el sorteo sale a la calle o
@@ -243,23 +243,23 @@
 .check-preparado {
     display: flex; align-items: flex-start; gap: 9px;
     padding: 11px 12px; margin: 0 0 14px;
-    border: 1px solid #e5e7eb; border-radius: 8px;
-    background: #f8fafc; cursor: pointer; font-size: 13px; color: #334155;
+    border: 1px solid var(--color-borde); border-radius: 8px;
+    background: var(--color-fondo); cursor: pointer; font-size: 13px; color: var(--color-texto-oscuro);
     text-align: left;
 }
 .check-preparado input { margin-top: 2px; flex-shrink: 0; }
-.check-preparado em { display: block; font-style: normal; font-size: 11.5px; color: #6b7280; margin-top: 2px; }
-.badge.estado-borrador { background: #f1f5f9; color: #475569; }
+.check-preparado em { display: block; font-style: normal; font-size: 11.5px; color: var(--color-texto-suave); margin-top: 2px; }
+.badge.estado-borrador { background: var(--color-fondo-2); color: var(--color-texto-medio); }
 
 /* Sorteo sin participantes: el operador tiene que entender por qué no puede
    sortear antes de buscar el botón. */
 .sorteo-sin-nadie {
     display: grid; gap: 8px; justify-items: start;
     padding: 12px 14px; border-radius: 9px;
-    background: #fffbeb; border: 1px solid #fde68a;
+    background: var(--color-ambar-bg); border: 1px solid var(--color-advertencia-borde);
     text-align: left;
 }
 .sorteo-sin-nadie p { margin: 0; font-size: 13px; color: #78350f; }
 
-.sorteo-ganador-caja.desierto { border-left-color: #b45309; background: #fffbeb; }
-.badge.estado-desierto { background: #fffbeb; color: #b45309; }
+.sorteo-ganador-caja.desierto { border-left-color: var(--color-advertencia-osc); background: var(--color-ambar-bg); }
+.badge.estado-desierto { background: var(--color-ambar-bg); color: var(--color-advertencia-osc); }

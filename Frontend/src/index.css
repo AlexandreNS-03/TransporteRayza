@@ -32,7 +32,7 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --text: #9ca3af;
+    --text: var(--color-gris-tenue);
     --text-h: #f3f4f6;
     --bg: #16171d;
     --border: #2e303a;
@@ -123,24 +123,17 @@ code {
     padding: 40px 24px;
 }
 
-.pantalla-error i { font-size: 44px; color: #b45309; }
-.pantalla-error h2 { margin: 0; font-size: 22px; color: #1e293b; }
-.pantalla-error p { margin: 0; max-width: 52ch; color: #6b7280; line-height: 1.6; font-size: 14px; }
+.pantalla-error i { font-size: 44px; color: var(--color-advertencia-osc); }
+.pantalla-error h2 { margin: 0; font-size: 22px; color: var(--color-texto); }
+.pantalla-error p { margin: 0; max-width: 52ch; color: var(--color-texto-suave); line-height: 1.6; font-size: 14px; }
 .pantalla-error-acciones { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 8px; }
 .pantalla-error-acciones a { text-decoration: none; }
 
 /* ============================================================
-   MOVIMIENTO — tokens y reglas comunes
-   Las curvas de CSS (ease, ease-out) son demasiado suaves para que el
-   movimiento se sienta deliberado: estas son más marcadas y se usan en todo
-   el sistema, para que nada se mueva "distinto" según la pantalla.
+   MOVIMIENTO — reglas comunes
+   Las curvas y duraciones viven en theme.css (--ease-salida, --ease-mover,
+   --dur-rapida, --dur-modal). Acá van las reglas que las usan.
    ============================================================ */
-:root {
-  --ease-salida: cubic-bezier(0.23, 1, 0.32, 1);      /* entra y sale: arranca rápido */
-  --ease-mover:  cubic-bezier(0.77, 0, 0.175, 1);     /* se desplaza en pantalla */
-  --dur-rapida:  0.16s;                               /* pulsación, hover */
-  --dur-modal:   0.2s;
-}
 
 /* ── Modales ──
    Antes aparecían de golpe, en las 20 pantallas que los usan. @starting-style
@@ -206,22 +199,10 @@ button:not(:disabled):active,
 }
 
 /* ============================================================
-   CALIDAD VISUAL — escala de texto, foco y profundidad
+   CALIDAD VISUAL — foco y ritmo
+   La escala de texto (--txt-1/2/3) y las sombras (--sombra-1/2/3) viven
+   en theme.css. Acá van las reglas que las usan.
    ============================================================ */
-:root {
-  /* Contraste verificado sobre blanco. El gris que había antes (#9ca3af)
-     daba 2.54:1: por debajo del mínimo legible, y en la pantalla del
-     mostrador con luz de día directamente no se leía. */
-  --txt-1: #111827;   /* 16.1:1 — títulos y datos */
-  --txt-2: #4b5563;   /*  7.6:1 — texto normal */
-  --txt-3: #6b7280;   /*  4.8:1 — apoyo; es el más claro admisible */
-
-  /* Profundidad real: desplazamiento + desenfoque. Un halo sin
-     desplazamiento no es sombra, es decoración. */
-  --sombra-1: 0 1px 2px rgba(16, 24, 40, .06), 0 1px 3px rgba(16, 24, 40, .10);
-  --sombra-2: 0 4px 8px -2px rgba(16, 24, 40, .10), 0 2px 4px -2px rgba(16, 24, 40, .06);
-  --sombra-3: 0 12px 16px -4px rgba(16, 24, 40, .08), 0 4px 6px -2px rgba(16, 24, 40, .03);
-}
 
 /* ── Foco de teclado ──
    Había 31 reglas que quitaban el contorno y ninguna que lo devolviera al
@@ -229,7 +210,7 @@ button:not(:disabled):active,
    selector es deliberadamente específico para ganarle a esas reglas sin
    recurrir a !important. */
 html :is(button, a, input, select, textarea, [tabindex]):focus-visible {
-  outline: 2px solid #1a4db5;
+  outline: 2px solid var(--color-primario);
   outline-offset: 2px;
   border-radius: 6px;
 }
@@ -335,7 +316,7 @@ html :is(button, a, input, select, textarea, [tabindex]):focus-visible {
   .rutas-tabla tr, .sucursales-tabla tr, .emb-tabla tr, .roles-tabla tr, .manifiesto-tabla tr,
   .anuncios-tabla tr, .preciosweb-tabla tr {
     margin-bottom: 12px;
-    border: 1px solid var(--color-borde, #e2e8f0);
+    border: 1px solid var(--color-borde, var(--color-borde-suave));
     border-radius: var(--radio-md, 10px);
     background: var(--color-blanco, #fff);
     box-shadow: var(--sombra-sm, 0 1px 3px rgba(0, 0, 0, .06));
@@ -348,7 +329,7 @@ html :is(button, a, input, select, textarea, [tabindex]):focus-visible {
   .rutas-tabla td, .sucursales-tabla td, .emb-tabla td, .roles-tabla td, .manifiesto-tabla td,
   .anuncios-tabla td, .preciosweb-tabla td {
     display: flex; justify-content: space-between; align-items: center;
-    gap: 14px; padding: 10px 14px; border: none; border-bottom: 1px solid #f1f5f9;
+    gap: 14px; padding: 10px 14px; border: none; border-bottom: 1px solid var(--color-fondo-2);
     text-align: right;
   }
   .rutas-tabla tr td:last-child, .sucursales-tabla tr td:last-child, .emb-tabla tr td:last-child,
@@ -358,7 +339,7 @@ html :is(button, a, input, select, textarea, [tabindex]):focus-visible {
   .rutas-tabla td::before, .sucursales-tabla td::before, .emb-tabla td::before,
   .roles-tabla td::before, .manifiesto-tabla td::before,
   .anuncios-tabla td::before, .preciosweb-tabla td::before {
-    content: attr(data-label); font-weight: 600; color: var(--color-texto-suave, #64748b);
+    content: attr(data-label); font-weight: 600; color: var(--color-texto-suave, var(--color-texto-slate));
     font-size: 11px; text-transform: uppercase; letter-spacing: .3px; text-align: left; flex-shrink: 0;
   }
 
@@ -369,7 +350,7 @@ html :is(button, a, input, select, textarea, [tabindex]):focus-visible {
   .manifiesto-tabla td.acciones, .manifiesto-tabla td.acciones-cell,
   .anuncios-tabla td.acciones, .anuncios-tabla td.acciones-cell,
   .preciosweb-tabla td.acciones, .preciosweb-tabla td.acciones-cell {
-    justify-content: flex-end; flex-wrap: wrap; background: #f8fafc;
+    justify-content: flex-end; flex-wrap: wrap; background: var(--color-fondo);
   }
   .rutas-tabla td.acciones::before, .rutas-tabla td.acciones-cell::before,
   .sucursales-tabla td.acciones::before, .sucursales-tabla td.acciones-cell::before,
