@@ -33,7 +33,7 @@
     background: var(--color-primario);
     color: #fff;
     border: none;
-    border-radius: 8px;
+    border-radius: var(--radio-3);
     font-size: 13px;
     cursor: pointer;
     transition: background 0.15s;
@@ -44,8 +44,9 @@
 /* FILTROS */
 .sucursales-filtros {
     background: #fff;
-    border: 1px solid var(--color-borde);
-    border-radius: 10px;
+    border: 1px solid var(--color-borde-suave);
+    border-radius: var(--radio-7);
+    box-shadow: var(--sombra-tarjeta), var(--luz-superior);
     padding: 16px 20px;
     display: flex;
     flex-wrap: wrap;
@@ -71,7 +72,7 @@
 .filtro-grupo input[type="date"] {
     height: 34px;
     border: 1px solid var(--color-borde-input);
-    border-radius: 6px;
+    border-radius: var(--radio-2);
     padding: 0 10px;
     font-size: 13px;
     color: var(--color-texto);
@@ -90,7 +91,7 @@
     align-items: center;
     gap: 6px;
     border: 1px solid var(--color-borde-input);
-    border-radius: 6px;
+    border-radius: var(--radio-2);
     padding: 0 10px;
     height: 34px;
     background: #fff;
@@ -116,7 +117,7 @@
     border: 1px solid var(--color-primario-hover);
     background: transparent;
     color: var(--color-primario-hover);
-    border-radius: 6px;
+    border-radius: var(--radio-2);
     font-size: 13px;
     cursor: pointer;
     transition: background 0.15s;
@@ -135,8 +136,9 @@
     color: var(--color-texto-suave);
     font-size: 14px;
     background: #fff;
-    border: 1px solid var(--color-borde);
-    border-radius: 10px;
+    border: 1px solid var(--color-borde-suave);
+    border-radius: var(--radio-7);
+    box-shadow: var(--sombra-tarjeta), var(--luz-superior);
 }
 
 .sucursales-estado.error {
@@ -150,7 +152,7 @@
     border: 1px solid var(--color-peligro);
     color: var(--color-peligro);
     padding: 4px 12px;
-    border-radius: 6px;
+    border-radius: var(--radio-2);
     cursor: pointer;
     font-size: 12px;
 }
@@ -161,8 +163,9 @@
 /* TABLA */
 .sucursales-tabla-wrapper {
     background: #fff;
-    border: 1px solid var(--color-borde);
-    border-radius: 10px;
+    border: 1px solid var(--color-borde-suave);
+    border-radius: var(--radio-7);
+    box-shadow: var(--sombra-tarjeta), var(--luz-superior);
     overflow-x: auto;
 }
 
@@ -208,7 +211,7 @@
 .badge {
     display: inline-block;
     padding: 3px 10px;
-    border-radius: 20px;
+    border-radius: var(--radio-8);
     font-size: 11px;
     font-weight: 600;
     white-space: nowrap;
@@ -228,7 +231,7 @@
     width: 32px;
     height: 32px;
     border: none;
-    border-radius: 6px;
+    border-radius: var(--radio-2);
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -272,7 +275,7 @@
 
 .modal {
     background: #fff;
-    border-radius: 12px;
+    border-radius: var(--radio-5);
     width: 100%;
     max-width: 460px;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
@@ -300,7 +303,7 @@
     font-size: 18px;
     color: var(--color-texto-suave);
     padding: 4px;
-    border-radius: 6px;
+    border-radius: var(--radio-2);
     display: flex;
     align-items: center;
 }
@@ -329,7 +332,7 @@
 .form-grupo input {
     height: 36px;
     border: 1px solid var(--color-borde-input);
-    border-radius: 6px;
+    border-radius: var(--radio-2);
     padding: 0 12px;
     font-size: 13px;
     color: var(--color-texto);
@@ -355,7 +358,7 @@
     padding: 10px 12px;
     background: var(--color-peligro-bg);
     border: 1px solid var(--color-peligro-borde);
-    border-radius: 6px;
+    border-radius: var(--radio-2);
     color: var(--color-peligro);
     font-size: 13px;
 }
@@ -373,7 +376,7 @@
     padding: 0 16px;
     background: var(--color-fondo-2);
     border: none;
-    border-radius: 6px;
+    border-radius: var(--radio-2);
     color: var(--color-gris-texto);
     font-size: 13px;
     cursor: pointer;
@@ -387,7 +390,7 @@
     padding: 0 16px;
     background: var(--color-primario);
     border: none;
-    border-radius: 6px;
+    border-radius: var(--radio-2);
     color: #fff;
     font-size: 13px;
     cursor: pointer;

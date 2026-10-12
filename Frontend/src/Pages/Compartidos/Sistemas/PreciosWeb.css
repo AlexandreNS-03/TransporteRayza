@@ -26,8 +26,9 @@
     color: var(--color-texto-suave);
     font-size: 14px;
     background: #fff;
-    border: 1px solid var(--color-borde);
-    border-radius: 10px;
+    border: 1px solid var(--color-borde-suave);
+    border-radius: var(--radio-7);
+    box-shadow: var(--sombra-tarjeta), var(--luz-superior);
 }
 
 .preciosweb-estado.error {
@@ -41,7 +42,7 @@
     border: 1px solid var(--color-peligro);
     color: var(--color-peligro);
     padding: 4px 12px;
-    border-radius: 6px;
+    border-radius: var(--radio-2);
     cursor: pointer;
     font-size: 12px;
 }
@@ -51,8 +52,9 @@
 
 .preciosweb-tabla-wrapper {
     background: #fff;
-    border: 1px solid var(--color-borde);
-    border-radius: 10px;
+    border: 1px solid var(--color-borde-suave);
+    border-radius: var(--radio-7);
+    box-shadow: var(--sombra-tarjeta), var(--luz-superior);
     overflow-x: auto;
 }
 
@@ -91,7 +93,7 @@
 .badge {
     display: inline-block;
     padding: 2px 9px;
-    border-radius: 20px;
+    border-radius: var(--radio-8);
     font-size: 10.5px;
     font-weight: 600;
     white-space: nowrap;
@@ -111,7 +113,7 @@
 .switch input { position: absolute; opacity: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
 .switch-track {
     position: absolute; inset: 0;
-    background: var(--color-borde-suave); border-radius: 999px;
+    background: var(--color-borde-suave); border-radius: var(--radio-pleno);
     transition: background 0.15s;
 }
 .switch-track::before {
@@ -129,7 +131,7 @@
     width: 90px;
     height: 32px;
     border: 1px solid var(--color-borde-input);
-    border-radius: 6px;
+    border-radius: var(--radio-2);
     padding: 0 10px;
     font-size: 13px;
     color: var(--color-texto);
@@ -188,7 +190,7 @@
     min-width: 0;
     padding: 7px 8px;
     border: 1px solid var(--borde, #d8dee9);
-    border-radius: 8px;
+    border-radius: var(--radio-3);
     font: inherit;
     font-size: 13px;
     color: inherit;

@@ -118,7 +118,7 @@
   a {
     color: var(--text-h);
     font-size: 16px;
-    border-radius: 6px;
+    border-radius: var(--radio-2);
     background: var(--social-bg);
     display: flex;
     padding: 6px 12px;

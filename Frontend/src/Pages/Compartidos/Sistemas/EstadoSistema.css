@@ -19,7 +19,7 @@
 .estado-error {
     display: flex; align-items: center; gap: 8px;
     background: var(--color-peligro-bg); border: 1px solid var(--color-peligro-borde);
-    color: var(--color-peligro); border-radius: 10px;
+    color: var(--color-peligro); border-radius: var(--radio-4);
     padding: 12px 16px; font-size: 13px;
 }
 
@@ -39,8 +39,9 @@
 
 .semaforo-card, .conexion-card, .respaldo-card {
     background: #fff;
-    border: 1px solid var(--color-borde);
-    border-radius: 12px;
+    border: 1px solid var(--color-borde-suave);
+    border-radius: var(--radio-7);
+    box-shadow: var(--sombra-tarjeta), var(--luz-superior);
     padding: 18px 20px;
     min-width: 0;
 }
@@ -63,7 +64,7 @@
     gap: 7px;
     background: #1f2937;
     padding: 9px 8px;
-    border-radius: 12px;
+    border-radius: var(--radio-5);
     flex-shrink: 0;
 }
 
@@ -141,7 +142,7 @@
 .resumen-item {
     display: flex; align-items: baseline; gap: 6px;
     background: #fff; border: 1px solid var(--color-borde);
-    border-radius: 20px; padding: 8px 16px;
+    border-radius: var(--radio-8); padding: 8px 16px;
     font-size: 12.5px; color: var(--color-texto-suave);
 }
 
@@ -155,7 +156,7 @@
     display: flex; align-items: center; gap: 6px;
     height: 36px; padding: 0 18px;
     background: var(--color-peligro); color: #fff;
-    border: none; border-radius: 6px;
+    border: none; border-radius: var(--radio-2);
     font-size: 13px; cursor: pointer;
 }
 
@@ -169,8 +170,8 @@
     display: flex;
     gap: 12px;
     background: #fff;
-    border: 1px solid var(--color-borde);
-    border-radius: 10px;
+    border: 1px solid var(--color-borde-suave);
+    border-radius: var(--radio-5);
     padding: 14px 16px;
     min-width: 0;
 }
@@ -196,7 +197,7 @@
 
 .badge-criticidad {
     font-size: 10.5px; font-weight: 700;
-    padding: 2px 9px; border-radius: 20px;
+    padding: 2px 9px; border-radius: var(--radio-8);
     text-transform: uppercase; letter-spacing: 0.3px;
 }
 
@@ -219,7 +220,7 @@
 .chequeo-recomendacion i { color: var(--color-advertencia-osc); flex-shrink: 0; margin-top: 2px; }
 
 .chequeo-cargando {
-    background: #fff; border: 1px solid var(--color-borde); border-radius: 10px;
+    background: #fff; border: 1px solid var(--color-borde-suave); border-radius: var(--radio-5);
     padding: 30px; text-align: center; color: var(--txt-3); font-size: 13px;
 }
 
@@ -240,7 +241,7 @@
 .btn-primario, .btn-secundario {
     display: flex; align-items: center; gap: 6px;
     height: 36px; padding: 0 16px;
-    border-radius: 6px; font-size: 13px; cursor: pointer;
+    border-radius: var(--radio-2); font-size: 13px; cursor: pointer;
     border: 1px solid transparent;
     flex-shrink: 0;
 }

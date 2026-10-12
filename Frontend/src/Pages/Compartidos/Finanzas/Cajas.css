@@ -36,7 +36,7 @@
     background: var(--color-peligro-bg);
     color: var(--color-peligro);
     border: 1px solid var(--color-peligro-borde);
-    border-radius: 8px;
+    border-radius: var(--radio-3);
     padding: 9px 16px;
     font-size: 13px;
     font-weight: 600;
@@ -52,7 +52,7 @@
 .caja-cerrada-card {
     background: #fff;
     border: 1px dashed var(--color-borde-2);
-    border-radius: 12px;
+    border-radius: var(--radio-5);
     padding: 48px 24px;
     text-align: center;
     display: flex;
@@ -70,7 +70,7 @@
 .caja-cerrada-card p  { margin: 0 0 8px; font-size: 13px; color: var(--color-texto-suave); }
 
 .caja-dif {
-    border-radius: 8px;
+    border-radius: var(--radio-3);
     padding: 10px 14px;
     font-size: 13px;
     font-weight: 600;
@@ -105,8 +105,8 @@
     /* #root centra todo el panel (viene del template original): sin esto las
        cifras salen centradas y cuesta compararlas de una a otra. */
     text-align: left;
-    padding: 14px 16px; border-radius: 10px;
-    background: #fff; border: 1px solid var(--color-borde);
+    padding: 14px 16px; border-radius: var(--radio-5);
+    background: #fff; border: 1px solid var(--color-borde-suave);
     display: grid; gap: 3px; align-content: start;
 }
 .caja-eti { font-size: 12px; color: var(--color-texto-suave); }

@@ -33,7 +33,7 @@
     background: var(--color-primario);
     color: #fff;
     border: none;
-    border-radius: 8px;
+    border-radius: var(--radio-3);
     font-size: 13px;
     cursor: pointer;
     transition: background 0.15s;
@@ -46,8 +46,9 @@
 /* FILTROS */
 .viajes-filtros {
     background: #fff;
-    border: 1px solid var(--color-borde);
-    border-radius: 10px;
+    border: 1px solid var(--color-borde-suave);
+    border-radius: var(--radio-7);
+    box-shadow: var(--sombra-tarjeta), var(--luz-superior);
     padding: 16px 20px;
     display: flex;
     flex-wrap: wrap;
@@ -73,7 +74,7 @@
 .filtro-grupo input[type="date"] {
     height: 34px;
     border: 1px solid var(--color-borde-input);
-    border-radius: 6px;
+    border-radius: var(--radio-2);
     padding: 0 10px;
     font-size: 13px;
     color: var(--color-texto);
@@ -102,7 +103,7 @@
     align-items: center;
     gap: 6px;
     border: 1px solid var(--color-borde-input);
-    border-radius: 6px;
+    border-radius: var(--radio-2);
     padding: 0 10px;
     height: 34px;
     background: #fff;
@@ -131,7 +132,7 @@
     border: 1px solid var(--color-primario-hover);
     background: transparent;
     color: var(--color-primario-hover);
-    border-radius: 6px;
+    border-radius: var(--radio-2);
     font-size: 13px;
     cursor: pointer;
     transition: background 0.15s;
@@ -152,8 +153,9 @@
     color: var(--color-texto-suave);
     font-size: 14px;
     background: #fff;
-    border: 1px solid var(--color-borde);
-    border-radius: 10px;
+    border: 1px solid var(--color-borde-suave);
+    border-radius: var(--radio-7);
+    box-shadow: var(--sombra-tarjeta), var(--luz-superior);
 }
 
 .viajes-estado.error {
@@ -167,7 +169,7 @@
     border: 1px solid var(--color-peligro);
     color: var(--color-peligro);
     padding: 4px 12px;
-    border-radius: 6px;
+    border-radius: var(--radio-2);
     cursor: pointer;
     font-size: 12px;
 }
@@ -185,8 +187,9 @@
 /* TABLA */
 .viajes-tabla-wrapper {
     background: #fff;
-    border: 1px solid var(--color-borde);
-    border-radius: 10px;
+    border: 1px solid var(--color-borde-suave);
+    border-radius: var(--radio-7);
+    box-shadow: var(--sombra-tarjeta), var(--luz-superior);
     overflow-x: auto;
 }
 
@@ -258,7 +261,7 @@
 .badge {
     display: inline-block;
     padding: 3px 10px;
-    border-radius: 20px;
+    border-radius: var(--radio-8);
     font-size: 11px;
     font-weight: 600;
     white-space: nowrap;
@@ -277,7 +280,7 @@
     display: inline-flex; align-items: center; gap: 5px;
     height: 30px; padding: 0 11px; cursor: pointer;
     background: var(--color-azul-bg); color: var(--color-primario);
-    border: 1px solid var(--color-azul-borde); border-radius: 6px;
+    border: 1px solid var(--color-azul-borde); border-radius: var(--radio-2);
     font-size: 12px; white-space: nowrap;
 }
 .btn-editar-viaje:hover { background: var(--color-azul-bg-2); }
@@ -290,7 +293,7 @@
 .check-avisar {
     display: flex; align-items: flex-start; gap: 9px;
     padding: 11px 12px; margin-top: 4px;
-    border: 1px solid var(--color-borde); border-radius: 8px;
+    border: 1px solid var(--color-borde); border-radius: var(--radio-3);
     background: var(--color-fondo); cursor: pointer; font-size: 13px; color: var(--color-texto-oscuro);
 }
 .check-avisar input { margin-top: 2px; flex-shrink: 0; }
@@ -301,7 +304,7 @@
     display: inline-flex; align-items: center; gap: 5px;
     height: 30px; padding: 0 11px; cursor: pointer;
     background: var(--color-peligro-bg); color: var(--color-peligro);
-    border: 1px solid var(--color-peligro-borde); border-radius: 6px;
+    border: 1px solid var(--color-peligro-borde); border-radius: var(--radio-2);
     font-size: 12px; white-space: nowrap;
 }
 .btn-cancelar-viaje:hover { background: var(--color-peligro-bg-2); }
@@ -314,7 +317,7 @@
 .aviso-cancel {
     display: flex; gap: 10px; align-items: flex-start;
     padding: 12px 14px; margin-bottom: 14px;
-    background: var(--color-ambar-bg); border: 1px solid var(--color-advertencia-borde); border-radius: 8px;
+    background: var(--color-ambar-bg); border: 1px solid var(--color-advertencia-borde); border-radius: var(--radio-3);
 }
 .aviso-cancel i { font-size: 20px; color: var(--color-advertencia-osc); flex-shrink: 0; }
 .aviso-cancel div { display: flex; flex-direction: column; gap: 3px; }
@@ -324,7 +327,7 @@
 .btn-peligro {
     display: inline-flex; align-items: center; gap: 6px;
     height: 36px; padding: 0 16px; cursor: pointer;
-    background: var(--color-peligro); color: #fff; border: none; border-radius: 8px; font-size: 13px;
+    background: var(--color-peligro); color: #fff; border: none; border-radius: var(--radio-3); font-size: 13px;
 }
 .btn-peligro:hover { background: #991b1b; }
 .btn-peligro:disabled { opacity: .6; cursor: not-allowed; }
@@ -339,7 +342,7 @@
     gap: 0;
     margin-left: 8px;
     border: 1px solid var(--color-borde-input);
-    border-radius: 8px;
+    border-radius: var(--radio-3);
     overflow: hidden;
     align-self: flex-end;
 }
@@ -374,7 +377,7 @@
 .dia-fecha  { font-size: 13px; color: var(--color-texto-suave); }
 .dia-cuenta {
     margin-left: auto; font-size: 12px; color: var(--color-texto-suave);
-    background: var(--color-fondo-2); border-radius: 20px; padding: 3px 12px;
+    background: var(--color-fondo-2); border-radius: var(--radio-8); padding: 3px 12px;
 }
 
 /* ══ Un viaje por renglón ══
@@ -394,8 +397,8 @@
     align-items: center;
     gap: 18px;
     background: #fff;
-    border: 1px solid var(--color-borde);
-    border-radius: 12px;
+    border: 1px solid var(--color-borde-suave);
+    border-radius: var(--radio-7);
     padding: 12px 16px;
     min-width: 0;                      /* sin esto una ruta larga desborda la tarjeta */
     text-align: left;                  /* #root centra todo; ver Pasajes.css */
@@ -458,7 +461,8 @@
 
 .viajes-vacio {
     display: flex; flex-direction: column; align-items: center; gap: 8px;
-    background: #fff; border: 1px solid var(--color-borde); border-radius: 10px;
+    background: #fff; border: 1px solid var(--color-borde-suave); border-radius: var(--radio-7);
+    box-shadow: var(--sombra-tarjeta), var(--luz-superior);
     padding: 44px; color: var(--txt-3); font-size: 14px;
 }
 

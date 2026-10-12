@@ -22,7 +22,7 @@
     width: 30px;
     height: 30px;
     border: 1px solid var(--color-borde-input);
-    border-radius: 8px;
+    border-radius: var(--radio-3);
     background: #fff;
     color: var(--color-gris-texto);
     cursor: pointer;

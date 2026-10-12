@@ -33,7 +33,7 @@
     background: var(--color-primario);
     color: #fff;
     border: none;
-    border-radius: 8px;
+    border-radius: var(--radio-3);
     font-size: 13px;
     font-weight: 500;
     cursor: pointer;
@@ -48,8 +48,9 @@
     align-items: flex-end;
     gap: 16px;
     background: #fff;
-    border: 1px solid var(--color-borde);
-    border-radius: 10px;
+    border: 1px solid var(--color-borde-suave);
+    border-radius: var(--radio-7);
+    box-shadow: var(--sombra-tarjeta), var(--luz-superior);
     padding: 14px 16px;
     flex-wrap: wrap;
 }
@@ -70,7 +71,7 @@
     height: 36px;
     padding: 0 10px;
     border: 1px solid var(--color-borde);
-    border-radius: 6px;
+    border-radius: var(--radio-2);
     font-size: 13px;
     color: var(--color-texto);
     background: #fff;
@@ -84,7 +85,7 @@
     height: 36px;
     padding: 0 10px;
     border: 1px solid var(--color-borde);
-    border-radius: 6px;
+    border-radius: var(--radio-2);
     min-width: 220px;
 }
 
@@ -106,7 +107,7 @@
     padding: 0 14px;
     background: var(--color-fondo);
     border: 1px solid var(--color-borde);
-    border-radius: 6px;
+    border-radius: var(--radio-2);
     font-size: 12px;
     color: var(--txt-3);
     cursor: pointer;
@@ -129,8 +130,9 @@
     color: var(--txt-3);
     font-size: 14px;
     background: #fff;
-    border: 1px solid var(--color-borde);
-    border-radius: 10px;
+    border: 1px solid var(--color-borde-suave);
+    border-radius: var(--radio-7);
+    box-shadow: var(--sombra-tarjeta), var(--luz-superior);
 }
 
 .roles-estado.error { color: var(--color-peligro); background: var(--color-peligro-bg); border-color: var(--color-peligro-borde); }
@@ -141,8 +143,9 @@
 /* TABLA */
 .roles-tabla-wrapper {
     background: #fff;
-    border: 1px solid var(--color-borde);
-    border-radius: 10px;
+    border: 1px solid var(--color-borde-suave);
+    border-radius: var(--radio-7);
+    box-shadow: var(--sombra-tarjeta), var(--luz-superior);
     overflow: hidden;
     overflow-x: auto;
 }
@@ -239,7 +242,7 @@
     align-items: center;
     gap: 6px;
     border: 1px solid;
-    border-radius: 20px;
+    border-radius: var(--radio-8);
     padding: 4px 12px 4px 8px;
     font-size: 11px;
     font-weight: 600;
@@ -280,7 +283,7 @@
 .badge {
     display: inline-block;
     padding: 3px 10px;
-    border-radius: 20px;
+    border-radius: var(--radio-8);
     font-size: 11px;
     font-weight: 600;
     white-space: nowrap;
@@ -299,7 +302,7 @@
 .btn-accion {
     width: 30px;
     height: 30px;
-    border-radius: 6px;
+    border-radius: var(--radio-2);
     border: 1px solid var(--color-borde);
     background: #fff;
     color: var(--txt-3);
@@ -330,7 +333,7 @@
 
 .modal {
     background: #fff;
-    border-radius: 12px;
+    border-radius: var(--radio-5);
     width: 100%;
     max-width: 480px;
     max-height: 90vh;
@@ -363,7 +366,7 @@
 .modal-cerrar {
     width: 28px;
     height: 28px;
-    border-radius: 6px;
+    border-radius: var(--radio-2);
     border: none;
     background: var(--color-fondo);
     color: var(--txt-3);
@@ -405,7 +408,7 @@
     height: 38px;
     padding: 0 12px;
     border: 1px solid var(--color-borde);
-    border-radius: 6px;
+    border-radius: var(--radio-2);
     font-size: 13px;
     color: var(--color-texto);
     outline: none;
@@ -421,7 +424,7 @@
     margin: 0;
     padding: 10px 12px;
     background: var(--color-fondo);
-    border-radius: 8px;
+    border-radius: var(--radio-3);
 }
 
 .modal-error {
@@ -431,7 +434,7 @@
     padding: 10px 12px;
     background: var(--color-peligro-bg);
     color: var(--color-peligro);
-    border-radius: 8px;
+    border-radius: var(--radio-3);
     font-size: 12px;
 }
 
@@ -448,7 +451,7 @@
     padding: 0 16px;
     background: var(--color-fondo);
     border: 1px solid var(--color-borde);
-    border-radius: 8px;
+    border-radius: var(--radio-3);
     color: var(--txt-3);
     font-size: 13px;
     cursor: pointer;
@@ -464,7 +467,7 @@
     padding: 0 18px;
     background: var(--color-primario);
     border: none;
-    border-radius: 8px;
+    border-radius: var(--radio-3);
     color: #fff;
     font-size: 13px;
     font-weight: 500;
@@ -485,7 +488,7 @@
     opacity: 1;
     padding: 6px 10px;
     border: 1px solid var(--color-borde-input);
-    border-radius: 8px;
+    border-radius: var(--radio-3);
     font-size: 12px;
     background: #fff;
     color: var(--color-texto);
@@ -552,7 +555,7 @@
 .aviso-cuentas-abiertas {
     display: flex; align-items: flex-start; gap: 10px;
     padding: 12px 16px; margin-bottom: 12px;
-    background: var(--color-ambar-bg); border: 1px solid var(--color-advertencia-borde); border-radius: 10px;
+    background: var(--color-ambar-bg); border: 1px solid var(--color-advertencia-borde); border-radius: var(--radio-4);
     text-align: left;
 }
 .aviso-cuentas-abiertas i { font-size: 19px; color: var(--color-advertencia-osc); flex-shrink: 0; margin-top: 1px; }

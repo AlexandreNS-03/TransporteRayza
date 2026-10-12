@@ -53,7 +53,7 @@ html, body, #root { width: 100%; height: 100%; }
     width: 90px;
     height: 4px;
     background: #38bdf8;
-    border-radius: 10px;
+    border-radius: var(--radio-4);
     margin: 14px 0 22px;
 }
 
@@ -91,7 +91,7 @@ html, body, #root { width: 100%; height: 100%; }
     max-width: 400px;
     background: #fff;
     padding: 40px 36px;
-    border-radius: 18px;
+    border-radius: var(--radio-7);
     box-shadow: 0 12px 40px rgba(15,23,42,0.10);
 }
 
@@ -133,7 +133,7 @@ html, body, #root { width: 100%; height: 100%; }
     align-items: center;
     gap: 10px;
     border: 1.5px solid var(--color-borde-suave);
-    border-radius: 10px;
+    border-radius: var(--radio-4);
     background: var(--color-fondo);
     padding: 0 14px;
     transition: border-color 0.15s, background 0.15s;
@@ -185,7 +185,7 @@ html, body, #root { width: 100%; height: 100%; }
     background: var(--color-peligro-bg);
     border: 1px solid var(--color-peligro-borde);
     color: var(--color-peligro);
-    border-radius: 10px;
+    border-radius: var(--radio-4);
     padding: 10px 12px;
     font-size: 13px;
 }
@@ -239,7 +239,7 @@ html, body, #root { width: 100%; height: 100%; }
 }
 
 @media (max-width: 400px) {
-    .login-card { padding: 26px 18px; border-radius: 14px; }
+    .login-card { padding: 26px 18px; border-radius: var(--radio-6); }
     .login-card > h2 { font-size: 23px; }
 }
 

@@ -22,7 +22,7 @@
        peor, sobre todo cuando explica algo que no se puede deshacer. */
     text-align: left;
     background: #fff;
-    border-radius: 14px;
+    border-radius: var(--radio-6);
     width: 100%;
     max-width: 480px;
     padding: 22px;
@@ -46,7 +46,7 @@
 .campo-s input, .campo-s select, .campo-s textarea {
     padding: 9px 11px;
     border: 1px solid var(--color-borde-input);
-    border-radius: 8px;
+    border-radius: var(--radio-3);
     font-size: 14px;
     font-family: inherit;
     background: #fff;

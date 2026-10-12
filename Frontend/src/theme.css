@@ -104,14 +104,32 @@
     --sp-5: 20px;
     --sp-6: 24px;
 
-    /* ── Radios ── */
-    --radio-sm: 6px;
-    --radio:    8px;
-    --radio-md: 10px;
-    --radio-lg: 14px;
-    /* El radio de una tarjeta. Grande afuera y chico adentro: así se nota
-       qué contiene a qué. Un mismo radio en todo aplana la jerarquía. */
-    --radio-xl: 18px;
+    /* ── Radios ──
+       Una escala numerada, como la de espaciado. Grande afuera y chico
+       adentro: así se nota qué contiene a qué. Un mismo radio en todo aplana
+       la jerarquía.
+
+       1-3  lo que va adentro de algo: insignias, chips, botones chicos
+       4-5  controles: campos, botones, selectores
+       6-8  superficies: tarjetas, paneles, modales
+       pleno  pastillas y píldoras */
+    --radio-1: 4px;
+    --radio-2: 6px;
+    --radio-3: 8px;
+    --radio-4: 10px;
+    --radio-5: 12px;
+    --radio-6: 14px;
+    --radio-7: 18px;
+    --radio-8: 20px;
+    --radio-pleno: 999px;
+
+    /* Nombres anteriores. Se conservan para no romper lo que ya los usa;
+       en código nuevo va la escala de arriba. */
+    --radio-sm: var(--radio-2);
+    --radio:    var(--radio-3);
+    --radio-md: var(--radio-4);
+    --radio-lg: var(--radio-6);
+    --radio-xl: var(--radio-7);
 
     /* ── Sombras ──
        Profundidad real: desplazamiento + desenfoque. Un halo sin

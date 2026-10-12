@@ -12,8 +12,8 @@
     flex: 1;
     min-width: 160px;
     background: #fff;
-    border: 1px solid var(--color-borde);
-    border-radius: 10px;
+    border: 1px solid var(--color-borde-suave);
+    border-radius: var(--radio-5);
     padding: 14px 16px;
     display: flex;
     align-items: center;
@@ -24,7 +24,7 @@
     font-size: 24px;
     color: var(--color-primario);
     background: var(--color-azul-bg);
-    border-radius: 8px;
+    border-radius: var(--radio-3);
     width: 42px; height: 42px;
     display: flex; align-items: center; justify-content: center;
 }
@@ -39,7 +39,7 @@
 .comp-tipo {
     display: inline-block;
     padding: 2px 8px;
-    border-radius: 20px;
+    border-radius: var(--radio-8);
     font-size: 10px;
     font-weight: 600;
     width: fit-content;
@@ -59,7 +59,7 @@
 .comp-json {
     background: var(--color-texto-fuerte);
     color: #a5f3fc;
-    border-radius: 8px;
+    border-radius: var(--radio-3);
     padding: 14px;
     font-size: 11px;
     font-family: var(--fuente-mono);
@@ -89,7 +89,7 @@
     background: var(--color-ambar-bg);
     border: 1px solid var(--color-advertencia-borde);
     color: var(--color-advertencia-fuerte);
-    border-radius: 8px;
+    border-radius: var(--radio-3);
     padding: 12px 14px;
     font-size: 12.5px;
     line-height: 1.5;
@@ -100,7 +100,7 @@
 .modal-anular textarea {
     padding: 9px 12px;
     border: 1px solid var(--color-borde-input);
-    border-radius: 8px;
+    border-radius: var(--radio-3);
     font-size: 13px;
     outline: none;
     resize: vertical;
@@ -113,7 +113,7 @@
     background: var(--color-peligro);
     color: #fff;
     border: none;
-    border-radius: 8px;
+    border-radius: var(--radio-3);
     padding: 9px 18px;
     font-size: 13px;
     font-weight: 600;
@@ -131,7 +131,7 @@
 .pasajes-filtros input[type="date"] {
     padding: 8px 12px;
     border: 1px solid var(--color-borde-input);
-    border-radius: 8px;
+    border-radius: var(--radio-3);
     font-size: 13px;
     outline: none;
     background: #fff;
@@ -147,8 +147,9 @@
 /* Página de soporte */
 .soporte-form {
     background: #fff;
-    border: 1px solid var(--color-borde);
-    border-radius: 12px;
+    border: 1px solid var(--color-borde-suave);
+    border-radius: var(--radio-7);
+    box-shadow: var(--sombra-tarjeta), var(--luz-superior);
     padding: 20px;
     display: flex;
     flex-direction: column;
@@ -159,7 +160,7 @@
 .soporte-form textarea {
     padding: 9px 12px;
     border: 1px solid var(--color-borde-input);
-    border-radius: 8px;
+    border-radius: var(--radio-3);
     font-size: 13px;
     outline: none;
     resize: vertical;
@@ -194,7 +195,7 @@
     display: flex; align-items: center; gap: 5px;
     padding: 0 12px;
     background: var(--color-primario); color: #fff;
-    border: none; border-radius: 8px;
+    border: none; border-radius: var(--radio-3);
     font-size: 12px; font-weight: 600;
     cursor: pointer; white-space: nowrap;
     transition: background 0.15s;
@@ -206,7 +207,7 @@
     display: flex; align-items: center; justify-content: space-between;
     gap: 10px; flex-wrap: wrap;
     background: var(--color-azul-bg); border: 1px solid var(--color-azul-borde);
-    border-radius: 8px; padding: 10px 12px;
+    border-radius: var(--radio-3); padding: 10px 12px;
 }
 .consulta-empresa { display: flex; align-items: flex-start; gap: 8px; }
 .consulta-empresa i { font-size: 18px; color: var(--color-primario); flex-shrink: 0; margin-top: 2px; }
@@ -218,7 +219,7 @@
     display: flex; align-items: center; gap: 5px;
     padding: 6px 12px;
     background: #fff; color: var(--color-primario);
-    border: 1px solid var(--color-primario); border-radius: 8px;
+    border: 1px solid var(--color-primario); border-radius: var(--radio-3);
     font-size: 12px; font-weight: 600; cursor: pointer;
     white-space: nowrap;
 }
@@ -231,13 +232,14 @@
 .contacto-card {
     flex: 1; min-width: 220px;
     display: flex; align-items: center; gap: 12px;
-    background: #fff; border: 1px solid var(--color-borde); border-radius: 12px;
+    background: #fff; border: 1px solid var(--color-borde-suave); border-radius: var(--radio-7);
+    box-shadow: var(--sombra-tarjeta), var(--luz-superior);
     padding: 14px 16px; text-decoration: none;
     transition: border-color 0.15s, box-shadow 0.15s;
 }
 .contacto-card:hover { border-color: var(--color-borde-2); box-shadow: 0 4px 14px rgba(15,23,42,0.08); }
 .contacto-card i {
-    font-size: 24px; width: 44px; height: 44px; border-radius: 10px;
+    font-size: 24px; width: 44px; height: 44px; border-radius: var(--radio-4);
     display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
 .contacto-card.whatsapp i { color: var(--color-exito); background: var(--color-exito-bg); }

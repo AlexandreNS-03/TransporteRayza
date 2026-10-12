@@ -37,7 +37,7 @@
     gap: 6px;
     height: 36px;
     padding: 0 16px;
-    border-radius: 6px;
+    border-radius: var(--radio-2);
     font-size: 13px;
     cursor: pointer;
     border: 1px solid transparent;
@@ -59,8 +59,9 @@
 /* FILTROS */
 .reportes-filtros {
     background: #fff;
-    border: 1px solid var(--color-borde);
-    border-radius: 10px;
+    border: 1px solid var(--color-borde-suave);
+    border-radius: var(--radio-7);
+    box-shadow: var(--sombra-tarjeta), var(--luz-superior);
     padding: 14px 20px;
     display: flex;
     align-items: flex-end;
@@ -85,7 +86,7 @@
 .filtro-fecha input {
     height: 34px;
     border: 1px solid var(--color-borde-input);
-    border-radius: 6px;
+    border-radius: var(--radio-2);
     padding: 0 10px;
     font-size: 13px;
     color: var(--color-texto);
@@ -103,7 +104,7 @@
     padding: 0 14px;
     border: 1px solid var(--color-borde);
     background: var(--color-fondo);
-    border-radius: 6px;
+    border-radius: var(--radio-2);
     font-size: 12px;
     color: var(--color-gris-texto);
     cursor: pointer;
@@ -126,7 +127,7 @@
     padding: 0 16px;
     border: 1px solid var(--color-borde);
     background: #fff;
-    border-radius: 20px;
+    border-radius: var(--radio-8);
     font-size: 13px;
     color: var(--color-texto-suave);
     cursor: pointer;
@@ -150,8 +151,9 @@
     color: var(--color-texto-suave);
     font-size: 14px;
     background: #fff;
-    border: 1px solid var(--color-borde);
-    border-radius: 10px;
+    border: 1px solid var(--color-borde-suave);
+    border-radius: var(--radio-7);
+    box-shadow: var(--sombra-tarjeta), var(--luz-superior);
 }
 
 .reportes-estado.error {
@@ -179,8 +181,9 @@
 
 .reporte-panel {
     background: #fff;
-    border: 1px solid var(--color-borde);
-    border-radius: 10px;
+    border: 1px solid var(--color-borde-suave);
+    border-radius: var(--radio-7);
+    box-shadow: var(--sombra-tarjeta), var(--luz-superior);
     padding: 18px 20px;
 }
 
@@ -217,8 +220,8 @@
     align-items: center;
     gap: 12px;
     background: #fff;
-    border: 1px solid var(--color-borde);
-    border-radius: 10px;
+    border: 1px solid var(--color-borde-suave);
+    border-radius: var(--radio-5);
     padding: 16px 18px;
 }
 
@@ -303,7 +306,7 @@
     gap: 8px;
     background: var(--color-fondo);
     border: 1px solid var(--color-borde);
-    border-radius: 20px;
+    border-radius: var(--radio-8);
     padding: 8px 16px;
 }
 
@@ -353,7 +356,7 @@
 
 .ranking-barra-fondo {
     background: var(--color-fondo-2);
-    border-radius: 20px;
+    border-radius: var(--radio-8);
     height: 8px;
     overflow: hidden;
 }
@@ -361,7 +364,7 @@
 .ranking-barra-relleno {
     height: 100%;
     background: linear-gradient(90deg, var(--color-azul-vivo), var(--color-primario));
-    border-radius: 20px;
+    border-radius: var(--radio-8);
 }
 
 .ranking-barra-relleno.sucursal {
@@ -420,12 +423,12 @@
 .ocupacion-barra-fondo {
     flex: 1;
     background: var(--color-fondo-2);
-    border-radius: 20px;
+    border-radius: var(--radio-8);
     height: 8px;
     overflow: hidden;
 }
 
-.ocupacion-barra-relleno { height: 100%; border-radius: 20px; }
+.ocupacion-barra-relleno { height: 100%; border-radius: var(--radio-8); }
 .ocupacion-barra-relleno.bajo  { background: var(--color-ambar); }
 .ocupacion-barra-relleno.medio { background: var(--color-azul-vivo); }
 .ocupacion-barra-relleno.alto  { background: var(--color-exito); }
@@ -434,7 +437,7 @@
 .badge-estado {
     display: inline-block;
     padding: 3px 10px;
-    border-radius: 20px;
+    border-radius: var(--radio-8);
     font-size: 11px;
     font-weight: 600;
 }

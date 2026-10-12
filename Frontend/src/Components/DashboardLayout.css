@@ -200,7 +200,7 @@
     background: none;
     border: 1px solid #e24b4a;
     color: #e24b4a;
-    border-radius: 6px;
+    border-radius: var(--radio-2);
     padding: 6px 10px;
     cursor: pointer;
     font-size: 16px;

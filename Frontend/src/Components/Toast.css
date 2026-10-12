@@ -15,7 +15,7 @@
     background: #fff;
     border: 1px solid var(--color-borde);
     border-left: 4px solid var(--color-primario);
-    border-radius: 10px;
+    border-radius: var(--radio-4);
     padding: 12px 16px;
     font-size: 13px;
     color: var(--color-texto);

@@ -33,7 +33,7 @@
     background: var(--color-primario);
     color: #fff;
     border: none;
-    border-radius: 8px;
+    border-radius: var(--radio-3);
     font-size: 13px;
     font-weight: 500;
     cursor: pointer;
@@ -47,8 +47,9 @@
 .manifiesto-controles {
     display: flex;
     background: #fff;
-    border: 1px solid var(--color-borde);
-    border-radius: 10px;
+    border: 1px solid var(--color-borde-suave);
+    border-radius: var(--radio-7);
+    box-shadow: var(--sombra-tarjeta), var(--luz-superior);
     padding: 14px 16px;
 }
 
@@ -69,7 +70,7 @@
     height: 40px;
     padding: 0 12px;
     border: 1px solid var(--color-borde);
-    border-radius: 6px;
+    border-radius: var(--radio-2);
     font-size: 13px;
     color: var(--color-texto);
     background: #fff;
@@ -87,8 +88,9 @@
     color: var(--txt-3);
     font-size: 14px;
     background: #fff;
-    border: 1px solid var(--color-borde);
-    border-radius: 10px;
+    border: 1px solid var(--color-borde-suave);
+    border-radius: var(--radio-7);
+    box-shadow: var(--sombra-tarjeta), var(--luz-superior);
 }
 
 .manifiesto-vacio i,
@@ -105,8 +107,9 @@
     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     gap: 14px;
     background: #fff;
-    border: 1px solid var(--color-borde);
-    border-radius: 10px;
+    border: 1px solid var(--color-borde-suave);
+    border-radius: var(--radio-7);
+    box-shadow: var(--sombra-tarjeta), var(--luz-superior);
     padding: 18px 20px;
 }
 
@@ -141,7 +144,7 @@
     align-items: center;
     gap: 14px;
     padding: 16px 20px;
-    border-radius: 10px;
+    border-radius: var(--radio-4);
     background: var(--color-azul-bg);
     border: 1px solid var(--color-azul-borde);
 }
@@ -174,8 +177,9 @@
 /* TABLA */
 .manifiesto-tabla-wrapper {
     background: #fff;
-    border: 1px solid var(--color-borde);
-    border-radius: 10px;
+    border: 1px solid var(--color-borde-suave);
+    border-radius: var(--radio-7);
+    box-shadow: var(--sombra-tarjeta), var(--luz-superior);
     overflow: auto;
 }
 
@@ -229,7 +233,7 @@
 .asiento-tipo {
     display: inline-block;
     padding: 2px 8px;
-    border-radius: 12px;
+    border-radius: var(--radio-5);
     font-size: 10px;
     font-weight: 600;
     margin-right: 4px;
@@ -241,7 +245,7 @@
 .badge {
     display: inline-block;
     padding: 3px 10px;
-    border-radius: 20px;
+    border-radius: var(--radio-8);
     font-size: 11px;
     font-weight: 600;
     white-space: nowrap;
@@ -264,7 +268,8 @@
 
 .viaje-ficha {
     display: flex; flex-direction: column; gap: 8px;
-    background: #fff; border: 1px solid var(--color-borde); border-radius: 10px;
+    background: #fff; border: 1px solid var(--color-borde-suave); border-radius: var(--radio-7);
+    box-shadow: var(--sombra-tarjeta), var(--luz-superior);
     padding: 14px 18px;
     text-align: left;
 }
@@ -296,7 +301,8 @@
 .manifiesto-avance {
     display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
     padding: 13px 18px;
-    background: #fff; border: 1px solid var(--color-borde); border-radius: 10px;
+    background: #fff; border: 1px solid var(--color-borde-suave); border-radius: var(--radio-7);
+    box-shadow: var(--sombra-tarjeta), var(--luz-superior);
     text-align: left;
 }
 .manifiesto-avance .avance-cifras { display: flex; align-items: baseline; gap: 8px; }
@@ -307,17 +313,17 @@
 .manifiesto-avance .avance-cifras span { font-size: 13px; color: var(--color-texto-suave); }
 .manifiesto-avance .avance-cifras em {
     font-style: normal; font-size: 12px; font-weight: 600;
-    padding: 3px 9px; border-radius: 999px;
+    padding: 3px 9px; border-radius: var(--radio-pleno);
 }
 .manifiesto-avance .avance-faltan { background: var(--color-ambar-bg); color: var(--color-advertencia-osc); }
 .manifiesto-avance .avance-listo  { background: var(--color-exito-bg); color: var(--color-exito); }
 
 .manifiesto-avance .avance-barra {
     flex: 1; min-width: 160px; height: 7px;
-    background: var(--color-fondo-3); border-radius: 999px; overflow: hidden;
+    background: var(--color-fondo-3); border-radius: var(--radio-pleno); overflow: hidden;
 }
 .manifiesto-avance .avance-barra span {
-    display: block; height: 100%; border-radius: 999px;
+    display: block; height: 100%; border-radius: var(--radio-pleno);
     background: var(--color-exito); transition: width .3s cubic-bezier(.23,1,.32,1);
 }
 .avance-ocupacion {

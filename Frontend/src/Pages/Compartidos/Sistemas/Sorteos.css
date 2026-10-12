@@ -9,7 +9,7 @@
 .sorteo-legal {
     padding: 13px 15px;
     margin-bottom: 18px;
-    border-radius: 10px;
+    border-radius: var(--radio-4);
     border-left: 4px solid var(--color-advertencia-osc);
     background: var(--color-ambar-bg);
     color: #78350f;
@@ -20,8 +20,9 @@
 .sorteo-nuevo {
     padding: 18px;
     margin-bottom: 20px;
-    border: 1px solid var(--color-borde);
-    border-radius: 12px;
+    border: 1px solid var(--color-borde-suave);
+    border-radius: var(--radio-7);
+    box-shadow: var(--sombra-tarjeta), var(--luz-superior);
     background: #fff;
 }
 .sorteo-nuevo h3 { margin: 0 0 14px; font-size: 15px; font-weight: 700; color: var(--color-texto-fuerte); }
@@ -38,8 +39,9 @@
 
 .sorteo-tarjeta {
     padding: 18px;
-    border: 1px solid var(--color-borde);
-    border-radius: 12px;
+    border: 1px solid var(--color-borde-suave);
+    border-radius: var(--radio-7);
+    box-shadow: var(--sombra-tarjeta), var(--luz-superior);
     background: #fff;
     display: grid;
     gap: 14px;
@@ -74,7 +76,7 @@
 
 .sorteo-ganador-caja {
     padding: 14px 16px;
-    border-radius: 10px;
+    border-radius: var(--radio-4);
     background: var(--color-fondo);
     border-left: 4px solid var(--color-primario);
 }
@@ -243,7 +245,7 @@
 .check-preparado {
     display: flex; align-items: flex-start; gap: 9px;
     padding: 11px 12px; margin: 0 0 14px;
-    border: 1px solid var(--color-borde); border-radius: 8px;
+    border: 1px solid var(--color-borde); border-radius: var(--radio-3);
     background: var(--color-fondo); cursor: pointer; font-size: 13px; color: var(--color-texto-oscuro);
     text-align: left;
 }

@@ -20,7 +20,7 @@
 }
 .qr-cerrar {
     border: none; background: #f3f4f6; width: 32px; height: 32px;
-    border-radius: 8px; cursor: pointer; color: var(--color-gris-texto); font-size: 16px;
+    border-radius: var(--radio-3); cursor: pointer; color: var(--color-gris-texto); font-size: 16px;
     display: flex; align-items: center; justify-content: center;
 }
 .qr-cerrar:hover { background: var(--color-borde); }
@@ -39,7 +39,7 @@
     position: absolute; top: 50%; left: 50%;
     width: 62%; height: 62%; transform: translate(-50%, -50%);
     box-shadow: 0 0 0 2000px rgba(15, 23, 42, 0.35); /* oscurece fuera del recuadro */
-    border-radius: 14px;
+    border-radius: var(--radio-6);
 }
 .qr-esq {
     position: absolute; width: 26px; height: 26px;

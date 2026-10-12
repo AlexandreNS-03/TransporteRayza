@@ -101,7 +101,7 @@ code,
 .counter {
   font-family: var(--mono);
   display: inline-flex;
-  border-radius: 4px;
+  border-radius: var(--radio-1);
   color: var(--text-h);
 }
 
@@ -214,7 +214,7 @@ button:not(:disabled):active,
 html :is(button, a, input, select, textarea, [tabindex]):focus-visible {
   outline: 2px solid var(--color-primario);
   outline-offset: 2px;
-  border-radius: 6px;
+  border-radius: var(--radio-2);
 }
 
 /* Ritmo: más aire encima de un encabezado que debajo, para que el título
