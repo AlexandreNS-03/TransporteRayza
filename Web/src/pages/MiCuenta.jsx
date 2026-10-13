@@ -6,6 +6,7 @@ import Footer from "../components/Footer";
 import { soles } from "../services/publicApi";
 import ViajesCancelados from "../components/ViajesCancelados";
 import MetodosGuardados from "../components/MetodosGuardados";
+import MisComprobantes from "../components/MisComprobantes";
 import CambiarClave from "../components/CambiarClave";
 import { estaLogueado, clienteActual, cerrarSesion, getPerfil, actualizarPerfil, getMisViajes } from "../services/authCliente";
 
@@ -64,7 +65,8 @@ export default function MiCuenta() {
           </div>
 
           <div className="steps" style={{ justifyContent: "flex-start", marginTop: 20 }}>
-            {[["proximos", "Próximos viajes"], ["historial", "Historial"], ["datos", "Mis datos"],
+            {[["proximos", "Próximos viajes"], ["historial", "Historial"],
+              ["comprobantes", "Boletas y facturas"], ["datos", "Mis datos"],
               ["pagos", "Formas de pago"], ["seguridad", "Seguridad"]].map(([k, label]) => (
               <button key={k} className={`btn ${tab === k ? "btn-primary" : "btn-ghost"}`} onClick={() => setTab(k)}>{label}</button>
             ))}
@@ -108,6 +110,7 @@ export default function MiCuenta() {
             </div>
           )}
 
+          {tab === "comprobantes" && <MisComprobantes />}
           {tab === "pagos" && <MetodosGuardados />}
           {tab === "seguridad" && <CambiarClave />}
         </div>

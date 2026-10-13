@@ -1,6 +1,7 @@
 package com.example.demo.controller;
 
 import com.example.demo.dto.ClienteDTO;
+import com.example.demo.dto.ClienteComprobanteDTO;
 import com.example.demo.dto.ClienteViajeDTO;
 import com.example.demo.dto.MetodoPagoGuardadoDTO;
 import com.example.demo.service.ClienteService;
@@ -76,6 +77,12 @@ public class ClienteController {
         catch (IllegalArgumentException e) { throw new RuntimeException("Tipo de método desconocido"); }
         metodosPago.quitar(auth.getName(), t, id);
         return ResponseEntity.ok(Map.of("message", "Lo quitamos de tu cuenta."));
+    }
+
+    /** Las boletas y facturas del cliente, con el enlace al PDF. */
+    @GetMapping("/comprobantes")
+    public ResponseEntity<List<ClienteComprobanteDTO>> misComprobantes(Authentication auth) {
+        return ResponseEntity.ok(clienteService.misComprobantes(auth.getName()));
     }
 
     @GetMapping("/viajes")

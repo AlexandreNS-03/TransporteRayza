@@ -1,13 +1,16 @@
 package com.example.demo.service;
 
 import com.example.demo.dto.ClienteAuthResponse;
+import com.example.demo.dto.ClienteComprobanteDTO;
 import com.example.demo.dto.ClienteDTO;
 import com.example.demo.dto.ClienteRegisterRequest;
 import com.example.demo.dto.ClienteViajeDTO;
 import com.example.demo.model.Cliente;
+import com.example.demo.model.Comprobante;
 import com.example.demo.model.Venta;
 import com.example.demo.model.Viaje;
 import com.example.demo.repository.ClienteRepository;
+import com.example.demo.repository.ComprobanteRepository;
 import com.example.demo.repository.VentaRepository;
 import com.example.demo.repository.ViajeRepository;
 import com.example.demo.security.JwtUtil;
@@ -26,6 +29,7 @@ public class ClienteService {
 
     private final ClienteRepository clienteRepository;
     private final VentaRepository ventaRepository;
+    private final ComprobanteRepository comprobanteRepository;
     private final ViajeRepository viajeRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
@@ -50,6 +54,7 @@ public class ClienteService {
 
     public ClienteService(ClienteRepository clienteRepository,
                           VentaRepository ventaRepository,
+                          ComprobanteRepository comprobanteRepository,
                           ViajeRepository viajeRepository,
                           PasswordEncoder passwordEncoder,
                           JwtUtil jwtUtil,
@@ -57,6 +62,7 @@ public class ClienteService {
                           EmailService emailService) {
         this.clienteRepository = clienteRepository;
         this.ventaRepository = ventaRepository;
+        this.comprobanteRepository = comprobanteRepository;
         this.viajeRepository = viajeRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtil = jwtUtil;
@@ -188,27 +194,108 @@ public class ClienteService {
         return toDTO(c);
     }
 
-    public List<ClienteViajeDTO> misViajes(String email) {
-        Cliente c = obtenerPorEmail(email);
-        LocalDate hoy = LocalDate.now();
+    /**
+     * Las compras del cliente, juntadas por CUENTA, por CORREO y por DOCUMENTO.
+     *
+     * Los tres caminos hacen falta: alguien pudo comprar como invitado antes de
+     * crearse la cuenta, o en el mostrador con su DNI y sin dar correo. Si solo
+     * se mirara la cuenta, esas compras no aparecerían nunca.
+     */
+    private java.util.Collection<Venta> comprasDe(Cliente c) {
+        return comprasDe(c, true);
+    }
 
-        // Reúne las compras del cliente por CUENTA, por CORREO y por DOCUMENTO: así
-        // también aparecen las que hizo como invitado antes de crear su cuenta.
+    /**
+     * @param incluirPorDocumento si además se buscan las compras que llevan su
+     *        número de documento. Hace falta para los viajes —así aparecen las
+     *        que hizo en el mostrador, sin cuenta— pero NO para los
+     *        comprobantes: ver misComprobantes.
+     */
+    private java.util.Collection<Venta> comprasDe(Cliente c, boolean incluirPorDocumento) {
         java.util.LinkedHashMap<String, Venta> unicas = new java.util.LinkedHashMap<>();
         ventaRepository.findByClienteIdOrderByCreatedAtDesc(c.getId())
                 .forEach(v -> unicas.putIfAbsent(v.getId(), v));
         if (c.getEmail() != null && !c.getEmail().isBlank())
             ventaRepository.findByClienteEmailIgnoreCaseOrderByCreatedAtDesc(c.getEmail().trim())
                     .forEach(v -> unicas.putIfAbsent(v.getId(), v));
-        if (c.getNumeroDocumento() != null && !c.getNumeroDocumento().isBlank())
+        if (incluirPorDocumento && c.getNumeroDocumento() != null && !c.getNumeroDocumento().isBlank())
             ventaRepository.findByPasajeroDocumento(c.getNumeroDocumento().trim())
                     .forEach(v -> unicas.putIfAbsent(v.getId(), v));
+        return unicas.values();
+    }
 
-        return unicas.values().stream()
+    public List<ClienteViajeDTO> misViajes(String email) {
+        Cliente c = obtenerPorEmail(email);
+        LocalDate hoy = LocalDate.now();
+
+        return comprasDe(c).stream()
                 .filter(v -> v.getEstado() == Venta.EstadoVenta.PAGADO)
                 .sorted((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()))
                 .map(v -> toViajeDTO(v, hoy))
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Las boletas y facturas del cliente, para que se las pueda bajar él mismo.
+     *
+     * Se llega a ellas desde sus propias compras, que es el mismo camino que ya
+     * se usa para mostrarle sus viajes: así un comprobante solo aparece si la
+     * venta que lo originó es suya. Buscar por el correo del comprobante sería
+     * más corto y más frágil — el comprobante puede llevar el correo de otro, o
+     * ninguno.
+     *
+     * Una compra de varios pasajes lleva un comprobante único para el grupo, así
+     * que se buscan los dos caminos y se quita el repetido.
+     *
+     * <p><strong>A diferencia de los viajes, acá NO se busca por número de
+     * documento.</strong> Al registrarse nadie comprueba que el DNI que escribe
+     * sea el suyo, así que buscar por documento dejaría que alguien escriba el
+     * DNI de otro y se baje sus comprobantes — y un comprobante lleva el nombre
+     * completo, el documento y el domicilio del comprador. Un viaje muestra
+     * ruta, fecha y asiento; un comprobante muestra a la persona.
+     *
+     * <p>El costo de esta decisión: quien compró en el mostrador sin dar su
+     * correo no ve ahí su boleta y tiene que pedirla en la oficina, como hasta
+     * ahora. Es el error barato. El caro es el otro.
+     */
+    public List<ClienteComprobanteDTO> misComprobantes(String email) {
+        Cliente c = obtenerPorEmail(email);
+
+        java.util.LinkedHashMap<String, Comprobante> unicos = new java.util.LinkedHashMap<>();
+        for (Venta v : comprasDe(c, false)) {
+            comprobanteRepository.findByVentaId(v.getId())
+                    .forEach(x -> unicos.putIfAbsent(x.getId(), x));
+            if (v.getGrupoVentaId() != null && !v.getGrupoVentaId().isBlank())
+                comprobanteRepository.findByGrupoVentaId(v.getGrupoVentaId())
+                        .forEach(x -> unicos.putIfAbsent(x.getId(), x));
+        }
+
+        return unicos.values().stream()
+                .sorted((a, b) -> {
+                    String fa = a.getFechaDeEmision() == null ? "" : a.getFechaDeEmision().toString();
+                    String fb = b.getFechaDeEmision() == null ? "" : b.getFechaDeEmision().toString();
+                    return fb.compareTo(fa);
+                })
+                .map(ClienteService::toComprobanteDTO)
+                .collect(Collectors.toList());
+    }
+
+    private static ClienteComprobanteDTO toComprobanteDTO(Comprobante x) {
+        String crudo = x.getTipoDeComprobante() == null ? "" : x.getTipoDeComprobante().name();
+        String tipo = switch (crudo) {
+            case "BOLETA"       -> "Boleta";
+            case "FACTURA"      -> "Factura";
+            case "NOTA_CREDITO" -> "Nota de crédito";
+            case "TICKET"       -> "Ticket";
+            case "NOTA_VENTA"   -> "Nota de venta";
+            default -> crudo;
+        };
+        String numero = x.getSerie() + "-" + String.format("%08d", x.getNumero() == null ? 0 : x.getNumero());
+        return new ClienteComprobanteDTO(
+                tipo, numero,
+                x.getFechaDeEmision() == null ? null : x.getFechaDeEmision().toString(),
+                x.getTotal(), x.getDescripcion(),
+                x.getEstado() == null ? null : x.getEstado().name(), x.getEnlacePdf());
     }
 
     /**

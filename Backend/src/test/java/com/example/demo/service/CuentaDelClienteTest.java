@@ -47,7 +47,7 @@ class CuentaDelClienteTest {
                 "llave-de-prueba-que-no-se-usa-en-ningun-lado-32+");
         ReflectionTestUtils.setField(jwt, "expiration", 60_000L);
 
-        servicio = new ClienteService(repositorio, null, null, encoder, jwt,
+        servicio = new ClienteService(repositorio, null, null, null, encoder, jwt,
                 new IntentosLoginService(new AuditoriaMuda()), emailService);
 
         Cliente c = new Cliente();

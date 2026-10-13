@@ -103,6 +103,14 @@ export async function restablecerClave(token, password) {
   } catch (e) { throw err(e); }
 }
 
+/* ── Comprobantes ──
+   Las boletas y facturas del cliente, con el enlace al PDF en Nubefact. */
+
+export async function getMisComprobantes() {
+  try { const { data } = await axios.get(`${API}/comprobantes`, headers()); return data; }
+  catch (e) { throw err(e); }
+}
+
 /* ── Seguridad de la cuenta ── */
 
 /**
