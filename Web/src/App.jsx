@@ -21,6 +21,7 @@ const MisComprobantesPagina = lazy(() => import("./pages/cuenta/Comprobantes"));
 const Perfil         = lazy(() => import("./pages/cuenta/Perfil"));
 const Documentos     = lazy(() => import("./pages/cuenta/Documentos"));
 const Acompanantes   = lazy(() => import("./pages/cuenta/Acompanantes"));
+const Notificaciones = lazy(() => import("./pages/cuenta/Notificaciones"));
 const PagosCuenta    = lazy(() => import("./pages/cuenta/Pagos"));
 const AyudaCuenta    = lazy(() => import("./pages/cuenta/Ayuda"));
 const VerificarCorreo = lazy(() => import("./pages/VerificarCorreo"));
@@ -65,6 +66,7 @@ export default function App() {
           <Route path="/mi-cuenta/perfil" element={<Perfil />} />
           <Route path="/mi-cuenta/documentos" element={<Documentos />} />
           <Route path="/mi-cuenta/acompanantes" element={<Acompanantes />} />
+          <Route path="/mi-cuenta/notificaciones" element={<Notificaciones />} />
           <Route path="/mi-cuenta/pagos" element={<PagosCuenta />} />
           <Route path="/mi-cuenta/ayuda" element={<AyudaCuenta />} />
           <Route path="/verificar-correo" element={<VerificarCorreo />} />

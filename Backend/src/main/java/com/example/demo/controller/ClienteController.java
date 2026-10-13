@@ -5,11 +5,13 @@ import com.example.demo.dto.AcompananteDTO;
 import com.example.demo.dto.ClienteComprobanteDTO;
 import com.example.demo.dto.ClienteViajeDTO;
 import com.example.demo.dto.DocumentoViajeDTO;
+import com.example.demo.dto.PreferenciasNotificacionDTO;
 import com.example.demo.dto.MetodoPagoGuardadoDTO;
 import com.example.demo.service.ClienteService;
 import com.example.demo.service.AcompanantesService;
 import com.example.demo.service.DocumentosViajeService;
 import com.example.demo.service.MetodosPagoGuardadosService;
+import com.example.demo.service.NotificacionesService;
 import com.example.demo.service.VerificacionEmailService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,17 +31,20 @@ public class ClienteController {
     private final VerificacionEmailService verificacionEmail;
     private final DocumentosViajeService documentos;
     private final AcompanantesService acompanantes;
+    private final NotificacionesService notificaciones;
 
     public ClienteController(ClienteService clienteService,
                              MetodosPagoGuardadosService metodosPago,
                              VerificacionEmailService verificacionEmail,
                              DocumentosViajeService documentos,
-                             AcompanantesService acompanantes) {
+                             AcompanantesService acompanantes,
+                             NotificacionesService notificaciones) {
         this.clienteService = clienteService;
         this.metodosPago = metodosPago;
         this.verificacionEmail = verificacionEmail;
         this.documentos = documentos;
         this.acompanantes = acompanantes;
+        this.notificaciones = notificaciones;
     }
 
     @ExceptionHandler(RuntimeException.class)
@@ -64,6 +69,22 @@ public class ClienteController {
     public ResponseEntity<?> cambiarClave(@RequestBody Map<String, String> body, Authentication auth) {
         clienteService.cambiarClave(auth.getName(), body.get("actual"), body.get("nueva"));
         return ResponseEntity.ok(Map.of("message", "Tu contraseña quedó cambiada."));
+    }
+
+    /* ── Notificaciones ──
+       Por dónde le escribimos y para qué. Lo informativo es el servicio que
+       compró; lo promocional necesita que diga que sí, y queda anotado cuándo
+       lo dijo. */
+
+    @GetMapping("/notificaciones")
+    public ResponseEntity<PreferenciasNotificacionDTO> misNotificaciones(Authentication auth) {
+        return ResponseEntity.ok(notificaciones.deCliente(auth.getName()));
+    }
+
+    @PutMapping("/notificaciones")
+    public ResponseEntity<PreferenciasNotificacionDTO> guardarNotificaciones(
+            @RequestBody PreferenciasNotificacionDTO datos, Authentication auth) {
+        return ResponseEntity.ok(notificaciones.guardar(auth.getName(), datos));
     }
 
     /* ── Acompañantes frecuentes ──

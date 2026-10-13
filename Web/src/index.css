@@ -2148,6 +2148,16 @@ html :is(a, button, input, select, textarea, [tabindex]):focus-visible {
 .lr-tipo.activo { border-color: var(--brand); background: var(--sky-soft); }
 .lr-tipo input { margin-top: 3px; accent-color: var(--brand-700); }
 
+/* ---- Casilla de verificación ----
+   Va aparte de .field, que estiliza los input como campos de texto: una
+   casilla metida ahí sale como un rectángulo vacío de ancho completo. */
+.casilla { display: flex; gap: 11px; align-items: flex-start; margin-top: 12px; cursor: pointer; }
+.casilla input { width: 18px; height: 18px; margin-top: 2px; flex-shrink: 0; accent-color: var(--brand-700); }
+.casilla input:disabled { cursor: default; }
+.casilla-texto strong { display: block; font-size: 14.5px; color: var(--ink); font-weight: 600; }
+.casilla-nota { display: block; font-size: 13px; color: var(--ink-soft); line-height: 1.5; margin-top: 2px; }
+.casilla input:disabled + .casilla-texto strong { color: var(--ink-soft); }
+
 .lr-check { display: flex; align-items: center; gap: 9px; font-size: 14px; color: var(--ink); }
 .lr-check input { width: 17px; height: 17px; accent-color: var(--brand-700); }
 
