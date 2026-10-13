@@ -34,6 +34,14 @@ public class RecuperacionService {
     /** Una hora: suficiente para leer el correo, poco para que quede dando vueltas. */
     private static final int VALIDEZ_MINUTOS = 60;
 
+    /**
+     * Cuánto hay que esperar entre un pedido y el siguiente para el mismo
+     * correo. Sin esto, cualquiera puede escribir el correo de otro y apretar
+     * el botón cien veces: no le roba la cuenta, pero le llena la bandeja y
+     * nos quema la reputación de envío.
+     */
+    private static final int ESPERA_ENTRE_PEDIDOS_MINUTOS = 2;
+
     private static final int LARGO_MINIMO_CLAVE = 8;
 
     /* La misma variable que usan los demás correos (app.web.url). Con una propia
@@ -75,6 +83,15 @@ public class RecuperacionService {
             return;
         }
 
+        // Si ya se mandó uno hace poco, no se manda otro. El que respondió lo
+        // sigue teniendo en la bandeja y vale igual.
+        if (tokenRepository.pedidoReciente(cliente.getId(),
+                LocalDateTime.now().minusMinutes(ESPERA_ENTRE_PEDIDOS_MINUTOS))) {
+            System.out.println("[Recuperación] ya se envió un enlace hace menos de "
+                    + ESPERA_ENTRE_PEDIDOS_MINUTOS + " minutos; no se repite");
+            return;
+        }
+
         tokenRepository.invalidarAnteriores(cliente.getId(), LocalDateTime.now());
 
         String token = generarToken();
@@ -101,6 +118,7 @@ public class RecuperacionService {
     /** Cambia la contraseña si el enlace sirve. Lo quema apenas se usa. */
     @Transactional
     public void restablecer(String token, String nuevaClave) {
+        ClienteService.validarClave(nuevaClave);
         if (token == null || token.isBlank())
             throw new RuntimeException("El enlace no es válido. Pide uno nuevo.");
 

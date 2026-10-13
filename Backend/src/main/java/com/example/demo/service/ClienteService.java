@@ -29,24 +29,47 @@ public class ClienteService {
     private final ViajeRepository viajeRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+    private final IntentosLoginService intentosLoginService;
+    private final EmailService emailService;
+
+    /** Mínimo de la contraseña. Seis caracteres se adivinan; ocho ya no tanto. */
+    public static final int MINIMO_CLAVE = 8;
+
+    /**
+     * Un hash de descarte, contra el que se compara cuando el correo no tiene
+     * cuenta. Sin esto, responder "no existe" sale muchísimo más rápido que
+     * comprobar una contraseña de verdad, y esa diferencia de tiempo basta para
+     * averiguar quién está registrado sin acertar ni una clave.
+     *
+     * Tiene que ser un hash de verdad y del mismo costo que los demás: uno
+     * inventado se descarta al instante por mal formado y no hace ningún
+     * trabajo, que es justo lo que se quería evitar. Por eso se genera al
+     * arrancar, cifrando algo que nadie va a escribir nunca.
+     */
+    private final String hashDeDescarte;
 
     public ClienteService(ClienteRepository clienteRepository,
                           VentaRepository ventaRepository,
                           ViajeRepository viajeRepository,
                           PasswordEncoder passwordEncoder,
-                          JwtUtil jwtUtil) {
+                          JwtUtil jwtUtil,
+                          IntentosLoginService intentosLoginService,
+                          EmailService emailService) {
         this.clienteRepository = clienteRepository;
         this.ventaRepository = ventaRepository;
         this.viajeRepository = viajeRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtil = jwtUtil;
+        this.intentosLoginService = intentosLoginService;
+        this.emailService = emailService;
+        this.hashDeDescarte = passwordEncoder.encode(UUID.randomUUID().toString());
     }
 
     @Transactional
     public ClienteAuthResponse registrar(ClienteRegisterRequest req) {
         String email = normalizarEmail(req.getEmail());
-        if (email.isBlank() || req.getPassword() == null || req.getPassword().length() < 6)
-            throw new RuntimeException("Correo y contraseña (mín. 6 caracteres) son obligatorios");
+        if (email.isBlank()) throw new RuntimeException("El correo es obligatorio");
+        validarClave(req.getPassword());
         if (clienteRepository.existsByEmail(email))
             throw new RuntimeException("Ya existe una cuenta con ese correo");
 
@@ -69,18 +92,78 @@ public class ClienteService {
         return construirRespuesta(c);
     }
 
+    /**
+     * Entra a la cuenta.
+     *
+     * Tres cosas valen la pena acá, y las tres son para que nadie pueda ir
+     * probando:
+     *
+     *  - El mismo freno que el panel (cinco fallos y bloqueo creciente), por
+     *    correo y por dirección de internet a la vez. Antes el cliente no lo
+     *    tenía: se podían probar contraseñas sin límite.
+     *  - El mensaje es el mismo falle lo que falle. Decir "la cuenta está
+     *    desactivada" ya confirma que ese correo está registrado.
+     *  - Se comprueba una contraseña siempre, exista o no la cuenta, para que
+     *    responder no tarde distinto según el caso.
+     */
     @Transactional
-    public ClienteAuthResponse login(String email, String password) {
-        Cliente c = clienteRepository.findByEmail(normalizarEmail(email))
-                .orElseThrow(() -> new RuntimeException("Correo o contraseña incorrectos"));
-        if (Boolean.FALSE.equals(c.getActivo()))
-            throw new RuntimeException("La cuenta está desactivada");
-        if (!passwordEncoder.matches(password, c.getPassword()))
-            throw new RuntimeException("Correo o contraseña incorrectos");
+    public ClienteAuthResponse login(String email, String password, String ip) {
+        String limpio = normalizarEmail(email);
+        intentosLoginService.verificarPublico(limpio, ip);
 
+        Cliente c = clienteRepository.findByEmail(limpio).orElse(null);
+        boolean claveOk = passwordEncoder.matches(
+                password == null ? "" : password,
+                c != null ? c.getPassword() : hashDeDescarte);
+
+        if (c == null || !claveOk || Boolean.FALSE.equals(c.getActivo())) {
+            intentosLoginService.registrarFalloPublico(limpio, ip);
+            throw new RuntimeException("Correo o contraseña incorrectos");
+        }
+
+        intentosLoginService.registrarExitoPublico(limpio, ip);
         c.setUltimoLogin(LocalDateTime.now());
         clienteRepository.save(c);
         return construirRespuesta(c);
+    }
+
+    /**
+     * Cambia la contraseña desde adentro de la cuenta.
+     *
+     * Pide la actual aunque ya esté la sesión abierta: si alguien se sienta en
+     * la computadora con la sesión puesta, que no pueda quedarse con la cuenta.
+     * Y se avisa por correo, porque un cambio que el dueño no hizo tiene que
+     * enterarse en el momento.
+     */
+    @Transactional
+    public void cambiarClave(String email, String actual, String nueva) {
+        Cliente c = obtenerPorEmail(email);
+        if (!passwordEncoder.matches(actual == null ? "" : actual, c.getPassword()))
+            throw new RuntimeException("Tu contraseña actual no es correcta");
+        validarClave(nueva);
+        if (passwordEncoder.matches(nueva, c.getPassword()))
+            throw new RuntimeException("La contraseña nueva tiene que ser distinta de la actual");
+
+        c.setPassword(passwordEncoder.encode(nueva));
+        clienteRepository.save(c);
+
+        try {
+            emailService.enviarAvisoClaveCambiada(c.getEmail(), c.getNombres());
+        } catch (Exception e) {
+            // El aviso es importante pero no puede dejar al cliente sin cambiar
+            // la contraseña si el correo está caído.
+            System.err.println("[Cuenta] no se pudo avisar el cambio de clave: " + e.getMessage());
+        }
+    }
+
+    /** Las reglas de la contraseña, en un solo lugar. */
+    public static void validarClave(String clave) {
+        if (clave == null || clave.length() < MINIMO_CLAVE)
+            throw new RuntimeException("La contraseña debe tener al menos " + MINIMO_CLAVE + " caracteres");
+        String s = clave.toLowerCase();
+        // Las cuatro que siempre aparecen primero en cualquier intento.
+        if (s.equals("12345678") || s.equals("contrasena") || s.equals("password") || s.equals("rayza123"))
+            throw new RuntimeException("Esa contraseña es de las primeras que alguien probaría. Elige otra.");
     }
 
     public Cliente obtenerPorEmail(String email) {

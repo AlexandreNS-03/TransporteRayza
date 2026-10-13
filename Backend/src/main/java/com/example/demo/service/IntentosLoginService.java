@@ -24,8 +24,22 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class IntentosLoginService {
 
-    /** Intentos fallidos permitidos antes de bloquear. */
+    /** Intentos fallidos permitidos antes de bloquear una cuenta. */
     private static final int TOLERANCIA = 5;
+
+    /**
+     * Lo mismo, pero por dirección de internet, y solo para la web pública.
+     *
+     * En el panel los cinco alcanzan: son cuatro personas en dos oficinas. En
+     * la web no: buena parte de Loreto entra por datos móviles, y ahí mucha
+     * gente distinta sale por la misma dirección. Con cinco, bastaría que cinco
+     * clientes se equivocaran de contraseña en media hora para dejar sin
+     * comprar a todos los que estén detrás de esa antena.
+     *
+     * Por cuenta se mantiene en cinco, que es donde de verdad importa: quien
+     * ataca una cuenta ataca un correo concreto.
+     */
+    private static final int TOLERANCIA_IP_PUBLICA = 30;
 
     /** Cuánto dura el bloqueo según cuántas veces ya se bloqueó. */
     private static final int[] MINUTOS_BLOQUEO = { 5, 15, 30 };
@@ -57,6 +71,16 @@ public class IntentosLoginService {
         revisar("ip:" + normalizar(ip));
     }
 
+    /**
+     * Igual, pero para el login de la web pública: la cuenta se bloquea al
+     * quinto fallo y la dirección aguanta mucho más. Ver TOLERANCIA_IP_PUBLICA.
+     */
+    public void verificarPublico(String usuario, String ip) {
+        limpiarViejos();
+        revisar("usuario:" + normalizar(usuario));
+        revisar("ip-publica:" + normalizar(ip));
+    }
+
     private void revisar(String llave) {
         Registro r = registros.get(llave);
         if (r == null || r.bloqueadoHasta == null) return;
@@ -72,16 +96,27 @@ public class IntentosLoginService {
 
     /** Contraseña equivocada: suma y, si se pasó, bloquea. */
     public void registrarFallo(String usuario, String ip) {
-        sumar("usuario:" + normalizar(usuario), "el usuario \"" + usuario + "\"");
-        sumar("ip:" + normalizar(ip), "la dirección " + ip);
+        sumar("usuario:" + normalizar(usuario), "el usuario \"" + usuario + "\"", TOLERANCIA);
+        sumar("ip:" + normalizar(ip), "la dirección " + ip, TOLERANCIA);
     }
 
-    private void sumar(String llave, String descripcion) {
+    /** Lo mismo para la web pública, donde la dirección aguanta más. */
+    public void registrarFalloPublico(String usuario, String ip) {
+        sumar("usuario:" + normalizar(usuario), "la cuenta \"" + usuario + "\"", TOLERANCIA);
+        sumar("ip-publica:" + normalizar(ip), "la dirección " + ip, TOLERANCIA_IP_PUBLICA);
+    }
+
+    public void registrarExitoPublico(String usuario, String ip) {
+        registros.remove("usuario:" + normalizar(usuario));
+        registros.remove("ip-publica:" + normalizar(ip));
+    }
+
+    private void sumar(String llave, String descripcion, int tolerancia) {
         Registro r = registros.computeIfAbsent(llave, k -> new Registro());
         synchronized (r) {
             r.fallos++;
             r.ultimoFallo = LocalDateTime.now();
-            if (r.fallos < TOLERANCIA) return;
+            if (r.fallos < tolerancia) return;
 
             int minutos = MINUTOS_BLOQUEO[Math.min(r.bloqueos, MINUTOS_BLOQUEO.length - 1)];
             r.bloqueos++;
@@ -91,7 +126,7 @@ public class IntentosLoginService {
             // Queda en auditoría: si alguien está atacando, se ve.
             try {
                 auditoriaService.registrar("BLOQUEO_LOGIN", "SEGURIDAD", null,
-                        "Bloqueado por " + minutos + " minuto(s) tras " + TOLERANCIA
+                        "Bloqueado por " + minutos + " minuto(s) tras " + tolerancia
                                 + " intentos fallidos para " + descripcion);
             } catch (Exception ignorado) { /* el bloqueo vale igual aunque falle el registro */ }
         }

@@ -102,3 +102,41 @@ export async function restablecerClave(token, password) {
     return data.message;
   } catch (e) { throw err(e); }
 }
+
+/* ── Seguridad de la cuenta ── */
+
+/**
+ * Cambia la contraseña estando dentro.
+ *
+ * Hasta ahora, quien quería cambiarla tenía que pasar por "olvidé mi clave" y
+ * esperar un correo: el camino largo, y el único que había.
+ */
+export async function cambiarClave(actual, nueva) {
+  try {
+    const { data } = await axios.post(`${API}/cambiar-clave`, { actual, nueva }, headers());
+    return data.message;
+  } catch (e) { throw err(e); }
+}
+
+/* ── Métodos de pago guardados ──
+   Tarjetas y Yape llegan en un solo listado: para el cliente son lo mismo.
+   Nunca viaja el token, solo lo justo para reconocer cada uno. */
+
+export async function getMetodosDePago() {
+  try { const { data } = await axios.get(`${API}/metodos-de-pago`, headers()); return data; }
+  catch { return []; }
+}
+
+export async function quitarMetodoDePago(tipo, id) {
+  try {
+    const { data } = await axios.delete(`${API}/metodos-de-pago/${tipo.toLowerCase()}/${id}`, headers());
+    return data.message;
+  } catch (e) { throw err(e); }
+}
+
+export async function marcarPreferida(id) {
+  try {
+    const { data } = await axios.patch(`${API}/metodos-de-pago/${id}/preferida`, {}, headers());
+    return data.message;
+  } catch (e) { throw err(e); }
+}

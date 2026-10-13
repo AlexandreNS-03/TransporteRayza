@@ -4,6 +4,7 @@ import com.example.demo.dto.ClienteAuthResponse;
 import com.example.demo.dto.ClienteRegisterRequest;
 import com.example.demo.service.ClienteService;
 import com.example.demo.service.RecuperacionService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -36,8 +37,21 @@ public class ClienteAuthController {
     }
 
     @PostMapping("/login")
-    public ClienteAuthResponse login(@RequestBody Map<String, String> body) {
-        return clienteService.login(body.get("email"), body.get("password"));
+    public ClienteAuthResponse login(@RequestBody Map<String, String> body,
+                                     HttpServletRequest http) {
+        return clienteService.login(body.get("email"), body.get("password"), ipDe(http));
+    }
+
+    /**
+     * Detrás de Railway la petición llega por un proxy, así que getRemoteAddr()
+     * devuelve siempre la misma: la del proxy. La del visitante viene en
+     * X-Forwarded-For, primera de la lista.
+     */
+    private String ipDe(HttpServletRequest http) {
+        String reenviada = http.getHeader("X-Forwarded-For");
+        if (reenviada != null && !reenviada.isBlank())
+            return reenviada.split(",")[0].trim();
+        return http.getRemoteAddr();
     }
 
     /**
