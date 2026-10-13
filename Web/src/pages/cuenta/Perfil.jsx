@@ -2,6 +2,7 @@ import { useState } from "react";
 import CuentaLayout from "../../components/CuentaLayout";
 import CambiarClave from "../../components/CambiarClave";
 import { OpcionesDePais } from "../../components/paises";
+import VerificarCelular from "../../components/VerificarCelular";
 import { actualizarPerfil } from "../../services/authCliente";
 
 const GENEROS = [["MASCULINO", "Masculino"], ["FEMENINO", "Femenino"], ["OTRO", "Otro"]];
@@ -68,6 +69,7 @@ export default function Perfil() {
                 <div className="meta" style={{ marginTop: 6 }}>
                   Lo usamos para avisarte si tu viaje cambia de hora.
                 </div>
+                <VerificarCelular perfil={perfil} onVerificado={setPerfil} />
               </div>
             </div>
 

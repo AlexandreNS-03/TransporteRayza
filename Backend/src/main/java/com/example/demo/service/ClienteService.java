@@ -35,6 +35,7 @@ public class ClienteService {
     private final JwtUtil jwtUtil;
     private final IntentosLoginService intentosLoginService;
     private final VerificacionEmailService verificacionEmailService;
+    private final VerificacionCelularService verificacionCelularService;
     private final EmailService emailService;
 
     /** Mínimo de la contraseña. Seis caracteres se adivinan; ocho ya no tanto. */
@@ -61,6 +62,7 @@ public class ClienteService {
                           JwtUtil jwtUtil,
                           IntentosLoginService intentosLoginService,
                           VerificacionEmailService verificacionEmailService,
+                          VerificacionCelularService verificacionCelularService,
                           EmailService emailService) {
         this.clienteRepository = clienteRepository;
         this.ventaRepository = ventaRepository;
@@ -70,6 +72,7 @@ public class ClienteService {
         this.jwtUtil = jwtUtil;
         this.intentosLoginService = intentosLoginService;
         this.verificacionEmailService = verificacionEmailService;
+        this.verificacionCelularService = verificacionCelularService;
         this.emailService = emailService;
         this.hashDeDescarte = passwordEncoder.encode(UUID.randomUUID().toString());
     }
@@ -210,8 +213,15 @@ public class ClienteService {
         if (datos.getNumeroDocumento() != null) c.setNumeroDocumento(datos.getNumeroDocumento());
         if (datos.getPaisDocumento() != null) c.setPaisDocumento(datos.getPaisDocumento());
         if (datos.getFechaNacimiento() != null) c.setFechaNacimiento(parseFecha(datos.getFechaNacimiento()));
-        if (datos.getCodigoPaisTelefono() != null) c.setCodigoPaisTelefono(datos.getCodigoPaisTelefono());
-        if (datos.getTelefono() != null) c.setTelefono(datos.getTelefono());
+        // Si cambia el número, se pierde la verificación: lo que se comprobó
+        // fue ese teléfono, no la persona. Dejarlo marcado sería decir que
+        // comprobamos algo que no comprobamos.
+        if (datos.getCodigoPaisTelefono() != null || datos.getTelefono() != null) {
+            String antes = c.celularCompleto();
+            if (datos.getCodigoPaisTelefono() != null) c.setCodigoPaisTelefono(datos.getCodigoPaisTelefono());
+            if (datos.getTelefono() != null) c.setTelefono(datos.getTelefono());
+            if (!antes.equals(c.celularCompleto())) c.setTelefonoVerificadoAt(null);
+        }
         if (datos.getGenero() != null) c.setGenero(parseGenero(datos.getGenero()));
         if (datos.getNacionalidad() != null) c.setNacionalidad(normalizarPais(datos.getNacionalidad()));
         if (datos.getEmergenciaNombres() != null)    c.setEmergenciaNombres(datos.getEmergenciaNombres());
@@ -389,6 +399,8 @@ public class ClienteService {
         dto.setGenero(c.getGenero() != null ? c.getGenero().name() : null);
         dto.setNacionalidad(c.getNacionalidad());
         dto.setCorreoVerificado(c.tieneCorreoVerificado());
+        dto.setCelularVerificado(c.tieneCelularVerificado());
+        dto.setPuedeVerificarCelular(verificacionCelularService.hayPorDondeMandar());
         dto.setEmergenciaNombres(c.getEmergenciaNombres());
         dto.setEmergenciaApellidos(c.getEmergenciaApellidos());
         dto.setEmergenciaRelacion(c.getEmergenciaRelacion());

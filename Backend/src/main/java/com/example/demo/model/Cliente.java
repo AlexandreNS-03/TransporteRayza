@@ -91,6 +91,16 @@ public class Cliente {
     @Column(name = "email_verificado_at")
     private LocalDateTime emailVerificadoAt;
 
+    /**
+     * Cuándo quedó comprobado que el celular es suyo. Null = sin verificar.
+     *
+     * Se pierde si cambia el número: lo que se verificó fue ese teléfono, no la
+     * persona. Dejarlo marcado después de un cambio sería decir que comprobamos
+     * algo que no comprobamos.
+     */
+    @Column(name = "telefono_verificado_at")
+    private LocalDateTime telefonoVerificadoAt;
+
     private Boolean activo;
 
     @Column(name = "created_at")
@@ -134,6 +144,17 @@ public class Cliente {
 
     public LocalDateTime getEmailVerificadoAt() { return emailVerificadoAt; }
     public void setEmailVerificadoAt(LocalDateTime emailVerificadoAt) { this.emailVerificadoAt = emailVerificadoAt; }
+
+    public boolean tieneCelularVerificado() { return telefonoVerificadoAt != null; }
+
+    public LocalDateTime getTelefonoVerificadoAt() { return telefonoVerificadoAt; }
+    public void setTelefonoVerificadoAt(LocalDateTime v) { this.telefonoVerificadoAt = v; }
+
+    /** El número completo, como se marca. */
+    public String celularCompleto() {
+        String cod = codigoPaisTelefono == null || codigoPaisTelefono.isBlank() ? "+51" : codigoPaisTelefono.trim();
+        return cod + (telefono == null ? "" : telefono.trim());
+    }
 
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }

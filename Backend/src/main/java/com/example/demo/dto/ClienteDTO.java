@@ -18,6 +18,9 @@ public class ClienteDTO {
     private String nacionalidad;
     /** Solo lectura: el cliente no se marca a sí mismo como verificado. */
     private boolean correoVerificado;
+    private boolean celularVerificado;
+    /** Si hoy hay canal para mandar el código. Si no, no se ofrece. */
+    private boolean puedeVerificarCelular;
     /* Contacto de emergencia: a quién llamamos si pasa algo en el viaje. */
     private String emergenciaNombres;
     private String emergenciaApellidos;
@@ -78,4 +81,10 @@ public class ClienteDTO {
 
     public String getEmergenciaTelefono() { return emergenciaTelefono; }
     public void setEmergenciaTelefono(String v) { this.emergenciaTelefono = v; }
+
+    public boolean isCelularVerificado() { return celularVerificado; }
+    public void setCelularVerificado(boolean v) { this.celularVerificado = v; }
+
+    public boolean isPuedeVerificarCelular() { return puedeVerificarCelular; }
+    public void setPuedeVerificarCelular(boolean v) { this.puedeVerificarCelular = v; }
 }

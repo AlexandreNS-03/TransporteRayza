@@ -51,7 +51,7 @@ class ComprobantesDelClienteTest {
 
         servicio = new ClienteService(clientes, ventas, comprobantes, null,
                 new BCryptPasswordEncoder(), jwt,
-                new IntentosLoginService(new AuditoriaMuda()), null, new CorreoMudo());
+                new IntentosLoginService(new AuditoriaMuda()), null, verificacionCelularSinCanal(), new CorreoMudo());
 
         Cliente c = new Cliente();
         c.setId("c-1");
@@ -142,5 +142,15 @@ class ComprobantesDelClienteTest {
         CorreoMudo() { super(null); }
         @Override
         public void enviarAvisoClaveCambiada(String destinatario, String nombre) { }
+    }
+
+    /** Un servicio de verificación de celular sin ningún canal: el perfil lo
+     *  consulta para saber si puede ofrecer verificar, y sin él no se arma. */
+    private static VerificacionCelularService verificacionCelularSinCanal() {
+        VerificacionCelularService v = new VerificacionCelularService(null, null);
+        ReflectionTestUtils.setField(v, "smsDisponible", false);
+        ReflectionTestUtils.setField(v, "whatsappDisponible", false);
+        ReflectionTestUtils.setField(v, "simulado", false);
+        return v;
     }
 }

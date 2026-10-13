@@ -111,6 +111,22 @@ export async function reenviarVerificacion() {
   } catch (e) { throw err(e); }
 }
 
+/** Pide el código al celular que tiene en su perfil. */
+export async function enviarCodigoCelular() {
+  try {
+    const { data } = await axios.post(`${API}/verificar-celular/enviar`, {}, headers());
+    return data.message;
+  } catch (e) { throw err(e); }
+}
+
+/** Confirma el celular con el código que le llegó. */
+export async function confirmarCelular(codigo) {
+  try {
+    const { data } = await axios.post(`${API}/verificar-celular`, { codigo }, headers());
+    return data.message;
+  } catch (e) { throw err(e); }
+}
+
 /** Confirma el correo con el token del enlace. No necesita sesión. */
 export async function confirmarCorreo(token) {
   try {

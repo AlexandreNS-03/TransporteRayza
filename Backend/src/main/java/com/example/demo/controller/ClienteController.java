@@ -12,6 +12,7 @@ import com.example.demo.service.AcompanantesService;
 import com.example.demo.service.DocumentosViajeService;
 import com.example.demo.service.MetodosPagoGuardadosService;
 import com.example.demo.service.NotificacionesService;
+import com.example.demo.service.VerificacionCelularService;
 import com.example.demo.service.VerificacionEmailService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,19 +33,22 @@ public class ClienteController {
     private final DocumentosViajeService documentos;
     private final AcompanantesService acompanantes;
     private final NotificacionesService notificaciones;
+    private final VerificacionCelularService verificacionCelular;
 
     public ClienteController(ClienteService clienteService,
                              MetodosPagoGuardadosService metodosPago,
                              VerificacionEmailService verificacionEmail,
                              DocumentosViajeService documentos,
                              AcompanantesService acompanantes,
-                             NotificacionesService notificaciones) {
+                             NotificacionesService notificaciones,
+                             VerificacionCelularService verificacionCelular) {
         this.clienteService = clienteService;
         this.metodosPago = metodosPago;
         this.verificacionEmail = verificacionEmail;
         this.documentos = documentos;
         this.acompanantes = acompanantes;
         this.notificaciones = notificaciones;
+        this.verificacionCelular = verificacionCelular;
     }
 
     @ExceptionHandler(RuntimeException.class)
@@ -166,6 +170,24 @@ public class ClienteController {
         verificacionEmail.reenviar(auth.getName());
         return ResponseEntity.ok(Map.of("message",
                 "Te mandamos el enlace. Revisa tu correo; también puede estar en spam."));
+    }
+
+    /* ── Verificación del celular ──
+       Un código de seis dígitos: lo que lo protege no es que venza, es que se
+       cuentan los intentos. Ver VerificacionCelularService. */
+
+    @PostMapping("/verificar-celular/enviar")
+    public ResponseEntity<?> enviarCodigoCelular(Authentication auth) {
+        String tapado = verificacionCelular.enviarCodigo(auth.getName());
+        return ResponseEntity.ok(Map.of("message",
+                "Te mandamos un código a " + tapado + ". Vence en 10 minutos."));
+    }
+
+    @PostMapping("/verificar-celular")
+    public ResponseEntity<?> confirmarCelular(@RequestBody Map<String, String> body,
+                                              Authentication auth) {
+        verificacionCelular.confirmar(auth.getName(), body.get("codigo"));
+        return ResponseEntity.ok(Map.of("message", "Listo, tu celular quedó verificado."));
     }
 
     /** Las boletas y facturas del cliente, con el enlace al PDF. */
