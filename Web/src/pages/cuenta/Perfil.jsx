@@ -1,14 +1,8 @@
 import { useState } from "react";
 import CuentaLayout from "../../components/CuentaLayout";
 import CambiarClave from "../../components/CambiarClave";
+import { OpcionesDePais } from "../../components/paises";
 import { actualizarPerfil } from "../../services/authCliente";
-
-/** ISO-2 de los países de donde viene la gente que viaja por acá. */
-const PAISES = [
-  ["PE", "Perú"], ["CO", "Colombia"], ["BR", "Brasil"], ["EC", "Ecuador"],
-  ["BO", "Bolivia"], ["CL", "Chile"], ["AR", "Argentina"], ["VE", "Venezuela"],
-  ["US", "Estados Unidos"], ["ES", "España"], ["FR", "Francia"], ["DE", "Alemania"],
-];
 
 const GENEROS = [["MASCULINO", "Masculino"], ["FEMENINO", "Femenino"], ["OTRO", "Otro"]];
 
@@ -31,7 +25,19 @@ export default function Perfil() {
         const guardar = async (e) => {
           e.preventDefault();
           setGuardando(true); setMsg(null);
-          try { await actualizarPerfil(perfil); setMsg("Datos actualizados."); }
+          try {
+            // El "+51" del contacto de emergencia se mostraba pero no se
+            // guardaba: quedaba un teléfono sin código de país, y el día que
+            // alguien tenga que marcarlo no va a estar para adivinarlo. Si
+            // escribió el número y no tocó el código, es Perú.
+            const aGuardar = { ...perfil };
+            if (aGuardar.emergenciaTelefono && !aGuardar.emergenciaCodigoPais)
+              aGuardar.emergenciaCodigoPais = "+51";
+
+            const actualizado = await actualizarPerfil(aGuardar);
+            setPerfil(actualizado);
+            setMsg("Datos actualizados.");
+          }
           catch (err) { setMsg(err.message); }
           finally { setGuardando(false); }
         };
@@ -102,12 +108,12 @@ export default function Perfil() {
                 <div className="field"><label htmlFor="nacionalidad">Nacionalidad</label>
                   <select id="nacionalidad" value={perfil.nacionalidad || ""} onChange={campo("nacionalidad")}>
                     <option value="">Elige tu país</option>
-                    {PAISES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                    <OpcionesDePais />
                   </select></div>
 
                 <div className="field"><label htmlFor="paisdoc">País que emitió tu documento</label>
                   <select id="paisdoc" value={perfil.paisDocumento || "PE"} onChange={campo("paisDocumento")}>
-                    {PAISES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                    <OpcionesDePais />
                   </select></div>
 
                 {msg && <div className="alert alert-info" style={{ marginTop: 14 }} role="status">{msg}</div>}
@@ -115,6 +121,45 @@ export default function Perfil() {
                 <button className="btn btn-primary" type="submit" disabled={guardando}
                         style={{ marginTop: 18 }}>
                   {guardando ? "Guardando…" : "Guardar cambios"}
+                </button>
+              </form>
+            </div>
+
+            <h3 style={{ marginTop: 34 }}>Contacto de emergencia</h3>
+            <p className="meta" style={{ marginTop: 4, maxWidth: 620 }}>
+              A quién llamamos si pasa algo durante tu viaje. No lo usamos para
+              ninguna otra cosa, y no le escribimos nunca salvo que haga falta.
+            </p>
+
+            <div className="card" style={{ maxWidth: 660, marginTop: 16 }}>
+              <form onSubmit={guardar}>
+                <div className="field"><label htmlFor="em-nombres">Nombres</label>
+                  <input id="em-nombres" value={perfil.emergenciaNombres || ""}
+                         onChange={campo("emergenciaNombres")} /></div>
+                <div className="field"><label htmlFor="em-apellidos">Apellidos</label>
+                  <input id="em-apellidos" value={perfil.emergenciaApellidos || ""}
+                         onChange={campo("emergenciaApellidos")} /></div>
+                <div className="field"><label htmlFor="em-relacion">Qué es tuyo</label>
+                  <input id="em-relacion" value={perfil.emergenciaRelacion || ""}
+                         onChange={campo("emergenciaRelacion")}
+                         placeholder="Madre, hermano, pareja…" maxLength={40} /></div>
+                <div className="field">
+                  <label htmlFor="em-telefono">Teléfono</label>
+                  <div style={{ display: "flex", gap: 8 }}>
+                    <input id="em-codpais" style={{ maxWidth: 90 }}
+                           value={perfil.emergenciaCodigoPais || "+51"}
+                           onChange={campo("emergenciaCodigoPais")} aria-label="Código de país" />
+                    <input id="em-telefono" value={perfil.emergenciaTelefono || ""}
+                           onChange={campo("emergenciaTelefono")} />
+                  </div>
+                  <div className="meta" style={{ marginTop: 6 }}>
+                    Es lo único imprescindible: con el número alcanza.
+                  </div>
+                </div>
+
+                <button className="btn btn-primary" type="submit" disabled={guardando}
+                        style={{ marginTop: 18 }}>
+                  {guardando ? "Guardando…" : "Guardar contacto"}
                 </button>
               </form>
             </div>

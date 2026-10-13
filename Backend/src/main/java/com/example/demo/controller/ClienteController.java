@@ -3,8 +3,10 @@ package com.example.demo.controller;
 import com.example.demo.dto.ClienteDTO;
 import com.example.demo.dto.ClienteComprobanteDTO;
 import com.example.demo.dto.ClienteViajeDTO;
+import com.example.demo.dto.DocumentoViajeDTO;
 import com.example.demo.dto.MetodoPagoGuardadoDTO;
 import com.example.demo.service.ClienteService;
+import com.example.demo.service.DocumentosViajeService;
 import com.example.demo.service.MetodosPagoGuardadosService;
 import com.example.demo.service.VerificacionEmailService;
 import org.springframework.http.HttpStatus;
@@ -23,13 +25,16 @@ public class ClienteController {
     private final ClienteService clienteService;
     private final MetodosPagoGuardadosService metodosPago;
     private final VerificacionEmailService verificacionEmail;
+    private final DocumentosViajeService documentos;
 
     public ClienteController(ClienteService clienteService,
                              MetodosPagoGuardadosService metodosPago,
-                             VerificacionEmailService verificacionEmail) {
+                             VerificacionEmailService verificacionEmail,
+                             DocumentosViajeService documentos) {
         this.clienteService = clienteService;
         this.metodosPago = metodosPago;
         this.verificacionEmail = verificacionEmail;
+        this.documentos = documentos;
     }
 
     @ExceptionHandler(RuntimeException.class)
@@ -54,6 +59,29 @@ public class ClienteController {
     public ResponseEntity<?> cambiarClave(@RequestBody Map<String, String> body, Authentication auth) {
         clienteService.cambiarClave(auth.getName(), body.get("actual"), body.get("nueva"));
         return ResponseEntity.ok(Map.of("message", "Tu contraseña quedó cambiada."));
+    }
+
+    /* ── Documentos de viaje ──
+       Varios por cliente: acá se viaja con DNI dentro del país y con pasaporte
+       o CPF cuando se cruza a Brasil. El servidor calcula si están vencidos o
+       por vencer; la pantalla no debería hacer cuentas de fechas. */
+
+    @GetMapping("/documentos")
+    public ResponseEntity<List<DocumentoViajeDTO>> misDocumentos(Authentication auth) {
+        return ResponseEntity.ok(documentos.deCliente(auth.getName()));
+    }
+
+    /** Agrega uno o actualiza el que ya estaba, si coinciden tipo y número. */
+    @PostMapping("/documentos")
+    public ResponseEntity<DocumentoViajeDTO> guardarDocumento(@RequestBody DocumentoViajeDTO datos,
+                                                              Authentication auth) {
+        return ResponseEntity.ok(documentos.guardar(auth.getName(), datos));
+    }
+
+    @DeleteMapping("/documentos/{id}")
+    public ResponseEntity<?> borrarDocumento(@PathVariable String id, Authentication auth) {
+        documentos.borrar(auth.getName(), id);
+        return ResponseEntity.ok(Map.of("message", "Lo borramos de tu cuenta."));
     }
 
     /* ── Métodos de pago guardados ──

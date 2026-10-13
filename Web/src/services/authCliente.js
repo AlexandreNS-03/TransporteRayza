@@ -119,6 +119,27 @@ export async function confirmarCorreo(token) {
   } catch (e) { throw err(e); }
 }
 
+/* ── Documentos de viaje ──
+   Varios por cliente: acá se viaja con DNI dentro del país y con pasaporte o
+   CPF cuando se cruza a Brasil. */
+
+export async function getMisDocumentos() {
+  try { const { data } = await axios.get(`${API}/documentos`, headers()); return data; }
+  catch (e) { throw err(e); }
+}
+
+export async function guardarDocumento(doc) {
+  try { const { data } = await axios.post(`${API}/documentos`, doc, headers()); return data; }
+  catch (e) { throw err(e); }
+}
+
+export async function borrarDocumento(id) {
+  try {
+    const { data } = await axios.delete(`${API}/documentos/${id}`, headers());
+    return data.message;
+  } catch (e) { throw err(e); }
+}
+
 /* ── Comprobantes ──
    Las boletas y facturas del cliente, con el enlace al PDF en Nubefact. */
 

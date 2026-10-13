@@ -18,6 +18,12 @@ public class ClienteDTO {
     private String nacionalidad;
     /** Solo lectura: el cliente no se marca a sí mismo como verificado. */
     private boolean correoVerificado;
+    /* Contacto de emergencia: a quién llamamos si pasa algo en el viaje. */
+    private String emergenciaNombres;
+    private String emergenciaApellidos;
+    private String emergenciaRelacion;
+    private String emergenciaCodigoPais;
+    private String emergenciaTelefono;
 
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
@@ -57,4 +63,19 @@ public class ClienteDTO {
 
     public boolean isCorreoVerificado() { return correoVerificado; }
     public void setCorreoVerificado(boolean correoVerificado) { this.correoVerificado = correoVerificado; }
+
+    public String getEmergenciaNombres() { return emergenciaNombres; }
+    public void setEmergenciaNombres(String v) { this.emergenciaNombres = v; }
+
+    public String getEmergenciaApellidos() { return emergenciaApellidos; }
+    public void setEmergenciaApellidos(String v) { this.emergenciaApellidos = v; }
+
+    public String getEmergenciaRelacion() { return emergenciaRelacion; }
+    public void setEmergenciaRelacion(String v) { this.emergenciaRelacion = v; }
+
+    public String getEmergenciaCodigoPais() { return emergenciaCodigoPais; }
+    public void setEmergenciaCodigoPais(String v) { this.emergenciaCodigoPais = v; }
+
+    public String getEmergenciaTelefono() { return emergenciaTelefono; }
+    public void setEmergenciaTelefono(String v) { this.emergenciaTelefono = v; }
 }

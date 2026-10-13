@@ -18,6 +18,7 @@ const PAGINAS = [
   ["/mi-cuenta/viajes", "Mis viajes"],
   ["/mi-cuenta/comprobantes", "Boletas y facturas"],
   ["/mi-cuenta/perfil", "Mis datos"],
+  ["/mi-cuenta/documentos", "Documentos"],
   ["/mi-cuenta/pagos", "Formas de pago"],
   ["/mi-cuenta/ayuda", "Ayuda"],
 ];

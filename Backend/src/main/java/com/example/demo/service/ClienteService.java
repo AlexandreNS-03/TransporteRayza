@@ -214,6 +214,11 @@ public class ClienteService {
         if (datos.getTelefono() != null) c.setTelefono(datos.getTelefono());
         if (datos.getGenero() != null) c.setGenero(parseGenero(datos.getGenero()));
         if (datos.getNacionalidad() != null) c.setNacionalidad(normalizarPais(datos.getNacionalidad()));
+        if (datos.getEmergenciaNombres() != null)    c.setEmergenciaNombres(datos.getEmergenciaNombres());
+        if (datos.getEmergenciaApellidos() != null)  c.setEmergenciaApellidos(datos.getEmergenciaApellidos());
+        if (datos.getEmergenciaRelacion() != null)   c.setEmergenciaRelacion(datos.getEmergenciaRelacion());
+        if (datos.getEmergenciaCodigoPais() != null) c.setEmergenciaCodigoPais(datos.getEmergenciaCodigoPais());
+        if (datos.getEmergenciaTelefono() != null)   c.setEmergenciaTelefono(datos.getEmergenciaTelefono());
         clienteRepository.save(c);
         return toDTO(c);
     }
@@ -384,6 +389,11 @@ public class ClienteService {
         dto.setGenero(c.getGenero() != null ? c.getGenero().name() : null);
         dto.setNacionalidad(c.getNacionalidad());
         dto.setCorreoVerificado(c.tieneCorreoVerificado());
+        dto.setEmergenciaNombres(c.getEmergenciaNombres());
+        dto.setEmergenciaApellidos(c.getEmergenciaApellidos());
+        dto.setEmergenciaRelacion(c.getEmergenciaRelacion());
+        dto.setEmergenciaCodigoPais(c.getEmergenciaCodigoPais());
+        dto.setEmergenciaTelefono(c.getEmergenciaTelefono());
         return dto;
     }
 

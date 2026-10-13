@@ -60,6 +60,27 @@ public class Cliente {
     @Column(name = "nacionalidad", length = 2)
     private String nacionalidad;
 
+    /* ── Contacto de emergencia ──
+       Va en la cuenta y no en cada compra porque es el mismo siempre, y porque
+       el día que haga falta nadie va a tener tiempo de buscarlo. En un viaje de
+       ocho horas por el río no es un campo de formulario: es a quién se llama. */
+
+    @Column(name = "emergencia_nombres", length = 150)
+    private String emergenciaNombres;
+
+    @Column(name = "emergencia_apellidos", length = 150)
+    private String emergenciaApellidos;
+
+    /** Madre, padre, hermano, pareja… Texto libre: las familias son como son. */
+    @Column(name = "emergencia_relacion", length = 40)
+    private String emergenciaRelacion;
+
+    @Column(name = "emergencia_codigo_pais", length = 6)
+    private String emergenciaCodigoPais;
+
+    @Column(name = "emergencia_telefono", length = 20)
+    private String emergenciaTelefono;
+
     /**
      * Cuándo quedó comprobado que el correo es suyo. Null = sin verificar.
      *
@@ -90,6 +111,26 @@ public class Cliente {
 
     public String getNacionalidad() { return nacionalidad; }
     public void setNacionalidad(String nacionalidad) { this.nacionalidad = nacionalidad; }
+
+    /** ¿Hay a quién llamar? El teléfono es lo único imprescindible. */
+    public boolean tieneContactoDeEmergencia() {
+        return emergenciaTelefono != null && !emergenciaTelefono.isBlank();
+    }
+
+    public String getEmergenciaNombres() { return emergenciaNombres; }
+    public void setEmergenciaNombres(String v) { this.emergenciaNombres = v; }
+
+    public String getEmergenciaApellidos() { return emergenciaApellidos; }
+    public void setEmergenciaApellidos(String v) { this.emergenciaApellidos = v; }
+
+    public String getEmergenciaRelacion() { return emergenciaRelacion; }
+    public void setEmergenciaRelacion(String v) { this.emergenciaRelacion = v; }
+
+    public String getEmergenciaCodigoPais() { return emergenciaCodigoPais; }
+    public void setEmergenciaCodigoPais(String v) { this.emergenciaCodigoPais = v; }
+
+    public String getEmergenciaTelefono() { return emergenciaTelefono; }
+    public void setEmergenciaTelefono(String v) { this.emergenciaTelefono = v; }
 
     public LocalDateTime getEmailVerificadoAt() { return emailVerificadoAt; }
     public void setEmailVerificadoAt(LocalDateTime emailVerificadoAt) { this.emailVerificadoAt = emailVerificadoAt; }
