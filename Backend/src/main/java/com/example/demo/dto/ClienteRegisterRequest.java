@@ -12,6 +12,9 @@ public class ClienteRegisterRequest {
     private String fechaNacimiento;     // yyyy-MM-dd
     private String codigoPaisTelefono;  // ej. +51
     private String telefono;
+    /** Opcionales al registrarse; se completan después en el perfil. */
+    private String genero;
+    private String nacionalidad;
 
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
@@ -42,4 +45,10 @@ public class ClienteRegisterRequest {
 
     public String getTelefono() { return telefono; }
     public void setTelefono(String telefono) { this.telefono = telefono; }
+
+    public String getGenero() { return genero; }
+    public void setGenero(String genero) { this.genero = genero; }
+
+    public String getNacionalidad() { return nacionalidad; }
+    public void setNacionalidad(String nacionalidad) { this.nacionalidad = nacionalidad; }
 }

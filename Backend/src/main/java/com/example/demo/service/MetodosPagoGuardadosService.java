@@ -3,6 +3,7 @@ package com.example.demo.service;
 import com.example.demo.dto.MetodoPagoGuardadoDTO;
 import com.example.demo.model.AutorizacionYape;
 import com.example.demo.model.TarjetaGuardada;
+import com.example.demo.repository.ClienteRepository;
 import com.example.demo.repository.TarjetaGuardadaRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -40,6 +41,7 @@ public class MetodosPagoGuardadosService {
     public static final int MAXIMO_TARJETAS = 5;
 
     private final TarjetaGuardadaRepository tarjetas;
+    private final ClienteRepository clientes;
     private final YapeOnFileService yapeOnFile;
     private final AuditoriaService auditoriaService;
 
@@ -53,9 +55,11 @@ public class MetodosPagoGuardadosService {
     private boolean guardarTarjetasActivo;
 
     public MetodosPagoGuardadosService(TarjetaGuardadaRepository tarjetas,
+                                       ClienteRepository clientes,
                                        YapeOnFileService yapeOnFile,
                                        AuditoriaService auditoriaService) {
         this.tarjetas = tarjetas;
+        this.clientes = clientes;
         this.yapeOnFile = yapeOnFile;
         this.auditoriaService = auditoriaService;
     }
@@ -115,6 +119,19 @@ public class MetodosPagoGuardadosService {
             throw new RuntimeException("Izipay no devolvió el identificador de la tarjeta");
 
         String email = normalizar(clienteEmail);
+
+        // Hace falta el correo confirmado para dejar una tarjeta guardada.
+        // Guardar una forma de cobro es lo más delicado que tiene la cuenta, y
+        // una cuenta abierta con el correo de otro no debería poder hacerlo.
+        // Además, el aviso de cada cobro sale por ese correo: si no llega a su
+        // dueño, el cobro queda sin testigo.
+        boolean verificado = clientes.findByEmail(email)
+                .map(com.example.demo.model.Cliente::tieneCorreoVerificado)
+                .orElse(false);
+        if (!verificado)
+            throw new RuntimeException(
+                    "Confirma tu correo antes de guardar una forma de pago. "
+                    + "Te mandamos el enlace cuando creaste la cuenta; puedes pedir otro desde tu cuenta.");
 
         Optional<TarjetaGuardada> yaEsta = tarjetas.findByClienteEmailAndToken(email, token);
         if (yaEsta.isPresent()) {

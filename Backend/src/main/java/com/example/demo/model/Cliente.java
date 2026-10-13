@@ -47,6 +47,29 @@ public class Cliente {
     @Column(length = 20)
     private String telefono;
 
+    /**
+     * Género y nacionalidad los pide la Capitanía para el manifiesto de
+     * pasajeros, así que se guardan en el perfil y no hay que escribirlos en
+     * cada compra. No están por costumbre: tienen un uso concreto.
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "genero", length = 12)
+    private Genero genero;
+
+    /** ISO-2 del país de nacionalidad (PE, CO, BR…). */
+    @Column(name = "nacionalidad", length = 2)
+    private String nacionalidad;
+
+    /**
+     * Cuándo quedó comprobado que el correo es suyo. Null = sin verificar.
+     *
+     * Importa más de lo que parece: el boleto y el comprobante llegan por ahí,
+     * y las compras del cliente se juntan por correo. Un correo escrito mal —o
+     * el de otra persona— rompe las dos cosas sin que nadie se entere.
+     */
+    @Column(name = "email_verificado_at")
+    private LocalDateTime emailVerificadoAt;
+
     private Boolean activo;
 
     @Column(name = "created_at")
@@ -56,6 +79,20 @@ public class Cliente {
     private LocalDateTime ultimoLogin;
 
     public enum TipoDocumento { DNI, CE, PASAPORTE }
+
+    /** "OTRO" existe porque el documento de alguna gente dice otra cosa. */
+    public enum Genero { MASCULINO, FEMENINO, OTRO }
+
+    public boolean tieneCorreoVerificado() { return emailVerificadoAt != null; }
+
+    public Genero getGenero() { return genero; }
+    public void setGenero(Genero genero) { this.genero = genero; }
+
+    public String getNacionalidad() { return nacionalidad; }
+    public void setNacionalidad(String nacionalidad) { this.nacionalidad = nacionalidad; }
+
+    public LocalDateTime getEmailVerificadoAt() { return emailVerificadoAt; }
+    public void setEmailVerificadoAt(LocalDateTime emailVerificadoAt) { this.emailVerificadoAt = emailVerificadoAt; }
 
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }

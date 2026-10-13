@@ -181,6 +181,28 @@ public class EmailService implements InitializingBean {
         else             enviarPorSmtp(destinatario, asunto, html, null);
     }
 
+    /** El enlace para comprobar que el correo de la cuenta es suyo. */
+    public void enviarEnlaceVerificacion(String destinatario, String nombre,
+                                         String enlace, int minutos) throws MessagingException {
+        String html = "<div style=\"font-family:Arial,sans-serif;max-width:520px;margin:auto;color:#0f172a\">"
+                + "<h2 style=\"margin:0 0 6px\">Confirma tu correo</h2>"
+                + "<p style=\"margin:0 0 18px;color:#55617a\">Hola " + esc(nombre) + ",</p>"
+                + "<p>Con esto nos aseguramos de que tus boletos y tus comprobantes "
+                + "lleguen a la bandeja correcta.</p>"
+                + "<p style=\"margin:24px 0\"><a href=\"" + esc(enlace) + "\" "
+                + "style=\"display:inline-block;padding:13px 26px;background:#e01e2a;color:#fff;"
+                + "border-radius:9px;text-decoration:none;font-weight:700\">Confirmar mi correo</a></p>"
+                + "<p style=\"color:#55617a;font-size:14px\">El enlace vence en " + minutos
+                + " minutos y sirve una sola vez.</p>"
+                + "<p style=\"color:#55617a;font-size:14px\"><strong>¿No creaste ninguna cuenta?</strong> "
+                + "Ignora este correo: sin confirmar, esa cuenta no usa tu dirección para nada.</p>"
+                + "</div>";
+
+        String asunto = "Confirma tu correo - Transportes Rayza";
+        if (usaResend()) enviarPorResend(destinatario, asunto, html, null);
+        else             enviarPorSmtp(destinatario, asunto, html, null);
+    }
+
     /**
      * Aviso de que la contraseña cambió.
      *

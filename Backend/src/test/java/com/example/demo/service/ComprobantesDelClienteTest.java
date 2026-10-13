@@ -51,7 +51,7 @@ class ComprobantesDelClienteTest {
 
         servicio = new ClienteService(clientes, ventas, comprobantes, null,
                 new BCryptPasswordEncoder(), jwt,
-                new IntentosLoginService(new AuditoriaMuda()), new CorreoMudo());
+                new IntentosLoginService(new AuditoriaMuda()), null, new CorreoMudo());
 
         Cliente c = new Cliente();
         c.setId("c-1");

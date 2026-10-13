@@ -34,6 +34,7 @@ public class ClienteService {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final IntentosLoginService intentosLoginService;
+    private final VerificacionEmailService verificacionEmailService;
     private final EmailService emailService;
 
     /** Mínimo de la contraseña. Seis caracteres se adivinan; ocho ya no tanto. */
@@ -59,6 +60,7 @@ public class ClienteService {
                           PasswordEncoder passwordEncoder,
                           JwtUtil jwtUtil,
                           IntentosLoginService intentosLoginService,
+                          VerificacionEmailService verificacionEmailService,
                           EmailService emailService) {
         this.clienteRepository = clienteRepository;
         this.ventaRepository = ventaRepository;
@@ -67,6 +69,7 @@ public class ClienteService {
         this.passwordEncoder = passwordEncoder;
         this.jwtUtil = jwtUtil;
         this.intentosLoginService = intentosLoginService;
+        this.verificacionEmailService = verificacionEmailService;
         this.emailService = emailService;
         this.hashDeDescarte = passwordEncoder.encode(UUID.randomUUID().toString());
     }
@@ -91,9 +94,15 @@ public class ClienteService {
         c.setFechaNacimiento(parseFecha(req.getFechaNacimiento()));
         c.setCodigoPaisTelefono(req.getCodigoPaisTelefono() != null ? req.getCodigoPaisTelefono() : "+51");
         c.setTelefono(req.getTelefono());
+        c.setGenero(parseGenero(req.getGenero()));
+        c.setNacionalidad(normalizarPais(req.getNacionalidad()));
         c.setActivo(true);
         c.setCreatedAt(LocalDateTime.now());
         clienteRepository.save(c);
+
+        // El enlace sale apenas se crea la cuenta: cuanto antes se confirme,
+        // antes sabemos que el boleto va a llegar a donde tiene que llegar.
+        verificacionEmailService.enviarEnlace(c);
 
         return construirRespuesta(c);
     }
@@ -162,6 +171,19 @@ public class ClienteService {
         }
     }
 
+    private static Cliente.Genero parseGenero(String valor) {
+        if (valor == null || valor.isBlank()) return null;
+        try { return Cliente.Genero.valueOf(valor.trim().toUpperCase()); }
+        catch (IllegalArgumentException e) { return null; }
+    }
+
+    /** ISO-2 en mayúsculas; cualquier otra cosa se descarta en vez de guardarse mal. */
+    private static String normalizarPais(String valor) {
+        if (valor == null || valor.isBlank()) return null;
+        String v = valor.trim().toUpperCase();
+        return v.length() == 2 ? v : null;
+    }
+
     /** Las reglas de la contraseña, en un solo lugar. */
     public static void validarClave(String clave) {
         if (clave == null || clave.length() < MINIMO_CLAVE)
@@ -190,6 +212,8 @@ public class ClienteService {
         if (datos.getFechaNacimiento() != null) c.setFechaNacimiento(parseFecha(datos.getFechaNacimiento()));
         if (datos.getCodigoPaisTelefono() != null) c.setCodigoPaisTelefono(datos.getCodigoPaisTelefono());
         if (datos.getTelefono() != null) c.setTelefono(datos.getTelefono());
+        if (datos.getGenero() != null) c.setGenero(parseGenero(datos.getGenero()));
+        if (datos.getNacionalidad() != null) c.setNacionalidad(normalizarPais(datos.getNacionalidad()));
         clienteRepository.save(c);
         return toDTO(c);
     }
@@ -357,6 +381,9 @@ public class ClienteService {
         dto.setFechaNacimiento(c.getFechaNacimiento() != null ? c.getFechaNacimiento().toString() : null);
         dto.setCodigoPaisTelefono(c.getCodigoPaisTelefono());
         dto.setTelefono(c.getTelefono());
+        dto.setGenero(c.getGenero() != null ? c.getGenero().name() : null);
+        dto.setNacionalidad(c.getNacionalidad());
+        dto.setCorreoVerificado(c.tieneCorreoVerificado());
         return dto;
     }
 

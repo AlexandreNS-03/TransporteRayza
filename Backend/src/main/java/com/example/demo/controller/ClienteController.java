@@ -6,6 +6,7 @@ import com.example.demo.dto.ClienteViajeDTO;
 import com.example.demo.dto.MetodoPagoGuardadoDTO;
 import com.example.demo.service.ClienteService;
 import com.example.demo.service.MetodosPagoGuardadosService;
+import com.example.demo.service.VerificacionEmailService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -21,11 +22,14 @@ public class ClienteController {
 
     private final ClienteService clienteService;
     private final MetodosPagoGuardadosService metodosPago;
+    private final VerificacionEmailService verificacionEmail;
 
     public ClienteController(ClienteService clienteService,
-                             MetodosPagoGuardadosService metodosPago) {
+                             MetodosPagoGuardadosService metodosPago,
+                             VerificacionEmailService verificacionEmail) {
         this.clienteService = clienteService;
         this.metodosPago = metodosPago;
+        this.verificacionEmail = verificacionEmail;
     }
 
     @ExceptionHandler(RuntimeException.class)
@@ -77,6 +81,14 @@ public class ClienteController {
         catch (IllegalArgumentException e) { throw new RuntimeException("Tipo de método desconocido"); }
         metodosPago.quitar(auth.getName(), t, id);
         return ResponseEntity.ok(Map.of("message", "Lo quitamos de tu cuenta."));
+    }
+
+    /** Vuelve a mandar el enlace para confirmar el correo. */
+    @PostMapping("/verificar-correo/reenviar")
+    public ResponseEntity<?> reenviarVerificacion(Authentication auth) {
+        verificacionEmail.reenviar(auth.getName());
+        return ResponseEntity.ok(Map.of("message",
+                "Te mandamos el enlace. Revisa tu correo; también puede estar en spam."));
     }
 
     /** Las boletas y facturas del cliente, con el enlace al PDF. */

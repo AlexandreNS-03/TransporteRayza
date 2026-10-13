@@ -103,6 +103,22 @@ export async function restablecerClave(token, password) {
   } catch (e) { throw err(e); }
 }
 
+/** Vuelve a pedir el enlace para confirmar el correo. */
+export async function reenviarVerificacion() {
+  try {
+    const { data } = await axios.post(`${API}/verificar-correo/reenviar`, {}, headers());
+    return data.message;
+  } catch (e) { throw err(e); }
+}
+
+/** Confirma el correo con el token del enlace. No necesita sesión. */
+export async function confirmarCorreo(token) {
+  try {
+    const { data } = await axios.post(`${AUTH}/verificar-correo`, { token });
+    return data.message;
+  } catch (e) { throw err(e); }
+}
+
 /* ── Comprobantes ──
    Las boletas y facturas del cliente, con el enlace al PDF en Nubefact. */
 

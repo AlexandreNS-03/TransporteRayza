@@ -15,7 +15,13 @@ import CookieBanner from "./components/CookieBanner";
  */
 const Comprar        = lazy(() => import("./pages/Comprar"));
 const Ingresar       = lazy(() => import("./pages/Ingresar"));
-const MiCuenta       = lazy(() => import("./pages/MiCuenta"));
+const Resumen        = lazy(() => import("./pages/cuenta/Resumen"));
+const MisViajes      = lazy(() => import("./pages/cuenta/Viajes"));
+const MisComprobantesPagina = lazy(() => import("./pages/cuenta/Comprobantes"));
+const Perfil         = lazy(() => import("./pages/cuenta/Perfil"));
+const PagosCuenta    = lazy(() => import("./pages/cuenta/Pagos"));
+const AyudaCuenta    = lazy(() => import("./pages/cuenta/Ayuda"));
+const VerificarCorreo = lazy(() => import("./pages/VerificarCorreo"));
 const Historial      = lazy(() => import("./pages/Historial"));
 const Servicios      = lazy(() => import("./pages/Servicios"));
 const Clausulas      = lazy(() => import("./pages/Clausulas"));
@@ -49,7 +55,15 @@ export default function App() {
           <Route path="/" element={<Landing />} />
           <Route path="/comprar" element={<Comprar />} />
           <Route path="/ingresar" element={<Ingresar />} />
-          <Route path="/mi-cuenta" element={<MiCuenta />} />
+          {/* La cuenta, partida en páginas: cada sección tiene su dirección,
+              se puede guardar en favoritos y el botón de atrás funciona. */}
+          <Route path="/mi-cuenta" element={<Resumen />} />
+          <Route path="/mi-cuenta/viajes" element={<MisViajes />} />
+          <Route path="/mi-cuenta/comprobantes" element={<MisComprobantesPagina />} />
+          <Route path="/mi-cuenta/perfil" element={<Perfil />} />
+          <Route path="/mi-cuenta/pagos" element={<PagosCuenta />} />
+          <Route path="/mi-cuenta/ayuda" element={<AyudaCuenta />} />
+          <Route path="/verificar-correo" element={<VerificarCorreo />} />
           <Route path="/historial" element={<Historial />} />
           <Route path="/servicios" element={<Servicios />} />
           <Route path="/clausulas" element={<Clausulas />} />

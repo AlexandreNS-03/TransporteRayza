@@ -4,6 +4,7 @@ import com.example.demo.dto.ClienteAuthResponse;
 import com.example.demo.dto.ClienteRegisterRequest;
 import com.example.demo.service.ClienteService;
 import com.example.demo.service.RecuperacionService;
+import com.example.demo.service.VerificacionEmailService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,11 +19,14 @@ public class ClienteAuthController {
 
     private final ClienteService clienteService;
     private final RecuperacionService recuperacionService;
+    private final VerificacionEmailService verificacionEmailService;
 
     public ClienteAuthController(ClienteService clienteService,
-                                 RecuperacionService recuperacionService) {
+                                 RecuperacionService recuperacionService,
+                                 VerificacionEmailService verificacionEmailService) {
         this.clienteService = clienteService;
         this.recuperacionService = recuperacionService;
+        this.verificacionEmailService = verificacionEmailService;
     }
 
     @ExceptionHandler(RuntimeException.class)
@@ -65,6 +69,21 @@ public class ClienteAuthController {
         recuperacionService.pedirEnlace(body.get("email"));
         return ResponseEntity.ok(Map.of("message",
                 "Si ese correo tiene una cuenta, te enviamos un enlace para cambiar tu contraseña."));
+    }
+
+    /**
+     * Confirma el correo con el token del enlace.
+     *
+     * Es público porque quien hace clic viene desde su bandeja, sin sesión
+     * abierta. La única llave es el token: vence en una hora y se quema al
+     * usarlo.
+     */
+    @PostMapping("/verificar-correo")
+    public ResponseEntity<?> verificarCorreo(@RequestBody Map<String, String> body) {
+        String email = verificacionEmailService.confirmar(body.get("token"));
+        return ResponseEntity.ok(Map.of(
+                "message", "Listo, confirmamos " + email + ".",
+                "email", email));
     }
 
     /** Cambia la contraseña con el enlace del correo. */
