@@ -1,13 +1,16 @@
 package com.example.demo.service;
 
 import com.example.demo.dto.ClienteAuthResponse;
+import com.example.demo.dto.ClienteComprobanteDTO;
 import com.example.demo.dto.ClienteDTO;
 import com.example.demo.dto.ClienteRegisterRequest;
 import com.example.demo.dto.ClienteViajeDTO;
 import com.example.demo.model.Cliente;
+import com.example.demo.model.Comprobante;
 import com.example.demo.model.Venta;
 import com.example.demo.model.Viaje;
 import com.example.demo.repository.ClienteRepository;
+import com.example.demo.repository.ComprobanteRepository;
 import com.example.demo.repository.VentaRepository;
 import com.example.demo.repository.ViajeRepository;
 import com.example.demo.security.JwtUtil;
@@ -26,27 +29,53 @@ public class ClienteService {
 
     private final ClienteRepository clienteRepository;
     private final VentaRepository ventaRepository;
+    private final ComprobanteRepository comprobanteRepository;
     private final ViajeRepository viajeRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+    private final IntentosLoginService intentosLoginService;
+    private final EmailService emailService;
+
+    /** Mínimo de la contraseña. Seis caracteres se adivinan; ocho ya no tanto. */
+    public static final int MINIMO_CLAVE = 8;
+
+    /**
+     * Un hash de descarte, contra el que se compara cuando el correo no tiene
+     * cuenta. Sin esto, responder "no existe" sale muchísimo más rápido que
+     * comprobar una contraseña de verdad, y esa diferencia de tiempo basta para
+     * averiguar quién está registrado sin acertar ni una clave.
+     *
+     * Tiene que ser un hash de verdad y del mismo costo que los demás: uno
+     * inventado se descarta al instante por mal formado y no hace ningún
+     * trabajo, que es justo lo que se quería evitar. Por eso se genera al
+     * arrancar, cifrando algo que nadie va a escribir nunca.
+     */
+    private final String hashDeDescarte;
 
     public ClienteService(ClienteRepository clienteRepository,
                           VentaRepository ventaRepository,
+                          ComprobanteRepository comprobanteRepository,
                           ViajeRepository viajeRepository,
                           PasswordEncoder passwordEncoder,
-                          JwtUtil jwtUtil) {
+                          JwtUtil jwtUtil,
+                          IntentosLoginService intentosLoginService,
+                          EmailService emailService) {
         this.clienteRepository = clienteRepository;
         this.ventaRepository = ventaRepository;
+        this.comprobanteRepository = comprobanteRepository;
         this.viajeRepository = viajeRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtil = jwtUtil;
+        this.intentosLoginService = intentosLoginService;
+        this.emailService = emailService;
+        this.hashDeDescarte = passwordEncoder.encode(UUID.randomUUID().toString());
     }
 
     @Transactional
     public ClienteAuthResponse registrar(ClienteRegisterRequest req) {
         String email = normalizarEmail(req.getEmail());
-        if (email.isBlank() || req.getPassword() == null || req.getPassword().length() < 6)
-            throw new RuntimeException("Correo y contraseña (mín. 6 caracteres) son obligatorios");
+        if (email.isBlank()) throw new RuntimeException("El correo es obligatorio");
+        validarClave(req.getPassword());
         if (clienteRepository.existsByEmail(email))
             throw new RuntimeException("Ya existe una cuenta con ese correo");
 
@@ -69,18 +98,78 @@ public class ClienteService {
         return construirRespuesta(c);
     }
 
+    /**
+     * Entra a la cuenta.
+     *
+     * Tres cosas valen la pena acá, y las tres son para que nadie pueda ir
+     * probando:
+     *
+     *  - El mismo freno que el panel (cinco fallos y bloqueo creciente), por
+     *    correo y por dirección de internet a la vez. Antes el cliente no lo
+     *    tenía: se podían probar contraseñas sin límite.
+     *  - El mensaje es el mismo falle lo que falle. Decir "la cuenta está
+     *    desactivada" ya confirma que ese correo está registrado.
+     *  - Se comprueba una contraseña siempre, exista o no la cuenta, para que
+     *    responder no tarde distinto según el caso.
+     */
     @Transactional
-    public ClienteAuthResponse login(String email, String password) {
-        Cliente c = clienteRepository.findByEmail(normalizarEmail(email))
-                .orElseThrow(() -> new RuntimeException("Correo o contraseña incorrectos"));
-        if (Boolean.FALSE.equals(c.getActivo()))
-            throw new RuntimeException("La cuenta está desactivada");
-        if (!passwordEncoder.matches(password, c.getPassword()))
-            throw new RuntimeException("Correo o contraseña incorrectos");
+    public ClienteAuthResponse login(String email, String password, String ip) {
+        String limpio = normalizarEmail(email);
+        intentosLoginService.verificarPublico(limpio, ip);
 
+        Cliente c = clienteRepository.findByEmail(limpio).orElse(null);
+        boolean claveOk = passwordEncoder.matches(
+                password == null ? "" : password,
+                c != null ? c.getPassword() : hashDeDescarte);
+
+        if (c == null || !claveOk || Boolean.FALSE.equals(c.getActivo())) {
+            intentosLoginService.registrarFalloPublico(limpio, ip);
+            throw new RuntimeException("Correo o contraseña incorrectos");
+        }
+
+        intentosLoginService.registrarExitoPublico(limpio, ip);
         c.setUltimoLogin(LocalDateTime.now());
         clienteRepository.save(c);
         return construirRespuesta(c);
+    }
+
+    /**
+     * Cambia la contraseña desde adentro de la cuenta.
+     *
+     * Pide la actual aunque ya esté la sesión abierta: si alguien se sienta en
+     * la computadora con la sesión puesta, que no pueda quedarse con la cuenta.
+     * Y se avisa por correo, porque un cambio que el dueño no hizo tiene que
+     * enterarse en el momento.
+     */
+    @Transactional
+    public void cambiarClave(String email, String actual, String nueva) {
+        Cliente c = obtenerPorEmail(email);
+        if (!passwordEncoder.matches(actual == null ? "" : actual, c.getPassword()))
+            throw new RuntimeException("Tu contraseña actual no es correcta");
+        validarClave(nueva);
+        if (passwordEncoder.matches(nueva, c.getPassword()))
+            throw new RuntimeException("La contraseña nueva tiene que ser distinta de la actual");
+
+        c.setPassword(passwordEncoder.encode(nueva));
+        clienteRepository.save(c);
+
+        try {
+            emailService.enviarAvisoClaveCambiada(c.getEmail(), c.getNombres());
+        } catch (Exception e) {
+            // El aviso es importante pero no puede dejar al cliente sin cambiar
+            // la contraseña si el correo está caído.
+            System.err.println("[Cuenta] no se pudo avisar el cambio de clave: " + e.getMessage());
+        }
+    }
+
+    /** Las reglas de la contraseña, en un solo lugar. */
+    public static void validarClave(String clave) {
+        if (clave == null || clave.length() < MINIMO_CLAVE)
+            throw new RuntimeException("La contraseña debe tener al menos " + MINIMO_CLAVE + " caracteres");
+        String s = clave.toLowerCase();
+        // Las cuatro que siempre aparecen primero en cualquier intento.
+        if (s.equals("12345678") || s.equals("contrasena") || s.equals("password") || s.equals("rayza123"))
+            throw new RuntimeException("Esa contraseña es de las primeras que alguien probaría. Elige otra.");
     }
 
     public Cliente obtenerPorEmail(String email) {
@@ -105,27 +194,108 @@ public class ClienteService {
         return toDTO(c);
     }
 
-    public List<ClienteViajeDTO> misViajes(String email) {
-        Cliente c = obtenerPorEmail(email);
-        LocalDate hoy = LocalDate.now();
+    /**
+     * Las compras del cliente, juntadas por CUENTA, por CORREO y por DOCUMENTO.
+     *
+     * Los tres caminos hacen falta: alguien pudo comprar como invitado antes de
+     * crearse la cuenta, o en el mostrador con su DNI y sin dar correo. Si solo
+     * se mirara la cuenta, esas compras no aparecerían nunca.
+     */
+    private java.util.Collection<Venta> comprasDe(Cliente c) {
+        return comprasDe(c, true);
+    }
 
-        // Reúne las compras del cliente por CUENTA, por CORREO y por DOCUMENTO: así
-        // también aparecen las que hizo como invitado antes de crear su cuenta.
+    /**
+     * @param incluirPorDocumento si además se buscan las compras que llevan su
+     *        número de documento. Hace falta para los viajes —así aparecen las
+     *        que hizo en el mostrador, sin cuenta— pero NO para los
+     *        comprobantes: ver misComprobantes.
+     */
+    private java.util.Collection<Venta> comprasDe(Cliente c, boolean incluirPorDocumento) {
         java.util.LinkedHashMap<String, Venta> unicas = new java.util.LinkedHashMap<>();
         ventaRepository.findByClienteIdOrderByCreatedAtDesc(c.getId())
                 .forEach(v -> unicas.putIfAbsent(v.getId(), v));
         if (c.getEmail() != null && !c.getEmail().isBlank())
             ventaRepository.findByClienteEmailIgnoreCaseOrderByCreatedAtDesc(c.getEmail().trim())
                     .forEach(v -> unicas.putIfAbsent(v.getId(), v));
-        if (c.getNumeroDocumento() != null && !c.getNumeroDocumento().isBlank())
+        if (incluirPorDocumento && c.getNumeroDocumento() != null && !c.getNumeroDocumento().isBlank())
             ventaRepository.findByPasajeroDocumento(c.getNumeroDocumento().trim())
                     .forEach(v -> unicas.putIfAbsent(v.getId(), v));
+        return unicas.values();
+    }
 
-        return unicas.values().stream()
+    public List<ClienteViajeDTO> misViajes(String email) {
+        Cliente c = obtenerPorEmail(email);
+        LocalDate hoy = LocalDate.now();
+
+        return comprasDe(c).stream()
                 .filter(v -> v.getEstado() == Venta.EstadoVenta.PAGADO)
                 .sorted((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()))
                 .map(v -> toViajeDTO(v, hoy))
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Las boletas y facturas del cliente, para que se las pueda bajar él mismo.
+     *
+     * Se llega a ellas desde sus propias compras, que es el mismo camino que ya
+     * se usa para mostrarle sus viajes: así un comprobante solo aparece si la
+     * venta que lo originó es suya. Buscar por el correo del comprobante sería
+     * más corto y más frágil — el comprobante puede llevar el correo de otro, o
+     * ninguno.
+     *
+     * Una compra de varios pasajes lleva un comprobante único para el grupo, así
+     * que se buscan los dos caminos y se quita el repetido.
+     *
+     * <p><strong>A diferencia de los viajes, acá NO se busca por número de
+     * documento.</strong> Al registrarse nadie comprueba que el DNI que escribe
+     * sea el suyo, así que buscar por documento dejaría que alguien escriba el
+     * DNI de otro y se baje sus comprobantes — y un comprobante lleva el nombre
+     * completo, el documento y el domicilio del comprador. Un viaje muestra
+     * ruta, fecha y asiento; un comprobante muestra a la persona.
+     *
+     * <p>El costo de esta decisión: quien compró en el mostrador sin dar su
+     * correo no ve ahí su boleta y tiene que pedirla en la oficina, como hasta
+     * ahora. Es el error barato. El caro es el otro.
+     */
+    public List<ClienteComprobanteDTO> misComprobantes(String email) {
+        Cliente c = obtenerPorEmail(email);
+
+        java.util.LinkedHashMap<String, Comprobante> unicos = new java.util.LinkedHashMap<>();
+        for (Venta v : comprasDe(c, false)) {
+            comprobanteRepository.findByVentaId(v.getId())
+                    .forEach(x -> unicos.putIfAbsent(x.getId(), x));
+            if (v.getGrupoVentaId() != null && !v.getGrupoVentaId().isBlank())
+                comprobanteRepository.findByGrupoVentaId(v.getGrupoVentaId())
+                        .forEach(x -> unicos.putIfAbsent(x.getId(), x));
+        }
+
+        return unicos.values().stream()
+                .sorted((a, b) -> {
+                    String fa = a.getFechaDeEmision() == null ? "" : a.getFechaDeEmision().toString();
+                    String fb = b.getFechaDeEmision() == null ? "" : b.getFechaDeEmision().toString();
+                    return fb.compareTo(fa);
+                })
+                .map(ClienteService::toComprobanteDTO)
+                .collect(Collectors.toList());
+    }
+
+    private static ClienteComprobanteDTO toComprobanteDTO(Comprobante x) {
+        String crudo = x.getTipoDeComprobante() == null ? "" : x.getTipoDeComprobante().name();
+        String tipo = switch (crudo) {
+            case "BOLETA"       -> "Boleta";
+            case "FACTURA"      -> "Factura";
+            case "NOTA_CREDITO" -> "Nota de crédito";
+            case "TICKET"       -> "Ticket";
+            case "NOTA_VENTA"   -> "Nota de venta";
+            default -> crudo;
+        };
+        String numero = x.getSerie() + "-" + String.format("%08d", x.getNumero() == null ? 0 : x.getNumero());
+        return new ClienteComprobanteDTO(
+                tipo, numero,
+                x.getFechaDeEmision() == null ? null : x.getFechaDeEmision().toString(),
+                x.getTotal(), x.getDescripcion(),
+                x.getEstado() == null ? null : x.getEstado().name(), x.getEnlacePdf());
     }
 
     /**

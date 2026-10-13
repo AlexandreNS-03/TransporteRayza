@@ -1,8 +1,11 @@
 package com.example.demo.controller;
 
 import com.example.demo.dto.ClienteDTO;
+import com.example.demo.dto.ClienteComprobanteDTO;
 import com.example.demo.dto.ClienteViajeDTO;
+import com.example.demo.dto.MetodoPagoGuardadoDTO;
 import com.example.demo.service.ClienteService;
+import com.example.demo.service.MetodosPagoGuardadosService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -17,9 +20,12 @@ import java.util.Map;
 public class ClienteController {
 
     private final ClienteService clienteService;
+    private final MetodosPagoGuardadosService metodosPago;
 
-    public ClienteController(ClienteService clienteService) {
+    public ClienteController(ClienteService clienteService,
+                             MetodosPagoGuardadosService metodosPago) {
         this.clienteService = clienteService;
+        this.metodosPago = metodosPago;
     }
 
     @ExceptionHandler(RuntimeException.class)
@@ -37,6 +43,46 @@ public class ClienteController {
     @PutMapping("/perfil")
     public ResponseEntity<ClienteDTO> actualizar(@RequestBody ClienteDTO datos, Authentication auth) {
         return ResponseEntity.ok(clienteService.actualizarPerfil(auth.getName(), datos));
+    }
+
+    /** Cambia la contraseña desde adentro de la cuenta. Pide la actual. */
+    @PostMapping("/cambiar-clave")
+    public ResponseEntity<?> cambiarClave(@RequestBody Map<String, String> body, Authentication auth) {
+        clienteService.cambiarClave(auth.getName(), body.get("actual"), body.get("nueva"));
+        return ResponseEntity.ok(Map.of("message", "Tu contraseña quedó cambiada."));
+    }
+
+    /* ── Métodos de pago guardados ──
+       Tarjetas y Yape llegan en un solo listado: para el cliente son lo mismo.
+       Nunca viaja el token, solo lo justo para reconocer cada uno. */
+
+    @GetMapping("/metodos-de-pago")
+    public ResponseEntity<List<MetodoPagoGuardadoDTO>> metodosDePago(Authentication auth) {
+        return ResponseEntity.ok(metodosPago.deCliente(auth.getName()));
+    }
+
+    /** Elige cuál se ofrece primero al pagar. Solo aplica a tarjetas. */
+    @PatchMapping("/metodos-de-pago/{id}/preferida")
+    public ResponseEntity<?> preferida(@PathVariable String id, Authentication auth) {
+        metodosPago.marcarPreferida(auth.getName(), id);
+        return ResponseEntity.ok(Map.of("message", "Listo, esa se ofrece primero."));
+    }
+
+    /** Lo quita. El tipo va en la ruta porque cada uno se da de baja distinto. */
+    @DeleteMapping("/metodos-de-pago/{tipo}/{id}")
+    public ResponseEntity<?> quitarMetodo(@PathVariable String tipo, @PathVariable String id,
+                                          Authentication auth) {
+        MetodoPagoGuardadoDTO.Tipo t;
+        try { t = MetodoPagoGuardadoDTO.Tipo.valueOf(tipo.toUpperCase()); }
+        catch (IllegalArgumentException e) { throw new RuntimeException("Tipo de método desconocido"); }
+        metodosPago.quitar(auth.getName(), t, id);
+        return ResponseEntity.ok(Map.of("message", "Lo quitamos de tu cuenta."));
+    }
+
+    /** Las boletas y facturas del cliente, con el enlace al PDF. */
+    @GetMapping("/comprobantes")
+    public ResponseEntity<List<ClienteComprobanteDTO>> misComprobantes(Authentication auth) {
+        return ResponseEntity.ok(clienteService.misComprobantes(auth.getName()));
     }
 
     @GetMapping("/viajes")

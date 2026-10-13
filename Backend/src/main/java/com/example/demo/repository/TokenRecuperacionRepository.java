@@ -24,4 +24,9 @@ public interface TokenRecuperacionRepository extends JpaRepository<TokenRecupera
     @Query("UPDATE TokenRecuperacion t SET t.usadoAt = :ahora "
          + "WHERE t.cuentaId = :cuentaId AND t.usadoAt IS NULL")
     void invalidarAnteriores(String cuentaId, LocalDateTime ahora);
+
+    /** ¿Ya se le mandó un enlace a esta cuenta después de ese momento? */
+    @Query("SELECT COUNT(t) > 0 FROM TokenRecuperacion t "
+         + "WHERE t.cuentaId = :cuentaId AND t.createdAt > :desde")
+    boolean pedidoReciente(String cuentaId, LocalDateTime desde);
 }
