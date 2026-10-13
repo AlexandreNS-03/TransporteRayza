@@ -119,6 +119,27 @@ export async function confirmarCorreo(token) {
   } catch (e) { throw err(e); }
 }
 
+/* ── Acompañantes frecuentes ──
+   La gente con la que el cliente suele viajar, para no escribir sus datos en
+   cada compra. Son datos de terceros: solo lo que ya se escribe al comprar. */
+
+export async function getMisAcompanantes() {
+  try { const { data } = await axios.get(`${API}/acompanantes`, headers()); return data; }
+  catch (e) { throw err(e); }
+}
+
+export async function guardarAcompanante(a) {
+  try { const { data } = await axios.post(`${API}/acompanantes`, a, headers()); return data; }
+  catch (e) { throw err(e); }
+}
+
+export async function borrarAcompanante(id) {
+  try {
+    const { data } = await axios.delete(`${API}/acompanantes/${id}`, headers());
+    return data.message;
+  } catch (e) { throw err(e); }
+}
+
 /* ── Documentos de viaje ──
    Varios por cliente: acá se viaja con DNI dentro del país y con pasaporte o
    CPF cuando se cruza a Brasil. */

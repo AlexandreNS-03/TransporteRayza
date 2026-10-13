@@ -1,11 +1,13 @@
 package com.example.demo.controller;
 
 import com.example.demo.dto.ClienteDTO;
+import com.example.demo.dto.AcompananteDTO;
 import com.example.demo.dto.ClienteComprobanteDTO;
 import com.example.demo.dto.ClienteViajeDTO;
 import com.example.demo.dto.DocumentoViajeDTO;
 import com.example.demo.dto.MetodoPagoGuardadoDTO;
 import com.example.demo.service.ClienteService;
+import com.example.demo.service.AcompanantesService;
 import com.example.demo.service.DocumentosViajeService;
 import com.example.demo.service.MetodosPagoGuardadosService;
 import com.example.demo.service.VerificacionEmailService;
@@ -26,15 +28,18 @@ public class ClienteController {
     private final MetodosPagoGuardadosService metodosPago;
     private final VerificacionEmailService verificacionEmail;
     private final DocumentosViajeService documentos;
+    private final AcompanantesService acompanantes;
 
     public ClienteController(ClienteService clienteService,
                              MetodosPagoGuardadosService metodosPago,
                              VerificacionEmailService verificacionEmail,
-                             DocumentosViajeService documentos) {
+                             DocumentosViajeService documentos,
+                             AcompanantesService acompanantes) {
         this.clienteService = clienteService;
         this.metodosPago = metodosPago;
         this.verificacionEmail = verificacionEmail;
         this.documentos = documentos;
+        this.acompanantes = acompanantes;
     }
 
     @ExceptionHandler(RuntimeException.class)
@@ -59,6 +64,29 @@ public class ClienteController {
     public ResponseEntity<?> cambiarClave(@RequestBody Map<String, String> body, Authentication auth) {
         clienteService.cambiarClave(auth.getName(), body.get("actual"), body.get("nueva"));
         return ResponseEntity.ok(Map.of("message", "Tu contraseña quedó cambiada."));
+    }
+
+    /* ── Acompañantes frecuentes ──
+       Quien compra para su familia escribe cinco veces los mismos nombres y
+       documentos. Esto los guarda una vez. Son datos de terceros: solo lo que
+       ya se escribe al comprar, y el titular los borra cuando quiera. */
+
+    @GetMapping("/acompanantes")
+    public ResponseEntity<List<AcompananteDTO>> misAcompanantes(Authentication auth) {
+        return ResponseEntity.ok(acompanantes.deCliente(auth.getName()));
+    }
+
+    /** Agrega uno o actualiza el que ya estaba, si coincide el documento. */
+    @PostMapping("/acompanantes")
+    public ResponseEntity<AcompananteDTO> guardarAcompanante(@RequestBody AcompananteDTO datos,
+                                                             Authentication auth) {
+        return ResponseEntity.ok(acompanantes.guardar(auth.getName(), datos));
+    }
+
+    @DeleteMapping("/acompanantes/{id}")
+    public ResponseEntity<?> borrarAcompanante(@PathVariable String id, Authentication auth) {
+        acompanantes.borrar(auth.getName(), id);
+        return ResponseEntity.ok(Map.of("message", "Lo sacamos de tu lista."));
     }
 
     /* ── Documentos de viaje ──
