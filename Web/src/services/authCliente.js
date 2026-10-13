@@ -235,3 +235,34 @@ export async function marcarPreferida(id) {
     return data.message;
   } catch (e) { throw err(e); }
 }
+
+/* ── Rayza Wallet ──
+   Saldo que se gasta en pasajes. No se retira y no vence: son decisiones, no
+   etapas pendientes. Ver WalletService en el backend, que explica por qué. */
+
+export async function getWallet() {
+  try { const { data } = await axios.get(`${API}/wallet`, headers()); return data; }
+  catch (e) { throw err(e); }
+}
+
+/**
+ * Primer paso de una recarga: el servidor anota cuánto se va a cobrar y devuelve
+ * el formulario de Izipay. El monto se anota ANTES de pagar; así, al volver, se
+ * compara contra lo que la pasarela firma y nadie puede acreditar más de lo que
+ * pagó.
+ */
+export async function iniciarRecarga(monto) {
+  try {
+    const { data } = await axios.post(`${API}/wallet/recargas`, { monto: String(monto) }, headers());
+    return data;
+  } catch (e) { throw err(e); }
+}
+
+/** Segundo paso: se le pasa al servidor la respuesta firmada de Izipay. */
+export async function confirmarRecarga(recargaId, { krAnswer, krHash } = {}) {
+  try {
+    const { data } = await axios.post(`${API}/wallet/recargas/${recargaId}/confirmar`,
+                                      { "kr-answer": krAnswer, "kr-hash": krHash }, headers());
+    return data;
+  } catch (e) { throw err(e); }
+}

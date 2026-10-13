@@ -8,19 +8,30 @@
 
 import { useEffect, useRef } from "react";
 import LogoPasarela from "./LogoPasarela";
-import { IconCard, IconPhone, IconMenuApp, IconTeclado, IconCheckCircle, IconLock } from "./Icons";
+import { soles } from "../services/publicApi";
+import { IconCard, IconPhone, IconWallet, IconMenuApp, IconTeclado, IconCheckCircle, IconLock } from "./Icons";
 
 const LARGO_CODIGO = 6;
 
 /**
- * Tarjeta o Yape. El método elegido se marca con un check además del color, porque
- * el color solo no le sirve a quien no lo distingue.
+ * Tarjeta, Yape o el saldo de la wallet. El método elegido se marca con un check
+ * además del color, porque el color solo no le sirve a quien no lo distingue.
+ *
+ * `saldo` solo aparece cuando el servidor dice que hay con qué pagar: ofrecer
+ * "paga con tu saldo" a quien tiene cero es ofrecerle un botón que falla. Y la
+ * cifra la manda el servidor, no la pantalla: el saldo es de alguien.
  */
-export function MetodosPago({ metodo, onElegir, deshabilitado }) {
+export function MetodosPago({ metodo, onElegir, deshabilitado, saldo }) {
   const opciones = [
     { id: "tarjeta", logo: "izipay.png", alt: "Izipay", respaldo: <IconCard />, nombre: "Tarjeta", detalle: "Débito o crédito" },
     { id: "yape",    logo: "yape.png",   alt: "Yape",   respaldo: <IconPhone />, nombre: "Yape",   detalle: "Con tu celular" },
   ];
+
+  if (saldo?.habilitado)
+    opciones.unshift({
+      id: "saldo", respaldo: <IconWallet />, nombre: "Mi saldo",
+      detalle: `Tienes ${soles(saldo.disponible)}`,
+    });
 
   return (
     <div className="metodos-pago" role="radiogroup" aria-label="Medio de pago">
@@ -35,7 +46,10 @@ export function MetodosPago({ metodo, onElegir, deshabilitado }) {
           disabled={deshabilitado}
         >
           <span className="metodo-check" aria-hidden="true"><IconCheckCircle /></span>
-          <LogoPasarela archivo={o.logo} alt={o.alt} respaldo={o.respaldo} />
+          {/* El saldo no tiene pasarela detrás: no hay logo que mostrar. */}
+          {o.logo
+            ? <LogoPasarela archivo={o.logo} alt={o.alt} respaldo={o.respaldo} />
+            : <span className="metodo-logo-propio" aria-hidden="true">{o.respaldo}</span>}
           <span className="metodo-nombre">{o.nombre}</span>
           <span className="metodo-detalle">{o.detalle}</span>
         </button>

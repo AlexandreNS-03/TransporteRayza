@@ -10,7 +10,7 @@ import SelectorPasajeros from "../components/SelectorPasajeros";
 import FormularioPasajero, { FormularioContacto } from "../components/FormularioPasajero";
 import Confirmacion from "../components/Confirmacion";
 import { MetodosPago, FormularioYape, PanelTarjeta } from "../components/PagoMetodos";
-import { buscarViajes, crearReservaGrupo, pagarGrupo, formularioDePagoGrupo,
+import { buscarViajes, crearReservaGrupo, pagarGrupo, formularioDePagoGrupo, pagarGrupoConSaldo,
          metodosDePago, pagarConYapeGrupo, avisarAbandono, soles } from "../services/publicApi";
 import { tokenizarYape } from "../services/yape";
 import { pagarConIzipay, limpiarIzipay } from "../services/izipay";
@@ -309,6 +309,20 @@ export default function Comprar() {
     finally { setPagando(false); }
   };
 
+  /**
+   * Pago con el saldo de la wallet: no hay pasarela, la plata ya está en Rayza
+   * desde que se recargó. El servidor comprueba que el saldo sea de quien pide y
+   * que alcance; si no alcanza no cobra nada y se puede elegir otro método.
+   */
+  const pagarConSaldo = async () => {
+    setPagando(true); setErrorPago(null);
+    try {
+      const ids = await obtenerReservas();
+      terminar(await pagarGrupoConSaldo(ids));
+    } catch (e) { setErrorPago(e.message); }
+    finally { setPagando(false); }
+  };
+
   const pagar = async () => {
     setPagando(true); setErrorPago(null);
     try {
@@ -456,8 +470,17 @@ export default function Comprar() {
                       <MetodosPago
                         metodo={metodo}
                         deshabilitado={pagando}
+                        saldo={metodos?.saldo}
                         onElegir={(m) => { setMetodo(m); setErrorPago(null); }}
                       />
+                    )}
+
+                    {metodo === "saldo" && !formularioVisible && (
+                      <div className="alert alert-info" style={{ marginTop: 16 }}>
+                        Se descuentan {soles(totalACobrar)} de tu saldo
+                        ({soles(metodos?.saldo?.disponible ?? 0)} disponibles). Si no alcanza,
+                        no se cobra nada y puedes pagar con tarjeta o Yape.
+                      </div>
                     )}
 
                     {metodo === "yape" && !formularioVisible && (
@@ -504,8 +527,9 @@ export default function Comprar() {
                       )}
                       {!formularioVisible && (
                         <button className="btn btn-primary" disabled={pagando}
-                                onClick={metodo === "yape" ? pagarConYape : pagar}>
-                          {pagando ? (metodo === "yape" ? "Cobrando…" : "Abriendo el pago…")
+                                onClick={metodo === "yape" ? pagarConYape
+                                       : metodo === "saldo" ? pagarConSaldo : pagar}>
+                          {pagando ? (metodo === "tarjeta" ? "Abriendo el pago…" : "Cobrando…")
                                    : `Pagar ${soles(totalACobrar)}`}
                         </button>
                       )}

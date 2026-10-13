@@ -151,6 +151,20 @@ public class IzipayService {
         public boolean pagado;
         public String referencia;   // uuid de la transacción en Izipay
         public String motivo;
+
+        /**
+         * Lo que Izipay dice que se cobró, en céntimos, y para qué pedido.
+         *
+         * Vienen de dentro de la firma, así que no se pueden tocar desde el
+         * navegador. Importan cuando lo que se paga es plata que después queda
+         * guardada —una recarga de la wallet—: sin comparar el monto, se paga
+         * S/ 1 y se pide acreditar S/ 1000.
+         */
+        public Integer montoCents;
+        public String orderId;
+
+        /** En modo simulación no hay monto que comparar porque no hubo cobro. */
+        public boolean simulado;
     }
 
     /**
@@ -162,6 +176,7 @@ public class IzipayService {
 
         if (!estaActiva()) {
             r.pagado = true;
+            r.simulado = true;
             r.referencia = "izipay_simulado_" + UUID.randomUUID().toString().substring(0, 12);
             return r;
         }
@@ -186,6 +201,7 @@ public class IzipayService {
             r.referencia = a.path("transactions").isArray() && a.path("transactions").size() > 0
                     ? a.path("transactions").get(0).path("uuid").asText(null)
                     : a.path("orderDetails").path("orderId").asText(null);
+            leerMontoYPedido(a, r);
             return r;
         } catch (Exception e) {
             r.motivo = "No se pudo leer la respuesta de la pasarela";
@@ -225,6 +241,7 @@ public class IzipayService {
             if (!r.pagado) r.motivo = "Pago en estado " + estado;
             r.referencia = a.path("transactions").isArray() && a.path("transactions").size() > 0
                     ? a.path("transactions").get(0).path("uuid").asText(null) : null;
+            leerMontoYPedido(a, r);
             return r;
         } catch (Exception e) {
             r.motivo = "No se pudo leer la notificación";
@@ -249,6 +266,22 @@ public class IzipayService {
         try {
             return json.readTree(krAnswer).path("orderDetails").path("orderId").asText(null);
         } catch (Exception e) { return null; }
+    }
+
+    /**
+     * Saca de la respuesta firmada cuánto se cobró y para qué pedido.
+     *
+     * El monto se busca primero en la transacción, que es lo que de verdad pasó
+     * por la tarjeta, y recién después en el total del pedido.
+     */
+    private static void leerMontoYPedido(JsonNode a, Resultado r) {
+        r.orderId = a.path("orderDetails").path("orderId").asText(null);
+
+        JsonNode txs = a.path("transactions");
+        if (txs.isArray() && txs.size() > 0 && txs.get(0).hasNonNull("amount"))
+            r.montoCents = txs.get(0).path("amount").asInt();
+        else if (a.path("orderDetails").hasNonNull("orderTotalAmount"))
+            r.montoCents = a.path("orderDetails").path("orderTotalAmount").asInt();
     }
 
     /** HMAC-SHA256 del cuerpo tal cual llegó, comparado en hexadecimal. */

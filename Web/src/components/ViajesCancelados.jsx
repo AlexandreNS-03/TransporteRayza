@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import "./ViajesCancelados.css";
 import { getSaldo, getPorResolver, guardarComoSaldo, reprogramarPasaje } from "../services/authCliente";
 import { buscarViajes, soles } from "../services/publicApi";
@@ -98,7 +99,13 @@ export default function ViajesCancelados() {
             <span>Saldo a favor</span>
             <strong>{soles(saldo)}</strong>
           </div>
-          <p>Lo puedes usar en tu próxima compra. Menciónalo al comprar en agencia o escríbenos.</p>
+          {/* El detalle, las condiciones y cómo gastarlo viven en la wallet: acá
+              se dice lo justo y se manda para allá, en vez de repetir —y después
+              contradecir— lo mismo en dos pantallas. */}
+          <p>
+            Es parte de tu <Link to="/mi-cuenta/pagos">Rayza Wallet</Link> y no vence.
+            Lo puedes usar en tu próxima compra.
+          </p>
           {movs.length > 0 && (
             <ul className="vc-movs">
               {movs.slice(0, 4).map(m => (
