@@ -147,8 +147,9 @@ class ComprobantesDelClienteTest {
     /** Un servicio de verificación de celular sin ningún canal: el perfil lo
      *  consulta para saber si puede ofrecer verificar, y sin él no se arma. */
     private static VerificacionCelularService verificacionCelularSinCanal() {
-        VerificacionCelularService v = new VerificacionCelularService(null, null);
-        ReflectionTestUtils.setField(v, "smsDisponible", false);
+        // SmsService recién salido de fábrica: sin credenciales de Twilio, así que
+        // estaActivo() es false y no hay canal por donde ofrecer nada.
+        VerificacionCelularService v = new VerificacionCelularService(null, null, new SmsService());
         ReflectionTestUtils.setField(v, "whatsappDisponible", false);
         ReflectionTestUtils.setField(v, "simulado", false);
         return v;

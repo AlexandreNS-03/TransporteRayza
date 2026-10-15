@@ -9,6 +9,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpStatusCodeException;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import javax.crypto.Mac;
@@ -139,6 +140,12 @@ public class IzipayService {
 
         } catch (HttpStatusCodeException e) {
             throw new RuntimeException("No se pudo abrir el pago: " + resumen(e.getResponseBodyAsString()));
+        } catch (RestClientException e) {
+            // Va ANTES del rethrow de RuntimeException: las excepciones de
+            // RestTemplate son RuntimeException, así que con Izipay inalcanzable
+            // el comprador veía "I/O error on POST request for
+            // https://api.micuentaweb.pe/..." en vez de un aviso.
+            throw new RuntimeException("Error de conexión con la pasarela de pago");
         } catch (RuntimeException e) {
             throw e;
         } catch (Exception e) {

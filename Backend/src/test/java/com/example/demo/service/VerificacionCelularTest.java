@@ -32,6 +32,7 @@ class VerificacionCelularTest {
     private ClienteRepository clientes;
     private VerificacionCelularRepository repo;
     private VerificacionCelularService servicio;
+    private SmsFalso sms;
     private Cliente ana;
     private VerificacionCelular guardada;
 
@@ -57,8 +58,8 @@ class VerificacionCelularTest {
                 .thenAnswer(i -> Optional.ofNullable(guardada)
                         .filter(v -> v.getUsadoAt() == null));
 
-        servicio = new VerificacionCelularService(clientes, repo);
-        ReflectionTestUtils.setField(servicio, "smsDisponible", false);
+        sms = new SmsFalso();
+        servicio = new VerificacionCelularService(clientes, repo, sms);
         ReflectionTestUtils.setField(servicio, "whatsappDisponible", false);
         ReflectionTestUtils.setField(servicio, "simulado", true);
     }
@@ -140,6 +141,7 @@ class VerificacionCelularTest {
     @DisplayName("Sin canal contratado, no se ofrece verificar")
     void noOfreceSinCanal() {
         ReflectionTestUtils.setField(servicio, "simulado", false);
+        sms.activo = false;
         assertFalse(servicio.hayPorDondeMandar());
 
         RuntimeException e = assertThrows(RuntimeException.class,
@@ -151,10 +153,63 @@ class VerificacionCelularTest {
     @Test
     @DisplayName("Cuando haya WhatsApp se usa ese, que acá sale más barato que el SMS")
     void prefiereWhatsapp() {
-        ReflectionTestUtils.setField(servicio, "smsDisponible", true);
         assertEquals(VerificacionCelular.Canal.SMS, servicio.canalElegido());
         ReflectionTestUtils.setField(servicio, "whatsappDisponible", true);
         assertEquals(VerificacionCelular.Canal.WHATSAPP, servicio.canalElegido());
+    }
+
+    /* ── Por Twilio ── */
+
+    @Test
+    @DisplayName("Con Twilio configurado, el código sale por SMS al número de la cuenta")
+    void mandaElCodigoPorSms() {
+        ReflectionTestUtils.setField(servicio, "simulado", false);
+        sms.activo = true;
+
+        servicio.enviarCodigo("ana@ejemplo.pe");
+
+        assertEquals("+51965123456", sms.ultimoDestino);
+        assertTrue(sms.ultimoTexto.matches(".*\\b\\d{6}\\b.*"), "tiene que llevar el código");
+        assertTrue(sms.ultimoTexto.toLowerCase().contains("no se lo compartas"),
+                "un código que llega por SMS se reenvía solo si nadie avisa");
+    }
+
+    @Test
+    @DisplayName("Si el SMS no sale, no se dice que se mandó")
+    void siNoSaleNoMiente() {
+        ReflectionTestUtils.setField(servicio, "simulado", false);
+        sms.activo = true;
+        sms.explota = true;
+
+        RuntimeException e = assertThrows(RuntimeException.class,
+                () -> servicio.enviarCodigo("ana@ejemplo.pe"));
+        assertTrue(e.getMessage().toLowerCase().contains("no se pudo enviar"));
+    }
+
+    @Test
+    @DisplayName("Twilio sin credenciales no cuenta como canal, aunque el flag esté encendido")
+    void elFlagSoloNoAlcanza() {
+        ReflectionTestUtils.setField(servicio, "simulado", false);
+        sms.activo = false;                     // flag sí, credenciales no
+        assertFalse(servicio.hayPorDondeMandar());
+    }
+
+    /** Doble a mano: Mockito no puede instrumentar las clases de servicio acá. */
+    private static class SmsFalso extends SmsService {
+        boolean activo;
+        boolean explota;
+        String ultimoDestino;
+        String ultimoTexto;
+
+        @Override public boolean estaActivo() { return activo; }
+
+        @Override
+        public String enviar(String telefono, String texto) {
+            if (explota) throw new RuntimeException("No se pudo enviar el mensaje: sin saldo");
+            ultimoDestino = telefono;
+            ultimoTexto = texto;
+            return "SM-falso";
+        }
     }
 
     @Test

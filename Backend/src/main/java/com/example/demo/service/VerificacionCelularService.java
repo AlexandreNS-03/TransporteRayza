@@ -27,11 +27,11 @@ import java.util.UUID;
  * <p>Del código se guarda el hash, nunca el código. Vive diez minutos: es algo
  * que la persona tiene en la mano y copia en el momento.
  *
- * <p><strong>Hoy no hay por dónde mandarlo.</strong> Ni SMS ni WhatsApp están
- * integrados, así que esto queda apagado y la pantalla dice que todavía no se
- * puede en vez de ofrecer un botón que no va a funcionar. En modo simulado
- * —desarrollo— el código se escribe en la consola para poder probar el camino
- * completo.
+ * <p><strong>El SMS sale por Twilio</strong> ({@link SmsService}); WhatsApp
+ * todavía no está. Si no hay ningún canal configurado, la pantalla dice que
+ * todavía no se puede en vez de ofrecer un botón que no va a funcionar. En modo
+ * simulado —desarrollo— el código se escribe en la consola para poder probar el
+ * camino completo.
  */
 @Service
 public class VerificacionCelularService {
@@ -41,10 +41,11 @@ public class VerificacionCelularService {
 
     private final ClienteRepository clientes;
     private final VerificacionCelularRepository repositorio;
+    private final SmsService smsService;
     private final SecureRandom aleatorio = new SecureRandom();
 
-    @Value("${notificaciones.sms.enabled:false}")
-    private boolean smsDisponible;
+    // Si el SMS está disponible lo dice SmsService, que además comprueba que
+    // Twilio tenga credenciales. Un flag suelto acá mentiría.
 
     @Value("${notificaciones.whatsapp.enabled:false}")
     private boolean whatsappDisponible;
@@ -57,14 +58,21 @@ public class VerificacionCelularService {
     private boolean simulado;
 
     public VerificacionCelularService(ClienteRepository clientes,
-                                      VerificacionCelularRepository repositorio) {
+                                      VerificacionCelularRepository repositorio,
+                                      SmsService smsService) {
         this.clientes = clientes;
         this.repositorio = repositorio;
+        this.smsService = smsService;
     }
 
-    /** ¿Se puede ofrecer verificar el celular? Si no hay canal, no. */
+    /**
+     * ¿Se puede ofrecer verificar el celular? Si no hay canal, no.
+     *
+     * <p>El SMS cuenta solo si Twilio está configurado de verdad: encender el
+     * flag sin credenciales dejaría un botón que falla al apretarlo.
+     */
     public boolean hayPorDondeMandar() {
-        return smsDisponible || whatsappDisponible || simulado;
+        return smsService.estaActivo() || whatsappDisponible || simulado;
     }
 
     /** El canal que se va a usar: WhatsApp primero, que es más barato acá. */
@@ -111,13 +119,19 @@ public class VerificacionCelularService {
         if (simulado) {
             System.out.println("[Verificación celular] MODO SIMULACIÓN — código para "
                     + c.celularCompleto() + ": " + codigo);
+        } else if (canalElegido() == Canal.SMS) {
+            // El código ya quedó guardado arriba: si el envío falla, el que quedó
+            // registrado no sirve para nada, pero tampoco molesta — vence solo y
+            // el siguiente intento lo invalida. Lo que no puede pasar es que la
+            // pantalla diga "te mandamos un código" sin que haya salido.
+            smsService.enviar(c.celularCompleto(),
+                    "Tu código de Transportes Rayza es " + codigo
+                    + ". Vence en " + VALIDEZ_MINUTOS + " minutos. No se lo compartas a nadie.");
         } else {
-            // Acá va el envío real cuando se contrate el canal. Es el único
-            // lugar que hay que tocar.
+            // WhatsApp todavía no está integrado. Es el único lugar que hay que tocar.
             throw new UnsupportedOperationException(
-                    "PENDIENTE PROVEEDOR: falta conectar " + canalElegido()
-                    + " para mandar el código. Ver notificaciones.sms.enabled / "
-                    + "notificaciones.whatsapp.enabled.");
+                    "PENDIENTE PROVEEDOR: falta conectar WhatsApp para mandar el código. "
+                    + "Ver notificaciones.whatsapp.enabled.");
         }
 
         return tapar(c.celularCompleto());
