@@ -1,0 +1,115 @@
+/* Rayza Wallet, en la cuenta del cliente. */
+
+.wl { margin-top: 24px; }
+.wl-oculto { display: none; }
+.wl-msg { margin-top: 14px; }
+
+/* ── El saldo ── */
+/* Superficie de color propia en vez de una tarjeta más: en una página de
+   formularios, la plata es lo único que se mira primero. Funciona igual de día
+   y de noche porque trae su propio fondo. */
+.wl-hero {
+  background: linear-gradient(135deg, #0a1628, #1a4db5);
+  color: #fff; border-radius: var(--r); padding: 22px 24px;
+}
+.wl-hero-top {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px; flex-wrap: wrap;
+}
+.wl-etiqueta {
+  display: block; font-size: 12px; text-transform: uppercase;
+  letter-spacing: .1em; color: rgba(255,255,255,.75);
+}
+.wl-saldo {
+  display: block; font-family: var(--font-head); font-size: 38px;
+  font-weight: 800; line-height: 1.1; letter-spacing: -.02em;
+  font-variant-numeric: tabular-nums;
+}
+.wl-hero .btn-primary { flex: none; }
+
+.wl-condiciones {
+  list-style: none; margin: 16px 0 0; padding: 14px 0 0;
+  border-top: 1px solid rgba(255,255,255,.18);
+  display: flex; flex-direction: column; gap: 4px;
+}
+.wl-condiciones li {
+  font-size: 13px; color: rgba(255,255,255,.82); padding-left: 16px; position: relative;
+}
+.wl-condiciones li::before {
+  content: "·"; position: absolute; left: 4px; font-weight: 700;
+  color: rgba(255,255,255,.55);
+}
+
+/* ── Abonar ── */
+.wl-abonar { margin-top: 16px; }
+.wl-abonar-tit { margin: 0 0 14px; font-size: 17px; }
+
+.wl-chips { display: flex; gap: 10px; flex-wrap: wrap; }
+.wl-chip {
+  flex: 1 1 100px; padding: 14px 10px; cursor: pointer;
+  background: var(--card); color: var(--ink);
+  border: 1px solid var(--line-strong); border-radius: var(--r-sm);
+  font: inherit; font-weight: 700; font-size: 17px;
+  font-variant-numeric: tabular-nums;
+  transition: border-color .18s var(--ease-out), background .18s var(--ease-out),
+              transform .12s var(--ease-out);
+}
+@media (hover: hover) and (pointer: fine) {
+  .wl-chip:hover:not(:disabled) { border-color: var(--accent); }
+}
+.wl-chip:active:not(:disabled) { transform: translateY(1px); }
+.wl-chip.activo { border-color: var(--accent); background: var(--sky-soft); }
+.wl-chip:disabled { opacity: .6; cursor: not-allowed; }
+
+.wl-otro { display: block; margin-top: 16px; }
+.wl-otro span { display: block; font-size: 13px; color: var(--ink-soft); margin-bottom: 6px; }
+.wl-otro input {
+  width: 100%; max-width: 220px; padding: 12px 14px;
+  font: inherit; font-variant-numeric: tabular-nums;
+  color: var(--ink); background: var(--card);
+  border: 1px solid var(--line-strong); border-radius: var(--r-sm);
+}
+.wl-limites { margin: 10px 0 0; font-size: 13px; color: var(--ink-soft); }
+
+.wl-acciones { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
+
+.wl-cab-pago {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; flex-wrap: wrap; margin-bottom: 16px;
+}
+.wl-cab-tit { margin: 0; font-weight: 700; font-size: 16px; }
+
+.wl-seguro {
+  display: flex; align-items: flex-start; gap: 8px; margin: 16px 0 0;
+  font-size: 12.5px; color: var(--ink-soft); line-height: 1.5;
+}
+.wl-seguro svg { flex: none; margin-top: 2px; }
+
+/* ── Movimientos ── */
+.wl-movs-tit { margin: 28px 0 12px; font-size: 17px; }
+.wl-vacio { font-size: 14px; color: var(--ink-soft); line-height: 1.6; max-width: 56ch; }
+
+.wl-movs { list-style: none; margin: 0; padding: 0; }
+.wl-movs li {
+  display: flex; align-items: center; justify-content: space-between; gap: 14px;
+  padding: 13px 0; border-bottom: 1px solid var(--line);
+}
+.wl-movs li:last-child { border-bottom: 0; }
+.wl-mov-que { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.wl-mov-que strong { font-size: 14.5px; font-weight: 600; }
+.wl-mov-que small { font-size: 12px; color: var(--ink-soft); }
+.wl-movs b {
+  font-size: 16px; white-space: nowrap; font-variant-numeric: tabular-nums;
+}
+.wl-movs b.mas   { color: #15803d; }
+.wl-movs b.menos { color: var(--ink-soft); }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .wl-movs b.mas { color: #6ee7a0; }
+}
+:root[data-theme="dark"] .wl-movs b.mas { color: #6ee7a0; }
+
+@media (max-width: 520px) {
+  .wl-saldo { font-size: 30px; }
+  .wl-hero-top .btn { width: 100%; justify-content: center; }
+  .wl-acciones .btn { flex: 1 1 100%; justify-content: center; }
+}

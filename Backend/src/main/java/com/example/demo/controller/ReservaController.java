@@ -105,6 +105,18 @@ public class ReservaController {
                 reservaIds(body), (String) body.get("token"), (String) body.get("deviceId")));
     }
 
+    /**
+     * Paga el grupo con el saldo de la wallet. No hay pasarela: la plata ya está
+     * en Rayza desde que se recargó. Quién paga lo dice el token, nunca el cuerpo
+     * del pedido: el saldo es de alguien.
+     */
+    @PostMapping("/grupo/pagar/saldo")
+    public ResponseEntity<ConfirmacionGrupoDTO> pagarGrupoConSaldo(@RequestBody Map<String, Object> body,
+                                                                   Authentication auth) {
+        return ResponseEntity.ok(reservaService.pagarGrupoConSaldo(
+                reservaIds(body), auth != null ? auth.getName() : null));
+    }
+
     @SuppressWarnings("unchecked")
     private List<String> reservaIds(Map<String, Object> body) {
         Object ids = body.get("reservaIds");
@@ -119,8 +131,8 @@ public class ReservaController {
      * cliente va a pagar con Yape, y no quedan órdenes abandonadas en la pasarela.
      */
     @GetMapping("/metodos-de-pago")
-    public ResponseEntity<?> metodosDePago() {
-        return ResponseEntity.ok(reservaService.metodosDePago());
+    public ResponseEntity<?> metodosDePago(Authentication auth) {
+        return ResponseEntity.ok(reservaService.metodosDePago(auth != null ? auth.getName() : null));
     }
 
     /** Paso previo del pago con tarjeta: pide a Izipay el formulario de esta reserva. */
@@ -146,5 +158,12 @@ public class ReservaController {
                                                  @RequestBody Map<String, String> body) {
         return ResponseEntity.ok(
                 reservaService.pagarReserva(id, body.get("krAnswer"), body.get("krHash")));
+    }
+
+    /** Paga con el saldo de la wallet. Ver pagarGrupoConSaldo. */
+    @PostMapping("/{id}/pagar/saldo")
+    public ResponseEntity<ConfirmacionDTO> pagarConSaldo(@PathVariable String id, Authentication auth) {
+        return ResponseEntity.ok(
+                reservaService.pagarConSaldo(id, auth != null ? auth.getName() : null));
     }
 }

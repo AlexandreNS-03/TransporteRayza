@@ -111,10 +111,81 @@ export async function reenviarVerificacion() {
   } catch (e) { throw err(e); }
 }
 
+/** Pide el código al celular que tiene en su perfil. */
+export async function enviarCodigoCelular() {
+  try {
+    const { data } = await axios.post(`${API}/verificar-celular/enviar`, {}, headers());
+    return data.message;
+  } catch (e) { throw err(e); }
+}
+
+/** Confirma el celular con el código que le llegó. */
+export async function confirmarCelular(codigo) {
+  try {
+    const { data } = await axios.post(`${API}/verificar-celular`, { codigo }, headers());
+    return data.message;
+  } catch (e) { throw err(e); }
+}
+
 /** Confirma el correo con el token del enlace. No necesita sesión. */
 export async function confirmarCorreo(token) {
   try {
     const { data } = await axios.post(`${AUTH}/verificar-correo`, { token });
+    return data.message;
+  } catch (e) { throw err(e); }
+}
+
+/* ── Notificaciones ──
+   Por dónde le escribimos y para qué. */
+
+export async function getMisNotificaciones() {
+  try { const { data } = await axios.get(`${API}/notificaciones`, headers()); return data; }
+  catch (e) { throw err(e); }
+}
+
+export async function guardarNotificaciones(prefs) {
+  try { const { data } = await axios.put(`${API}/notificaciones`, prefs, headers()); return data; }
+  catch (e) { throw err(e); }
+}
+
+/* ── Acompañantes frecuentes ──
+   La gente con la que el cliente suele viajar, para no escribir sus datos en
+   cada compra. Son datos de terceros: solo lo que ya se escribe al comprar. */
+
+export async function getMisAcompanantes() {
+  try { const { data } = await axios.get(`${API}/acompanantes`, headers()); return data; }
+  catch (e) { throw err(e); }
+}
+
+export async function guardarAcompanante(a) {
+  try { const { data } = await axios.post(`${API}/acompanantes`, a, headers()); return data; }
+  catch (e) { throw err(e); }
+}
+
+export async function borrarAcompanante(id) {
+  try {
+    const { data } = await axios.delete(`${API}/acompanantes/${id}`, headers());
+    return data.message;
+  } catch (e) { throw err(e); }
+}
+
+/* ── Documentos de viaje ──
+   Varios por cliente: acá se viaja con DNI dentro del país y con pasaporte o
+   CPF cuando se cruza a Brasil. */
+
+export async function getMisDocumentos() {
+  try { const { data } = await axios.get(`${API}/documentos`, headers()); return data; }
+  catch (e) { throw err(e); }
+}
+
+export async function guardarDocumento(doc) {
+  try { const { data } = await axios.post(`${API}/documentos`, doc, headers()); return data; }
+  catch (e) { throw err(e); }
+}
+
+export async function borrarDocumento(id) {
+  try {
+    const { data } = await axios.delete(`${API}/documentos/${id}`, headers());
     return data.message;
   } catch (e) { throw err(e); }
 }
@@ -162,5 +233,36 @@ export async function marcarPreferida(id) {
   try {
     const { data } = await axios.patch(`${API}/metodos-de-pago/${id}/preferida`, {}, headers());
     return data.message;
+  } catch (e) { throw err(e); }
+}
+
+/* ── Rayza Wallet ──
+   Saldo que se gasta en pasajes. No se retira y no vence: son decisiones, no
+   etapas pendientes. Ver WalletService en el backend, que explica por qué. */
+
+export async function getWallet() {
+  try { const { data } = await axios.get(`${API}/wallet`, headers()); return data; }
+  catch (e) { throw err(e); }
+}
+
+/**
+ * Primer paso de una recarga: el servidor anota cuánto se va a cobrar y devuelve
+ * el formulario de Izipay. El monto se anota ANTES de pagar; así, al volver, se
+ * compara contra lo que la pasarela firma y nadie puede acreditar más de lo que
+ * pagó.
+ */
+export async function iniciarRecarga(monto) {
+  try {
+    const { data } = await axios.post(`${API}/wallet/recargas`, { monto: String(monto) }, headers());
+    return data;
+  } catch (e) { throw err(e); }
+}
+
+/** Segundo paso: se le pasa al servidor la respuesta firmada de Izipay. */
+export async function confirmarRecarga(recargaId, { krAnswer, krHash } = {}) {
+  try {
+    const { data } = await axios.post(`${API}/wallet/recargas/${recargaId}/confirmar`,
+                                      { "kr-answer": krAnswer, "kr-hash": krHash }, headers());
+    return data;
   } catch (e) { throw err(e); }
 }

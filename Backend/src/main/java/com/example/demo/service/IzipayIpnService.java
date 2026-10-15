@@ -25,14 +25,17 @@ public class IzipayIpnService {
     private final ReservaService reservaService;
     private final AuditoriaService auditoriaService;
     private final RecordatorioPagoService recordatorioPagoService;
+    private final WalletService walletService;
 
     public IzipayIpnService(IzipayService izipayService,
                             VentaRepository ventaRepository,
                             EncomiendaRepository encomiendaRepository,
                             ReservaService reservaService,
                             AuditoriaService auditoriaService,
-                            RecordatorioPagoService recordatorioPagoService) {
+                            RecordatorioPagoService recordatorioPagoService,
+                            WalletService walletService) {
         this.recordatorioPagoService = recordatorioPagoService;
+        this.walletService = walletService;
         this.izipayService = izipayService;
         this.ventaRepository = ventaRepository;
         this.encomiendaRepository = encomiendaRepository;
@@ -50,6 +53,12 @@ public class IzipayIpnService {
 
         String orderId = izipayService.orderIdDe(krAnswer);
         if (orderId == null || orderId.isBlank()) return "Sin orderId";
+
+        // ── Recarga de la wallet ──
+        // Este es el camino confiable para acreditar: el navegador puede
+        // cerrarse después de pagar y entonces nadie llama al confirmar.
+        if (orderId.startsWith(WalletService.PREFIJO_ORDEN))
+            return walletService.acreditarDesdeIpn(orderId, res);
 
         // ── Encomienda pagada desde la web ──
         if (orderId.startsWith("ENC-")) {
@@ -94,8 +103,11 @@ public class IzipayIpnService {
         String orderId = izipayService.orderIdDe(krAnswer);
         if (orderId == null || orderId.isBlank()) return "Sin orderId";
 
-        // Las encomiendas se pagan sin retener nada: no hay plazo que avisar.
+        // Las encomiendas y las recargas se pagan sin retener nada: no hay plazo
+        // que avisar, y nadie pierde un asiento por no terminar.
         if (orderId.startsWith("ENC-")) return "Encomienda: sin aviso de abandono";
+        if (orderId.startsWith(WalletService.PREFIJO_ORDEN))
+            return "Recarga de saldo: sin aviso de abandono";
 
         return recordatorioPagoService.avisarPorOrden(orderId);
     }

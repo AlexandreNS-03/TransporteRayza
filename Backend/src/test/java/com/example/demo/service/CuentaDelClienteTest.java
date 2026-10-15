@@ -48,7 +48,7 @@ class CuentaDelClienteTest {
         ReflectionTestUtils.setField(jwt, "expiration", 60_000L);
 
         servicio = new ClienteService(repositorio, null, null, null, encoder, jwt,
-                new IntentosLoginService(new AuditoriaMuda()), null, emailService);
+                new IntentosLoginService(new AuditoriaMuda()), null, verificacionCelularSinCanal(), emailService);
 
         Cliente c = new Cliente();
         c.setId("c-1");
@@ -215,5 +215,16 @@ class CuentaDelClienteTest {
         long t0 = System.nanoTime();
         try { r.run(); } catch (RuntimeException ignorado) { }
         return (System.nanoTime() - t0) / 1000;
+    }
+
+    /** Un servicio de verificación de celular sin ningún canal: el perfil lo
+     *  consulta para saber si puede ofrecer verificar, y sin él no se arma. */
+    private static VerificacionCelularService verificacionCelularSinCanal() {
+        // SmsService recién salido de fábrica: sin credenciales de Twilio, así que
+        // estaActivo() es false y no hay canal por donde ofrecer nada.
+        VerificacionCelularService v = new VerificacionCelularService(null, null, new SmsService());
+        ReflectionTestUtils.setField(v, "whatsappDisponible", false);
+        ReflectionTestUtils.setField(v, "simulado", false);
+        return v;
     }
 }

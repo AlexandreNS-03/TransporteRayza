@@ -16,6 +16,15 @@ import java.time.LocalDateTime;
 @Table(name = "saldo_movimientos")
 public class SaldoMovimiento {
 
+    /**
+     * SALDO_FAVOR: le quedó plata de un viaje que cancelamos nosotros.
+     * ABONO: puso plata él mismo en su wallet.
+     * CONSUMO: la gastó en una compra (negativo).
+     * AJUSTE: corrección hecha a mano desde el panel.
+     */
+    public enum Tipo { SALDO_FAVOR, ABONO, CONSUMO, AJUSTE }
+
+
     @Id
     @Column(length = 36)
     private String id;
@@ -36,6 +45,25 @@ public class SaldoMovimiento {
 
     @Column(name = "motivo", length = 250)
     private String motivo;
+
+    /**
+     * Qué clase de movimiento es. Se agregó con la wallet: hasta entonces todos
+     * venían de una cancelación, así que no hacía falta distinguirlos.
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tipo", length = 16)
+    private Tipo tipo = Tipo.SALDO_FAVOR;
+
+    /**
+     * La llave que impide contar dos veces el mismo movimiento.
+     *
+     * Si el navegador reintenta una recarga, o el cliente le da dos veces al
+     * botón de pagar, llega la misma referencia y la base la rechaza por
+     * repetida. Con plata, "lo intenté dos veces" no puede terminar en dos
+     * movimientos.
+     */
+    @Column(name = "referencia", length = 120, unique = true)
+    private String referencia;
 
     /** Venta que originó el movimiento (el pasaje del viaje cancelado). */
     @Column(name = "venta_id", length = 36)
@@ -73,4 +101,10 @@ public class SaldoMovimiento {
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime v) { this.createdAt = v; }
+
+    public Tipo getTipo() { return tipo; }
+    public void setTipo(Tipo tipo) { this.tipo = tipo; }
+
+    public String getReferencia() { return referencia; }
+    public void setReferencia(String referencia) { this.referencia = referencia; }
 }
