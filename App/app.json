@@ -1,0 +1,35 @@
+{
+  "expo": {
+    "name": "Transportes Rayza",
+    "slug": "transportes-rayza",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "pe.transporterayza.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "package": "pe.transporterayza.app"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-secure-store",
+      "expo-font"
+    ],
+    "scheme": "rayza",
+    "primaryColor": "#1ea6dd",
+    "extra": {
+      "apiUrl": "http://localhost:8080"
+    }
+  }
+}
