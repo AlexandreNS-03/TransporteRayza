@@ -1,5 +1,6 @@
-import { lazy, Suspense } from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { lazy, Suspense, useEffect } from "react";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { eventos } from "./services/marketing";
 import Landing from "./pages/Landing";
 import IrArriba from "./components/IrArriba";
 import Seo from "./components/Seo";
@@ -39,6 +40,20 @@ const Rastreo        = lazy(() => import("./pages/Rastreo"));
 const PagaCarga      = lazy(() => import("./pages/PagaCarga"));
 const PagarReserva   = lazy(() => import("./pages/PagarReserva"));
 
+/**
+ * Avisa cada cambio de página.
+ *
+ * <p>Va adentro del Router porque `useLocation` solo existe ahí. No dibuja nada.
+ * Si el visitante no aceptó las cookies, no hay ningún medidor cargado y las
+ * llamadas no hacen nada: la decisión de medir o no vive en un solo lugar, el
+ * banner.
+ */
+function MedirPaginas() {
+  const { pathname } = useLocation();
+  useEffect(() => { eventos.vioPagina(pathname); }, [pathname]);
+  return null;
+}
+
 /** Lo que se ve el instante que tarda en llegar la página. */
 function Cargando() {
   return (
@@ -52,6 +67,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <Seo />
+      <MedirPaginas />
       <IrArriba />
       <Suspense fallback={<Cargando />}>
         <Routes>
