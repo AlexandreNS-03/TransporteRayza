@@ -8,6 +8,7 @@ import { reservasPendientes, formularioDePagoGrupo, pagarGrupo, pagarGrupoConSal
          pagarConYapeGrupo, metodosDePago, soles } from "../services/publicApi";
 import { tokenizarYape } from "../services/yape";
 import { pagarConIzipay, limpiarIzipay } from "../services/izipay";
+import { eventos } from "../services/marketing";
 
 /**
  * "Termina tu pago": página a la que llega el cliente desde el correo que se le
@@ -56,6 +57,19 @@ export default function PagarReserva() {
 
   const vencida = restante === 0;
   const reservaIds = datos?.reservaIds || [];
+
+  // Un solo lugar para avisar la compra, en vez de repetirlo en los tres pagos
+  // (tarjeta, Yape y saldo). El evento se cuenta una sola vez por compra aunque
+  // esto se vuelva a ejecutar.
+  useEffect(() => {
+    if (!confirmacion) return;
+    eventos.compro({
+      id: confirmacion?.pasajeros?.[0]?.ventaId ?? confirmacion?.ventaId,
+      total: confirmacion?.montoTotal ?? datos?.total,
+      pasajes: confirmacion?.pasajeros?.length ?? 1,
+      ruta: datos ? `${datos.origen} → ${datos.destino}` : "",
+    });
+  }, [confirmacion, datos]);
 
   const reloj = (s) => {
     if (s == null) return "";

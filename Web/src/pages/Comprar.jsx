@@ -13,6 +13,7 @@ import { MetodosPago, FormularioYape, PanelTarjeta } from "../components/PagoMet
 import { buscarViajes, crearReservaGrupo, pagarGrupo, formularioDePagoGrupo, pagarGrupoConSaldo,
          metodosDePago, pagarConYapeGrupo, avisarAbandono, soles } from "../services/publicApi";
 import { tokenizarYape } from "../services/yape";
+import { eventos } from "../services/marketing";
 import { pagarConIzipay, limpiarIzipay } from "../services/izipay";
 import { tokenCliente } from "../services/authCliente";
 
@@ -202,7 +203,18 @@ export default function Comprar() {
 
   const volverAIda = () => { setLeg("ida"); setPaso(1); scrollTop(); };
 
-  const continuarDatos = () => { if (datosValidos()) { setPaso(3); scrollTop(); } };
+  const continuarDatos = () => {
+    if (!datosValidos()) return;
+    // Acá empieza el pago. Junto con la compra, es lo que dice cuántos se caen
+    // entre elegir asiento y pagar — el número que más plata deja sobre la mesa.
+    eventos.empezoElPago({
+      total: totalACobrar,
+      pasajes: asientos,
+      ruta: ida.viaje ? `${ida.viaje.origen} → ${ida.viaje.destino}` : "",
+    });
+    setPaso(3);
+    scrollTop();
+  };
 
   const datosValidos = () => {
     for (let i = 0; i < asientos; i++) {
@@ -293,7 +305,21 @@ export default function Comprar() {
     + (esRedondo && vuelta.viaje ? totalLeg(vuelta.viaje, vuelta.asientos) : 0);
 
   const volverAlPagoDesde = (n) => { invalidarReservas(); setErrorPago(null); setPaso(n); };
-  const terminar = (conf) => { invalidarReservas(); setConfirmacion(conf); setPaso(4); scrollTop(); };
+  const terminar = (conf) => {
+    // El único evento que de verdad importa: sin él una campaña no sabe a quién
+    // parecerse, y no hay forma de saber cuánto cuesta una venta. Va con el id
+    // de la compra para que no se cuente dos veces.
+    eventos.compro({
+      id: conf?.pasajeros?.[0]?.ventaId ?? conf?.ventaId,
+      total: conf?.montoTotal ?? conf?.precio,
+      pasajes: conf?.pasajeros?.length ?? 1,
+      ruta: ida.viaje ? `${ida.viaje.origen} → ${ida.viaje.destino}` : "",
+    });
+    invalidarReservas();
+    setConfirmacion(conf);
+    setPaso(4);
+    scrollTop();
+  };
 
   const pagarConYape = async () => {
     setPagando(true); setErrorPago(null);
