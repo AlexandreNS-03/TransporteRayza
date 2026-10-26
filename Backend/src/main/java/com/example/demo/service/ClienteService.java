@@ -39,7 +39,8 @@ public class ClienteService {
     private final EmailService emailService;
 
     /** Mínimo de la contraseña. Seis caracteres se adivinan; ocho ya no tanto. */
-    public static final int MINIMO_CLAVE = 8;
+    /** @deprecated usa {@link Claves#MINIMO}. Queda porque la pantalla lo muestra. */
+    public static final int MINIMO_CLAVE = Claves.MINIMO;
 
     /**
      * Un hash de descarte, contra el que se compara cuando el correo no tiene
@@ -187,14 +188,9 @@ public class ClienteService {
         return v.length() == 2 ? v : null;
     }
 
-    /** Las reglas de la contraseña, en un solo lugar. */
+    /** Las reglas de la contraseña viven en {@link Claves}, para todas las cuentas. */
     public static void validarClave(String clave) {
-        if (clave == null || clave.length() < MINIMO_CLAVE)
-            throw new RuntimeException("La contraseña debe tener al menos " + MINIMO_CLAVE + " caracteres");
-        String s = clave.toLowerCase();
-        // Las cuatro que siempre aparecen primero en cualquier intento.
-        if (s.equals("12345678") || s.equals("contrasena") || s.equals("password") || s.equals("rayza123"))
-            throw new RuntimeException("Esa contraseña es de las primeras que alguien probaría. Elige otra.");
+        Claves.validar(clave);
     }
 
     public Cliente obtenerPorEmail(String email) {
