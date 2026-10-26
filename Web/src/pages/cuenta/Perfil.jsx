@@ -19,7 +19,7 @@ export default function Perfil() {
   const [guardando, setGuardando] = useState(false);
 
   return (
-    <CuentaLayout>
+    <CuentaLayout titulo="Datos personales">
       {(perfil, setPerfil) => {
         const campo = (c) => (e) => setPerfil({ ...perfil, [c]: e.target.value });
 
