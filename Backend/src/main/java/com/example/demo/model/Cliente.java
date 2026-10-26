@@ -103,6 +103,14 @@ public class Cliente {
 
     private Boolean activo;
 
+    /**
+     * Desde cuándo valen las sesiones de esta cuenta. Ver Usuario: un token
+     * firmado no se puede borrar, así que lo que lo mata es haberse emitido
+     * antes de esta fecha. Se mueve al cambiar la contraseña y al recuperarla.
+     */
+    @Column(name = "sesiones_desde")
+    private LocalDateTime sesionesDesde;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
@@ -188,6 +196,9 @@ public class Cliente {
 
     public String getTelefono() { return telefono; }
     public void setTelefono(String telefono) { this.telefono = telefono; }
+
+    public LocalDateTime getSesionesDesde() { return sesionesDesde; }
+    public void setSesionesDesde(LocalDateTime v) { this.sesionesDesde = v; }
 
     public Boolean getActivo() { return activo; }
     public void setActivo(Boolean activo) { this.activo = activo; }

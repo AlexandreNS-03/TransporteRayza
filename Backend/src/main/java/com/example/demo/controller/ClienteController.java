@@ -77,8 +77,12 @@ public class ClienteController {
     /** Cambia la contraseña desde adentro de la cuenta. Pide la actual. */
     @PostMapping("/cambiar-clave")
     public ResponseEntity<?> cambiarClave(@RequestBody Map<String, String> body, Authentication auth) {
-        clienteService.cambiarClave(auth.getName(), body.get("actual"), body.get("nueva"));
-        return ResponseEntity.ok(Map.of("message", "Tu contraseña quedó cambiada."));
+        // El token nuevo reemplaza al de esta pestaña: al cambiar la clave se
+        // cortan todas las sesiones, incluida la que hizo el cambio.
+        String token = clienteService.cambiarClave(auth.getName(), body.get("actual"), body.get("nueva"));
+        return ResponseEntity.ok(Map.of(
+                "message", "Tu contraseña quedó cambiada. Cerramos las sesiones abiertas en otros dispositivos.",
+                "token", token));
     }
 
     /* ── Notificaciones ──

@@ -132,6 +132,14 @@ public class RecuperacionService {
                 .orElseThrow(() -> new RuntimeException("La cuenta ya no existe"));
 
         cliente.setPassword(passwordEncoder.encode(nuevaClave));
+
+        // Recuperar la clave también corta lo que hubiera abierto: si alguien
+
+
+        // tenía la cuenta, recuperarla es como se lo saca de encima.
+
+
+        cliente.setSesionesDesde(java.time.LocalDateTime.now());
         clienteRepository.save(cliente);
 
         // Se quema antes de terminar: si dos pestañas envían a la vez, la segunda
