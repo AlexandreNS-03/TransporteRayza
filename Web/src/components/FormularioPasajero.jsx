@@ -1,3 +1,5 @@
+import ElegirAcompanante from "./ElegirAcompanante";
+
 /**
  * Datos personales de UN pasajero. El correo de contacto y el comprobante son del
  * grupo y se piden aparte (una sola vez), no por pasajero.
@@ -8,6 +10,11 @@ export default function FormularioPasajero({ pasajero, setPasajero, titulo }) {
   return (
     <div>
       {titulo && <h4 className="pasajero-titulo">{titulo}</h4>}
+
+      {/* Para quien tiene acompañantes guardados: llena el formulario de una.
+          Si no hay sesión o la lista está vacía, no se muestra. */}
+      <ElegirAcompanante onElegir={(datos) => setPasajero({ ...pasajero, ...datos })} />
+
       <div className="form-grid">
         <div className="field">
           <label>Tipo de documento</label>

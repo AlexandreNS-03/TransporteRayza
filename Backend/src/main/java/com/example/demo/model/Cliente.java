@@ -47,6 +47,60 @@ public class Cliente {
     @Column(length = 20)
     private String telefono;
 
+    /**
+     * Género y nacionalidad los pide la Capitanía para el manifiesto de
+     * pasajeros, así que se guardan en el perfil y no hay que escribirlos en
+     * cada compra. No están por costumbre: tienen un uso concreto.
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "genero", length = 12)
+    private Genero genero;
+
+    /** ISO-2 del país de nacionalidad (PE, CO, BR…). */
+    @Column(name = "nacionalidad", length = 2)
+    private String nacionalidad;
+
+    /* ── Contacto de emergencia ──
+       Va en la cuenta y no en cada compra porque es el mismo siempre, y porque
+       el día que haga falta nadie va a tener tiempo de buscarlo. En un viaje de
+       ocho horas por el río no es un campo de formulario: es a quién se llama. */
+
+    @Column(name = "emergencia_nombres", length = 150)
+    private String emergenciaNombres;
+
+    @Column(name = "emergencia_apellidos", length = 150)
+    private String emergenciaApellidos;
+
+    /** Madre, padre, hermano, pareja… Texto libre: las familias son como son. */
+    @Column(name = "emergencia_relacion", length = 40)
+    private String emergenciaRelacion;
+
+    @Column(name = "emergencia_codigo_pais", length = 6)
+    private String emergenciaCodigoPais;
+
+    @Column(name = "emergencia_telefono", length = 20)
+    private String emergenciaTelefono;
+
+    /**
+     * Cuándo quedó comprobado que el correo es suyo. Null = sin verificar.
+     *
+     * Importa más de lo que parece: el boleto y el comprobante llegan por ahí,
+     * y las compras del cliente se juntan por correo. Un correo escrito mal —o
+     * el de otra persona— rompe las dos cosas sin que nadie se entere.
+     */
+    @Column(name = "email_verificado_at")
+    private LocalDateTime emailVerificadoAt;
+
+    /**
+     * Cuándo quedó comprobado que el celular es suyo. Null = sin verificar.
+     *
+     * Se pierde si cambia el número: lo que se verificó fue ese teléfono, no la
+     * persona. Dejarlo marcado después de un cambio sería decir que comprobamos
+     * algo que no comprobamos.
+     */
+    @Column(name = "telefono_verificado_at")
+    private LocalDateTime telefonoVerificadoAt;
+
     private Boolean activo;
 
     @Column(name = "created_at")
@@ -56,6 +110,51 @@ public class Cliente {
     private LocalDateTime ultimoLogin;
 
     public enum TipoDocumento { DNI, CE, PASAPORTE }
+
+    /** "OTRO" existe porque el documento de alguna gente dice otra cosa. */
+    public enum Genero { MASCULINO, FEMENINO, OTRO }
+
+    public boolean tieneCorreoVerificado() { return emailVerificadoAt != null; }
+
+    public Genero getGenero() { return genero; }
+    public void setGenero(Genero genero) { this.genero = genero; }
+
+    public String getNacionalidad() { return nacionalidad; }
+    public void setNacionalidad(String nacionalidad) { this.nacionalidad = nacionalidad; }
+
+    /** ¿Hay a quién llamar? El teléfono es lo único imprescindible. */
+    public boolean tieneContactoDeEmergencia() {
+        return emergenciaTelefono != null && !emergenciaTelefono.isBlank();
+    }
+
+    public String getEmergenciaNombres() { return emergenciaNombres; }
+    public void setEmergenciaNombres(String v) { this.emergenciaNombres = v; }
+
+    public String getEmergenciaApellidos() { return emergenciaApellidos; }
+    public void setEmergenciaApellidos(String v) { this.emergenciaApellidos = v; }
+
+    public String getEmergenciaRelacion() { return emergenciaRelacion; }
+    public void setEmergenciaRelacion(String v) { this.emergenciaRelacion = v; }
+
+    public String getEmergenciaCodigoPais() { return emergenciaCodigoPais; }
+    public void setEmergenciaCodigoPais(String v) { this.emergenciaCodigoPais = v; }
+
+    public String getEmergenciaTelefono() { return emergenciaTelefono; }
+    public void setEmergenciaTelefono(String v) { this.emergenciaTelefono = v; }
+
+    public LocalDateTime getEmailVerificadoAt() { return emailVerificadoAt; }
+    public void setEmailVerificadoAt(LocalDateTime emailVerificadoAt) { this.emailVerificadoAt = emailVerificadoAt; }
+
+    public boolean tieneCelularVerificado() { return telefonoVerificadoAt != null; }
+
+    public LocalDateTime getTelefonoVerificadoAt() { return telefonoVerificadoAt; }
+    public void setTelefonoVerificadoAt(LocalDateTime v) { this.telefonoVerificadoAt = v; }
+
+    /** El número completo, como se marca. */
+    public String celularCompleto() {
+        String cod = codigoPaisTelefono == null || codigoPaisTelefono.isBlank() ? "+51" : codigoPaisTelefono.trim();
+        return cod + (telefono == null ? "" : telefono.trim());
+    }
 
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }

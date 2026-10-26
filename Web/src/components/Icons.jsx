@@ -41,6 +41,18 @@ export function IconCard(props) {
   );
 }
 
+/* Billetera: la wallet de Rayza. Cartera cerrada con el broche a la derecha,
+   que es lo que la distingue de la tarjeta de un golpe de vista. */
+export function IconWallet(props) {
+  return (
+    <svg {...base} {...props}>
+      <rect x="2.5" y="5.5" width="19" height="13" rx="2.4" {...trazo} />
+      <path d="M2.5 10h13a2 2 0 0 1 2 2v0a2 2 0 0 1-2 2h-13" {...trazo} />
+      <circle cx="15.6" cy="12" r=".9" fill="currentColor" />
+    </svg>
+  );
+}
+
 export function IconPhone(props) {
   return (
     <svg {...base} {...props}>

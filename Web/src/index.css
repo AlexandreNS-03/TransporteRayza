@@ -662,10 +662,20 @@ header.site.scrolled::before { background: color-mix(in srgb, var(--bg) 96%, tra
 .alert { padding: 14px 16px; border-radius: 12px; font-size: 14.5px; margin: 16px 0; border: 1px solid transparent; }
 .alert-info { background: var(--sky-soft); color: #0b4a72; border-color: #bfe0f4; }
 .alert-warn { background: #fff6e6; color: #7a5300; border-color: #f0d38a; }
+/* Para cuando algo salió bien. Verde y no azul: el azul ya es "para que sepas". */
+.alert-ok   { background: #ecfdf3; color: #15663c; border-color: #a7e3bf; }
+/* Los tres avisos siguen al tema con el mismo guardia que el resto de la web:
+   `:root:not([data-theme="light"])` dentro del media query y `[data-theme="dark"]`
+   fuera. Sin eso, el botón de tema no gana sobre la preferencia del sistema y el
+   aviso amarillo quedaba blanco en medio de una página oscura. */
 @media (prefers-color-scheme: dark) {
-  .alert-info { background: #10273d; color: #bfe0f4; border-color: #1c4a6b; }
-  .alert-warn { background: #2c2410; color: #f0d38a; border-color: #5a4a1a; }
+  :root:not([data-theme="light"]) .alert-info { background: #10273d; color: #bfe0f4; border-color: #1c4a6b; }
+  :root:not([data-theme="light"]) .alert-warn { background: #2c2410; color: #f0d38a; border-color: #5a4a1a; }
+  :root:not([data-theme="light"]) .alert-ok   { background: #0f2a1b; color: #a7e3bf; border-color: #1f5436; }
 }
+:root[data-theme="dark"] .alert-info { background: #10273d; color: #bfe0f4; border-color: #1c4a6b; }
+:root[data-theme="dark"] .alert-warn { background: #2c2410; color: #f0d38a; border-color: #5a4a1a; }
+:root[data-theme="dark"] .alert-ok   { background: #0f2a1b; color: #a7e3bf; border-color: #1f5436; }
 .btn-link {
   background: none; border: 0; padding: 0; font: inherit; font-weight: 600;
   color: inherit; text-decoration: underline; cursor: pointer;
@@ -761,7 +771,12 @@ footer.site .logo .mark { width: 34px; height: 34px; }
    Todo tira de los tokens del tema. Antes eran colores fijos claros (#fff, #0f172a)
    y un var(--rojo) que en esta app no existe, así que en modo oscuro el bloque
    quedaba en blanco sobre blanco. */
-.metodos-pago { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
+/* auto-fit y no dos columnas fijas: con el saldo de la wallet hay tres opciones,
+   y con dos columnas la tercera quedaba sola abajo, de doble ancho. */
+.metodos-pago {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));
+  gap: 12px; margin-top: 16px;
+}
 .metodos-pago .metodo {
   position: relative;
   display: flex; flex-direction: column; align-items: center; gap: 3px;
@@ -1057,6 +1072,13 @@ footer.site .logo .mark { width: 34px; height: 34px; }
 
 /* Logo oficial de la pasarela; si falta el archivo se usa el ícono de respaldo */
 .metodo-logo { width: 92px; height: 42px; object-fit: contain; }
+/* El saldo no tiene pasarela detrás: va el ícono, en la misma caja que los logos
+   para que las tres opciones queden alineadas. */
+.metodo-logo-propio {
+  width: 92px; height: 42px; display: grid; place-items: center;
+  color: var(--tira-enlace, var(--brand-700));
+}
+.metodo-logo-propio svg { width: 26px; height: 26px; }
 
 /* ---- Ilustraciones de destinos (SVG propio; la foto real, si existe, la tapa) ---- */
 .dest-g1 { background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20400%20300%22%20preserveAspectRatio%3D%22xMidYMid%20slice%22%3E%20%3Cdefs%3E%20%3ClinearGradient%20id%3D%22s%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%220%22%20y2%3D%221%22%3E%20%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23123a72%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%232f6ea8%22%2F%3E%20%3C%2FlinearGradient%3E%20%3ClinearGradient%20id%3D%22w%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%220%22%20y2%3D%221%22%3E%20%3Cstop%20offset%3D%220%22%20stop-color%3D%22%230a2338%22%20stop-opacity%3D%220.75%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%230a2338%22%2F%3E%20%3C%2FlinearGradient%3E%20%3C%2Fdefs%3E%20%3Crect%20width%3D%22400%22%20height%3D%22300%22%20fill%3D%22url%28%23s%29%22%2F%3E%20%3Ccircle%20cx%3D%22300%22%20cy%3D%2292%22%20r%3D%2234%22%20fill%3D%22%23ffd27f%22%20opacity%3D%220.92%22%2F%3E%20%3Ccircle%20cx%3D%22300%22%20cy%3D%2292%22%20r%3D%2252%22%20fill%3D%22%23ffd27f%22%20opacity%3D%220.18%22%2F%3E%20%3Cpath%20d%3D%22M0%20168%20Q90%20132%20180%20158%20T400%20150%20V210%20H0%20Z%22%20fill%3D%22%230e2a52%22%2F%3E%20%3Cpath%20d%3D%22M0%20190%20Q110%20158%20210%20184%20T400%20178%20V220%20H0%20Z%22%20fill%3D%22%23081d3a%22%2F%3E%20%3Crect%20y%3D%22196%22%20width%3D%22400%22%20height%3D%22104%22%20fill%3D%22url%28%23w%29%22%2F%3E%20%3Cellipse%20cx%3D%22300%22%20cy%3D%22212%22%20rx%3D%2230%22%20ry%3D%225%22%20fill%3D%22%23ffd27f%22%20opacity%3D%220.35%22%2F%3E%20%3Cg%20opacity%3D%220.85%22%3E%20%3Cpath%20d%3D%22M96%20232%20h74%20l-10%2015%20h-54%20z%22%20fill%3D%22%23f4f7fb%22%2F%3E%20%3Cpath%20d%3D%22M108%20218%20h44%20v14%20h-52%20z%22%20fill%3D%22%23dbe6f5%22%2F%3E%20%3Crect%20x%3D%22112%22%20y%3D%22222%22%20width%3D%229%22%20height%3D%227%22%20fill%3D%22%232f6ea8%22%2F%3E%20%3Crect%20x%3D%22126%22%20y%3D%22222%22%20width%3D%229%22%20height%3D%227%22%20fill%3D%22%232f6ea8%22%2F%3E%20%3Crect%20x%3D%22140%22%20y%3D%22222%22%20width%3D%229%22%20height%3D%227%22%20fill%3D%22%232f6ea8%22%2F%3E%20%3C%2Fg%3E%20%3Cpath%20d%3D%22M40%20256%20q30%20-7%2060%200%20t60%200%22%20stroke%3D%22%23ffd27f%22%20stroke-width%3D%222%22%20fill%3D%22none%22%20opacity%3D%220.4%22%2F%3E%20%3Cpath%20d%3D%22M210%20270%20q30%20-7%2060%200%20t60%200%22%20stroke%3D%22%23ffd27f%22%20stroke-width%3D%222%22%20fill%3D%22none%22%20opacity%3D%220.3%22%2F%3E%20%3C%2Fsvg%3E"); background-size: cover; background-position: center; }
@@ -2147,6 +2169,16 @@ html :is(a, button, input, select, textarea, [tabindex]):focus-visible {
 .lr-tipo small { font-size: 12.5px; color: var(--ink-soft); line-height: 1.4; }
 .lr-tipo.activo { border-color: var(--brand); background: var(--sky-soft); }
 .lr-tipo input { margin-top: 3px; accent-color: var(--brand-700); }
+
+/* ---- Casilla de verificación ----
+   Va aparte de .field, que estiliza los input como campos de texto: una
+   casilla metida ahí sale como un rectángulo vacío de ancho completo. */
+.casilla { display: flex; gap: 11px; align-items: flex-start; margin-top: 12px; cursor: pointer; }
+.casilla input { width: 18px; height: 18px; margin-top: 2px; flex-shrink: 0; accent-color: var(--brand-700); }
+.casilla input:disabled { cursor: default; }
+.casilla-texto strong { display: block; font-size: 14.5px; color: var(--ink); font-weight: 600; }
+.casilla-nota { display: block; font-size: 13px; color: var(--ink-soft); line-height: 1.5; margin-top: 2px; }
+.casilla input:disabled + .casilla-texto strong { color: var(--ink-soft); }
 
 .lr-check { display: flex; align-items: center; gap: 9px; font-size: 14px; color: var(--ink); }
 .lr-check input { width: 17px; height: 17px; accent-color: var(--brand-700); }

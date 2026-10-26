@@ -49,6 +49,8 @@ public class ReservaService {
      *  entró la plata: TARJETA la cobra Izipay y YAPE la cobra Mercado Pago. */
     private static final String METODO_IZIPAY = "TARJETA";
     private static final String METODO_YAPE   = "YAPE";
+    /** Pagado con saldo de la wallet. No es plata que entra hoy: entró cuando se recargó. */
+    private static final String METODO_SALDO  = "SALDO";
 
     /**
      * Si es false, la venta web no emite boleta/factura en Nubefact (solo ticket con QR).
@@ -70,6 +72,7 @@ public class ReservaService {
     private final PublicService publicService;
     private final CierrePagoWebService cierrePagoWebService;
     private final SorteoService sorteoService;
+    private final WalletService walletService;
 
     public ReservaService(ViajeRepository viajeRepository,
                           VentaRepository ventaRepository,
@@ -83,7 +86,8 @@ public class ReservaService {
                           ComprobanteService comprobanteService,
                           PublicService publicService,
                           CierrePagoWebService cierrePagoWebService,
-                          SorteoService sorteoService) {
+                          SorteoService sorteoService,
+                          WalletService walletService) {
         this.comprobanteService = comprobanteService;
         this.publicService = publicService;
         this.cierrePagoWebService = cierrePagoWebService;
@@ -97,6 +101,7 @@ public class ReservaService {
         this.mercadoPagoService = mercadoPagoService;
         this.ventaService = ventaService;
         this.sorteoService = sorteoService;
+        this.walletService = walletService;
     }
 
     @Transactional
@@ -373,6 +378,17 @@ public class ReservaService {
 
     /** Qué medios de pago están configurados, con las claves públicas del navegador. */
     public java.util.Map<String, Object> metodosDePago() {
+        return metodosDePago(null);
+    }
+
+    /**
+     * Lo mismo, pero sabiendo quién pregunta: el saldo es de alguien.
+     *
+     * <p>El saldo se ofrece solo a quien tiene cuenta y tiene plata. A un
+     * invitado no se le muestra: no hay saldo que mostrarle y sería un medio de
+     * pago que no puede usar.
+     */
+    public java.util.Map<String, Object> metodosDePago(String emailAutenticado) {
         java.util.Map<String, Object> tarjeta = new java.util.LinkedHashMap<>();
         tarjeta.put("habilitado", true);
         tarjeta.put("simulado", !izipayService.estaActiva());
@@ -385,9 +401,17 @@ public class ReservaService {
         // que usar los celulares de prueba de Mercado Pago, y conviene decirlo en pantalla
         yape.put("prueba", mercadoPagoService.esDePrueba());
 
+        java.util.Map<String, Object> saldo = new java.util.LinkedHashMap<>();
+        java.math.BigDecimal disponible = emailAutenticado == null
+                ? java.math.BigDecimal.ZERO : walletService.saldoDe(emailAutenticado);
+        saldo.put("habilitado", walletService.estaHabilitada()
+                && emailAutenticado != null && disponible.signum() > 0);
+        saldo.put("disponible", disponible);
+
         java.util.Map<String, Object> r = new java.util.LinkedHashMap<>();
         r.put("tarjeta", tarjeta);
         r.put("yape", yape);
+        r.put("saldo", saldo);
         return r;
     }
 
@@ -460,6 +484,54 @@ public class ReservaService {
             throw new RuntimeException(pago.motivo != null ? pago.motivo : "El pago con Yape no se pudo confirmar");
 
         return confirmarPago(v, pago.referencia, METODO_YAPE);
+    }
+
+    /**
+     * Pago con el saldo de la wallet.
+     *
+     * <p>Es el único medio donde no hay pasarela: la plata ya está en Rayza desde
+     * que se recargó. Por eso la venta queda con método SALDO y no con TARJETA —
+     * si quedara como tarjeta, la conciliación con Izipay no cuadraría nunca.
+     *
+     * <p><strong>Se descuenta antes de cerrar la venta, y se devuelve si el cierre
+     * falla.</strong> Al revés —cerrar y después descontar— un fallo al descontar
+     * deja un pasaje pagado sin que nadie pagara. La referencia del movimiento es
+     * el id de la reserva: si el cliente reintenta, no se cobra dos veces.
+     */
+    /* Sin @Transactional a propósito, igual que los otros pagos: el cierre va en
+       su propia transacción (CierrePagoWebService) y el comprobante se emite
+       después. */
+    public ConfirmacionDTO pagarConSaldo(String reservaId, String emailAutenticado) {
+        if (emailAutenticado == null || emailAutenticado.isBlank())
+            throw new RuntimeException("Para pagar con tu saldo tienes que iniciar sesión");
+
+        Venta v = reservaLista(reservaId);
+        if (v == null) return confirmacion(ventaRepository.findById(reservaId).orElseThrow(),
+                                           false, "Esta compra ya estaba pagada");
+        exigirDueno(v, emailAutenticado);
+
+        String referencia = "venta:" + v.getId();
+        walletService.consumir(emailAutenticado, v.getPrecio(), referencia,
+                "Pasaje " + safe(v.getParadaOrigen()) + " → " + safe(v.getParadaDestino()));
+        try {
+            return confirmarPago(v, referencia, METODO_SALDO);
+        } catch (RuntimeException e) {
+            walletService.devolver(referencia,
+                    "No se pudo cerrar la compra: te devolvimos el saldo");
+            throw e;
+        }
+    }
+
+    /**
+     * El saldo es de alguien: solo paga sus propias reservas.
+     *
+     * <p>Sin esto, con el id de una reserva ajena —que viaja en una URL— se le
+     * gastaría el saldo a otra persona.
+     */
+    private void exigirDueno(Venta v, String emailAutenticado) {
+        if (v.getClienteEmail() == null
+                || !v.getClienteEmail().equalsIgnoreCase(emailAutenticado.trim()))
+            throw new RuntimeException("Esa reserva no es de tu cuenta");
     }
 
     // ----------------------------------------------------------------------------
@@ -536,6 +608,39 @@ public class ReservaService {
             throw new RuntimeException(pago.motivo != null ? pago.motivo : "El pago con Yape no se pudo confirmar");
 
         return confirmarPagoGrupo(reservaIds, pendientes, pago.referencia, METODO_YAPE);
+    }
+
+    /**
+     * Pago del grupo con el saldo de la wallet: un solo descuento por el total.
+     *
+     * <p>Uno por el total y no uno por pasaje: si fueran varios y el saldo
+     * alcanzara para tres de cuatro, quedarían tres pasajes pagados y uno no, con
+     * la plata ya gastada. Así, o alcanza para todo o no se toca nada.
+     */
+    /* Sin @Transactional a propósito: ver pagarGrupo. */
+    public ConfirmacionGrupoDTO pagarGrupoConSaldo(List<String> reservaIds, String emailAutenticado) {
+        if (emailAutenticado == null || emailAutenticado.isBlank())
+            throw new RuntimeException("Para pagar con tu saldo tienes que iniciar sesión");
+
+        List<Venta> pendientes = grupoPendiente(reservaIds);
+        if (pendientes.isEmpty())
+            return confirmarPagoGrupo(reservaIds, pendientes, null, null);
+
+        BigDecimal total = BigDecimal.ZERO;
+        for (Venta v : pendientes) { exigirDueno(v, emailAutenticado); total = total.add(v.getPrecio()); }
+
+        Venta primera = pendientes.get(0);
+        String referencia = "grupo:" + reservaIds.get(0);
+        walletService.consumir(emailAutenticado, total, referencia,
+                pendientes.size() + " pasaje(s) " + safe(primera.getParadaOrigen())
+                        + " → " + safe(primera.getParadaDestino()));
+        try {
+            return confirmarPagoGrupo(reservaIds, pendientes, referencia, METODO_SALDO);
+        } catch (RuntimeException e) {
+            walletService.devolver(referencia,
+                    "No se pudo cerrar la compra: te devolvimos el saldo");
+            throw e;
+        }
     }
 
     /**

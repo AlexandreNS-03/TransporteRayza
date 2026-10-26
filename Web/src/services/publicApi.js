@@ -1,9 +1,22 @@
 // Acceso a la API pública del backend (sin login).
 import axios from "axios";
 import { huellaDispositivo, prepararHuellaDispositivo } from "./yape";
+import { tokenCliente } from "./authCliente";
 
 const API = (import.meta.env.VITE_API_URL || "http://localhost:8080") + "/api/public";
 const http = axios.create({ baseURL: API, timeout: 15000 });
+
+/**
+ * El token del cliente, si hay sesión.
+ *
+ * La API es pública —se compra sin cuenta—, pero algunas cosas dependen de quién
+ * pregunta: el saldo de la wallet es de alguien. En esos casos va el token, y el
+ * servidor decide con eso y nunca con lo que diga el cuerpo del pedido.
+ */
+function comoCliente() {
+  const t = tokenCliente();
+  return t ? { headers: { Authorization: `Bearer ${t}` } } : {};
+}
 
 function desempaquetarError(e) {
   const msg = e?.response?.data?.message || e?.message || "Error de conexión con el servidor";
@@ -129,7 +142,24 @@ export async function metodosDePago() {
   // así está lista antes de cobrar y no se carga ese script en el resto de la web.
   prepararHuellaDispositivo();
   try {
-    const { data } = await http.get("/reservas/metodos-de-pago");
+    // Con el token para que el servidor pueda decir si hay saldo para ofrecer.
+    const { data } = await http.get("/reservas/metodos-de-pago", comoCliente());
+    return data;
+  } catch (e) { throw desempaquetarError(e); }
+}
+
+/** Paga el grupo con el saldo de la wallet. Quién paga lo dice el token. */
+export async function pagarGrupoConSaldo(reservaIds) {
+  try {
+    const { data } = await http.post("/reservas/grupo/pagar/saldo", { reservaIds }, comoCliente());
+    return data;
+  } catch (e) { throw desempaquetarError(e); }
+}
+
+/** Paga una reserva con el saldo de la wallet. */
+export async function pagarReservaConSaldo(reservaId) {
+  try {
+    const { data } = await http.post(`/reservas/${reservaId}/pagar/saldo`, {}, comoCliente());
     return data;
   } catch (e) { throw desempaquetarError(e); }
 }

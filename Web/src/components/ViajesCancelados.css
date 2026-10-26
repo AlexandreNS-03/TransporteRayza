@@ -22,6 +22,7 @@
 .vc-saldo span { font-size: 12px; text-transform: uppercase; letter-spacing: .1em; color: rgba(255,255,255,.75); }
 .vc-saldo strong { font-size: 30px; font-weight: 800; }
 .vc-saldo p { margin: 6px 0 0; font-size: 13px; color: rgba(255,255,255,.8); line-height: 1.5; }
+.vc-saldo p a { color: #fff; text-decoration: underline; text-underline-offset: 2px; }
 
 .vc-movs { list-style: none; margin: 12px 0 0; padding: 12px 0 0; border-top: 1px solid rgba(255,255,255,.18); }
 .vc-movs li { display: flex; justify-content: space-between; gap: 12px; font-size: 12.5px; padding: 4px 0; color: rgba(255,255,255,.85); }
