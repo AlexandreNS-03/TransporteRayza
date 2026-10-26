@@ -1,0 +1,163 @@
+/* Boletas y facturas de la cuenta.
+   Lista agrupada por año: se entra acá a encontrar uno, no a mirarlos todos. */
+
+.comp { display: flex; flex-direction: column; gap: 28px; }
+
+/* Solo para lectores de pantalla. No existía en el sitio; va acá porque acá
+   hizo falta, y cualquier pantalla puede usarla. */
+.sr-only {
+  position: absolute; width: 1px; height: 1px;
+  margin: -1px; padding: 0; overflow: hidden;
+  clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
+}
+
+/* ── El año ── */
+
+.comp-anio-tit {
+  display: flex; align-items: baseline; gap: 12px;
+  font-size: 15px; font-weight: 700;
+  color: var(--ink-soft);
+  margin: 0 0 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--line);
+}
+.comp-anio-cuenta {
+  margin-left: auto;
+  font-family: var(--font-body);
+  font-size: 12.5px; font-weight: 500; color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Una fila ── */
+
+.comp-lista { list-style: none; margin: 0; padding: 0; }
+
+.comp-fila {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto auto auto;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 4px;
+  border-bottom: 1px solid var(--line);
+}
+.comp-fila:last-child { border-bottom: 0; }
+.comp-fila.anulada { opacity: .6; }
+
+/* El sello: la inicial del tipo, para reconocerlo sin leer */
+.comp-sello {
+  width: 40px; height: 40px; border-radius: 10px;
+  display: grid; place-items: center;
+  font-family: var(--font-head); font-weight: 700; font-size: 14px;
+  letter-spacing: .02em;
+  background: var(--sky-soft); color: var(--brand-800);
+}
+.comp-sello.factura { background: #eef2ff; color: #3730a3; }
+/* La nota de crédito es la que anula o devuelve: va en el tono de aviso para
+   que no se confunda con una compra. */
+.comp-sello.nota { background: #fff6e6; color: #7a5300; }
+.comp-sello.otro { background: var(--bg-softer); color: var(--ink-soft); }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .comp-sello.factura { background: #1a1f3d; color: #bcc4ff; }
+  :root:not([data-theme="light"]) .comp-sello.nota { background: #2c2410; color: #f0d38a; }
+}
+:root[data-theme="dark"] .comp-sello.factura { background: #1a1f3d; color: #bcc4ff; }
+:root[data-theme="dark"] .comp-sello.nota { background: #2c2410; color: #f0d38a; }
+
+.comp-que { min-width: 0; }
+.comp-tipo {
+  margin: 0;
+  font-size: 15px; font-weight: 600; color: var(--ink);
+}
+.comp-numero {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 13px; font-weight: 500; color: var(--ink-soft);
+  margin-left: 4px;
+  /* Un número de comprobante partido en dos líneas deja de ser un número: se
+     busca entero para compararlo con el que pidió el contador. */
+  white-space: nowrap;
+}
+.comp-concepto {
+  margin: 3px 0 0;
+  font-size: 13px; color: var(--ink-soft);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.comp-anulada-eti {
+  display: inline-block; margin-top: 6px;
+  font-size: 11px; font-weight: 700;
+  padding: 2px 9px; border-radius: 999px;
+  background: #fff6e6; color: #7a5300;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .comp-anulada-eti { background: #2c2410; color: #f0d38a; }
+}
+:root[data-theme="dark"] .comp-anulada-eti { background: #2c2410; color: #f0d38a; }
+
+/* En pantalla grande no existe como caja: sus hijos son columnas de la fila. */
+.comp-meta { display: contents; }
+
+.comp-fecha {
+  font-size: 13.5px; color: var(--ink-soft);
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.comp-total {
+  font-family: var(--font-head); font-size: 16px; font-weight: 700;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+  min-width: 86px; text-align: right;
+}
+
+/* Ancho fijo: con el ancho dependiendo del contenido, la fila que todavía no
+   tiene PDF le robaba espacio al concepto y quedaba más alta que las demás —
+   las filas de una lista tienen que medir lo mismo para poder recorrerla. */
+.comp-accion {
+  display: flex; justify-content: flex-end; align-items: center;
+  width: 136px;
+}
+.comp-pdf {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 8px 14px; font-size: 14px; white-space: nowrap;
+}
+.comp-sin-pdf {
+  font-size: 12.5px; color: var(--ink-soft);
+  text-align: right; line-height: 1.4;
+}
+
+/* ── Sin comprobantes ── */
+
+.comp-vacio {
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--r);
+  padding: 32px 24px; text-align: center;
+}
+.comp-vacio h3 { margin: 0 0 8px; font-size: 18px; }
+.comp-vacio p {
+  margin: 0 auto; max-width: 46ch;
+  font-size: 14.5px; color: var(--ink-soft);
+}
+
+.comp-nota {
+  margin: 0;
+  font-size: 13px; color: var(--ink-soft); line-height: 1.6;
+  max-width: 66ch;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+}
+
+/* ── Teléfono ── */
+
+@media (max-width: 720px) {
+  /* Dos filas: arriba el documento, abajo fecha, monto y el enlace. Con cinco
+     columnas en 375px el concepto quedaba en tres puntos suspensivos. */
+  .comp-fila {
+    grid-template-columns: 40px minmax(0, 1fr);
+    gap: 10px 12px;
+    padding: 16px 4px;
+  }
+  .comp-meta {
+    display: flex; align-items: baseline; gap: 10px;
+    grid-column: 2; grid-row: 2;
+  }
+  .comp-total { text-align: left; min-width: 0; }
+  .comp-accion { grid-column: 2; grid-row: 3; justify-content: flex-start; width: auto; }
+  .comp-sin-pdf { text-align: left; }
+}
