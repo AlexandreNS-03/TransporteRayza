@@ -1,0 +1,165 @@
+/* La cuenta del cliente: barra lateral + contenido.
+   Todo sale de los tokens de index.css, así que sigue al tema sin tocar nada. */
+
+.cuenta { padding: 40px 0 72px; background: var(--bg-soft); min-height: 60vh; }
+
+.cuenta-grid {
+  display: grid;
+  grid-template-columns: 268px minmax(0, 1fr);
+  gap: 32px;
+  align-items: start;
+}
+
+/* ── La barra lateral ── */
+
+.cuenta-lateral {
+  position: sticky;
+  top: 88px;              /* debajo de la cabecera del sitio, que mide 75 */
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+
+  /* Sin estas dos líneas el `sticky` no hace nada y la barra se va hacia
+     arriba con el resto: un elemento pegajoso más alto que la ventana no
+     tiene dónde quedarse quieto. Con el tope de altura entra siempre, y en
+     una ventana baja se desplaza por dentro en vez de perderse. */
+  max-height: calc(100vh - 104px);
+  overflow-y: auto;
+  /* El tope de arriba recorta la sombra del recuadro; el relleno le devuelve
+     el lugar. */
+  padding: 2px;
+  margin: -2px;
+  scrollbar-width: thin;
+}
+
+/* Quién sos */
+.cuenta-yo {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--brand-800);
+  border-radius: var(--r);
+  padding: 16px 18px;
+  color: #fff;
+}
+.cuenta-inicial {
+  flex: none;
+  width: 42px; height: 42px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--brand);
+  font-family: var(--font-head); font-weight: 700; font-size: 19px;
+  color: #06283a;
+}
+.cuenta-yo-texto { min-width: 0; display: flex; flex-direction: column; }
+.cuenta-yo-texto strong {
+  font-family: var(--font-head); font-size: 15.5px; font-weight: 700;
+  line-height: 1.25; letter-spacing: -.01em;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.cuenta-yo-texto span {
+  font-size: 12.5px; color: rgba(255,255,255,.72); margin-top: 2px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+/* El botón que pliega la lista: solo existe en pantalla chica */
+.cuenta-abrir { display: none; }
+
+/* La lista */
+.cuenta-nav {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  padding: 8px;
+  display: flex; flex-direction: column; gap: 2px;
+}
+.cuenta-grupo + .cuenta-grupo { margin-top: 10px; }
+.cuenta-grupo ul { list-style: none; margin: 0; padding: 0; }
+.cuenta-grupo-tit {
+  font-family: var(--font-body);
+  font-size: 10.5px; font-weight: 600; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--ink-soft);
+  margin: 0; padding: 8px 10px 6px;
+}
+
+.cuenta-enlace {
+  display: flex; align-items: center; gap: 11px;
+  width: 100%;
+  padding: 10px 11px;
+  border: 0; border-radius: var(--r-sm);
+  background: none;
+  font: inherit; font-size: 14.5px; color: var(--ink);
+  text-align: left; cursor: pointer;
+  transition: background .16s var(--ease), color .16s var(--ease);
+}
+.cuenta-enlace-ico { width: 19px; height: 19px; flex: none; color: var(--ink-soft); }
+@media (hover: hover) and (pointer: fine) {
+  .cuenta-enlace:hover { background: var(--bg-softer); }
+  .cuenta-enlace:hover .cuenta-enlace-ico { color: var(--tira-enlace, var(--brand-700)); }
+}
+.cuenta-enlace:focus-visible { outline: 2px solid var(--brand); outline-offset: -2px; }
+
+/* La sección abierta: fondo y una barra al costado. El color solo no alcanza
+   para quien no lo distingue, y el peso de la tipografía tampoco se nota tanto. */
+.cuenta-enlace.activo {
+  background: var(--sky-soft);
+  color: var(--tira-enlace, var(--brand-800));
+  font-weight: 600;
+  box-shadow: inset 3px 0 0 var(--brand);
+}
+.cuenta-enlace.activo .cuenta-enlace-ico { color: var(--tira-enlace, var(--brand-700)); }
+
+.cuenta-salir {
+  margin-top: 10px;
+  border-top: 1px solid var(--line);
+  border-radius: 0 0 var(--r-sm) var(--r-sm);
+  padding-top: 14px;
+  color: var(--ink-soft);
+}
+@media (hover: hover) and (pointer: fine) {
+  .cuenta-salir:hover { color: var(--accent); background: transparent; }
+  .cuenta-salir:hover .cuenta-enlace-ico { color: var(--accent); }
+}
+
+/* ── El contenido ── */
+
+.cuenta-contenido { min-width: 0; }
+.cuenta-titulo {
+  font-size: clamp(24px, 4vw, 31px);
+  margin: 0 0 20px;
+  letter-spacing: -.02em;
+}
+/* El aviso del correo abre la columna; sin esto quedaba pegado al título. */
+.cuenta-contenido > .alert:first-child { margin-top: 0; margin-bottom: 22px; }
+
+/* ── Teléfono y tablet ── */
+
+@media (max-width: 900px) {
+  .cuenta { padding: 24px 0 56px; }
+  .cuenta-grid { grid-template-columns: 1fr; gap: 18px; }
+  .cuenta-lateral {
+    position: static; gap: 10px;
+    max-height: none; overflow: visible;
+    padding: 0; margin: 0;
+  }
+
+  .cuenta-abrir {
+    display: flex; align-items: center; justify-content: space-between;
+    width: 100%; gap: 12px;
+    padding: 13px 16px;
+    background: var(--card);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--r-sm);
+    font: inherit; font-weight: 600; font-size: 15px; color: var(--ink);
+    cursor: pointer;
+  }
+  .cuenta-abrir svg { color: var(--ink-soft); transition: transform .2s var(--ease); }
+  .cuenta-abrir svg.girada { transform: rotate(180deg); }
+
+  /* Plegada por defecto: la lista entera arriba empujaría el contenido fuera
+     de la pantalla y habría que bajar para ver de qué trata la página. */
+  .cuenta-nav { display: none; }
+  .cuenta-nav.abierta { display: flex; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cuenta-enlace, .cuenta-abrir svg { transition: none; }
+}

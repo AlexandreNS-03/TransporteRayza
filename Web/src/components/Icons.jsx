@@ -232,3 +232,90 @@ export function IconFood(props) {
     </svg>
   );
 }
+
+/* ── Los de la barra lateral de la cuenta ── */
+
+/** Resumen: el tablero, cuatro bloques. */
+export function IconPanel(props) {
+  return (
+    <svg {...base} {...props}>
+      <rect x="3" y="3" width="7.5" height="7.5" rx="1.6" {...trazo} />
+      <rect x="13.5" y="3" width="7.5" height="7.5" rx="1.6" {...trazo} />
+      <rect x="3" y="13.5" width="7.5" height="7.5" rx="1.6" {...trazo} />
+      <rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.6" {...trazo} />
+    </svg>
+  );
+}
+
+/** Boleta: papel con el borde dentado de abajo, como sale de la impresora. */
+export function IconRecibo(props) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M5 3h14v18l-2.3-1.6-2.3 1.6-2.4-1.6L9.6 21l-2.3-1.6L5 21z" {...trazo} />
+      <path d="M9 8h6M9 12h6" {...trazo} />
+    </svg>
+  );
+}
+
+/** Mis datos: la persona. */
+export function IconUsuario(props) {
+  return (
+    <svg {...base} {...props}>
+      <circle cx="12" cy="8" r="3.6" {...trazo} />
+      <path d="M4.6 20a7.4 7.4 0 0 1 14.8 0" {...trazo} />
+    </svg>
+  );
+}
+
+/** Documentos de viaje: la credencial con su foto. */
+export function IconIdentidad(props) {
+  return (
+    <svg {...base} {...props}>
+      <rect x="2.5" y="5" width="19" height="14" rx="2.2" {...trazo} />
+      <circle cx="8.2" cy="11" r="2" {...trazo} />
+      <path d="M5.2 16.2a3.4 3.4 0 0 1 6 0M14 10h4.2M14 14h3" {...trazo} />
+    </svg>
+  );
+}
+
+/** Acompañantes: dos personas, una detrás. */
+export function IconPersonas(props) {
+  return (
+    <svg {...base} {...props}>
+      <circle cx="9.5" cy="8.2" r="3.2" {...trazo} />
+      <path d="M3.4 19.4a6.1 6.1 0 0 1 12.2 0" {...trazo} />
+      <path d="M16.2 5.4a3.2 3.2 0 0 1 0 5.9M18 13.6a6.1 6.1 0 0 1 2.7 4.3" {...trazo} />
+    </svg>
+  );
+}
+
+/** Notificaciones: la campana. */
+export function IconCampana(props) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M18 9a6 6 0 1 0-12 0c0 5-2 6.2-2 6.2h16S18 14 18 9" {...trazo} />
+      <path d="M13.7 19a2 2 0 0 1-3.4 0" {...trazo} />
+    </svg>
+  );
+}
+
+/** Ayuda: el salvavidas, que acá se entiende mejor que un signo de pregunta. */
+export function IconAyuda(props) {
+  return (
+    <svg {...base} {...props}>
+      <circle cx="12" cy="12" r="9" {...trazo} />
+      <circle cx="12" cy="12" r="3.6" {...trazo} />
+      <path d="M5.6 5.6 9.4 9.4M14.6 14.6l3.8 3.8M18.4 5.6l-3.8 3.8M9.4 14.6l-3.8 3.8" {...trazo} />
+    </svg>
+  );
+}
+
+/** Cerrar sesión: la flecha saliendo por la puerta. */
+export function IconSalir(props) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M15 4.5h2.8A2.2 2.2 0 0 1 20 6.7v10.6a2.2 2.2 0 0 1-2.2 2.2H15" {...trazo} />
+      <path d="M10.5 8 6.5 12l4 4M6.8 12H15" {...trazo} />
+    </svg>
+  );
+}

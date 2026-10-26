@@ -22,11 +22,11 @@ export default function Resumen() {
   const proximos = viajes.filter((v) => v.proximo && v.estado === "PAGADO");
 
   return (
-    <CuentaLayout>
+    <CuentaLayout titulo="Resumen">
       {/* Va primero porque es lo único que el cliente necesita resolver. */}
-      <div style={{ marginTop: 20 }}><ViajesCancelados /></div>
+      <ViajesCancelados />
 
-      <h3 style={{ marginTop: 26 }}>Tus próximos viajes</h3>
+      <h3 style={{ marginTop: 30 }}>Tus próximos viajes</h3>
       {error ? (
         <div className="alert alert-warn" style={{ marginTop: 16 }}>
           No pudimos cargar tus viajes. <button className="btn-link" onClick={cargar}>Reintentar</button>
