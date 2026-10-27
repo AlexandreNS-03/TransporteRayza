@@ -2637,3 +2637,21 @@ html :is(a, button, input, select, textarea, [tabindex]):focus-visible {
   .sorteo-repetir:active { transform: none; }
 }
 @keyframes sorteo-aparecer { from { opacity: 0; } to { opacity: 1; } }
+
+/* ---- Llenar el formulario con datos guardados (compra) ---- */
+.elegir-pasajero { margin-bottom: 16px; }
+.elegir-pasajero-eti {
+  display: block; font-size: 13px; color: var(--ink-soft); margin-bottom: 6px;
+}
+.elegir-pasajero select {
+  width: 100%; max-width: 420px; padding: 10px 12px;
+  font: inherit; color: var(--ink); background: var(--card);
+  border: 1px solid var(--line-strong); border-radius: var(--r-sm);
+}
+/* El aviso del vencimiento avisa, no bloquea: el documento puede renovarse
+   antes del viaje y quien decide es el pasajero. */
+.elegir-pasajero-aviso {
+  margin: 8px 0 0; max-width: 56ch;
+  font-size: 13px; line-height: 1.5;
+  color: var(--aviso-tinta, #7a5300);
+}

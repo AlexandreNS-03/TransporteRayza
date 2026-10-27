@@ -448,6 +448,7 @@ export default function Comprar() {
                             + (esRedondo ? ` · Vuelta #${vuelta.asientos[i]?.numero ?? "?"}` : "")}
                           pasajero={pasajeros[i] || PASAJERO_INICIAL}
                           setPasajero={(p) => setPasajeroEn(i, p)}
+                          fechaViaje={ida.viaje?.fechaSalida}
                         />
                       </div>
                     ))}
