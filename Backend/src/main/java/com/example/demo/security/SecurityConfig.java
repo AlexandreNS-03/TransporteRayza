@@ -155,7 +155,12 @@ public class SecurityConfig {
                         /*VERIFICADOR DEL SISTEMA: lo consulta cualquiera que trabaje acá,
                           porque quien atiende es el primero en notar que algo falla.
                           El respaldo baja datos de todos los pasajeros: solo administración.*/
-                        .requestMatchers(HttpMethod.GET, "/api/diagnostico/respaldo").hasAnyRole("ADMIN", "SUPERVISOR")
+                        // Solo ADMIN: el respaldo es un ZIP con los datos de TODOS los
+                        // pasajeros —nombres, documentos, teléfonos, correos—, o sea la
+                        // mayor exportación de datos personales del sistema. Un
+                        // supervisor administra su sucursal; no necesita la base entera,
+                        // y si le roban la cuenta la pérdida es de otro tamaño.
+                        .requestMatchers(HttpMethod.GET, "/api/diagnostico/respaldo").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/diagnostico/**").hasAnyRole("ADMIN", "SUPERVISOR", "EMPLEADO")
 
                         .requestMatchers(HttpMethod.POST,  "/api/soporte").hasAnyRole("ADMIN", "SUPERVISOR", "EMPLEADO")
