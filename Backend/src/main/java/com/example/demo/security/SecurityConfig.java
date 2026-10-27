@@ -86,6 +86,11 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PATCH, "/api/ventas/*/reprogramar").hasAnyRole("ADMIN", "SUPERVISOR", "EMPLEADO")
                         .requestMatchers(HttpMethod.GET,   "/api/saldo/**").hasAnyRole("ADMIN", "SUPERVISOR", "EMPLEADO")
 
+                        /*PASAJERO FRECUENTE: el mostrador busca la cuenta por el código
+                          de la credencial. Solo lectura y solo para quien vende: devuelve
+                          el documento de una persona, que no es dato de la calle.*/
+                        .requestMatchers(HttpMethod.GET,   "/api/pasajeros/por-codigo/**").hasAnyRole("ADMIN", "SUPERVISOR", "EMPLEADO")
+
                         /*SUCURSAL*/
                         .requestMatchers(HttpMethod.GET,    "/api/sucursales/**").hasAnyRole("ADMIN", "SUPERVISOR", "EMPLEADO")
                         .requestMatchers(HttpMethod.POST,   "/api/sucursales").hasRole("ADMIN")

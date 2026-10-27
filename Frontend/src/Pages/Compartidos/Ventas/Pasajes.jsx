@@ -7,7 +7,7 @@ import GenerarComprobanteModal from "../Finanzas/GenerarComprobanteModal.jsx";
 import { avisarGuardado, CARPETAS } from "../../../Utils/descargas.js";
 
 
-import { apiFetch, consultarDni } from "../../../Services/api.js";
+import { apiFetch, consultarDni, buscarPasajeroPorCodigo } from "../../../Services/api.js";
 import { useToast, Toasts } from "../../../Components/Toast.jsx";
 import { usePaginacion, Paginacion } from "../../../Components/Paginacion.jsx";
 import SelectorViaje from "../../../Components/SelectorViaje.jsx";
@@ -77,8 +77,28 @@ function comparar(a, b, dir) {
 
 const PASAJERO_VACIO = {
     tipoDocumento: "DNI", pasajeroNombre: "", pasajeroDocumento: "",
-    procedencia: "", pasajeroTelefono: "", edad: "", sexo: "Masculino"
+    procedencia: "", pasajeroTelefono: "", edad: "", sexo: "Masculino",
+    // Lo que la persona dicta en la ventanilla. No viaja al servidor con la
+    // venta: solo sirve para traer sus datos y llenar lo de arriba.
+    credencial: ""
 };
+
+/**
+ * La edad que va a tener el día que viaja, que es la que pide el manifiesto.
+ *
+ * Quien cumple años entre hoy y la salida viaja con la edad de la salida, y en
+ * los menores esa diferencia cambia si paga o no.
+ */
+function edadEn(fechaNacimiento, fechaViaje) {
+    if (!fechaNacimiento) return "";
+    const [an, mn, dn] = fechaNacimiento.split("-").map(Number);
+    const ref = fechaViaje ? String(fechaViaje).slice(0, 10).split("-").map(Number) : null;
+    const dia = ref ? new Date(ref[0], ref[1] - 1, ref[2]) : new Date();
+    let edad = dia.getFullYear() - an;
+    const cumplioYa = dia.getMonth() + 1 > mn || (dia.getMonth() + 1 === mn && dia.getDate() >= dn);
+    if (!cumplioYa) edad--;
+    return edad >= 0 ? String(edad) : "";
+}
 
 const MAX_PASAJEROS = 10;
 
@@ -136,6 +156,7 @@ function Pasajes() {
     const [avanzando, setAvanzando]   = useState(false);
     const [errorModal, setErrorModal] = useState(null);
     const [consultandoDni, setConsultandoDni] = useState(null);   // índice del pasajero consultado
+    const [buscandoCred, setBuscandoCred] = useState(null);       // índice del pasajero buscado por credencial
 
     // Datos para selects
     const [viajes, setViajes]         = useState([]);
@@ -300,6 +321,38 @@ function Pasajes() {
             cambiarPasajero(i, "pasajeroNombre", data.nombreCompleto);
         } catch (err) { setErrorModal(err.message); }
         finally { setConsultandoDni(null); }
+    };
+
+    /**
+     * Trae los datos de la cuenta a partir del código de la credencial.
+     *
+     * Llena todo de una: documento, nombre, teléfono, sexo y la edad que va a
+     * tener el día del viaje. Es lo mismo que quien atiende escribiría a mano,
+     * pero sin que nadie deletree un documento a través de una ventanilla.
+     *
+     * Lo que trae se puede corregir: son los datos que la persona cargó en su
+     * cuenta, y el que manda es el documento que muestra en el mostrador.
+     */
+    const buscarCredencial = async (i) => {
+        const codigo = (pasajeros[i].credencial || "").trim();
+        if (!codigo) return;
+        setBuscandoCred(i);
+        setErrorModal(null);
+        try {
+            const d = await buscarPasajeroPorCodigo(codigo);
+            const fecha = viajes.find(v => v.id === form.viajeId)?.fechaSalida;
+            setPasajeros(prev => prev.map((p, j) => (j === i ? {
+                ...p,
+                credencial:        d.codigoPasajero || codigo,
+                tipoDocumento:     TIPO_DOC.includes(d.tipoDocumento) ? d.tipoDocumento : p.tipoDocumento,
+                pasajeroNombre:    d.nombreCompleto || p.pasajeroNombre,
+                pasajeroDocumento: d.numeroDocumento || p.pasajeroDocumento,
+                pasajeroTelefono:  d.telefono || p.pasajeroTelefono,
+                sexo:              SEXO.includes(d.sexo) ? d.sexo : p.sexo,
+                edad:              edadEn(d.fechaNacimiento, fecha) || p.edad,
+            } : p)));
+        } catch (err) { setErrorModal(err.message); }
+        finally { setBuscandoCred(null); }
     };
 
     // ── PASO 2: datos de los pasajeros ──
@@ -1035,6 +1088,27 @@ function Pasajes() {
                                                     {p.pasajeroNombre && <span> — {p.pasajeroNombre}</span>}
                                                 </p>
                                             )}
+                                            {/* Quien ya tiene cuenta dicta su código y no deletrea nada */}
+                                            <div className="form-grupo credencial-buscar">
+                                                <label>Código de pasajero</label>
+                                                <div className="doc-consulta">
+                                                    <input type="text" value={p.credencial}
+                                                           onChange={e => cambiarPasajero(i, "credencial", e.target.value)}
+                                                           onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); buscarCredencial(i); } }}
+                                                           placeholder="RZ-7K3M9Q"
+                                                           autoComplete="off" />
+                                                    <button type="button" className="btn-consulta"
+                                                            onClick={() => buscarCredencial(i)}
+                                                            disabled={!(p.credencial || "").trim() || buscandoCred !== null}
+                                                            title="Traer los datos de su cuenta">
+                                                        {buscandoCred === i
+                                                            ? <i className="ti ti-loader-2 spin"></i>
+                                                            : <i className="ti ti-id-badge-2"></i>}
+                                                    </button>
+                                                </div>
+                                                <small>Si viaja seguido y tiene cuenta, lo lleva en su credencial.</small>
+                                            </div>
+
                                             <div className="form-fila">
                                                 <div className="form-grupo">
                                                     <label>Tipo Documento *</label>

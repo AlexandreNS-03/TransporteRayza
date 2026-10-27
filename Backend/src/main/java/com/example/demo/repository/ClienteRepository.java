@@ -16,6 +16,15 @@ public interface ClienteRepository extends JpaRepository<Cliente, String> {
     boolean existsByEmail(String email);
 
     /**
+     * El dueño de un código de pasajero: {@code RZ-7K3M9Q}.
+     *
+     * <p>Lo usa el mostrador para encontrar la cuenta sin que la persona
+     * deletree su documento. La columna tiene índice único, así que esto es
+     * una sola fila o ninguna.
+     */
+    Optional<Cliente> findByCodigoPasajero(String codigoPasajero);
+
+    /**
      * El mismo cliente, pero tomando su fila hasta que termine la transacción.
      *
      * Lo usa la wallet para gastar saldo. Sin esto, dos compras a la vez leen

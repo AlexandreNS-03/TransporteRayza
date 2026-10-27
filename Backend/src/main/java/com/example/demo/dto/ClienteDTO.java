@@ -8,6 +8,9 @@ public class ClienteDTO {
     private String apellidos;
     private String tipoDocumento;
     private String numeroDocumento;
+
+    /** Código de pasajero frecuente, tipo RZ-7K3M9Q. */
+    private String codigoPasajero;
     private String paisDocumento;
     private String fechaNacimiento;
     private String codigoPaisTelefono;
@@ -45,6 +48,9 @@ public class ClienteDTO {
 
     public String getNumeroDocumento() { return numeroDocumento; }
     public void setNumeroDocumento(String numeroDocumento) { this.numeroDocumento = numeroDocumento; }
+
+    public String getCodigoPasajero() { return codigoPasajero; }
+    public void setCodigoPasajero(String v) { this.codigoPasajero = v; }
 
     public String getPaisDocumento() { return paisDocumento; }
     public void setPaisDocumento(String paisDocumento) { this.paisDocumento = paisDocumento; }
