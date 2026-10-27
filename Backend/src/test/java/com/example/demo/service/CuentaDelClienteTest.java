@@ -48,7 +48,7 @@ class CuentaDelClienteTest {
         ReflectionTestUtils.setField(jwt, "expiration", 60_000L);
 
         servicio = new ClienteService(repositorio, null, null, null, encoder, jwt,
-                new IntentosLoginService(new AuditoriaMuda()), null, verificacionCelularSinCanal(), emailService);
+                new IntentosLoginService(IntentosEnMemoria.nuevo(), new AuditoriaMuda()), null, verificacionCelularSinCanal(), emailService);
 
         Cliente c = new Cliente();
         c.setId("c-1");
