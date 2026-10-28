@@ -216,7 +216,6 @@ export default function Comprar() {
       total: totalACobrar,
       pasajes: asientos,
       ruta: ida.viaje ? `${ida.viaje.origen} → ${ida.viaje.destino}` : "",
-      eventoId: conf?.eventoId ?? conf?.pasajeros?.[0]?.eventoId,
     });
     setPaso(3);
     scrollTop();
@@ -320,6 +319,7 @@ export default function Comprar() {
       total: conf?.montoTotal ?? conf?.precio,
       pasajes: conf?.pasajeros?.length ?? 1,
       ruta: ida.viaje ? `${ida.viaje.origen} → ${ida.viaje.destino}` : "",
+      eventoId: conf?.eventoId ?? conf?.pasajeros?.[0]?.eventoId,
     });
     invalidarReservas();
     setConfirmacion(conf);
