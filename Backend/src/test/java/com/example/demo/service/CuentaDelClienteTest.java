@@ -48,7 +48,12 @@ class CuentaDelClienteTest {
         ReflectionTestUtils.setField(jwt, "expiration", 60_000L);
 
         servicio = new ClienteService(repositorio, null, null, null, encoder, jwt,
-                new IntentosLoginService(IntentosEnMemoria.nuevo(), new AuditoriaMuda()), null, verificacionCelularSinCanal(), emailService);
+                new IntentosLoginService(IntentosEnMemoria.nuevo(), new AuditoriaMuda()), null, verificacionCelularSinCanal(), emailService,
+                new CategoriaPasajero(null) {
+            @Override public Estado de(String documento) {
+                return new Estado(Nivel.RAYZA, 0, 0, null, 0);
+            }
+        });
 
         Cliente c = new Cliente();
         c.setId("c-1");

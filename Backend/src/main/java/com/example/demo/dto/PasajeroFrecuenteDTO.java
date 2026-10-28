@@ -25,6 +25,11 @@ public class PasajeroFrecuenteDTO {
      */
     private java.math.BigDecimal saldo;
 
+    /** "Oro", "Plata" o "Rayza", y cuánto descuento le toca por eso. */
+    private String categoria;
+    private int descuentoCategoria;
+    private int viajes;
+
     public String getCodigoPasajero() { return codigoPasajero; }
     public void setCodigoPasajero(String v) { this.codigoPasajero = v; }
 
@@ -48,4 +53,13 @@ public class PasajeroFrecuenteDTO {
 
     public java.math.BigDecimal getSaldo() { return saldo; }
     public void setSaldo(java.math.BigDecimal v) { this.saldo = v; }
+
+    public String getCategoria() { return categoria; }
+    public void setCategoria(String v) { this.categoria = v; }
+
+    public int getDescuentoCategoria() { return descuentoCategoria; }
+    public void setDescuentoCategoria(int v) { this.descuentoCategoria = v; }
+
+    public int getViajes() { return viajes; }
+    public void setViajes(int v) { this.viajes = v; }
 }

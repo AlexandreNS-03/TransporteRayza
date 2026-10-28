@@ -28,6 +28,7 @@ import java.util.stream.Collectors;
 public class ClienteService {
 
     private final ClienteRepository clienteRepository;
+    private final CategoriaPasajero categorias;
     private final VentaRepository ventaRepository;
     private final ComprobanteRepository comprobanteRepository;
     private final ViajeRepository viajeRepository;
@@ -64,7 +65,8 @@ public class ClienteService {
                           IntentosLoginService intentosLoginService,
                           VerificacionEmailService verificacionEmailService,
                           VerificacionCelularService verificacionCelularService,
-                          EmailService emailService) {
+                          EmailService emailService,
+                          CategoriaPasajero categorias) {
         this.clienteRepository = clienteRepository;
         this.ventaRepository = ventaRepository;
         this.comprobanteRepository = comprobanteRepository;
@@ -75,6 +77,7 @@ public class ClienteService {
         this.verificacionEmailService = verificacionEmailService;
         this.verificacionCelularService = verificacionCelularService;
         this.emailService = emailService;
+        this.categorias = categorias;
         this.hashDeDescarte = passwordEncoder.encode(UUID.randomUUID().toString());
     }
 
@@ -437,6 +440,17 @@ public class ClienteService {
         // que alguien vaya a consultar. Y un día exacto invita a calcular cosas.
         dto.setSocioDesde(c.getCreatedAt() != null
                 ? String.valueOf(c.getCreatedAt().getYear()) : null);
+
+        // La categoría se cuenta por el documento y no por la cuenta: así le
+        // cuentan también los viajes que compró en la ventanilla antes de
+        // registrarse, que son suyos igual.
+        CategoriaPasajero.Estado cat = categorias.de(c.getNumeroDocumento());
+        dto.setCategoria(CategoriaPasajero.nombre(cat.nivel()));
+        dto.setDescuentoCategoria(cat.descuento());
+        dto.setViajes(cat.viajes());
+        dto.setSiguienteCategoria(cat.siguiente() == null
+                ? null : CategoriaPasajero.nombre(cat.siguiente()));
+        dto.setViajesParaSiguiente(cat.viajesParaSiguiente());
         dto.setFechaNacimiento(c.getFechaNacimiento() != null ? c.getFechaNacimiento().toString() : null);
         dto.setCodigoPaisTelefono(c.getCodigoPaisTelefono());
         dto.setTelefono(c.getTelefono());

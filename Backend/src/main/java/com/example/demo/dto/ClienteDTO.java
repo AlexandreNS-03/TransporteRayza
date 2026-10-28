@@ -14,6 +14,13 @@ public class ClienteDTO {
 
     /** El año en que se abrió la cuenta: "2026". Va en la credencial. */
     private String socioDesde;
+
+    /** Su categoría de pasajero frecuente y lo que le falta para la siguiente. */
+    private String categoria;
+    private int descuentoCategoria;
+    private int viajes;
+    private String siguienteCategoria;
+    private int viajesParaSiguiente;
     private String paisDocumento;
     private String fechaNacimiento;
     private String codigoPaisTelefono;
@@ -99,4 +106,19 @@ public class ClienteDTO {
 
     public boolean isPuedeVerificarCelular() { return puedeVerificarCelular; }
     public void setPuedeVerificarCelular(boolean v) { this.puedeVerificarCelular = v; }
+
+    public String getCategoria() { return categoria; }
+    public void setCategoria(String v) { this.categoria = v; }
+
+    public int getDescuentoCategoria() { return descuentoCategoria; }
+    public void setDescuentoCategoria(int v) { this.descuentoCategoria = v; }
+
+    public int getViajes() { return viajes; }
+    public void setViajes(int v) { this.viajes = v; }
+
+    public String getSiguienteCategoria() { return siguienteCategoria; }
+    public void setSiguienteCategoria(String v) { this.siguienteCategoria = v; }
+
+    public int getViajesParaSiguiente() { return viajesParaSiguiente; }
+    public void setViajesParaSiguiente(int v) { this.viajesParaSiguiente = v; }
 }

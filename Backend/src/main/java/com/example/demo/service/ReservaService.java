@@ -73,6 +73,7 @@ public class ReservaService {
     private final CierrePagoWebService cierrePagoWebService;
     private final SorteoService sorteoService;
     private final WalletService walletService;
+    private final CategoriaPasajero categorias;
 
     public ReservaService(ViajeRepository viajeRepository,
                           VentaRepository ventaRepository,
@@ -87,7 +88,8 @@ public class ReservaService {
                           PublicService publicService,
                           CierrePagoWebService cierrePagoWebService,
                           SorteoService sorteoService,
-                          WalletService walletService) {
+                          WalletService walletService,
+                          CategoriaPasajero categorias) {
         this.comprobanteService = comprobanteService;
         this.publicService = publicService;
         this.cierrePagoWebService = cierrePagoWebService;
@@ -102,6 +104,7 @@ public class ReservaService {
         this.ventaService = ventaService;
         this.sorteoService = sorteoService;
         this.walletService = walletService;
+        this.categorias = categorias;
     }
 
     @Transactional
@@ -227,8 +230,11 @@ public class ReservaService {
         validarDatosDelComprobante(req);
 
         boolean vip = "VIP".equalsIgnoreCase(req.getAsientoTipo());
-        BigDecimal precio = calcularPrecio(viaje, req.getParadaOrigen(), req.getParadaDestino(),
+        BigDecimal tarifa = precioRegular(viaje, req.getParadaOrigen(), req.getParadaDestino(),
                 req.getOrdenOrigen(), req.getOrdenDestino(), vip);
+        BigDecimal precio = calcularPrecio(viaje, req.getParadaOrigen(), req.getParadaDestino(),
+                req.getOrdenOrigen(), req.getOrdenDestino(), vip,
+                req.getPasajeroDocumento());
         if (precio == null)
             throw new RuntimeException("No se pudo determinar la tarifa de este tramo");
 
@@ -257,6 +263,12 @@ public class ReservaService {
         v.setOrdenOrigen(req.getOrdenOrigen());
         v.setOrdenDestino(req.getOrdenDestino());
         v.setPrecio(precio);
+        // Lo que habría costado sin oferta ni categoría, y cuánto se rebajó. Son las
+        // mismas dos columnas que usa el mostrador, así que la rebaja de la web
+        // aparece en los reportes igual que la que hace quien atiende.
+        v.setPrecioOriginal(tarifa != null ? tarifa : precio);
+        v.setDescuento(tarifa != null && tarifa.compareTo(precio) > 0
+                ? tarifa.subtract(precio) : BigDecimal.ZERO);
         v.setCodigoQr(UUID.randomUUID().toString());
         v.setEmbarqueEstado(Venta.EmbarqueEstado.PENDIENTE);
         v.setEstado(Venta.EstadoVenta.RESERVADO);
@@ -986,7 +998,28 @@ public class ReservaService {
 
     private BigDecimal calcularPrecio(Viaje viaje, String nombreOrigen, String nombreDestino,
                                      int ordenOrigen, int ordenDestino, boolean vip) {
+        return calcularPrecio(viaje, nombreOrigen, nombreDestino, ordenOrigen, ordenDestino, vip, null);
+    }
+
+    /**
+     * El precio del tramo, mirando la oferta de la ruta y la categoría de quien viaja.
+     *
+     * <p><strong>El descuento de categoría y la oferta no se suman: manda el más
+     * barato de los dos.</strong> Una oferta ya es un precio rebajado, y quien la
+     * pone no está pensando en las categorías; encimarle otro 10% puede dejar el
+     * pasaje por debajo de lo que cuesta llevarlo. Es la misma idea que la
+     * salvaguarda de "solo si abarata" que ya tenía la oferta.
+     *
+     * <p>La categoría es la de <em>quien viaja</em>, no la de quien paga. Si no
+     * fuera así, una sola cuenta Oro le compraría a precio rebajado a todo el que
+     * se lo pida.
+     */
+    private BigDecimal calcularPrecio(Viaje viaje, String nombreOrigen, String nombreDestino,
+                                     int ordenOrigen, int ordenDestino, boolean vip,
+                                     String documentoDelPasajero) {
         BigDecimal regular = precioRegular(viaje, nombreOrigen, nombreDestino, ordenOrigen, ordenDestino, vip);
+
+        BigDecimal mejor = regular;
 
         java.util.Optional<Ruta> oferta = publicService.ofertaActivaDeRuta(
                 viaje.getRutaId(), viaje.getFechaSalida());
@@ -996,10 +1029,18 @@ public class ReservaService {
             // La oferta es por ruta completa, así que en un tramo corto puede quedar
             // por encima de su tarifa normal. Cobrar de más bajo el rótulo "OFERTA"
             // sería engañar al pasajero: se aplica solo cuando de verdad abarata.
-            if (precioOferta != null && (regular == null || precioOferta.compareTo(regular) < 0))
-                return precioOferta;
+            if (precioOferta != null && (mejor == null || precioOferta.compareTo(mejor) < 0))
+                mejor = precioOferta;
         }
-        return regular;
+
+        if (regular != null && documentoDelPasajero != null) {
+            BigDecimal conCategoria = categorias.conDescuento(
+                    regular, categorias.de(documentoDelPasajero));
+            if (conCategoria != null && (mejor == null || conCategoria.compareTo(mejor) < 0))
+                mejor = conCategoria;
+        }
+
+        return mejor;
     }
 
     /** Precio sin oferta: tarifa del tramo si existe, si no la del viaje. */

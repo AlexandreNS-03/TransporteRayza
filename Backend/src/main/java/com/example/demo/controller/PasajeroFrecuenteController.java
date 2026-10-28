@@ -3,6 +3,7 @@ package com.example.demo.controller;
 import com.example.demo.dto.PasajeroFrecuenteDTO;
 import com.example.demo.model.Cliente;
 import com.example.demo.repository.ClienteRepository;
+import com.example.demo.service.CategoriaPasajero;
 import com.example.demo.service.WalletService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,10 +30,13 @@ public class PasajeroFrecuenteController {
 
     private final ClienteRepository clientes;
     private final WalletService wallet;
+    private final CategoriaPasajero categorias;
 
-    public PasajeroFrecuenteController(ClienteRepository clientes, WalletService wallet) {
+    public PasajeroFrecuenteController(ClienteRepository clientes, WalletService wallet,
+                                       CategoriaPasajero categorias) {
         this.clientes = clientes;
         this.wallet = wallet;
+        this.categorias = categorias;
     }
 
     @GetMapping("/por-codigo/{codigo}")
@@ -74,6 +78,11 @@ public class PasajeroFrecuenteController {
         d.setSexo(sexoDe(c.getGenero()));
         d.setSaldo(wallet.estaHabilitada()
                 ? wallet.saldoDe(c.getEmail()) : java.math.BigDecimal.ZERO);
+
+        CategoriaPasajero.Estado cat = categorias.de(c.getNumeroDocumento());
+        d.setCategoria(CategoriaPasajero.nombre(cat.nivel()));
+        d.setDescuentoCategoria(cat.descuento());
+        d.setViajes(cat.viajes());
         return d;
     }
 

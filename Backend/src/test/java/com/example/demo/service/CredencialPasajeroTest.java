@@ -53,7 +53,13 @@ class CredencialPasajeroTest {
         WalletService sinWallet = new WalletService(null, null, null, null, null, null) {
             @Override public boolean estaHabilitada() { return false; }
         };
-        mostrador = new PasajeroFrecuenteController(repo, sinWallet);
+        // Sin programa de fidelidad: acá se prueba la credencial, no las categorías.
+        CategoriaPasajero sinCategorias = new CategoriaPasajero(null) {
+            @Override public Estado de(String documento) {
+                return new Estado(Nivel.RAYZA, 0, 0, null, 0);
+            }
+        };
+        mostrador = new PasajeroFrecuenteController(repo, sinWallet, sinCategorias);
     }
 
     @Test
