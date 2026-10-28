@@ -22,6 +22,10 @@ const METODOS_PAGO = [
     { key: "TARJETA",       label: "Tarjeta" },
     { key: "TRANSFERENCIA", label: "Transferencia" },
 ];
+// El saldo no está en la lista de arriba porque no siempre se puede ofrecer:
+// hace falta que la persona haya mostrado su credencial y que le alcance. Un
+// botón que falla al tocarlo es peor que no tenerlo.
+const METODO_SALDO = { key: "SALDO", label: "Saldo Rayza" };
 const COMP_LABEL   = { TICKET: "Ticket", BOLETA: "Boleta", FACTURA: "Factura" };
 
 const ESTADO_LABEL = { PAGADO: "Pagado", ANULADO: "Anulado" };
@@ -157,6 +161,9 @@ function Pasajes() {
     const [errorModal, setErrorModal] = useState(null);
     const [consultandoDni, setConsultandoDni] = useState(null);   // índice del pasajero consultado
     const [buscandoCred, setBuscandoCred] = useState(null);       // índice del pasajero buscado por credencial
+    // La cuenta que mostró su credencial en esta venta: es de quien se puede
+    // cobrar el saldo. Una venta se cobra de una sola cuenta, no de varias.
+    const [cuentaDelSaldo, setCuentaDelSaldo] = useState(null);
 
     // Datos para selects
     const [viajes, setViajes]         = useState([]);
@@ -250,6 +257,7 @@ function Pasajes() {
         setTarifa(null);
         setPasajeros([{ ...PASAJERO_VACIO }]);
         setElegidos([]);
+        setCuentaDelSaldo(null);
         setForm({
             viajeId: "", clienteEmail: "",
             paradaOrigen: "", paradaDestino: "", ordenOrigen: "", ordenDestino: "",
@@ -341,6 +349,11 @@ function Pasajes() {
         try {
             const d = await buscarPasajeroPorCodigo(codigo);
             const fecha = viajes.find(v => v.id === form.viajeId)?.fechaSalida;
+            setCuentaDelSaldo({
+                codigo: d.codigoPasajero,
+                nombre: d.nombreCompleto,
+                saldo: Number(d.saldo) || 0,
+            });
             setPasajeros(prev => prev.map((p, j) => (j === i ? {
                 ...p,
                 credencial:        d.codigoPasajero || codigo,
@@ -440,6 +453,20 @@ function Pasajes() {
     /** Total de la compra con los precios (ya rebajados) de cada asiento. */
     const totalCompra = elegidos.reduce((t, a) => t + (parseFloat(a.precio) || 0), 0);
 
+    /* Cobrar del saldo se ofrece solo si alguien mostró su credencial y le
+       alcanza para el total. El servidor igual lo comprueba: esto es para no
+       ofrecer un botón que va a fallar. */
+    const saldoAlcanza = !!cuentaDelSaldo && cuentaDelSaldo.saldo >= totalCompra && totalCompra > 0;
+
+    /* Si el total sube —se agregó un pasajero, se quitó un descuento— y el saldo
+       deja de alcanzar, el método elegido tiene que soltarse solo: si no, se
+       confirma una venta con un método que el servidor va a rechazar. */
+    useEffect(() => {
+        if (form.metodoPago === "SALDO" && !saldoAlcanza)
+            setForm(prev => ({ ...prev, metodoPago: "EFECTIVO" }));
+    }, [saldoAlcanza, form.metodoPago]);
+
+
     // ── PASO 5: comprobante ──
     const confirmarVenta = async () => {
         if (!form.clienteNombre || !form.clienteDocumento) {
@@ -493,6 +520,7 @@ function Pasajes() {
             detalleComprobante: form.detalleComprobante,
             lugarPago:          form.lugarPago,
             metodoPago:         form.metodoPago,
+            codigoPasajero:     form.metodoPago === "SALDO" ? cuentaDelSaldo?.codigo : null,
             observacion:        form.observacion
         };
 
@@ -1403,7 +1431,8 @@ function Pasajes() {
                                     <div className="form-grupo">
                                         <label>Método de pago *</label>
                                         <div className="comp-selector metodo-selector">
-                                            {METODOS_PAGO.map(m => (
+                                            {[...METODOS_PAGO,
+                                              ...(saldoAlcanza ? [METODO_SALDO] : [])].map(m => (
                                                 <button
                                                     key={m.key}
                                                     type="button"
@@ -1414,6 +1443,23 @@ function Pasajes() {
                                                 </button>
                                             ))}
                                         </div>
+
+                                        {/* Qué cuenta se va a debitar. Quien atiende tiene que
+                                            poder decirlo en voz alta antes de cobrar. */}
+                                        {form.metodoPago === "SALDO" && cuentaDelSaldo && (
+                                            <p className="metodo-nota">
+                                                Se descuentan <strong>S/ {totalCompra.toFixed(2)}</strong> del
+                                                saldo de <strong>{cuentaDelSaldo.nombre}</strong>
+                                                {" "}({cuentaDelSaldo.codigo}), que tiene
+                                                S/ {cuentaDelSaldo.saldo.toFixed(2)}. No entra a la caja.
+                                            </p>
+                                        )}
+                                        {!saldoAlcanza && cuentaDelSaldo && (
+                                            <p className="metodo-nota metodo-nota-flojo">
+                                                {cuentaDelSaldo.nombre} tiene S/ {cuentaDelSaldo.saldo.toFixed(2)} de
+                                                saldo: no alcanza para S/ {totalCompra.toFixed(2)}.
+                                            </p>
+                                        )}
                                     </div>
 
                                     {/* Observación */}
@@ -1439,7 +1485,7 @@ function Pasajes() {
                                             <div className="resumen-fila"><span>Lugar de pago</span><strong>{form.lugarPago === "IQUITOS" ? "Iquitos" : "Oficina Requena"}</strong></div>
                                         )}
                                         {form.metodoPago && (
-                                            <div className="resumen-fila"><span>Método de pago</span><strong>{METODOS_PAGO.find(m => m.key === form.metodoPago)?.label}</strong></div>
+                                            <div className="resumen-fila"><span>Método de pago</span><strong>{[...METODOS_PAGO, METODO_SALDO].find(m => m.key === form.metodoPago)?.label}</strong></div>
                                         )}
                                         {pasajeros.length > 1 && (
                                             <div className="resumen-fila"><span>Comprobante</span><strong>Uno solo por los {pasajeros.length} pasajes</strong></div>

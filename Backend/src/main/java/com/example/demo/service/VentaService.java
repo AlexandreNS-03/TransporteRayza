@@ -461,7 +461,11 @@ public class VentaService {
         venta.setPasajeroDocumento(req.getPasajeroDocumento());
         venta.setProcedencia(req.getProcedencia());
         venta.setPasajeroTelefono(req.getPasajeroTelefono());
-        venta.setClienteEmail(req.getClienteEmail());
+        // Cuando se cobra con saldo, de quién es el saldo lo dice la credencial
+        // que la persona mostró, nunca el correo que escribió quien atiende.
+        venta.setClienteEmail(esMetodoSaldo(req.getMetodoPago())
+                ? duenoDelSaldo(req.getCodigoPasajero()).getEmail()
+                : req.getClienteEmail());
         venta.setEdad(req.getEdad());
         if (req.getSexo() != null)
             venta.setSexo(Venta.Sexo.valueOf(req.getSexo()));
@@ -516,14 +520,29 @@ public class VentaService {
                 req.getOrdenDestino()
         );
 
-        // Ingreso en la caja abierta del vendedor (si tiene una)
-        cajaService.registrarMovimientoAutomatico(usuarioNombre,
-                MovimientoCaja.TipoMovimiento.INGRESO,
-                venta.getPrecio(),
-                "Venta pasaje " + venta.getSerieComprobante() + "-" + venta.getNumeroComprobante()
-                        + " — " + venta.getPasajeroNombre(),
-                venta.getMetodoPago(),
-                venta.getId());
+        // Cobrar con el saldo de la cuenta: descuenta de la wallet y NO entra a la
+        // caja, porque a la caja no entró ningún billete. Va después de guardar la
+        // venta para que la referencia sea la de esta venta y nada más; si el saldo
+        // no alcanza, revienta acá y la transacción se deshace entera.
+        if (esCobroConSaldo(venta)) {
+            walletService.consumir(venta.getClienteEmail(), venta.getPrecio(),
+                    "venta-mostrador:" + venta.getId(),
+                    "Pasaje " + safe(venta.getParadaOrigen()) + " → " + safe(venta.getParadaDestino()));
+
+            auditoriaService.registrar("COBRAR_SALDO", "VENTAS", venta.getId(),
+                    usuarioNombre + " cobró S/ " + venta.getPrecio() + " del saldo de "
+                            + venta.getClienteEmail() + " (credencial "
+                            + req.getCodigoPasajero() + "). No entra a la caja.");
+        } else {
+            // Ingreso en la caja abierta del vendedor (si tiene una)
+            cajaService.registrarMovimientoAutomatico(usuarioNombre,
+                    MovimientoCaja.TipoMovimiento.INGRESO,
+                    venta.getPrecio(),
+                    "Venta pasaje " + venta.getSerieComprobante() + "-" + venta.getNumeroComprobante()
+                            + " — " + venta.getPasajeroNombre(),
+                    venta.getMetodoPago(),
+                    venta.getId());
+        }
 
         // El código del sorteo, que va impreso en el ticket. Va antes de armar el
         // DTO: el ticket se dibuja con lo que devuelve este método, así que un
@@ -678,6 +697,7 @@ public class VentaService {
     private final com.example.demo.repository.RutaRepository rutaRepository;
     private final SorteoService sorteoService;
     private final WalletService walletService;
+    private final com.example.demo.repository.ClienteRepository clienteRepository;
     private final com.example.demo.repository.ViajeParadaRepository viajeParadaRepository;
 
     public VentaService(VentaRepository ventaRepository,
@@ -693,7 +713,8 @@ public class VentaService {
                         com.example.demo.repository.ViajeParadaRepository viajeParadaRepository,
                         SorteoService sorteoService,
                         AlcanceSucursal alcance,
-                        WalletService walletService) {
+                        WalletService walletService,
+                        com.example.demo.repository.ClienteRepository clienteRepository) {
         this.ventaRepository      = ventaRepository;
         this.tramoUsadoRepository = tramoUsadoRepository;
         this.viajeRepository      = viajeRepository;
@@ -708,6 +729,7 @@ public class VentaService {
         this.sorteoService        = sorteoService;
         this.alcance              = alcance;
         this.walletService        = walletService;
+        this.clienteRepository    = clienteRepository;
     }
 
     /**
@@ -866,4 +888,38 @@ public class VentaService {
         if (metodo == null || metodo.isBlank()) return null;
         return metodo.trim().toUpperCase();
     }
+
+    private static boolean esMetodoSaldo(String metodo) {
+        return metodo != null && "SALDO".equalsIgnoreCase(metodo.trim());
+    }
+
+    /** Una venta cobrada del saldo de una cuenta. */
+    private boolean esCobroConSaldo(Venta v) {
+        return esMetodoSaldo(v.getMetodoPago())
+                && v.getClienteEmail() != null && !v.getClienteEmail().isBlank();
+    }
+
+    /**
+     * De quién es el saldo que se va a gastar, según la credencial que mostró.
+     *
+     * <p>Se exige el código y no el correo a propósito. El correo lo sabe
+     * cualquiera que haya visto un boleto; la credencial la trae encima la
+     * persona que está parada en la ventanilla. Sin esto, quien atiende podría
+     * vaciarle el saldo a un cliente vendiéndole un pasaje a otro.
+     */
+    private Cliente duenoDelSaldo(String codigo) {
+        String limpio = codigo == null ? "" : codigo.toUpperCase().replaceAll("[^A-Z0-9]", "");
+        if (limpio.startsWith("RZ")) limpio = limpio.substring(2);
+        if (limpio.isBlank())
+            throw new RuntimeException("Para cobrar del saldo, pide su código de pasajero");
+
+        Cliente c = clienteRepository.findByCodigoPasajero("RZ-" + limpio)
+                .orElseThrow(() -> new RuntimeException("No encontramos ninguna cuenta con ese código"));
+        if (!Boolean.TRUE.equals(c.getActivo()))
+            throw new RuntimeException("Esa cuenta está desactivada");
+        return c;
+    }
+
+    /** Texto que puede venir en null y va dentro de un motivo. */
+    private static String safe(String s) { return s == null ? "" : s; }
 }

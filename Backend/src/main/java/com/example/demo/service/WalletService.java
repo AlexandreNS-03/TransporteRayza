@@ -81,6 +81,8 @@ public class WalletService {
     private final IzipayService izipayService;
     private final AuditoriaService auditoriaService;
 
+    private final MercadoPagoService mercadoPagoService;
+
     @Value("${wallet.enabled:false}")
     private boolean habilitada;
 
@@ -88,11 +90,13 @@ public class WalletService {
                          RecargaWalletRepository recargas,
                          ClienteRepository clientes,
                          IzipayService izipayService,
+                         MercadoPagoService mercadoPagoService,
                          AuditoriaService auditoriaService) {
         this.movimientos = movimientos;
         this.recargas = recargas;
         this.clientes = clientes;
         this.izipayService = izipayService;
+        this.mercadoPagoService = mercadoPagoService;
         this.auditoriaService = auditoriaService;
     }
 
@@ -119,6 +123,7 @@ public class WalletService {
         dto.setRecargaMinima(RECARGA_MINIMA);
         dto.setRecargaMaxima(RECARGA_MAXIMA);
         dto.setCondiciones(CONDICIONES);
+        dto.setYapeDePrueba(mercadoPagoService != null && mercadoPagoService.esDePrueba());
         dto.setMovimientos(
                 movimientos.findByClienteEmailIgnoreCaseOrderByCreatedAtDesc(normalizar(email))
                         .stream().map(WalletService::toDTO).toList());
@@ -268,6 +273,22 @@ public class WalletService {
      */
     @Transactional
     public RecargaIniciada iniciarRecarga(String email, BigDecimal monto) {
+        return iniciarRecarga(email, monto, Medio.TARJETA);
+    }
+
+    /** Con qué se paga una recarga. El saldo no se recarga con saldo. */
+    public enum Medio { TARJETA, YAPE }
+
+    /**
+     * Lo mismo, diciendo con qué se va a pagar.
+     *
+     * <p>El formulario de Izipay se pide <strong>solo</strong> si se va a pagar
+     * con tarjeta. Pedirlo siempre dejaba un pedido abierto en la pasarela cada
+     * vez que alguien elegía Yape: órdenes que nadie iba a pagar nunca, y que
+     * después hay que explicar al conciliar.
+     */
+    @Transactional
+    public RecargaIniciada iniciarRecarga(String email, BigDecimal monto, Medio medio) {
         if (!habilitada) throw new RuntimeException("Recargar saldo todavía no está disponible");
 
         Cliente c = clientes.findByEmail(normalizar(email))
@@ -297,6 +318,9 @@ public class WalletService {
         r.setCreatedAt(LocalDateTime.now());
         recargas.saveAndFlush(r);
 
+        if (medio == Medio.YAPE)
+            return new RecargaIniciada(r.getId(), pedido, null);
+
         int cents = pedido.multiply(BigDecimal.valueOf(100)).intValueExact();
         IzipayService.Formulario f = izipayService.crearFormulario(
                 r.getId(), cents, c.getEmail(),
@@ -306,9 +330,60 @@ public class WalletService {
         return new RecargaIniciada(r.getId(), pedido, f);
     }
 
+    /**
+     * Confirma una recarga pagada con Yape.
+     *
+     * <p>Acá <strong>no hace falta comparar el monto ni el pedido</strong>, y no
+     * es un descuido: con Yape el cobro lo arma el servidor —le pasa el monto
+     * anotado y el id de la recarga a Mercado Pago—, así que no hay nada que el
+     * navegador pueda cambiar. Con tarjeta es al revés: el navegador vuelve con
+     * una respuesta firmada y por eso allá sí se compara todo.
+     *
+     * <p>El id de la recarga va como clave de idempotencia: si la persona toca
+     * dos veces, Mercado Pago devuelve el mismo pago en vez de cobrarle dos.
+     */
+    @Transactional
+    public WalletDTO confirmarRecargaYape(String email, String recargaId,
+                                          String token, String deviceId) {
+        if (!habilitada) throw new RuntimeException("Recargar saldo todavía no está disponible");
+
+        RecargaWallet r = recargas.findByIdAndClienteEmailIgnoreCase(recargaId, normalizar(email))
+                .orElseThrow(() -> new RuntimeException("No encontramos esa recarga"));
+
+        if (r.getEstado() == RecargaWallet.Estado.PAGADA) return resumen(email);   // ya se acreditó
+
+        Cliente c = clientes.findByEmail(r.getClienteEmail()).orElse(null);
+        MercadoPagoService.Pagador pagador = c == null
+                ? MercadoPagoService.Pagador.de(r.getClienteEmail(), null, null, null, null)
+                : MercadoPagoService.Pagador.de(c.getEmail(),
+                        (c.getNombres() + " " + (c.getApellidos() == null ? "" : c.getApellidos())).trim(),
+                        c.getTipoDocumento() == null ? null : c.getTipoDocumento().name(),
+                        c.getNumeroDocumento(), c.celularCompleto());
+
+        MercadoPagoService.Resultado pago = mercadoPagoService.pagar(
+                token, r.getMonto(), "Recarga de saldo Rayza",
+                pagador, r.getId(), r.getId(), deviceId);
+
+        if (!pago.pagado) {
+            rechazar(r, pago.motivo);
+            throw new RuntimeException(pago.motivo != null ? pago.motivo
+                    : "El pago con Yape no se pudo confirmar");
+        }
+
+        acreditarYa(r, pago.referencia, "recarga con Yape");
+        return resumen(email);
+    }
+
     /** Lo que necesita el navegador para cobrar la recarga. */
+    /** El formulario viene en null cuando se va a pagar con Yape: no hay ninguno. */
     public record RecargaIniciada(String recargaId, BigDecimal monto,
                                   IzipayService.Formulario formulario) { }
+
+    /** Lo que el navegador necesita para ofrecer Yape en la recarga. */
+    public boolean yapeDisponible() { return habilitada; }
+    public String yapePublicKey()   { return mercadoPagoService.getPublicKey(); }
+    public boolean yapeSimulado()   { return !mercadoPagoService.estaActiva(); }
+    public boolean yapeDePrueba()   { return mercadoPagoService.esDePrueba(); }
 
     /**
      * Segundo paso: el navegador vuelve del formulario y dice que pagó.
@@ -382,13 +457,22 @@ public class WalletService {
             }
         }
 
-        // La referencia es el id de la recarga, no el de la transacción: el IPN y
-        // la vuelta del navegador traen uuids distintos del mismo pago, y con el
-        // uuid como llave la plata entraría dos veces.
+        acreditarYa(r, pago.referencia, motivo);
+    }
+
+    /**
+     * Vuelve saldo una recarga que ya se dio por cobrada, venga de donde venga.
+     *
+     * <p>La referencia es el id de la recarga y no el de la transacción: el IPN y
+     * la vuelta del navegador traen uuids distintos del mismo pago, y con el uuid
+     * como llave la plata entraría dos veces. Por eso los tres caminos —tarjeta,
+     * IPN y Yape— terminan acá con la misma llave.
+     */
+    private void acreditarYa(RecargaWallet r, String referenciaPasarela, String motivo) {
         abonar(r.getClienteEmail(), r.getMonto(), "recarga:" + r.getId(), motivo, Tipo.ABONO);
 
         r.setEstado(RecargaWallet.Estado.PAGADA);
-        r.setReferenciaPasarela(pago.referencia);
+        r.setReferenciaPasarela(referenciaPasarela);
         r.setPagadaAt(LocalDateTime.now());
         recargas.save(r);
     }

@@ -49,7 +49,11 @@ class CredencialPasajeroTest {
         when(repo.findByCodigoPasajero(anyString()))
                 .thenAnswer(inv -> Optional.ofNullable(porCodigo.get(inv.getArgument(0, String.class))));
 
-        mostrador = new PasajeroFrecuenteController(repo);
+        // La wallet apagada: lo que se prueba acá es la credencial, no el saldo.
+        WalletService sinWallet = new WalletService(null, null, null, null, null, null) {
+            @Override public boolean estaHabilitada() { return false; }
+        };
+        mostrador = new PasajeroFrecuenteController(repo, sinWallet);
     }
 
     @Test

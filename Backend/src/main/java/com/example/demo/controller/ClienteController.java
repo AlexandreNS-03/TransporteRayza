@@ -210,20 +210,38 @@ public class ClienteController {
         return ResponseEntity.ok(wallet.resumen(auth.getName()));
     }
 
-    /** Primer paso de una recarga: anota el monto y devuelve el formulario de pago. */
+    /**
+     * Primer paso de una recarga: anota el monto y prepara el pago.
+     *
+     * <p>Con tarjeta devuelve el formulario de Izipay; con Yape no hay formulario
+     * que devolver —el navegador arma el token con el SDK de Mercado Pago— así
+     * que viene la clave pública y nada más.
+     */
     @PostMapping("/wallet/recargas")
     public ResponseEntity<?> recargar(@RequestBody Map<String, String> body, Authentication auth) {
         BigDecimal monto;
         try { monto = new BigDecimal(String.valueOf(body.get("monto")).trim()); }
         catch (NumberFormatException e) { throw new RuntimeException("Escribe cuánto quieres recargar"); }
 
-        WalletService.RecargaIniciada r = wallet.iniciarRecarga(auth.getName(), monto);
-        return ResponseEntity.ok(Map.of(
-                "recargaId", r.recargaId(),
-                "monto", r.monto(),
-                "formToken", r.formulario().getFormToken(),
-                "publicKey", r.formulario().getPublicKey(),
-                "simulado", r.formulario().isSimulado()));
+        WalletService.Medio medio = "YAPE".equalsIgnoreCase(String.valueOf(body.get("medio")))
+                ? WalletService.Medio.YAPE : WalletService.Medio.TARJETA;
+
+        WalletService.RecargaIniciada r = wallet.iniciarRecarga(auth.getName(), monto, medio);
+
+        Map<String, Object> salida = new java.util.LinkedHashMap<>();
+        salida.put("recargaId", r.recargaId());
+        salida.put("monto", r.monto());
+        salida.put("medio", medio.name());
+        if (r.formulario() != null) {
+            salida.put("formToken", r.formulario().getFormToken());
+            salida.put("publicKey", r.formulario().getPublicKey());
+            salida.put("simulado", r.formulario().isSimulado());
+        } else {
+            salida.put("publicKey", wallet.yapePublicKey());
+            salida.put("simulado", wallet.yapeSimulado());
+            salida.put("prueba", wallet.yapeDePrueba());
+        }
+        return ResponseEntity.ok(salida);
     }
 
     /**
@@ -237,6 +255,21 @@ public class ClienteController {
                                                       Authentication auth) {
         return ResponseEntity.ok(wallet.confirmarRecarga(
                 auth.getName(), id, body.get("kr-answer"), body.get("kr-hash")));
+    }
+
+    /**
+     * Lo mismo, pero con Yape: llega el token que armó el SDK de Mercado Pago.
+     *
+     * <p>El monto no viaja en el cuerpo. El servidor cobra el que quedó anotado
+     * al iniciar la recarga, así que no hay forma de recargar S/ 2000 diciendo
+     * que se pagaron S/ 20.
+     */
+    @PostMapping("/wallet/recargas/{id}/confirmar-yape")
+    public ResponseEntity<WalletDTO> confirmarRecargaYape(@PathVariable String id,
+                                                          @RequestBody Map<String, String> body,
+                                                          Authentication auth) {
+        return ResponseEntity.ok(wallet.confirmarRecargaYape(
+                auth.getName(), id, body.get("token"), body.get("deviceId")));
     }
 
     /** Las boletas y facturas del cliente, con el enlace al PDF. */

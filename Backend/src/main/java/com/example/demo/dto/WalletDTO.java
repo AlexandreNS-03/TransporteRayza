@@ -26,6 +26,14 @@ public class WalletDTO {
 
     private List<MovimientoWalletDTO> movimientos = List.of();
 
+    /**
+     * Con Mercado Pago en modo de prueba, el código real de la app de Yape no
+     * sirve: hay que usar los celulares de prueba. La pantalla lo tiene que
+     * decir ANTES de que alguien genere un código que va a vencer sin usarse,
+     * así que viaja en el resumen y no en la respuesta del primer intento.
+     */
+    private boolean yapeDePrueba;
+
     public boolean isHabilitada() { return habilitada; }
     public void setHabilitada(boolean v) { this.habilitada = v; }
     public BigDecimal getSaldo() { return saldo; }
@@ -38,4 +46,7 @@ public class WalletDTO {
     public void setCondiciones(List<String> v) { this.condiciones = v; }
     public List<MovimientoWalletDTO> getMovimientos() { return movimientos; }
     public void setMovimientos(List<MovimientoWalletDTO> v) { this.movimientos = v; }
+
+    public boolean isYapeDePrueba() { return yapeDePrueba; }
+    public void setYapeDePrueba(boolean v) { this.yapeDePrueba = v; }
 }

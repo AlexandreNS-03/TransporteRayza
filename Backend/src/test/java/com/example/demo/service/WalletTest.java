@@ -39,6 +39,7 @@ class WalletTest {
     private RecargaWalletRepository recargas;
     private List<RecargaWallet> recargasGuardadas;
     private IzipayFalso izipay;
+    private MercadoPagoFalso mercadoPago;
     private WalletService wallet;
 
     private static final String ANA = "ana@ejemplo.pe";
@@ -51,6 +52,7 @@ class WalletTest {
         movimientos = mock(SaldoMovimientoRepository.class);
         recargas = mock(RecargaWalletRepository.class);
         izipay = new IzipayFalso();
+        mercadoPago = new MercadoPagoFalso();
         ClienteRepository clientes = mock(ClienteRepository.class);
         AuditoriaService auditoria = new AuditoriaService(null, null) {
             @Override public void registrar(String a, String m, String r, String d) { }
@@ -97,7 +99,7 @@ class WalletTest {
                                 && ((String) i.getArgument(1)).equalsIgnoreCase(r.getClienteEmail()))
                         .findFirst());
 
-        wallet = new WalletService(movimientos, recargas, clientes, izipay, auditoria);
+        wallet = new WalletService(movimientos, recargas, clientes, izipay, mercadoPago, auditoria);
         ReflectionTestUtils.setField(wallet, "habilitada", true);
     }
 
@@ -351,12 +353,94 @@ class WalletTest {
      * servicio en el JDK de esta máquina —solo las interfaces de los repositorios—,
      * y de todas formas lo único que hace falta es decidir qué contesta la pasarela.
      */
+    /* ── Recargar con Yape ──
+       Es el medio con el que paga la gente acá. Lo que cambia respecto de la
+       tarjeta no es el botón: con Yape el cobro lo arma el servidor, así que el
+       navegador no tiene nada que falsificar. */
+
+    @Test
+    @DisplayName("Con Yape se cobra el monto anotado, no el que diga el navegador")
+    void conYapeElMontoLoPoneElServidor() {
+        var r = wallet.iniciarRecarga(ANA, new BigDecimal("120.00"), WalletService.Medio.YAPE);
+
+        wallet.confirmarRecargaYape(ANA, r.recargaId(), "token-del-sdk", "dev-1");
+
+        assertEquals(0, new BigDecimal("120.00").compareTo(wallet.saldoDe(ANA)));
+        assertEquals(0, new BigDecimal("120.00").compareTo(mercadoPago.montoCobrado),
+                "Se cobró un monto distinto del que se había anotado");
+    }
+
+    @Test
+    @DisplayName("Con Yape no se le pide formulario a Izipay")
+    void conYapeNoSeTocaIzipay() {
+        // Pedirlo dejaba un pedido abierto en la pasarela cada vez que alguien
+        // elegía Yape: órdenes que nadie iba a pagar y que hay que explicar
+        // después, al conciliar.
+        wallet.iniciarRecarga(ANA, new BigDecimal("50.00"), WalletService.Medio.YAPE);
+        assertEquals(0, izipay.formulariosPedidos, "Se abrió un pedido en Izipay para un pago con Yape");
+
+        wallet.iniciarRecarga(ANA, new BigDecimal("50.00"), WalletService.Medio.TARJETA);
+        assertEquals(1, izipay.formulariosPedidos, "Con tarjeta sí hace falta el formulario");
+    }
+
+    @Test
+    @DisplayName("Confirmar dos veces la misma recarga con Yape no acredita el doble")
+    void yapeNoAcreditaDosVeces() {
+        var r = wallet.iniciarRecarga(ANA, new BigDecimal("80.00"), WalletService.Medio.YAPE);
+
+        wallet.confirmarRecargaYape(ANA, r.recargaId(), "token", "dev-1");
+        wallet.confirmarRecargaYape(ANA, r.recargaId(), "token", "dev-1");
+
+        assertEquals(0, new BigDecimal("80.00").compareTo(wallet.saldoDe(ANA)));
+    }
+
+    @Test
+    @DisplayName("Si Yape rechaza el pago no se acredita nada")
+    void yapeRechazadoNoAcredita() {
+        mercadoPago.aprobar = false;
+        var r = wallet.iniciarRecarga(ANA, new BigDecimal("80.00"), WalletService.Medio.YAPE);
+
+        assertThrows(RuntimeException.class,
+                () -> wallet.confirmarRecargaYape(ANA, r.recargaId(), "token", "dev-1"));
+        assertEquals(0, BigDecimal.ZERO.compareTo(wallet.saldoDe(ANA)));
+    }
+
+    @Test
+    @DisplayName("La recarga de otro no se confirma con tu sesión")
+    void laRecargaEsDeQuienLaInicio() {
+        var r = wallet.iniciarRecarga(ANA, new BigDecimal("80.00"), WalletService.Medio.YAPE);
+
+        assertThrows(RuntimeException.class,
+                () -> wallet.confirmarRecargaYape("otro@ejemplo.pe", r.recargaId(), "token", "dev-1"));
+        assertEquals(0, BigDecimal.ZERO.compareTo(wallet.saldoDe(ANA)));
+    }
+
+    private static class MercadoPagoFalso extends MercadoPagoService {
+        boolean aprobar = true;
+        BigDecimal montoCobrado;
+
+        @Override
+        public Resultado pagar(String token, BigDecimal monto, String descripcion,
+                               Pagador pagador, String idempotencia,
+                               String referenciaExterna, String deviceId) {
+            montoCobrado = monto;
+            Resultado r = new Resultado();
+            r.pagado = aprobar;
+            r.referencia = "uuid-mercadopago";
+            r.motivo = aprobar ? null : "Yape rechazó el pago";
+            return r;
+        }
+    }
+
     private static class IzipayFalso extends IzipayService {
         IzipayService.Resultado respuesta;
+
+        int formulariosPedidos = 0;
 
         @Override
         public Formulario crearFormulario(String orderId, int montoCents, String email,
                                           String nombre, String documento, String telefono) {
+            formulariosPedidos++;
             return new Formulario();
         }
 

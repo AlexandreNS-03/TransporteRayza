@@ -678,6 +678,24 @@
 .btn-consulta:hover:not(:disabled) { background: var(--color-primario-osc); }
 .btn-consulta:disabled { background: var(--color-borde-2); cursor: not-allowed; }
 
+/* Qué cuenta se debita al cobrar con saldo. Es una confirmación, no un aviso:
+   quien atiende la lee en voz alta antes de cobrar, porque cobrarle a la
+   cuenta equivocada es gastarle la plata a alguien que no está en la fila. */
+.metodo-nota {
+    margin: 10px 0 0;
+    padding: 9px 12px;
+    background: var(--color-azul-bg);
+    border: 1px solid var(--color-azul-borde);
+    border-radius: var(--radio-3);
+    font-size: 12.5px; line-height: 1.5;
+    color: var(--color-texto-oscuro);
+}
+.metodo-nota-flojo {
+    background: var(--color-advertencia-bg);
+    border-color: var(--color-advertencia-borde);
+    color: var(--color-advertencia-fuerte);
+}
+
 /* Código de credencial: el atajo, no el camino. Va antes del documento porque
    es lo primero que la persona dice, pero en voz baja: la mayoría de las
    ventas del mostrador son de gente sin cuenta y el formulario no puede
