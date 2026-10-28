@@ -143,6 +143,21 @@ class WalletTest {
     }
 
     @Test
+    @DisplayName("Un abono sin referencia no se acredita: nada lo frenaría dos veces")
+    void sinReferenciaNoAcredita() {
+        // La columna es única, pero acepta vacíos, y MySQL permite tantos vacíos
+        // como quieras: un abono sin referencia no tiene ninguna defensa contra
+        // entrar dos veces. Pasó con el saldo a favor de un viaje cancelado, que
+        // se escribía a mano y sin referencia.
+        for (String sin : new String[] { null, "", "   " }) {
+            assertThrows(RuntimeException.class,
+                    () -> wallet.abonar(ANA, new BigDecimal("50.00"), sin, "recarga", Tipo.ABONO),
+                    "aceptó un abono sin referencia: " + sin);
+        }
+        assertTrue(libro.isEmpty(), "dejó un movimiento que nadie puede volver a identificar");
+    }
+
+    @Test
     @DisplayName("Dos cobros con la misma referencia descuentan una sola vez")
     void noCobraDosVeces() {
         wallet.abonar(ANA, new BigDecimal("100.00"), "r-1", "recarga", Tipo.ABONO);
