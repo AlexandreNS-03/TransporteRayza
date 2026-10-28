@@ -150,4 +150,39 @@ class CategoriaPasajeroTest {
         assertEquals(0, BigDecimal.ZERO
                 .compareTo(categorias.conDescuento(new BigDecimal("90.00"), categorias.de("7"))));
     }
+
+    /* ── Lo que la web puede anunciar ── */
+
+    @Test
+    @DisplayName("Apagado no publica ningún escalón: la web no anuncia nada")
+    void apagadoNoPublicaNada() {
+        ReflectionTestUtils.setField(categorias, "habilitada", false);
+
+        assertTrue(categorias.escalones().isEmpty(),
+                "con el programa apagado la web anunciaría un descuento que no existe");
+    }
+
+    @Test
+    @DisplayName("Los escalones publicados salen de la configuración, no de un número escrito a mano")
+    void publicaLosDeLaConfiguracion() {
+        ReflectionTestUtils.setField(categorias, "viajesPlata", 4);
+        ReflectionTestUtils.setField(categorias, "descuentoPlata", 8);
+        ReflectionTestUtils.setField(categorias, "viajesOro", 12);
+        ReflectionTestUtils.setField(categorias, "descuentoOro", 15);
+        ReflectionTestUtils.setField(categorias, "meses", 6);
+
+        var e = categorias.escalones();
+        assertEquals(2, e.size());
+        assertEquals("Plata", e.get(0).nombre());
+        assertEquals(4, e.get(0).viajes());
+        assertEquals(8, e.get(0).descuento());
+        assertEquals("Oro", e.get(1).nombre());
+        assertEquals(12, e.get(1).viajes());
+        assertEquals(15, e.get(1).descuento());
+
+        // Si la página dijera otra ventana que la del cobro, prometería viajes que
+        // ya no cuentan.
+        assertEquals(6, categorias.mesesDeLaVentana());
+    }
+
 }

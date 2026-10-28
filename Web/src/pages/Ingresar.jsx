@@ -11,7 +11,11 @@ const REG_INICIAL = {
 };
 
 export default function Ingresar() {
-  const [modo, setModo] = useState("login");
+  // `?crear=1` abre directo en "crear cuenta". Lo usan los enlaces que invitan a
+  // registrarse: llevar a alguien a un formulario de ingreso después de decirle
+  // "crea tu cuenta" lo obliga a buscar el enlace chico de abajo.
+  const abreEnRegistro = new URLSearchParams(window.location.search).get("crear") === "1";
+  const [modo, setModo] = useState(abreEnRegistro ? "registro" : "login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [reg, setReg] = useState(REG_INICIAL);

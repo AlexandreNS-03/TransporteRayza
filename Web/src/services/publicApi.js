@@ -42,6 +42,14 @@ export async function buscarViajes({ origen, destino, fecha } = {}) {
   catch (e) { throw desempaquetarError(e); }
 }
 
+// Qué beneficios puede anunciar la web hoy: la wallet y el programa de pasajero
+// frecuente con sus números. Si falla, se devuelve nada y la página no anuncia:
+// es mejor no prometer que prometer de más.
+export async function getBeneficios() {
+  try { const { data } = await http.get("/beneficios"); return data; }
+  catch (e) { return null; }
+}
+
 // Anuncios activos y vigentes de un tipo (BARRA, MODAL o LANDING).
 // Si falla, se devuelve vacío: un anuncio caído no debe tumbar la página.
 export async function getAnuncios(tipo) {

@@ -10,6 +10,7 @@ import Reveal from "../components/Reveal";
 import HeroConProfundidad from "../components/HeroConProfundidad";
 import ProximaFiesta from "../components/ProximaFiesta";
 import SorteoDestacado from "../components/SorteoDestacado";
+import BeneficiosCuenta from "../components/BeneficiosCuenta";
 import { getAnuncios } from "../services/publicApi";
 import { EMPRESA, telefonoBonito, telefonoInternacional,
          aniosDeAniversario } from "../datos";
@@ -191,6 +192,13 @@ export default function Landing() {
           </div>
         </div>
       </section>
+
+      {/* ===== POR QUÉ TENER CUENTA =====
+          Va justo después de "cómo comprar": recién ahí la persona sabe que
+          puede comprar acá, y es el momento de decirle por qué le conviene
+          hacerlo con cuenta. Antes de eso todavía no compró nada.
+          Se dibuja sola solo si hay algo real que anunciar. */}
+      <BeneficiosCuenta />
 
       {/* ===== DESTINOS ===== */}
       <section className="section section-alt" id="destinos">

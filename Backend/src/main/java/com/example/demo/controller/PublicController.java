@@ -1,13 +1,16 @@
 package com.example.demo.controller;
 
 import com.example.demo.dto.AnuncioDTO;
+import com.example.demo.dto.BeneficiosDTO;
 import com.example.demo.dto.PublicAsientoDTO;
 import com.example.demo.dto.PublicRutaDTO;
 import com.example.demo.dto.PublicViajeDTO;
 import com.example.demo.model.Anuncio;
 import com.example.demo.service.AnuncioService;
+import com.example.demo.service.CategoriaPasajero;
 import com.example.demo.service.ClienteService;
 import com.example.demo.service.PublicService;
+import com.example.demo.service.WalletService;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -28,12 +31,37 @@ public class PublicController {
     private final PublicService publicService;
     private final ClienteService clienteService;
     private final AnuncioService anuncioService;
+    private final WalletService walletService;
+    private final CategoriaPasajero categorias;
 
     public PublicController(PublicService publicService, ClienteService clienteService,
-                            AnuncioService anuncioService) {
+                            AnuncioService anuncioService, WalletService walletService,
+                            CategoriaPasajero categorias) {
         this.publicService = publicService;
         this.clienteService = clienteService;
         this.anuncioService = anuncioService;
+        this.walletService = walletService;
+        this.categorias = categorias;
+    }
+
+    /**
+     * Qué beneficios puede anunciar la web hoy.
+     *
+     * <p>Lo pide la página de inicio para decidir si cuenta la wallet y el
+     * programa de pasajero frecuente, y con qué números. Si están apagados
+     * contesta que no y la página no anuncia nada: un beneficio que se promete
+     * antes de existir se cobra en el mostrador.
+     */
+    @GetMapping("/beneficios")
+    public ResponseEntity<BeneficiosDTO> beneficios() {
+        List<BeneficiosDTO.Escalon> escalones = categorias.escalones().stream()
+                .map(e -> new BeneficiosDTO.Escalon(e.nombre(), e.viajes(), e.descuento()))
+                .toList();
+        return ResponseEntity.ok(new BeneficiosDTO(
+                walletService.estaHabilitada(),
+                categorias.estaHabilitada(),
+                escalones,
+                categorias.mesesDeLaVentana()));
     }
 
     /** Anuncios activos y vigentes de un tipo (BARRA, MODAL o LANDING). */
