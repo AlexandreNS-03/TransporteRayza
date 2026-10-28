@@ -72,6 +72,11 @@ export default function Credencial({ perfil }) {
 
   const nombre = [perfil.nombres, perfil.apellidos].filter(Boolean).join(" ").trim();
 
+  // "Distinguido" es tener una categoría que da algo. Quien está en la base no
+  // lleva rótulo de categoría: decirle "Socio Rayza" cuando no tiene beneficio
+  // es ponerle un nombre a no tener nada.
+  const esDistinguido = perfil.descuentoCategoria > 0 && perfil.categoria;
+
   const copiar = async () => {
     try {
       await navigator.clipboard.writeText(codigo);
@@ -92,7 +97,11 @@ export default function Credencial({ perfil }) {
         <span className="credencial-marca">
           Transportes <strong>Rayza</strong>
         </span>
-        <span className="credencial-tipo">Pasajero frecuente</span>
+        {/* La categoría es el rótulo de la tarjeta. Sin programa de fidelidad
+            encendido dice qué es la tarjeta; con él, qué categoría tiene. */}
+        <span className={"credencial-tipo" + (esDistinguido ? " es-" + perfil.categoria.toLowerCase() : "")}>
+          {esDistinguido ? "Socio " + perfil.categoria : "Pasajero frecuente"}
+        </span>
       </header>
 
       <p className="credencial-codigo">{codigo}</p>
@@ -106,7 +115,11 @@ export default function Credencial({ perfil }) {
              width={128} height={128} loading="lazy" />
         <span className="credencial-quien">
           <strong>{nombre || "Viajero"}</strong>
-          <small>Socio desde {perfil.socioDesde || "siempre"}</small>
+          <small>
+            {esDistinguido
+              ? `${perfil.descuentoCategoria}% en cada pasaje`
+              : `Socio desde ${perfil.socioDesde || "siempre"}`}
+          </small>
         </span>
       </footer>
     </div>
@@ -152,10 +165,25 @@ export default function Credencial({ perfil }) {
               </button>
             </div>
 
-            <p className="credencial-ayuda">
-              Muéstralo en la agencia y encontramos tu cuenta sin que tengas que
-              deletrear tu documento. También puedes dictarlo.
-            </p>
+            {esDistinguido ? (
+              <p className="credencial-ayuda">
+                Como socio <strong>{perfil.categoria}</strong> pagas{" "}
+                {perfil.descuentoCategoria}% menos en cada pasaje, compres en la web
+                o en la agencia. Muestra o dicta tu código al comprar.
+              </p>
+            ) : (
+              <p className="credencial-ayuda">
+                Muéstralo en la agencia y encontramos tu cuenta sin que tengas que
+                deletrear tu documento. También puedes dictarlo.
+                {perfil.siguienteCategoria && perfil.viajesParaSiguiente > 0 && (
+                  <>
+                    {" "}Te faltan <strong>{perfil.viajesParaSiguiente}</strong>{" "}
+                    {perfil.viajesParaSiguiente === 1 ? "viaje" : "viajes"} para ser
+                    socio {perfil.siguienteCategoria}.
+                  </>
+                )}
+              </p>
+            )}
           </div>
         </div>
       )}

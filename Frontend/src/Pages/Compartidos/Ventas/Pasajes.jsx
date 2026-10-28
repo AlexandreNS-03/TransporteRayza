@@ -84,7 +84,10 @@ const PASAJERO_VACIO = {
     procedencia: "", pasajeroTelefono: "", edad: "", sexo: "Masculino",
     // Lo que la persona dicta en la ventanilla. No viaja al servidor con la
     // venta: solo sirve para traer sus datos y llenar lo de arriba.
-    credencial: ""
+    credencial: "",
+    // Su categoría de pasajero frecuente, si mostró credencial. Se usa para
+    // rebajar el precio de SU asiento, no el de todo el grupo.
+    categoria: null, descuentoCategoria: 0
 };
 
 /**
@@ -363,6 +366,8 @@ function Pasajes() {
                 pasajeroTelefono:  d.telefono || p.pasajeroTelefono,
                 sexo:              SEXO.includes(d.sexo) ? d.sexo : p.sexo,
                 edad:              edadEn(d.fechaNacimiento, fecha) || p.edad,
+                categoria:          d.categoria || null,
+                descuentoCategoria: Number(d.descuentoCategoria) || 0,
             } : p)));
         } catch (err) { setErrorModal(err.message); }
         finally { setBuscandoCred(null); }
@@ -431,9 +436,21 @@ function Pasajes() {
             const ya = prev.findIndex(a => a.numero === asiento.numero);
             if (ya >= 0) return prev.filter(a => a.numero !== asiento.numero);
             if (prev.length >= pasajeros.length) return prev;   // ya están todos
+
+            /* Los asientos se van asignando en orden, así que este es el del
+               pasajero que todavía no tiene. Si ese mostró credencial y tiene
+               categoría, su asiento sale rebajado — el de los demás no: el
+               descuento es de quien viaja, no del grupo. El precio queda
+               editable como siempre. */
+            const dueno = pasajeros[prev.length];
+            const rebaja = Number(dueno?.descuentoCategoria) || 0;
+            const precio = (rebaja > 0 && tarifaAsiento != null)
+                ? Math.floor(Number(tarifaAsiento) * (100 - rebaja)) / 100
+                : tarifaAsiento;
+
             return [...prev, {
                 numero: asiento.numero, tipo: asiento.tipo,
-                precio: tarifaAsiento, precioOriginal: tarifaAsiento
+                precio, precioOriginal: tarifaAsiento
             }];
         });
     };
@@ -1134,7 +1151,14 @@ function Pasajes() {
                                                             : <i className="ti ti-id-badge-2"></i>}
                                                     </button>
                                                 </div>
-                                                <small>Si viaja seguido y tiene cuenta, lo lleva en su credencial.</small>
+                                                {p.descuentoCategoria > 0 ? (
+                                                    <small className="credencial-categoria">
+                                                        Pasajero <strong>{p.categoria}</strong> — su pasaje va
+                                                        con {p.descuentoCategoria}% de descuento.
+                                                    </small>
+                                                ) : (
+                                                    <small>Si viaja seguido y tiene cuenta, lo lleva en su credencial.</small>
+                                                )}
                                             </div>
 
                                             <div className="form-fila">

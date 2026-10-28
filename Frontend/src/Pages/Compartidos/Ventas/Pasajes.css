@@ -707,6 +707,12 @@
     display: block; margin-top: 5px;
     font-size: 11.5px; color: var(--color-texto-slate);
 }
+/* Cuando el pasajero tiene categoría, la nota deja de ser una sugerencia y pasa
+   a ser un dato del cobro: va en verde, como lo que abarata. */
+.credencial-buscar small.credencial-categoria {
+    color: var(--color-exito);
+    font-size: 12px;
+}
 
 /* ══════════ TABLAS RESPONSIVE — tarjetas en móvil ══════════ */
 @media (max-width: 720px) {

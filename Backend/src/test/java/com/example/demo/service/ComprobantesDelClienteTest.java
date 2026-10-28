@@ -51,7 +51,12 @@ class ComprobantesDelClienteTest {
 
         servicio = new ClienteService(clientes, ventas, comprobantes, null,
                 new BCryptPasswordEncoder(), jwt,
-                new IntentosLoginService(IntentosEnMemoria.nuevo(), new AuditoriaMuda()), null, verificacionCelularSinCanal(), new CorreoMudo());
+                new IntentosLoginService(IntentosEnMemoria.nuevo(), new AuditoriaMuda()), null, verificacionCelularSinCanal(), new CorreoMudo(),
+                new CategoriaPasajero(null) {
+            @Override public Estado de(String documento) {
+                return new Estado(Nivel.RAYZA, 0, 0, null, 0);
+            }
+        });
 
         Cliente c = new Cliente();
         c.setId("c-1");

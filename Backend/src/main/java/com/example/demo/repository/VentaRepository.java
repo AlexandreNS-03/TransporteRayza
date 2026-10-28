@@ -47,6 +47,25 @@ public interface VentaRepository extends JpaRepository<Venta, String> {
     /** Solo el conteo: el verificador del sistema lo consulta seguido y no necesita las filas. */
     long countByEstadoAndReservaExpiraBefore(Venta.EstadoVenta estado, java.time.LocalDateTime limite);
 
+    /**
+     * Cuántas veces viajó esta persona desde una fecha, para su categoría.
+     *
+     * <p>Se cuenta por el documento del PASAJERO y no por la cuenta que compró:
+     * quien compra ocho pasajes para su familia viaja uno solo, y contarle los
+     * ocho premiaría a quien paga en vez de a quien viaja. Así además le cuentan
+     * los viajes que compró en la ventanilla antes de tener cuenta.
+     *
+     * <p>Los anulados no cuentan: un pasaje devuelto es un viaje que no se hizo.
+     */
+    @Query("""
+           SELECT COUNT(v) FROM Venta v
+            WHERE v.pasajeroDocumento = :documento
+              AND v.estado = com.example.demo.model.Venta$EstadoVenta.PAGADO
+              AND v.fechaVenta >= :desde
+           """)
+    long contarViajesDe(@Param("documento") String documento,
+                        @Param("desde") java.time.LocalDate desde);
+
     /** Reservas sin pagar que están por vencer y a las que todavía no se les avisó. */
     List<Venta> findByEstadoAndAvisoPagoEnviadoIsNullAndReservaExpiraBetween(
             Venta.EstadoVenta estado, java.time.LocalDateTime desde, java.time.LocalDateTime hasta);

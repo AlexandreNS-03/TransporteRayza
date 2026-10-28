@@ -85,6 +85,10 @@
   color: rgba(255,255,255,.6);
   white-space: nowrap;
 }
+/* La categoría se tiñe. Es lo único de la tarjeta que cambia según la persona,
+   así que tiene que notarse de lejos: el mostrador la reconoce antes de leerla. */
+.credencial-tipo.es-plata { color: #dbe6f0; }
+.credencial-tipo.es-oro   { color: #ffd98a; }
 
 /* El número, tratado como el número de una tarjeta: grande, monoespaciado y
    separado. Así se dicta sin equivocarse y se compara de un vistazo. */
