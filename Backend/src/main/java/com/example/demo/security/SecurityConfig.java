@@ -48,6 +48,13 @@ public class SecurityConfig {
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
+                // Sin esto, un pedido sin token o con uno que ya no vale contestaba 403,
+                // que significa "sos vos pero no podés". Lo correcto es 401, "no sé quién
+                // sos": es lo que el panel y la web miran para mandar a iniciar sesión.
+                // El 403 queda para lo que de verdad es falta de permiso.
+                .exceptionHandling(e -> e.authenticationEntryPoint(
+                        new org.springframework.security.web.authentication.HttpStatusEntryPoint(
+                                org.springframework.http.HttpStatus.UNAUTHORIZED)))
                 .authorizeHttpRequests(auth -> auth
                         // Sin esto, cuando Spring reenvía internamente a /error (p. ej. falta
                         // un parámetro) la seguridad lo bloquea y el cliente recibe un 403

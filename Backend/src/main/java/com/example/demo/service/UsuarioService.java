@@ -24,15 +24,18 @@ public class UsuarioService {
     private final SucursalRepository sucursalRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuditoriaService auditoriaService;
+    private final SesionesService sesionesService;
 
     public UsuarioService(UsuarioRepository usuarioRepository,
                           SucursalRepository sucursalRepository,
                           PasswordEncoder passwordEncoder,
-                          AuditoriaService auditoriaService) {
+                          AuditoriaService auditoriaService,
+                          SesionesService sesionesService) {
         this.usuarioRepository = usuarioRepository;
         this.sucursalRepository = sucursalRepository;
         this.passwordEncoder = passwordEncoder;
         this.auditoriaService = auditoriaService;
+        this.sesionesService = sesionesService;
     }
 
     public List<UsuarioDTO> listarUsuarios() {
@@ -125,6 +128,10 @@ public class UsuarioService {
 
         Rol anterior = usuario.getRol();
         usuario.setRol(Rol.valueOf(req.getRol()));
+        // El rol viaja dentro del token, así que al bajarlo de supervisor a
+        // empleado su token viejo seguiría diciendo "supervisor". Cortar las
+        // sesiones lo obliga a entrar de nuevo con el rol que le quedó.
+        usuario.setSesionesDesde(java.time.LocalDateTime.now());
         UsuarioDTO dto = toDTO(usuarioRepository.save(usuario));
 
         auditoriaService.registrar("CAMBIAR_ROL", "USUARIOS", id,
@@ -137,6 +144,10 @@ public class UsuarioService {
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
         usuario.setActivo(!Boolean.TRUE.equals(usuario.getActivo()));
+        // Al desactivar: el token que ya tiene en el navegador seguiría entrando
+        // hasta mañana. Apagar la cuenta tiene que sacarlo ahora.
+        if (!Boolean.TRUE.equals(usuario.getActivo()))
+            usuario.setSesionesDesde(java.time.LocalDateTime.now());
         UsuarioDTO dto = toDTO(usuarioRepository.save(usuario));
 
         auditoriaService.registrar(Boolean.TRUE.equals(usuario.getActivo()) ? "ACTIVAR" : "DESACTIVAR",
@@ -151,6 +162,9 @@ public class UsuarioService {
         Claves.validar(req.getNuevaPassword(), usuario.getUsername());
 
         usuario.setPassword(passwordEncoder.encode(req.getNuevaPassword()));
+        // Cambiar la contraseña tiene que echar al que estuviera adentro: si no,
+        // el que entró con la vieja sigue entrando hasta que su token venza.
+        usuario.setSesionesDesde(java.time.LocalDateTime.now());
         usuarioRepository.save(usuario);
 
         auditoriaService.registrar("RESETEAR_PASSWORD", "USUARIOS", id,

@@ -155,7 +155,15 @@ public class ClienteService {
      * enterarse en el momento.
      */
     @Transactional
-    public void cambiarClave(String email, String actual, String nueva) {
+    /**
+     * Cambia la contraseña y devuelve un token nuevo.
+     *
+     * <p>El token nuevo no es un lujo: al cambiar la clave se cortan todas las
+     * sesiones de la cuenta, y sin esto el navegador que acaba de hacer el
+     * cambio se quedaría afuera de inmediato —el usuario vería "iniciá sesión"
+     * justo después de escribir su contraseña nueva dos veces—.
+     */
+    public String cambiarClave(String email, String actual, String nueva) {
         Cliente c = obtenerPorEmail(email);
         if (!passwordEncoder.matches(actual == null ? "" : actual, c.getPassword()))
             throw new RuntimeException("Tu contraseña actual no es correcta");
@@ -164,6 +172,10 @@ public class ClienteService {
             throw new RuntimeException("La contraseña nueva tiene que ser distinta de la actual");
 
         c.setPassword(passwordEncoder.encode(nueva));
+        // Cambiar la contraseña echa a quien estuviera adentro con la vieja:
+        // es justo el caso para el que uno la cambia. El navegador que hace el
+        // cambio recibe un token nuevo, así que no se cae su propia sesión.
+        c.setSesionesDesde(java.time.LocalDateTime.now());
         clienteRepository.save(c);
 
         try {
@@ -173,6 +185,8 @@ public class ClienteService {
             // la contraseña si el correo está caído.
             System.err.println("[Cuenta] no se pudo avisar el cambio de clave: " + e.getMessage());
         }
+
+        return jwtUtil.generateToken(c.getEmail(), "CLIENTE");
     }
 
     private static Cliente.Genero parseGenero(String valor) {

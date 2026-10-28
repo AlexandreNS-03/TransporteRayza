@@ -9,6 +9,13 @@ const KEY_TOKEN = "rayza_cliente_token";
 const KEY_CLIENTE = "rayza_cliente";
 
 function err(e) {
+  // Un 401 ya no significa solo "token vencido": ahora el servidor también
+  // rechaza el token cuando se cambió la contraseña o se cerraron las sesiones
+  // desde otro lado. En los dos casos lo que corresponde es volver a entrar.
+  if (e?.response?.status === 401) {
+    cerrarSesion();
+    return new Error("Tu sesión se cerró. Vuelve a iniciar sesión.");
+  }
   return new Error(e?.response?.data?.message || e?.message || "Error de conexión");
 }
 
@@ -209,6 +216,13 @@ export async function getMisComprobantes() {
 export async function cambiarClave(actual, nueva) {
   try {
     const { data } = await axios.post(`${API}/cambiar-clave`, { actual, nueva }, headers());
+    // Cambiar la contraseña corta TODAS las sesiones de la cuenta, incluida
+    // esta. El servidor devuelve un token nuevo para que esta pestaña siga
+    // adentro; sin guardarlo, el siguiente pedido saldría con la sesión cerrada
+    // justo después de escribir la contraseña nueva.
+    if (data.token) {
+      try { localStorage.setItem(KEY_TOKEN, data.token); } catch { /* modo privado */ }
+    }
     return data.message;
   } catch (e) { throw err(e); }
 }
