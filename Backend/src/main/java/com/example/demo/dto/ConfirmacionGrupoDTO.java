@@ -14,6 +14,16 @@ public class ConfirmacionGrupoDTO {
     private String mensaje;
     private String correo;
 
+    /**
+     * El id con el que esta compra se le avisa a Meta.
+     *
+     * <p>El navegador lo manda tal cual en SU evento de compra para que los dos
+     * avisos —el del navegador y el del servidor— se reconozcan como el mismo y
+     * no se cuenten dos ventas. Va nulo cuando el servidor no avisa nada: ahí el
+     * del navegador es el único y no hay nada que deduplicar.
+     */
+    private String eventoId;
+
     public List<ConfirmacionDTO> getPasajeros() { return pasajeros; }
     public void setPasajeros(List<ConfirmacionDTO> pasajeros) { this.pasajeros = pasajeros; }
 
@@ -28,4 +38,7 @@ public class ConfirmacionGrupoDTO {
 
     public String getCorreo() { return correo; }
     public void setCorreo(String correo) { this.correo = correo; }
+
+    public String getEventoId() { return eventoId; }
+    public void setEventoId(String eventoId) { this.eventoId = eventoId; }
 }
