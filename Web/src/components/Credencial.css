@@ -1,77 +1,233 @@
-/* La credencial de pasajero frecuente: la cuenta con forma de tarjeta. */
+/* La credencial de pasajero frecuente: la cuenta con forma de tarjeta.
+
+   Todo el color sale de los tokens de index.css salvo lo que va ENCIMA de la
+   tarjeta: esa superficie es oscura en los dos modos —como una tarjeta de
+   verdad, que no cambia de color según la luz del cuarto—, así que su texto es
+   blanco siempre y se escribe acá. */
 
 .credencial { margin-bottom: 26px; }
 
-.credencial-cara {
-  display: flex; align-items: center; justify-content: space-between;
-  gap: 20px; flex-wrap: wrap;
-  /* Superficie de color propia: una tarjeta tiene que parecer una tarjeta,
-     y así se lee igual de día y de noche porque trae su propio fondo. */
-  background: linear-gradient(135deg, #0a1628 0%, #10709c 60%, #1ea6dd 100%);
-  color: #fff;
-  border-radius: var(--r-lg);
-  padding: 22px 24px;
-  box-shadow: var(--sh);
-}
+/* ── El frente ─────────────────────────────────────────────────────────────
+   Proporción de tarjeta (85.6 × 54 mm). No es un capricho: es lo que hace que
+   se lea como una credencial y no como un recuadro de color más del sitio. */
 
-.credencial-datos { min-width: 0; }
-
-.credencial-marca {
-  font-family: var(--font-body);
-  font-size: 10.5px; font-weight: 600; letter-spacing: .18em;
-  text-transform: uppercase; color: rgba(255,255,255,.72);
-}
-.credencial-nombre {
-  margin: 6px 0 16px;
-  font-family: var(--font-head); font-size: 21px; font-weight: 700;
-  letter-spacing: -.01em;
-}
-
-.credencial-eti {
-  display: block;
-  font-size: 10px; font-weight: 600; letter-spacing: .14em;
-  text-transform: uppercase; color: rgba(255,255,255,.7);
-}
-.credencial-codigo {
-  margin: 3px 0 0;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 27px; font-weight: 600; letter-spacing: .06em;
-  font-variant-numeric: tabular-nums;
-}
-.credencial-doc {
-  margin: 8px 0 0;
-  font-size: 13px; color: rgba(255,255,255,.76);
-  font-variant-numeric: tabular-nums;
-}
-
-.credencial-copiar {
-  margin-top: 16px;
-  background: rgba(255,255,255,.14);
-  border: 1px solid rgba(255,255,255,.3);
-  color: #fff; font: inherit; font-size: 13px; font-weight: 600;
-  padding: 8px 15px; border-radius: var(--r-sm); cursor: pointer;
-  transition: background .16s var(--ease);
+.credencial-abrir {
+  display: block; width: 100%; max-width: 420px;
+  padding: 0; border: 0; background: none;
+  cursor: pointer; border-radius: var(--r-lg);
+  transition: transform .18s var(--ease), box-shadow .18s var(--ease);
 }
 @media (hover: hover) and (pointer: fine) {
-  .credencial-copiar:hover { background: rgba(255,255,255,.24); }
+  .credencial-abrir:hover { transform: translateY(-2px); }
+  .credencial-abrir:hover .credencial-cara { box-shadow: var(--sh-lg); }
 }
-.credencial-copiar:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.credencial-abrir:active { transform: translateY(0) scale(.994); }
+.credencial-abrir:focus-visible { outline: 2px solid var(--brand); outline-offset: 3px; }
+
+.credencial-cara {
+  position: relative; overflow: hidden;
+  aspect-ratio: 1.586 / 1;
+  display: flex; flex-direction: column; justify-content: space-between;
+  padding: 7.5%;
+  border-radius: var(--r-lg);
+  box-shadow: var(--sh);
+  text-align: left;
+
+  /* El río de noche: el azul de la marca bajando hasta el casi negro del
+     fondo oscuro del sitio. */
+  background:
+    radial-gradient(120% 90% at 82% 8%, rgba(30,166,221,.55) 0%, transparent 55%),
+    linear-gradient(152deg, #0b2d45 0%, #0b5578 48%, #06283a 100%);
+  color: #fff;
+}
+
+/* La luz que cruza la tarjeta. Es lo que la separa de un rectángulo pintado:
+   una superficie real tiene un reflejo, y el reflejo tiene un borde. */
+.credencial-brillo {
+  position: absolute; inset: 0;
+  background: linear-gradient(104deg,
+    transparent 38%, rgba(255,255,255,.10) 47%, rgba(255,255,255,.02) 56%, transparent 62%);
+  pointer-events: none;
+}
+
+/* El agua. Líneas finas y ondas largas: el reflejo de una lancha sobre el río,
+   no una trama de seguridad de tarjeta de crédito. Va muy baja de opacidad
+   porque esto se mira a 10 cm y tiene que notarse sin leerse. */
+.credencial-agua {
+  position: absolute; inset: -20% -10% auto -10%; height: 150%;
+  background:
+    repeating-linear-gradient(97deg,
+      rgba(255,255,255,.055) 0 1px, transparent 1px 9px),
+    repeating-linear-gradient(0deg,
+      rgba(255,255,255,.035) 0 1px, transparent 1px 22px);
+  mask-image: radial-gradient(130% 80% at 75% 20%, #000 10%, transparent 72%);
+  pointer-events: none;
+}
+
+/* ── Lo que dice ── */
+
+.credencial-top {
+  position: relative;
+  display: flex; align-items: baseline; justify-content: space-between; gap: 10px;
+}
+.credencial-marca {
+  font-family: var(--font-head);
+  font-size: clamp(11px, 3.1cqw, 13px); font-weight: 600;
+  letter-spacing: .02em; color: rgba(255,255,255,.82);
+}
+/* El rojo de la marca, que es lo único que la gente ya reconoce. Sobre este
+   azul el rojo puro pierde contraste, así que va un tono más claro. */
+.credencial-marca strong { color: #ff6b73; font-weight: 800; }
+
+.credencial-tipo {
+  font-size: clamp(8px, 2.3cqw, 9.5px); font-weight: 700;
+  letter-spacing: .16em; text-transform: uppercase;
+  color: rgba(255,255,255,.6);
+  white-space: nowrap;
+}
+
+/* El número, tratado como el número de una tarjeta: grande, monoespaciado y
+   separado. Así se dicta sin equivocarse y se compara de un vistazo. */
+.credencial-codigo {
+  position: relative; margin: 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: clamp(22px, 8.2cqw, 34px); font-weight: 600;
+  letter-spacing: .07em; line-height: 1;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 1px 2px rgba(0,0,0,.25);
+}
+
+.credencial-pie {
+  position: relative;
+  display: flex; align-items: center; gap: 11px; min-width: 0;
+}
+/* El timón, como el escudo de una tarjeta. Va directo sobre el azul, sin disco
+   detrás: un círculo blanco en una esquina se ve pegado, como una calcomanía.
+   El archivo es una silueta blanca —el original es azul marino sobre blanco y
+   sobre esta tarjeta desaparecería—, y a 32 px lo que se reconoce es la forma
+   del timón, no la letra de adentro. La sombra lo despega del degradado. */
+.credencial-sello {
+  flex: none;
+  width: clamp(34px, 10cqw, 46px); height: clamp(34px, 10cqw, 46px);
+  object-fit: contain;
+  filter: drop-shadow(0 1px 3px rgba(0,0,0,.35));
+}
+.credencial-quien { min-width: 0; display: flex; flex-direction: column; }
+.credencial-quien strong {
+  font-family: var(--font-head);
+  font-size: clamp(12px, 3.6cqw, 15px); font-weight: 700;
+  letter-spacing: .01em; line-height: 1.25;
+  text-transform: uppercase;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.credencial-quien small {
+  font-size: clamp(8.5px, 2.4cqw, 10.5px);
+  letter-spacing: .06em; text-transform: uppercase;
+  color: rgba(255,255,255,.62);
+}
+
+/* El texto de adentro escala con la tarjeta y no con la ventana: la misma cara
+   se usa chica en el resumen y grande al ampliarla. */
+.credencial-cara { container-type: inline-size; }
+
+.credencial-pista {
+  margin: 10px 2px 0; max-width: 420px;
+  font-size: 12.5px; color: var(--ink-soft); line-height: 1.5;
+  text-align: center;
+}
+
+
+/* ── Ampliada ─────────────────────────────────────────────────────────────
+   Acá el QR está a tamaño de escanear, que es para lo que se amplía. */
+
+.credencial-telon {
+  position: fixed; inset: 0; z-index: 80;
+  /* Flex con `margin: auto` en la hoja y no grid centrado: cuando la hoja es
+     más alta que la ventana —pasa en una laptop baja con el QR grande—, el
+     centrado recorta el borde de ARRIBA y deja el botón de cerrar fuera de
+     alcance. Con `margin: auto` se centra si entra y se apoya arriba si no. */
+  display: flex;
+  padding: 20px;
+  background: rgba(6, 18, 32, .72);
+  backdrop-filter: blur(4px);
+  overflow-y: auto;
+  animation: credencial-entra-telon .2s var(--ease);
+}
+.credencial-hoja {
+  position: relative;
+  margin: auto;
+  width: min(420px, 100%);
+  display: flex; flex-direction: column; align-items: center; gap: 18px;
+  /* El relleno de arriba es el sitio del botón de cerrar. Sin él, la × queda
+     ENCIMA de la tarjeta: gris de interfaz sobre azul oscuro, o sea invisible
+     justo en el único control que saca de acá. */
+  padding: 50px 22px 24px;
+  background: var(--card, #fff);
+  border-radius: var(--r-lg);
+  box-shadow: var(--sh-lg);
+  animation: credencial-entra .22s var(--ease);
+}
+.credencial-hoja .credencial-cara { width: 100%; }
+
+.credencial-cerrar {
+  position: absolute; top: 10px; right: 12px;
+  width: 34px; height: 34px; border-radius: 50%;
+  border: 0; background: transparent;
+  font-size: 24px; line-height: 1; color: var(--ink-soft);
+  cursor: pointer;
+}
+@media (hover: hover) and (pointer: fine) {
+  .credencial-cerrar:hover { background: var(--bg-soft); color: var(--ink); }
+}
+.credencial-cerrar:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
 
 /* Fondo blanco fijo: un QR sobre color no lo lee ningún lector. */
 .credencial-qr {
-  flex: none; background: #fff; padding: 10px;
+  background: #fff; padding: 12px;
   border-radius: var(--r-sm); line-height: 0;
+  box-shadow: var(--sh-sm);
 }
+.credencial-qr img { display: block; width: 220px; height: 220px; }
+
+.credencial-datos {
+  display: flex; align-items: center; justify-content: center;
+  gap: 14px; flex-wrap: wrap;
+}
+.credencial-doc {
+  margin: 0; font-size: 13.5px; color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+.credencial-copiar {
+  background: var(--bg-soft);
+  border: 1px solid var(--line, #e6ecf4);
+  color: var(--ink); font: inherit; font-size: 13px; font-weight: 600;
+  padding: 9px 16px; border-radius: var(--r-sm); cursor: pointer;
+  transition: background .16s var(--ease);
+}
+@media (hover: hover) and (pointer: fine) {
+  .credencial-copiar:hover { background: var(--bg-softer); }
+}
+.credencial-copiar:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
 
 .credencial-ayuda {
-  margin: 10px 2px 0;
+  margin: 0; max-width: 42ch; text-align: center;
   font-size: 13px; color: var(--ink-soft); line-height: 1.55;
-  max-width: 54ch;
 }
 
-@media (max-width: 520px) {
-  .credencial-cara { padding: 18px; gap: 16px; }
-  .credencial-codigo { font-size: 23px; }
-  .credencial-qr { margin-inline: auto; }
+@keyframes credencial-entra-telon { from { opacity: 0; } }
+@keyframes credencial-entra {
+  /* Nunca desde scale(0): nada en el mundo real aparece de la nada. */
+  from { opacity: 0; transform: scale(.96) translateY(10px); }
 }
-@media (prefers-reduced-motion: reduce) { .credencial-copiar { transition: none; } }
+
+@media (max-width: 420px) {
+  .credencial-hoja { padding: 46px 16px 20px; gap: 14px; }
+  .credencial-qr img { width: 180px; height: 180px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .credencial-abrir,
+  .credencial-copiar { transition: none; }
+  .credencial-abrir:hover { transform: none; }
+  .credencial-hoja { animation: credencial-entra-telon .2s var(--ease); }
+}

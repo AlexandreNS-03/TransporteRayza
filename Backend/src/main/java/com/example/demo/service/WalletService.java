@@ -237,6 +237,26 @@ public class WalletService {
                 "devolucion:" + referenciaDelCobro, motivo, Tipo.AJUSTE);
     }
 
+    /**
+     * Devuelve al saldo una parte de lo cobrado, por una venta en concreto.
+     *
+     * <p>No alcanza con {@link #devolver}: un cobro puede ser de cuatro pasajes
+     * en uno solo, y lo que se cancela es el viaje de uno. Devolver el cobro
+     * entero le regalaría tres pasajes a quien se queda con los otros tres.
+     *
+     * <p>La referencia la pone quien llama y tiene que ser la de <em>esa</em>
+     * venta: es lo único que impide que un segundo clic devuelva dos veces.
+     *
+     * <p>No mira si la wallet está encendida. Si se apagó después de que alguien
+     * pagó con su saldo, lo que corresponde igual es devolvérselo: apagar la
+     * wallet no es motivo para quedarse con la plata de nadie.
+     */
+    @Transactional
+    public SaldoMovimiento reintegrar(String email, BigDecimal monto,
+                                      String referencia, String motivo) {
+        return abonar(email, monto, referencia, motivo, Tipo.AJUSTE);
+    }
+
     /* ──────────────── Recargar ──────────────── */
 
     /**

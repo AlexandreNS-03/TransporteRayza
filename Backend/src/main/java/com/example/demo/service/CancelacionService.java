@@ -31,6 +31,7 @@ public class CancelacionService {
     private final CajaService cajaService;
     private final AuditoriaService auditoriaService;
     private final AlcanceSucursal alcance;
+    private final WalletService walletService;
 
     public CancelacionService(ViajeRepository viajeRepository,
                               VentaRepository ventaRepository,
@@ -38,7 +39,8 @@ public class CancelacionService {
                               AsientoService asientoService,
                               CajaService cajaService,
                               AuditoriaService auditoriaService,
-                              AlcanceSucursal alcance) {
+                              AlcanceSucursal alcance,
+                              WalletService walletService) {
         this.viajeRepository = viajeRepository;
         this.alcance = alcance;
         this.ventaRepository = ventaRepository;
@@ -46,6 +48,7 @@ public class CancelacionService {
         this.asientoService = asientoService;
         this.cajaService = cajaService;
         this.auditoriaService = auditoriaService;
+        this.walletService = walletService;
     }
 
     /** Cancela el viaje y deja sus pasajes pagados marcados como "por resolver". */
@@ -94,6 +97,12 @@ public class CancelacionService {
     /**
      * Devuelve el dinero: anula el pasaje y registra el egreso en la caja de
      * quien entrega la plata (por eso se confirma acá y no al cancelar).
+     *
+     * <p><strong>Lo pagado con saldo vuelve al saldo</strong>, y entonces no
+     * sale nada de la caja. Esa plata nunca entró a la caja —entró a la cuenta
+     * de la pasarela el día que la persona recargó—, así que entregarla en
+     * billetes deja el cajón corto por algo que ese mostrador no cobró. Y
+     * devolverla al saldo es instantáneo y no cuesta comisión.
      */
     @Transactional
     public Venta devolver(String ventaId, String usuarioNombre) {
@@ -105,6 +114,21 @@ public class CancelacionService {
         ventaRepository.save(v);
         asientoService.liberarAsiento(ventaId);
 
+        if (sePagoConSaldo(v)) {
+            // La referencia es la de ESTA venta: un cobro puede haber sido de
+            // cuatro pasajes y acá se cancela uno. Y si alguien da dos clics,
+            // la segunda vez no abona de nuevo.
+            walletService.reintegrar(v.getClienteEmail(), v.getPrecio(),
+                    "devolucion-venta:" + v.getId(),
+                    "Devolución por el viaje cancelado " + v.getViajeCodigo());
+
+            auditoriaService.registrar("DEVOLVER", "VENTAS", v.getId(),
+                    "Devolución S/ " + v.getPrecio() + " al saldo de " + v.getClienteEmail()
+                            + " por cancelación de " + v.getViajeCodigo()
+                            + " (no sale de la caja: se había pagado con saldo)");
+            return v;
+        }
+
         cajaService.registrarMovimientoAutomatico(usuarioNombre,
                 MovimientoCaja.TipoMovimiento.EGRESO, v.getPrecio(),
                 "Devolución por viaje cancelado " + v.getViajeCodigo()
@@ -115,6 +139,18 @@ public class CancelacionService {
                 "Devolución S/ " + v.getPrecio() + " a " + v.getPasajeroNombre()
                         + " por cancelación de " + v.getViajeCodigo());
         return v;
+    }
+
+    /**
+     * ¿Este pasaje se pagó con el saldo de una cuenta?
+     *
+     * <p>Hacen falta las dos cosas: el método y el correo. Sin correo no hay
+     * saldo al que devolver, y entonces la devolución tiene que ser la normal
+     * —en efectivo— antes que no devolver nada.
+     */
+    private boolean sePagoConSaldo(Venta v) {
+        return "SALDO".equalsIgnoreCase(v.getMetodoPago())
+                && v.getClienteEmail() != null && !v.getClienteEmail().isBlank();
     }
 
     /**

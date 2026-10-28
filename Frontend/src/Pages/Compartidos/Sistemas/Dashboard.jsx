@@ -22,13 +22,19 @@ function badgeViaje(estado) {
 
 const METODO_LABEL = {
     EFECTIVO: "Efectivo", YAPE: "Yape", PLIN: "Plin", TARJETA: "Tarjeta", TRANSFERENCIA: "Transferencia",
+    SALDO: "Saldo Rayza",
     "WEB SIN REGISTRAR": "Web (sin registrar)",
 };
 // Cómo entró la plata de una compra en línea. El método dice la pasarela:
 // la tarjeta la cobra Izipay y el Yape de la web lo cobra Mercado Pago.
+//
+// El saldo no tiene pasarela: la plata entró el día que el cliente recargó —por
+// Izipay, y contada ahí— y hoy solo cambió de mano adentro de Rayza. Se nombra
+// así para que no se lea como una cobranza más del día.
 const PASARELA_LABEL = {
     IZIPAY: "Izipay (tarjeta)",
     "MERCADO PAGO": "Mercado Pago (Yape)",
+    SALDO: "Saldo (recargado antes)",
     "SIN REGISTRAR": "Sin registrar",
 };
 

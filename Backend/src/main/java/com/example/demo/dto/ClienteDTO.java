@@ -11,6 +11,9 @@ public class ClienteDTO {
 
     /** Código de pasajero frecuente, tipo RZ-7K3M9Q. */
     private String codigoPasajero;
+
+    /** El año en que se abrió la cuenta: "2026". Va en la credencial. */
+    private String socioDesde;
     private String paisDocumento;
     private String fechaNacimiento;
     private String codigoPaisTelefono;
@@ -51,6 +54,9 @@ public class ClienteDTO {
 
     public String getCodigoPasajero() { return codigoPasajero; }
     public void setCodigoPasajero(String v) { this.codigoPasajero = v; }
+
+    public String getSocioDesde() { return socioDesde; }
+    public void setSocioDesde(String v) { this.socioDesde = v; }
 
     public String getPaisDocumento() { return paisDocumento; }
     public void setPaisDocumento(String paisDocumento) { this.paisDocumento = paisDocumento; }

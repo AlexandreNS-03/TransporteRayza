@@ -616,6 +616,25 @@ public class VentaService {
         // Liberar asiento
         asientoService.liberarAsiento(id);
 
+        // Lo pagado con saldo vuelve al saldo, y entonces no sale de la caja:
+        // esa plata nunca entró al cajón, así que entregarla en billetes lo
+        // deja corto por algo que ese mostrador no cobró.
+        if ("SALDO".equalsIgnoreCase(venta.getMetodoPago())
+                && venta.getClienteEmail() != null && !venta.getClienteEmail().isBlank()) {
+
+            walletService.reintegrar(venta.getClienteEmail(), venta.getPrecio(),
+                    "devolucion-venta:" + venta.getId(),
+                    "Devolución por la anulación de "
+                            + venta.getSerieComprobante() + "-" + venta.getNumeroComprobante());
+
+            auditoriaService.registrar("ANULAR", "VENTAS", venta.getId(),
+                    "Venta " + venta.getSerieComprobante() + "-" + venta.getNumeroComprobante()
+                            + " de " + venta.getPasajeroNombre() + " (S/ " + venta.getPrecio() + ")"
+                            + " — devuelta al saldo de " + venta.getClienteEmail()
+                            + ", no sale de la caja");
+            return toDTO(venta);
+        }
+
         // Egreso (devolución) en la caja abierta del usuario que anula
         cajaService.registrarMovimientoAutomatico(usuarioNombre,
                 MovimientoCaja.TipoMovimiento.EGRESO,
@@ -658,6 +677,7 @@ public class VentaService {
 
     private final com.example.demo.repository.RutaRepository rutaRepository;
     private final SorteoService sorteoService;
+    private final WalletService walletService;
     private final com.example.demo.repository.ViajeParadaRepository viajeParadaRepository;
 
     public VentaService(VentaRepository ventaRepository,
@@ -672,7 +692,8 @@ public class VentaService {
                         com.example.demo.repository.RutaRepository rutaRepository,
                         com.example.demo.repository.ViajeParadaRepository viajeParadaRepository,
                         SorteoService sorteoService,
-                        AlcanceSucursal alcance) {
+                        AlcanceSucursal alcance,
+                        WalletService walletService) {
         this.ventaRepository      = ventaRepository;
         this.tramoUsadoRepository = tramoUsadoRepository;
         this.viajeRepository      = viajeRepository;
@@ -686,6 +707,7 @@ public class VentaService {
         this.viajeParadaRepository = viajeParadaRepository;
         this.sorteoService        = sorteoService;
         this.alcance              = alcance;
+        this.walletService        = walletService;
     }
 
     /**
