@@ -1,0 +1,77 @@
+/* La credencial de pasajero frecuente: la cuenta con forma de tarjeta. */
+
+.credencial { margin-bottom: 26px; }
+
+.credencial-cara {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 20px; flex-wrap: wrap;
+  /* Superficie de color propia: una tarjeta tiene que parecer una tarjeta,
+     y así se lee igual de día y de noche porque trae su propio fondo. */
+  background: linear-gradient(135deg, #0a1628 0%, #10709c 60%, #1ea6dd 100%);
+  color: #fff;
+  border-radius: var(--r-lg);
+  padding: 22px 24px;
+  box-shadow: var(--sh);
+}
+
+.credencial-datos { min-width: 0; }
+
+.credencial-marca {
+  font-family: var(--font-body);
+  font-size: 10.5px; font-weight: 600; letter-spacing: .18em;
+  text-transform: uppercase; color: rgba(255,255,255,.72);
+}
+.credencial-nombre {
+  margin: 6px 0 16px;
+  font-family: var(--font-head); font-size: 21px; font-weight: 700;
+  letter-spacing: -.01em;
+}
+
+.credencial-eti {
+  display: block;
+  font-size: 10px; font-weight: 600; letter-spacing: .14em;
+  text-transform: uppercase; color: rgba(255,255,255,.7);
+}
+.credencial-codigo {
+  margin: 3px 0 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 27px; font-weight: 600; letter-spacing: .06em;
+  font-variant-numeric: tabular-nums;
+}
+.credencial-doc {
+  margin: 8px 0 0;
+  font-size: 13px; color: rgba(255,255,255,.76);
+  font-variant-numeric: tabular-nums;
+}
+
+.credencial-copiar {
+  margin-top: 16px;
+  background: rgba(255,255,255,.14);
+  border: 1px solid rgba(255,255,255,.3);
+  color: #fff; font: inherit; font-size: 13px; font-weight: 600;
+  padding: 8px 15px; border-radius: var(--r-sm); cursor: pointer;
+  transition: background .16s var(--ease);
+}
+@media (hover: hover) and (pointer: fine) {
+  .credencial-copiar:hover { background: rgba(255,255,255,.24); }
+}
+.credencial-copiar:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+
+/* Fondo blanco fijo: un QR sobre color no lo lee ningún lector. */
+.credencial-qr {
+  flex: none; background: #fff; padding: 10px;
+  border-radius: var(--r-sm); line-height: 0;
+}
+
+.credencial-ayuda {
+  margin: 10px 2px 0;
+  font-size: 13px; color: var(--ink-soft); line-height: 1.55;
+  max-width: 54ch;
+}
+
+@media (max-width: 520px) {
+  .credencial-cara { padding: 18px; gap: 16px; }
+  .credencial-codigo { font-size: 23px; }
+  .credencial-qr { margin-inline: auto; }
+}
+@media (prefers-reduced-motion: reduce) { .credencial-copiar { transition: none; } }

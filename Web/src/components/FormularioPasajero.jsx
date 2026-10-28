@@ -1,19 +1,23 @@
-import ElegirAcompanante from "./ElegirAcompanante";
+import ElegirPasajero from "./ElegirPasajero";
 
 /**
  * Datos personales de UN pasajero. El correo de contacto y el comprobante son del
  * grupo y se piden aparte (una sola vez), no por pasajero.
  */
-export default function FormularioPasajero({ pasajero, setPasajero, titulo }) {
+export default function FormularioPasajero({ pasajero, setPasajero, titulo, fechaViaje }) {
   const set = (campo) => (e) => setPasajero({ ...pasajero, [campo]: e.target.value });
 
   return (
     <div>
       {titulo && <h4 className="pasajero-titulo">{titulo}</h4>}
 
-      {/* Para quien tiene acompañantes guardados: llena el formulario de una.
-          Si no hay sesión o la lista está vacía, no se muestra. */}
-      <ElegirAcompanante onElegir={(datos) => setPasajero({ ...pasajero, ...datos })} />
+      {/* Para quien entró a su cuenta: llena el formulario con sus datos —con
+          el documento de viaje que elija— o con los de un acompañante guardado.
+          Sin sesión no se muestra. */}
+      <ElegirPasajero
+        fechaViaje={fechaViaje}
+        onElegir={(datos) => setPasajero({ ...pasajero, ...datos })}
+      />
 
       <div className="form-grid">
         <div className="field">

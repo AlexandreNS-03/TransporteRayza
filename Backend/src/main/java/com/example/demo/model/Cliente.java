@@ -111,6 +111,14 @@ public class Cliente {
     @Column(name = "sesiones_desde")
     private LocalDateTime sesionesDesde;
 
+    /**
+     * El código de pasajero frecuente, tipo RZ-7K3M9Q. Se asigna la primera vez
+     * que el cliente entra a su cuenta, no al registrarse: así lo tienen también
+     * las cuentas que ya existían.
+     */
+    @Column(name = "codigo_pasajero", length = 12, unique = true)
+    private String codigoPasajero;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
@@ -199,6 +207,9 @@ public class Cliente {
 
     public LocalDateTime getSesionesDesde() { return sesionesDesde; }
     public void setSesionesDesde(LocalDateTime v) { this.sesionesDesde = v; }
+
+    public String getCodigoPasajero() { return codigoPasajero; }
+    public void setCodigoPasajero(String v) { this.codigoPasajero = v; }
 
     public Boolean getActivo() { return activo; }
     public void setActivo(Boolean activo) { this.activo = activo; }

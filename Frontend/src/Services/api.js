@@ -157,6 +157,16 @@ export async function consultarDni(dni) {
     return apiFetch(`/api/consulta/dni/${dni}`);
 }
 
+/**
+ * La cuenta que está detrás de un código de credencial: "RZ-7K3M9Q".
+ *
+ * El mostrador lo escribe tal como se lo dictaron —con espacios, en minúscula
+ * o sin el "RZ"—; el servidor lo endereza antes de buscarlo.
+ */
+export async function buscarPasajeroPorCodigo(codigo) {
+    return apiFetch(`/api/pasajeros/por-codigo/${encodeURIComponent(codigo)}`);
+}
+
 export async function consultarRuc(ruc) {
     return apiFetch(`/api/consulta/ruc/${ruc}`);
 }

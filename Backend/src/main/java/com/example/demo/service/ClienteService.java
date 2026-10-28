@@ -147,22 +147,19 @@ public class ClienteService {
     }
 
     /**
-     * Cambia la contraseña desde adentro de la cuenta.
+     * Cambia la contraseña desde adentro de la cuenta, y devuelve un token nuevo.
      *
-     * Pide la actual aunque ya esté la sesión abierta: si alguien se sienta en
-     * la computadora con la sesión puesta, que no pueda quedarse con la cuenta.
-     * Y se avisa por correo, porque un cambio que el dueño no hizo tiene que
-     * enterarse en el momento.
-     */
-    @Transactional
-    /**
-     * Cambia la contraseña y devuelve un token nuevo.
+     * <p>Pide la actual aunque ya esté la sesión abierta: si alguien se sienta
+     * en la computadora con la sesión puesta, que no pueda quedarse con la
+     * cuenta. Y se avisa por correo, porque un cambio que el dueño no hizo tiene
+     * que enterarse en el momento.
      *
      * <p>El token nuevo no es un lujo: al cambiar la clave se cortan todas las
      * sesiones de la cuenta, y sin esto el navegador que acaba de hacer el
      * cambio se quedaría afuera de inmediato —el usuario vería "iniciá sesión"
      * justo después de escribir su contraseña nueva dos veces—.
      */
+    @Transactional
     public String cambiarClave(String email, String actual, String nueva) {
         Cliente c = obtenerPorEmail(email);
         if (!passwordEncoder.matches(actual == null ? "" : actual, c.getPassword()))
@@ -212,7 +209,39 @@ public class ClienteService {
                 .orElseThrow(() -> new RuntimeException("Cliente no encontrado"));
     }
 
-    public ClienteDTO perfil(String email) { return toDTO(obtenerPorEmail(email)); }
+    public ClienteDTO perfil(String email) {
+        return toDTO(conCodigoDePasajero(obtenerPorEmail(email)));
+    }
+
+    /**
+     * Le asigna el código de pasajero frecuente si todavía no tiene.
+     *
+     * <p>Se hace al entrar a la cuenta y no al registrarse para que también lo
+     * tengan las cuentas que ya existían: la alternativa era una migración que
+     * recorriera la tabla, y esto se resuelve solo la primera vez que cada uno
+     * entra.
+     *
+     * <p>Si el código sorteado ya existe —cosa improbable con 31 letras y seis
+     * posiciones, pero la base lo impide igual— se intenta de nuevo. Y si aun
+     * así falla, se devuelve el cliente sin código antes que dejarlo sin ver su
+     * cuenta: la credencial es una comodidad, no un requisito.
+     */
+    /* Sin @Transactional: lo llama perfil() desde esta misma clase y una llamada
+       interna no pasa por la envoltura de Spring, así que la anotación no haría
+       nada. No hace falta: saveAndFlush abre la suya. */
+    private Cliente conCodigoDePasajero(Cliente c) {
+        if (c.getCodigoPasajero() != null && !c.getCodigoPasajero().isBlank()) return c;
+
+        for (int intento = 0; intento < 5; intento++) {
+            c.setCodigoPasajero(CodigoPasajero.nuevo());
+            try {
+                return clienteRepository.saveAndFlush(c);
+            } catch (org.springframework.dao.DataIntegrityViolationException e) {
+                c.setCodigoPasajero(null);   // sorteado repetido: otra vuelta
+            }
+        }
+        return c;
+    }
 
     @Transactional
     public ClienteDTO actualizarPerfil(String email, ClienteDTO datos) {
@@ -403,6 +432,7 @@ public class ClienteService {
         dto.setTipoDocumento(c.getTipoDocumento() != null ? c.getTipoDocumento().name() : null);
         dto.setNumeroDocumento(c.getNumeroDocumento());
         dto.setPaisDocumento(c.getPaisDocumento());
+        dto.setCodigoPasajero(c.getCodigoPasajero());
         dto.setFechaNacimiento(c.getFechaNacimiento() != null ? c.getFechaNacimiento().toString() : null);
         dto.setCodigoPaisTelefono(c.getCodigoPaisTelefono());
         dto.setTelefono(c.getTelefono());

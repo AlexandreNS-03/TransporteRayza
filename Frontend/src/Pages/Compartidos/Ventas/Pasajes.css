@@ -678,6 +678,18 @@
 .btn-consulta:hover:not(:disabled) { background: var(--color-primario-osc); }
 .btn-consulta:disabled { background: var(--color-borde-2); cursor: not-allowed; }
 
+/* Código de credencial: el atajo, no el camino. Va antes del documento porque
+   es lo primero que la persona dice, pero en voz baja: la mayoría de las
+   ventas del mostrador son de gente sin cuenta y el formulario no puede
+   empezar con un campo que casi nadie llena. */
+.credencial-buscar { margin-bottom: 14px; }
+.credencial-buscar .doc-consulta { max-width: 320px; }
+.credencial-buscar input { text-transform: uppercase; letter-spacing: .04em; }
+.credencial-buscar small {
+    display: block; margin-top: 5px;
+    font-size: 11.5px; color: var(--color-texto-slate);
+}
+
 /* ══════════ TABLAS RESPONSIVE — tarjetas en móvil ══════════ */
 @media (max-width: 720px) {
     /* La tabla deja de ser tabla y cada fila es una tarjeta */
