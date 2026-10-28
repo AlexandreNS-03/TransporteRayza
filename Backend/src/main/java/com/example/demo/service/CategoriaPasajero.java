@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.util.List;
 
 /**
  * La categoría de pasajero frecuente: cuánto viajó y qué descuento le toca.
@@ -109,6 +110,30 @@ public class CategoriaPasajero {
         BigDecimal resultado = precio.subtract(rebaja);
         return resultado.signum() < 0 ? BigDecimal.ZERO : resultado;
     }
+
+    /** Un escalón del programa, como se le cuenta a quien todavía no tiene cuenta. */
+    public record Escalon(String nombre, int viajes, int descuento) {}
+
+    /**
+     * El programa tal como se publica.
+     *
+     * <p>Lo pide la web para contarlo en la página de inicio. Sale de acá y no
+     * está escrito en la página porque estos números se ajustan desde la
+     * configuración: una página que promete "6 viajes" cuando ya son ocho es una
+     * promesa que el sistema no va a cumplir, y el que reclama tiene razón.
+     *
+     * <p>Apagado devuelve la lista vacía, y entonces la web no anuncia nada. Un
+     * beneficio anunciado que no existe todavía es peor que no anunciarlo.
+     */
+    public List<Escalon> escalones() {
+        if (!habilitada) return List.of();
+        return List.of(
+                new Escalon(nombre(Nivel.PLATA), viajesPlata, descuentoPlata),
+                new Escalon(nombre(Nivel.ORO), viajesOro, descuentoOro));
+    }
+
+    /** Cuántos meses hacia atrás cuentan los viajes. */
+    public int mesesDeLaVentana() { return meses; }
 
     /** Cómo se llama la categoría en pantalla. */
     public static String nombre(Nivel n) {

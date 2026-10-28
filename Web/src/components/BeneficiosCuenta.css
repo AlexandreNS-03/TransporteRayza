@@ -1,0 +1,183 @@
+/* Por qué conviene tener cuenta.
+
+   Es una franja de promoción dentro de la página, así que tiene fondo propio:
+   sin eso queda igual que la sección de arriba y se lee como más de lo mismo.
+
+   Todo el color sale de los tokens de index.css salvo lo que va ENCIMA de los
+   escalones: esa superficie es oscura en los dos modos —como la credencial, que
+   es una tarjeta y no cambia de color según la luz del cuarto—, así que su texto
+   es blanco siempre y se escribe acá. */
+
+.beneficios {
+  background: linear-gradient(180deg, var(--sky-soft) 0%, transparent 70%);
+}
+
+.beneficios-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+  gap: 48px;
+  align-items: center;
+}
+
+/* ── El argumento ── */
+
+/* Sin programa de fidelidad no hay escalera, y una sola columna de ancho entero
+   deja un párrafo de 90 caracteres que nadie lee. Centrado y acotado. */
+.beneficios-grid.sin-escalera { grid-template-columns: 1fr; justify-items: center; text-align: center; }
+.beneficios-grid.sin-escalera .beneficios-pitch p { margin-inline: auto; }
+
+.beneficios-pitch h2 {
+  margin: 10px 0 14px;
+  font-family: var(--font-head);
+  font-size: clamp(28px, 3.4vw, 42px);
+  font-weight: 800;
+  line-height: 1.12;
+  letter-spacing: -.02em;
+  color: var(--ink);
+  text-wrap: balance;
+}
+.beneficios-pitch p {
+  margin: 0 0 24px;
+  max-width: 46ch;
+  font-size: 16px;
+  line-height: 1.65;
+  color: var(--ink-soft);
+}
+.beneficios-nota {
+  display: block;
+  margin-top: 12px;
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+
+/* ── La escalera ──
+   Dos niveles, y el de arriba pesa más porque da más. Dos tarjetas iguales
+   dirían que da lo mismo llegar a uno o al otro. */
+
+.escalera {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  align-items: end;
+}
+
+.escalon {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 26px 22px 22px;
+  border-radius: var(--r-lg);
+  color: #fff;
+  box-shadow: var(--sh);
+
+  /* El río de noche, el mismo de la credencial: quien llega al nivel recibe
+     una tarjeta con este fondo, y tiene que reconocerlo.
+
+     Va un punto más oscuro que el de la credencial y con el brillo a menos de la
+     mitad. En la credencial el texto esquiva el brillo; acá el número grande cae
+     justo encima, y sobre el cian el dorado se queda en 3.6:1. Medido: con estos
+     valores el peor punto del fondo deja el dorado en 4.9 y el texto chico en 6.7. */
+  background:
+    radial-gradient(120% 90% at 82% 8%, rgba(30,166,221,.22) 0%, transparent 55%),
+    linear-gradient(152deg, #0b2d45 0%, #0a4d6d 48%, #06283a 100%);
+}
+
+/* El segundo escalón es el premio grande: más alto y con un borde encendido.
+   La diferencia se ve antes de leer los números. */
+.escalon.es-oro {
+  padding-top: 38px;
+  box-shadow: var(--sh-lg);
+  outline: 1px solid rgba(255,217,138,.45);
+  outline-offset: -1px;
+}
+
+.escalon-nivel {
+  font-family: var(--font-head);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+}
+.escalon.es-plata .escalon-nivel { color: #dbe6f0; }
+.escalon.es-oro   .escalon-nivel { color: #ffd98a; }
+
+.escalon-dto {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+  font-family: var(--font-head);
+  line-height: 1;
+}
+.escalon-dto strong {
+  font-size: clamp(44px, 7vw, 64px);
+  font-weight: 800;
+  letter-spacing: -.03em;
+  font-variant-numeric: tabular-nums;
+}
+.escalon-dto span { font-size: 22px; font-weight: 700; opacity: .85; }
+.escalon.es-oro .escalon-dto { color: #ffd98a; }
+
+.escalon-pie {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255,255,255,.9);
+}
+/* .72 y no menos: a 12 px hace falta 4.5:1 y con .62 medía 4.18 sobre el tramo
+   más claro del degradado. Medido, no estimado. */
+.escalon-pie small {
+  font-size: 12px;
+  font-weight: 400;
+  color: rgba(255,255,255,.75);
+}
+
+/* ── Los apoyos ──
+   Van como texto con una línea arriba y no como tarjetas: tres tarjetas más
+   dirían que esto pesa igual que la escalera, y no es cierto. */
+
+/* auto-fit y no tres columnas fijas: con la fidelidad apagada quedan dos apoyos,
+   y la tercera columna reservada los dejaba ocupando dos tercios del ancho. */
+.beneficios-extras {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 28px;
+  margin: 52px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.beneficios-extras li {
+  padding-top: 18px;
+  border-top: 2px solid var(--line-strong);
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--ink-soft);
+}
+.beneficios-extras strong {
+  display: block;
+  margin-bottom: 6px;
+  font-family: var(--font-head);
+  font-size: 15.5px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+@media (max-width: 900px) {
+  .beneficios-grid { grid-template-columns: 1fr; gap: 34px; }
+  .beneficios-extras { grid-template-columns: 1fr; gap: 22px; margin-top: 40px; }
+}
+
+@media (max-width: 560px) {
+  /* En una columna el escalón alto deja de tener con qué compararse, así que el
+     relleno extra solo haría una tarjeta más larga sin decir nada. */
+  .escalera { gap: 14px; }
+  .escalon.es-oro { padding-top: 26px; }
+  .escalon-dto strong { font-size: 40px; }
+}
