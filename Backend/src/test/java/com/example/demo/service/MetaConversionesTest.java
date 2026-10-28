@@ -23,9 +23,11 @@ import static org.junit.jupiter.api.Assertions.*;
 class MetaConversionesTest {
 
     private static final String TOKEN = "EAAG-token-secreto-de-prueba-123456";
+    /** Inventado a propósito: al servicio solo le importa que no venga vacío. */
+    private static final String PIXEL = "111111111111111";
 
     private MetaConversionesService servicio() {
-        return MetaConversionesService.paraPruebas("928682004455961", TOKEN, "TEST1234");
+        return MetaConversionesService.paraPruebas(PIXEL, TOKEN, "TEST1234");
     }
 
     /* ── El id que impide contar dos veces ── */
@@ -112,7 +114,7 @@ class MetaConversionesTest {
     @Test
     @DisplayName("Sin token no está habilitada: la confirmación va sin id")
     void sinTokenNoAvisa() {
-        var s = MetaConversionesService.paraPruebas("928682004455961", "", null);
+        var s = MetaConversionesService.paraPruebas(PIXEL, "", null);
         assertFalse(s.estaHabilitada());
 
         var sinPixel = MetaConversionesService.paraPruebas("", TOKEN, null);
