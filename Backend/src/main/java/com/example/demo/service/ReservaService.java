@@ -74,6 +74,7 @@ public class ReservaService {
     private final SorteoService sorteoService;
     private final WalletService walletService;
     private final CategoriaPasajero categorias;
+    private final MetaConversionesService metaConversiones;
 
     public ReservaService(ViajeRepository viajeRepository,
                           VentaRepository ventaRepository,
@@ -89,7 +90,8 @@ public class ReservaService {
                           CierrePagoWebService cierrePagoWebService,
                           SorteoService sorteoService,
                           WalletService walletService,
-                          CategoriaPasajero categorias) {
+                          CategoriaPasajero categorias,
+                          MetaConversionesService metaConversiones) {
         this.comprobanteService = comprobanteService;
         this.publicService = publicService;
         this.cierrePagoWebService = cierrePagoWebService;
@@ -105,6 +107,7 @@ public class ReservaService {
         this.sorteoService = sorteoService;
         this.walletService = walletService;
         this.categorias = categorias;
+        this.metaConversiones = metaConversiones;
     }
 
     @Transactional
@@ -796,6 +799,18 @@ public class ReservaService {
         ConfirmacionGrupoDTO g = new ConfirmacionGrupoDTO();
         g.setPasajeros(boletos);
         g.setMontoTotal(total);
+
+        // Una compra de cuatro pasajes es UNA venta para una campaña, así que va un
+        // solo evento con el total. Y el id sale del grupo, no del primer pasaje: el
+        // orden de `pendientes` no es el de `reservaIds`, y si cada lado eligiera por
+        // su cuenta no coincidirían y la compra se contaría dos veces.
+        if (primera != null) {
+            String eventoId = metaConversiones.estaHabilitada()
+                    ? metaConversiones.idDeEvento(primera.getGrupoVentaId(), primera.getId()) : null;
+            metaConversiones.avisarCompra(eventoId, total, boletos.size(),
+                    primera.getViajeDescripcion());
+            g.setEventoId(eventoId);
+        }
         g.setCorreoEnviado(correoOk);
         g.setCorreo(boletos.isEmpty() ? null : boletos.get(0).getCorreo());
         g.setMensaje(pendientes.isEmpty() ? "Esta compra ya estaba pagada" : "¡Pago realizado con éxito!");
@@ -859,7 +874,16 @@ public class ReservaService {
             System.err.println("[Reserva] No se pudo enviar el correo del boleto: " + e.getMessage());
         }
 
+        // Avisarle a Meta desde acá, con la plata ya cobrada y el asiento confirmado:
+        // el píxel del navegador pierde cerca de un tercio de los eventos. El id va
+        // también en la respuesta para que el navegador mande el suyo con el MISMO,
+        // y Meta se quede con una sola compra en vez de contar dos.
+        String eventoId = metaConversiones.estaHabilitada()
+                ? metaConversiones.idDeEvento(v.getGrupoVentaId(), v.getId()) : null;
+        metaConversiones.avisarCompra(eventoId, v.getPrecio(), 1, v.getViajeDescripcion());
+
         ConfirmacionDTO dto = confirmacion(v, enviado, "¡Pago realizado con éxito!");
+        dto.setEventoId(eventoId);
         if (comprobante != null) {
             dto.setComprobanteElectronico(comprobante.getSerie() + "-" + comprobante.getNumero());
             dto.setEnlacePdf(comprobante.getEnlacePdf());

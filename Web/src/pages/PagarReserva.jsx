@@ -68,6 +68,7 @@ export default function PagarReserva() {
       total: confirmacion?.montoTotal ?? datos?.total,
       pasajes: confirmacion?.pasajeros?.length ?? 1,
       ruta: datos ? `${datos.origen} → ${datos.destino}` : "",
+      eventoId: confirmacion?.eventoId ?? confirmacion?.pasajeros?.[0]?.eventoId,
     });
   }, [confirmacion, datos]);
 

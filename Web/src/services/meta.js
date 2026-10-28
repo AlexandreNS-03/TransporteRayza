@@ -37,12 +37,12 @@ export function iniciarMeta() {
    absolutamente nada, así que ese respaldo mediría visitas de gente que nunca vio
    la página. */
 
-export function metaEvento(nombre, datos) {
+export function metaEvento(nombre, datos, eventoId) {
   if (!cargado || !window.fbq) return;
   try {
     // Meta nombra los campos distinto que Google: se traduce acá y no en quien
     // llama, para que las pantallas no tengan que saber de ninguna plataforma.
-    window.fbq("track", nombre, {
+    const contenido = {
       currency: datos.currency,
       value: datos.value,
       content_type: "product",
@@ -50,6 +50,12 @@ export function metaEvento(nombre, datos) {
         id: i.item_name, quantity: i.quantity,
       })),
       search_string: datos.search_term,
-    });
+    };
+
+    // Con eventID, Meta reconoce este aviso y el que manda el servidor como el
+    // MISMO hecho y se queda con uno. Sin él contaría dos ventas por cada compra,
+    // y con dos campañas midiendo el doble se decide mal dónde poner la plata.
+    if (eventoId) window.fbq("track", nombre, contenido, { eventID: eventoId });
+    else window.fbq("track", nombre, contenido);
   } catch { /* nunca romper la compra por un píxel */ }
 }

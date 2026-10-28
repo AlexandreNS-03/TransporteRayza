@@ -216,6 +216,7 @@ export default function Comprar() {
       total: totalACobrar,
       pasajes: asientos,
       ruta: ida.viaje ? `${ida.viaje.origen} → ${ida.viaje.destino}` : "",
+      eventoId: conf?.eventoId ?? conf?.pasajeros?.[0]?.eventoId,
     });
     setPaso(3);
     scrollTop();

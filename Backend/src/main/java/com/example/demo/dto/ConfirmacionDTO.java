@@ -18,7 +18,17 @@ public class ConfirmacionDTO {
     private String mensaje;
     private String comprobanteElectronico;  // serie-número de la boleta/factura, si se emitió
     private String enlacePdf;
-    private String correo;               // PDF oficial de Nubefact
+    private String correo;
+
+    /**
+     * El id con el que esta compra se le avisa a Meta.
+     *
+     * <p>El navegador lo manda tal cual en SU evento de compra para que los dos
+     * avisos —el del navegador y el del servidor— se reconozcan como el mismo y
+     * no se cuenten dos ventas. Va nulo cuando el servidor no avisa nada: ahí el
+     * del navegador es el único y no hay nada que deduplicar.
+     */
+    private String eventoId;               // PDF oficial de Nubefact
 
     public String getVentaId() { return ventaId; }
     public void setVentaId(String ventaId) { this.ventaId = ventaId; }
@@ -64,4 +74,7 @@ public class ConfirmacionDTO {
 
     public String getCorreo() { return correo; }
     public void setCorreo(String correo) { this.correo = correo; }
+
+    public String getEventoId() { return eventoId; }
+    public void setEventoId(String eventoId) { this.eventoId = eventoId; }
 }

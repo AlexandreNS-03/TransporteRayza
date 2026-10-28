@@ -22,9 +22,9 @@ import { iniciarTiktok, tiktokEvento } from "./tiktok";
  */
 
 /** Las tres plataformas, en el orden en que se avisan. */
-function aTodos(nombreGA, nombreMeta, nombreTiktok, datos) {
+function aTodos(nombreGA, nombreMeta, nombreTiktok, datos, eventoId) {
   try { window.gtag?.("event", nombreGA, datos); } catch { /* nunca romper la compra */ }
-  if (nombreMeta) metaEvento(nombreMeta, datos);
+  if (nombreMeta) metaEvento(nombreMeta, datos, eventoId);
   if (nombreTiktok) tiktokEvento(nombreTiktok, datos);
 }
 
@@ -86,16 +86,20 @@ export const eventos = {
    * quién parecerse para traer más compradores, y no hay forma de saber cuánto
    * cuesta una venta.
    */
-  compro({ id, total, pasajes, ruta }) {
+  compro({ id, total, pasajes, ruta, eventoId }) {
     if (!id || yaAvisadas.has(id)) return;
     yaAvisadas.add(id);
 
+    // `eventoId` lo decide el servidor y viaja en la confirmación. Es el mismo
+    // que él le manda a Meta por su cuenta, y es lo único que impide que una
+    // compra se cuente dos veces. Si viene vacío, el servidor no está avisando
+    // nada y este evento es el único que hay.
     aTodos("purchase", "Purchase", "CompletePayment", {
       transaction_id: id,
       currency: "PEN",
       value: Number(total) || 0,
       items: [{ item_name: ruta, quantity: pasajes, price: redondear(total, pasajes) }],
-    });
+    }, eventoId);
   },
 };
 
