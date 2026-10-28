@@ -10,7 +10,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -171,17 +170,19 @@ public class CancelacionService {
         ventaRepository.save(v);
         asientoService.liberarAsiento(ventaId);
 
-        SaldoMovimiento m = new SaldoMovimiento();
-        m.setId(UUID.randomUUID().toString());
-        m.setClienteEmail(email.trim().toLowerCase());
-        m.setClienteDocumento(v.getPasajeroDocumento());
-        m.setClienteNombre(v.getPasajeroNombre());
-        m.setMonto(v.getPrecio());
-        m.setMotivo("Saldo a favor por cancelación del viaje " + v.getViajeCodigo());
-        m.setVentaId(v.getId());
-        m.setUsuarioNombre(usuarioNombre);
-        m.setCreatedAt(LocalDateTime.now());
-        saldoRepository.save(m);
+        // Por el WalletService y con referencia, nunca a mano. Dos clics al mismo
+        // botón entran los dos: `paraResolver` mira la venta con una lectura
+        // corriente, y en REPEATABLE READ las dos transacciones ven el mismo
+        // PENDIENTE. Lo único que frena el segundo abono es la referencia única
+        // del movimiento — escribiéndolo a mano iba sin ella, y el monto se
+        // acreditaba dos veces. Ver WalletService.abonar.
+        walletService.abonar(
+                email, v.getPrecio(),
+                "saldo-favor-venta:" + v.getId(),
+                "Saldo a favor por cancelación del viaje " + v.getViajeCodigo(),
+                SaldoMovimiento.Tipo.SALDO_FAVOR,
+                new WalletService.Detalle(v.getPasajeroDocumento(), v.getPasajeroNombre(),
+                        v.getId(), usuarioNombre));
 
         auditoriaService.registrar("SALDO_FAVOR", "VENTAS", v.getId(),
                 "Saldo a favor S/ " + v.getPrecio() + " para " + email

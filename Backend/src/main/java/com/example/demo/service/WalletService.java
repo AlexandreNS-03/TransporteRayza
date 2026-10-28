@@ -148,13 +148,41 @@ public class WalletService {
     @Transactional
     public SaldoMovimiento abonar(String email, BigDecimal monto, String referencia,
                                   String motivo, Tipo tipo) {
+        return abonar(email, monto, referencia, motivo, tipo, null);
+    }
+
+    /**
+     * De quién era el pasaje y quién tomó la decisión.
+     *
+     * <p>Lo llevan los movimientos que después mira una persona en el mostrador.
+     * Un "abono S/ 90" que no dice de quién era el pasaje ni por orden de quién
+     * se hizo no se puede revisar en una ventanilla.
+     */
+    public record Detalle(String documento, String nombre, String ventaId, String usuarioNombre) {}
+
+    /** Igual que {@link #abonar}, guardando además de quién y por qué pasaje es. */
+    @Transactional
+    public SaldoMovimiento abonar(String email, BigDecimal monto, String referencia,
+                                  String motivo, Tipo tipo, Detalle detalle) {
         if (monto == null || monto.signum() <= 0)
             throw new RuntimeException("El monto a abonar tiene que ser mayor que cero");
+
+        // Sin referencia no hay nada que impida contar el mismo abono dos veces: el
+        // índice único de la columna es único pero acepta vacíos, y MySQL permite
+        // tantos vacíos como quieras. Así se acreditó dos veces un saldo a favor.
+        if (referencia == null || referencia.isBlank())
+            throw new RuntimeException("Un abono sin referencia no se puede acreditar");
 
         Optional<SaldoMovimiento> yaEsta = movimientos.findByReferencia(referencia);
         if (yaEsta.isPresent()) return yaEsta.get();   // reintento: no se cuenta dos veces
 
         SaldoMovimiento m = nuevo(email, monto, motivo, tipo, referencia);
+        if (detalle != null) {
+            m.setClienteDocumento(detalle.documento());
+            m.setClienteNombre(detalle.nombre());
+            m.setVentaId(detalle.ventaId());
+            m.setUsuarioNombre(detalle.usuarioNombre());
+        }
         try {
             movimientos.saveAndFlush(m);
         } catch (DataIntegrityViolationException e) {
