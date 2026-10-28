@@ -8,7 +8,7 @@
  *
  * <p>Solo en el build de producción, y solo después de aceptar las cookies.
  */
-const PIXEL_ID = import.meta.env.VITE_META_PIXEL_ID || "928682004455961";
+const PIXEL_ID = import.meta.env.VITE_META_PIXEL_ID || "1588856759187757";
 let cargado = false;
 
 export function iniciarMeta() {
