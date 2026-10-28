@@ -60,7 +60,7 @@ class DevolverPagadoConSaldoTest {
             }
         };
 
-        WalletService wallet = new WalletService(null, null, null, null, null) {
+        WalletService wallet = new WalletService(null, null, null, null, null, null) {
             @Override public SaldoMovimiento reintegrar(String email, BigDecimal monto,
                                                         String referencia, String motivo) {
                 SaldoMovimiento m = new SaldoMovimiento();

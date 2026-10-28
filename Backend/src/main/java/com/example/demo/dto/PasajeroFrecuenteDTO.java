@@ -18,6 +18,13 @@ public class PasajeroFrecuenteDTO {
     private String fechaNacimiento;   // yyyy-MM-dd, para calcular la edad del día del viaje
     private String sexo;              // Masculino | Femenino | Otro
 
+    /**
+     * Lo que tiene en su wallet. Va porque quien atiende no puede ofrecer
+     * "pagar con tu saldo" sin saber si alcanza, y porque es la misma cifra que
+     * la persona está viendo en su teléfono.
+     */
+    private java.math.BigDecimal saldo;
+
     public String getCodigoPasajero() { return codigoPasajero; }
     public void setCodigoPasajero(String v) { this.codigoPasajero = v; }
 
@@ -38,4 +45,7 @@ public class PasajeroFrecuenteDTO {
 
     public String getSexo() { return sexo; }
     public void setSexo(String v) { this.sexo = v; }
+
+    public java.math.BigDecimal getSaldo() { return saldo; }
+    public void setSaldo(java.math.BigDecimal v) { this.saldo = v; }
 }

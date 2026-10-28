@@ -3,6 +3,7 @@ package com.example.demo.controller;
 import com.example.demo.dto.PasajeroFrecuenteDTO;
 import com.example.demo.model.Cliente;
 import com.example.demo.repository.ClienteRepository;
+import com.example.demo.service.WalletService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,9 +28,11 @@ import java.util.Optional;
 public class PasajeroFrecuenteController {
 
     private final ClienteRepository clientes;
+    private final WalletService wallet;
 
-    public PasajeroFrecuenteController(ClienteRepository clientes) {
+    public PasajeroFrecuenteController(ClienteRepository clientes, WalletService wallet) {
         this.clientes = clientes;
+        this.wallet = wallet;
     }
 
     @GetMapping("/por-codigo/{codigo}")
@@ -69,6 +72,8 @@ public class PasajeroFrecuenteController {
         d.setTelefono(c.getTelefono());
         d.setFechaNacimiento(c.getFechaNacimiento() == null ? null : c.getFechaNacimiento().toString());
         d.setSexo(sexoDe(c.getGenero()));
+        d.setSaldo(wallet.estaHabilitada()
+                ? wallet.saldoDe(c.getEmail()) : java.math.BigDecimal.ZERO);
         return d;
     }
 

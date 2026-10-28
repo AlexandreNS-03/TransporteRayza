@@ -28,7 +28,15 @@ public class VentaRequest {
     private BigDecimal precio;              // precio final (rebajado si hubo descuento)
     private BigDecimal precioOriginal;      // tarifa antes de rebajar (para el registro)
     private String lugarPago;               // IQUITOS | REQUENA
-    private String metodoPago;              // EFECTIVO | YAPE | PLIN | TARJETA | TRANSFERENCIA
+    private String metodoPago;              // EFECTIVO | YAPE | PLIN | TARJETA | TRANSFERENCIA | SALDO
+
+    /**
+     * El código de la credencial, tipo RZ-7K3M9Q. Obligatorio cuando se cobra
+     * con SALDO: es lo que la persona muestra en la ventanilla, y es lo único
+     * que ata ese cobro a una cuenta. Sin él, quien atiende podría gastarle el
+     * saldo a cualquiera escribiendo un correo.
+     */
+    private String codigoPasajero;
 
     // Getters y Setters
     public BigDecimal getPrecioOriginal() { return precioOriginal; }
@@ -105,4 +113,7 @@ public class VentaRequest {
 
     public BigDecimal getPrecio() { return precio; }
     public void setPrecio(BigDecimal precio) { this.precio = precio; }
+
+    public String getCodigoPasajero() { return codigoPasajero; }
+    public void setCodigoPasajero(String v) { this.codigoPasajero = v; }
 }
