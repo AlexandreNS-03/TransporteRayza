@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import "./Wallet.css";
-import { getWallet, iniciarRecarga, confirmarRecarga } from "../services/authCliente";
+import { getWallet, iniciarRecarga, confirmarRecarga, confirmarRecargaYape } from "../services/authCliente";
 import { pagarConIzipay, limpiarIzipay, PagoCancelado } from "../services/izipay";
+import { tokenizarYape, huellaDispositivo, prepararHuellaDispositivo } from "../services/yape";
+import { MetodosPago, FormularioYape } from "./PagoMetodos";
 import { soles } from "../services/publicApi";
 import { IconLock } from "./Icons";
 
@@ -31,6 +33,11 @@ export default function Wallet() {
   const [monto, setMonto] = useState("");
   const [pagando, setPagando] = useState(false);
   const [formularioVisible, setFormularioVisible] = useState(false);
+  // Con qué se va a pagar la recarga. Yape primero porque es con lo que paga
+  // casi todo el mundo acá; la tarjeta está para quien no lo usa.
+  const [medio, setMedio] = useState("yape");
+  const [datosYape, setDatosYape] = useState({ phoneNumber: "", otp: "" });
+
   const cancelar = useRef(null);
 
   useEffect(() => {
@@ -38,10 +45,42 @@ export default function Wallet() {
     return () => limpiarIzipay(CONTENEDOR);
   }, []);
 
-  const recargar = async () => {
+  /* La huella del dispositivo tarda en calcularse y Mercado Pago la pide para
+     no rechazar el pago. Se empieza al abrir el panel y no al tocar "Pagar",
+     así ya está lista cuando la persona termina de escribir su código —que
+     vence en un par de minutos. */
+  useEffect(() => { if (abierto) prepararHuellaDispositivo(); }, [abierto]);
+
+  /** Recarga pagada con Yape: el token lo arma el SDK acá, el cobro lo hace el servidor. */
+  const recargarConYape = async () => {
     setPagando(true); setError(null); setAviso(null);
     try {
-      const r = await iniciarRecarga(monto);
+      const r = await iniciarRecarga(monto, "YAPE");
+
+      const token = await tokenizarYape({
+        publicKey: r.publicKey, simulado: r.simulado,
+        otp: datosYape.otp, phoneNumber: datosYape.phoneNumber,
+      });
+
+      // La huella se calcula aparte y tarda: hay que esperarla. Sin el await se
+      // manda la promesa, que viaja como {} y el servidor la rechaza.
+      setWallet(await confirmarRecargaYape(r.recargaId, token, await huellaDispositivo()));
+      setAbierto(false);
+      setMonto("");
+      setDatosYape({ phoneNumber: "", otp: "" });
+      setAviso(`Listo, cargamos ${soles(r.monto)} a tu wallet.`);
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setPagando(false);
+    }
+  };
+
+  const recargar = async () => {
+    if (medio === "yape") return recargarConYape();
+    setPagando(true); setError(null); setAviso(null);
+    try {
+      const r = await iniciarRecarga(monto, "TARJETA");
       const respuesta = await pagarConIzipay({
         formToken: r.formToken, publicKey: r.publicKey, simulado: r.simulado,
         contenedor: CONTENEDOR,
@@ -146,11 +185,23 @@ export default function Wallet() {
               Entre {soles(wallet.recargaMinima)} y {soles(wallet.recargaMaxima)} por recarga.
             </p>
 
+            {/* Con qué se paga. El saldo no está como opción: no se recarga el
+                saldo con el saldo. */}
+            <h4 className="wl-abonar-tit">¿Con qué pagas?</h4>
+            <MetodosPago metodo={medio} onElegir={setMedio} deshabilitado={pagando} />
+
+            {medio === "yape" && (
+              <FormularioYape datos={datosYape} onCambiar={setDatosYape}
+                              deshabilitado={pagando} prueba={wallet.yapeDePrueba} />
+            )}
+
             {error && <div className="alert alert-warn wl-msg">{error}</div>}
 
             <div className="wl-acciones">
               <button className="btn btn-primary" disabled={!valido || pagando} onClick={recargar}>
-                {pagando ? "Abriendo el pago…" : `Pagar ${monto ? soles(monto) : ""}`}
+                {pagando
+                  ? (medio === "yape" ? "Cobrando…" : "Abriendo el pago…")
+                  : `Pagar ${monto ? soles(monto) : ""}`}
               </button>
               <button className="btn btn-ghost" onClick={cerrarRecarga} disabled={pagando}>
                 Mejor no

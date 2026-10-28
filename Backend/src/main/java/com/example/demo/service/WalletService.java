@@ -123,6 +123,7 @@ public class WalletService {
         dto.setRecargaMinima(RECARGA_MINIMA);
         dto.setRecargaMaxima(RECARGA_MAXIMA);
         dto.setCondiciones(CONDICIONES);
+        dto.setYapeDePrueba(mercadoPagoService != null && mercadoPagoService.esDePrueba());
         dto.setMovimientos(
                 movimientos.findByClienteEmailIgnoreCaseOrderByCreatedAtDesc(normalizar(email))
                         .stream().map(WalletService::toDTO).toList());

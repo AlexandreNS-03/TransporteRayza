@@ -265,9 +265,24 @@ export async function getWallet() {
  * compara contra lo que la pasarela firma y nadie puede acreditar más de lo que
  * pagó.
  */
-export async function iniciarRecarga(monto) {
+export async function iniciarRecarga(monto, medio = "TARJETA") {
   try {
-    const { data } = await axios.post(`${API}/wallet/recargas`, { monto: String(monto) }, headers());
+    const { data } = await axios.post(`${API}/wallet/recargas`,
+                                      { monto: String(monto), medio }, headers());
+    return data;
+  } catch (e) { throw err(e); }
+}
+
+/**
+ * Lo mismo para Yape: va el token que armó el SDK de Mercado Pago.
+ *
+ * El monto no viaja acá. El servidor cobra el que quedó anotado al iniciar la
+ * recarga, así que no hay forma de recargar de más desde el navegador.
+ */
+export async function confirmarRecargaYape(recargaId, token, deviceId) {
+  try {
+    const { data } = await axios.post(`${API}/wallet/recargas/${recargaId}/confirmar-yape`,
+                                      { token, deviceId }, headers());
     return data;
   } catch (e) { throw err(e); }
 }
