@@ -629,7 +629,7 @@ function Pasajes() {
         try {
             const data = await apiFetch(`/api/ventas/documento/${busqueda.trim()}`);
             setVentas(data);
-        } catch (err) { setError("No se encontraron ventas"); }
+        } catch { setError("No se encontraron ventas"); }
         finally { setCargando(false); }
     };
 
