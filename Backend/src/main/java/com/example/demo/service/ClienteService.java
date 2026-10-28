@@ -433,6 +433,10 @@ public class ClienteService {
         dto.setNumeroDocumento(c.getNumeroDocumento());
         dto.setPaisDocumento(c.getPaisDocumento());
         dto.setCodigoPasajero(c.getCodigoPasajero());
+        // Solo el año: en la credencial es un dato de pertenencia, no una fecha
+        // que alguien vaya a consultar. Y un día exacto invita a calcular cosas.
+        dto.setSocioDesde(c.getCreatedAt() != null
+                ? String.valueOf(c.getCreatedAt().getYear()) : null);
         dto.setFechaNacimiento(c.getFechaNacimiento() != null ? c.getFechaNacimiento().toString() : null);
         dto.setCodigoPaisTelefono(c.getCodigoPaisTelefono());
         dto.setTelefono(c.getTelefono());

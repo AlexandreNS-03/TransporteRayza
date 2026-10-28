@@ -40,8 +40,14 @@ const TIPOS = [
 const esEfectivoMetodo = (m) => !m || String(m).toUpperCase() === "EFECTIVO";
 
 // Métodos y oficinas para el reporte de formas de pago
-const METODOS_PAGO = ["EFECTIVO", "YAPE", "PLIN", "TARJETA", "TRANSFERENCIA"];
-const METODO_LABEL = { EFECTIVO: "Efectivo", YAPE: "Yape", PLIN: "Plin", TARJETA: "Tarjeta", TRANSFERENCIA: "Transferencia", SIN: "Sin registrar" };
+// SALDO es la wallet: el pasaje se pagó con plata que el cliente ya tenía en
+// Rayza. Sin esta fila, esas ventas caían en "Sin registrar" —que es donde van
+// las que no se sabe cómo se cobraron— y parecía un error del sistema.
+const METODOS_PAGO = ["EFECTIVO", "YAPE", "PLIN", "TARJETA", "TRANSFERENCIA", "SALDO"];
+const METODO_LABEL = {
+    EFECTIVO: "Efectivo", YAPE: "Yape", PLIN: "Plin", TARJETA: "Tarjeta",
+    TRANSFERENCIA: "Transferencia", SALDO: "Saldo Rayza", SIN: "Sin registrar",
+};
 const LUGARES_PAGO = [["IQUITOS", "Iquitos"], ["REQUENA", "Requena"], ["OTRO", "Otro / Web"]];
 
 function Reportes() {
@@ -752,6 +758,14 @@ function Reportes() {
 
                             <div className="reporte-panel">
                                 <h3>Distribución por Método</h3>
+                                {reportePagos.m.SALDO.total.c > 0 && (
+                                    <p className="panel-nota">
+                                        <i className="ti ti-info-circle"></i>
+                                        El <strong>Saldo Rayza</strong> no es plata que entró hoy: entró
+                                        el día que el cliente recargó. Acá cuenta como pasaje vendido,
+                                        no como cobranza del día.
+                                    </p>
+                                )}
                                 {reportePagos.filasVisibles.length === 0 ? (
                                     <div className="sin-datos">Sin ventas en el rango seleccionado</div>
                                 ) : (
