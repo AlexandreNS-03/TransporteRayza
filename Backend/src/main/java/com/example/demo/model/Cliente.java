@@ -104,6 +104,14 @@ public class Cliente {
     private Boolean activo;
 
     /**
+     * Desde cuándo valen las sesiones de esta cuenta. Ver Usuario: un token
+     * firmado no se puede borrar, así que lo que lo mata es haberse emitido
+     * antes de esta fecha. Se mueve al cambiar la contraseña y al recuperarla.
+     */
+    @Column(name = "sesiones_desde")
+    private LocalDateTime sesionesDesde;
+
+    /**
      * El código de pasajero frecuente, tipo RZ-7K3M9Q. Se asigna la primera vez
      * que el cliente entra a su cuenta, no al registrarse: así lo tienen también
      * las cuentas que ya existían.
@@ -196,6 +204,9 @@ public class Cliente {
 
     public String getTelefono() { return telefono; }
     public void setTelefono(String telefono) { this.telefono = telefono; }
+
+    public LocalDateTime getSesionesDesde() { return sesionesDesde; }
+    public void setSesionesDesde(LocalDateTime v) { this.sesionesDesde = v; }
 
     public String getCodigoPasajero() { return codigoPasajero; }
     public void setCodigoPasajero(String v) { this.codigoPasajero = v; }

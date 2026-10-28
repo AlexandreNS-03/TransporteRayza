@@ -34,7 +34,10 @@ function calidadConexion(ms, fallos) {
 
 function EstadoSistema() {
     const usuario = usuarioActual();
-    const puedeRespaldar = usuario?.rol === "ADMIN" || usuario?.rol === "SUPERVISOR";
+    // Solo ADMIN: el respaldo lleva los datos de TODOS los pasajeros. El
+    // servidor ya lo exige; acá se oculta el botón para no ofrecer algo que
+    // va a devolver "no tienes permiso".
+    const puedeRespaldar = usuario?.rol === "ADMIN";
     const { toasts, mostrarToast } = useToast();
 
     const [diag, setDiag]         = useState(null);

@@ -1,11 +1,14 @@
 package com.example.demo.service;
 
+import com.example.demo.model.IntentoLogin;
+import com.example.demo.repository.IntentoLoginRepository;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Freno a los intentos de adivinar contraseñas.
@@ -20,6 +23,12 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * El bloqueo va creciendo (5, 15 y 30 minutos) para no castigar de más al empleado
  * que simplemente se equivocó dos veces, y sí frenar al que insiste.
+ *
+ * <p><strong>La cuenta vive en la base y no en memoria.</strong> En memoria tenía
+ * dos agujeros que no se ven leyendo el código: cada despliegue de Railway
+ * reiniciaba los contadores —y a quien prueba contraseñas le alcanza con esperar
+ * al próximo—, y el día que haya dos instancias cada una contaría por su lado,
+ * así que la tolerancia real sería el doble de la que dice acá.
  */
 @Service
 public class IntentosLoginService {
@@ -47,17 +56,12 @@ public class IntentosLoginService {
     /** Los fallos sueltos se olvidan solos: equivocarse el lunes y el viernes no suma. */
     private static final Duration MEMORIA = Duration.ofMinutes(30);
 
-    private static class Registro {
-        int fallos;
-        int bloqueos;
-        LocalDateTime ultimoFallo;
-        LocalDateTime bloqueadoHasta;
-    }
-
-    private final Map<String, Registro> registros = new ConcurrentHashMap<>();
+    private final IntentoLoginRepository repositorio;
     private final AuditoriaService auditoriaService;
 
-    public IntentosLoginService(AuditoriaService auditoriaService) {
+    public IntentosLoginService(IntentoLoginRepository repositorio,
+                                AuditoriaService auditoriaService) {
+        this.repositorio = repositorio;
         this.auditoriaService = auditoriaService;
     }
 
@@ -66,7 +70,6 @@ public class IntentosLoginService {
      * error con los minutos que faltan.
      */
     public void verificar(String usuario, String ip) {
-        limpiarViejos();
         revisar("usuario:" + normalizar(usuario));
         revisar("ip:" + normalizar(ip));
     }
@@ -76,77 +79,104 @@ public class IntentosLoginService {
      * quinto fallo y la dirección aguanta mucho más. Ver TOLERANCIA_IP_PUBLICA.
      */
     public void verificarPublico(String usuario, String ip) {
-        limpiarViejos();
         revisar("usuario:" + normalizar(usuario));
         revisar("ip-publica:" + normalizar(ip));
     }
 
     private void revisar(String llave) {
-        Registro r = registros.get(llave);
-        if (r == null || r.bloqueadoHasta == null) return;
-        if (LocalDateTime.now().isAfter(r.bloqueadoHasta)) {
-            r.bloqueadoHasta = null;
-            r.fallos = 0;
-            return;
-        }
-        long minutos = Math.max(1, Duration.between(LocalDateTime.now(), r.bloqueadoHasta).toMinutes() + 1);
+        IntentoLogin r = repositorio.findById(llave).orElse(null);
+        if (r == null || r.getBloqueadoHasta() == null) return;
+
+        // El bloqueo vencido no se borra acá: borrar en cada intento sería
+        // escribir en la base en cada login. Lo saca la limpieza programada, y
+        // mientras tanto la fecha pasada ya no frena a nadie.
+        if (LocalDateTime.now().isAfter(r.getBloqueadoHasta())) return;
+
+        long minutos = Math.max(1,
+                Duration.between(LocalDateTime.now(), r.getBloqueadoHasta()).toMinutes() + 1);
         throw new RuntimeException("Demasiados intentos fallidos. Vuelve a intentarlo en "
                 + minutos + " minuto(s).");
     }
 
     /** Contraseña equivocada: suma y, si se pasó, bloquea. */
+    @Transactional
     public void registrarFallo(String usuario, String ip) {
         sumar("usuario:" + normalizar(usuario), "el usuario \"" + usuario + "\"", TOLERANCIA);
         sumar("ip:" + normalizar(ip), "la dirección " + ip, TOLERANCIA);
     }
 
     /** Lo mismo para la web pública, donde la dirección aguanta más. */
+    @Transactional
     public void registrarFalloPublico(String usuario, String ip) {
         sumar("usuario:" + normalizar(usuario), "la cuenta \"" + usuario + "\"", TOLERANCIA);
         sumar("ip-publica:" + normalizar(ip), "la dirección " + ip, TOLERANCIA_IP_PUBLICA);
     }
 
+    @Transactional
     public void registrarExitoPublico(String usuario, String ip) {
-        registros.remove("usuario:" + normalizar(usuario));
-        registros.remove("ip-publica:" + normalizar(ip));
+        repositorio.deleteById("usuario:" + normalizar(usuario));
+        repositorio.deleteById("ip-publica:" + normalizar(ip));
     }
 
+    /* Sin @Transactional: lo llama registrarFallo desde esta misma clase, y una
+       llamada interna no pasa por la envoltura de Spring, así que la anotación
+       acá no haría nada. La transacción se abre en los métodos públicos. */
     private void sumar(String llave, String descripcion, int tolerancia) {
-        Registro r = registros.computeIfAbsent(llave, k -> new Registro());
-        synchronized (r) {
-            r.fallos++;
-            r.ultimoFallo = LocalDateTime.now();
-            if (r.fallos < tolerancia) return;
+        LocalDateTime ahora = LocalDateTime.now();
 
-            int minutos = MINUTOS_BLOQUEO[Math.min(r.bloqueos, MINUTOS_BLOQUEO.length - 1)];
-            r.bloqueos++;
-            r.fallos = 0;
-            r.bloqueadoHasta = LocalDateTime.now().plusMinutes(minutos);
-
-            // Queda en auditoría: si alguien está atacando, se ve.
+        // Sumar sin leer antes: leer, sumar y guardar pierde cuentas cuando
+        // entran dos intentos a la vez, y perder cuentas es justo lo que busca
+        // quien está probando contraseñas.
+        if (repositorio.sumarFallo(llave, ahora) == 0) {
+            IntentoLogin nuevo = new IntentoLogin();
+            nuevo.setLlave(llave);
+            nuevo.setFallos(1);
+            nuevo.setUltimoFallo(ahora);
             try {
-                auditoriaService.registrar("BLOQUEO_LOGIN", "SEGURIDAD", null,
-                        "Bloqueado por " + minutos + " minuto(s) tras " + tolerancia
-                                + " intentos fallidos para " + descripcion);
-            } catch (Exception ignorado) { /* el bloqueo vale igual aunque falle el registro */ }
+                repositorio.saveAndFlush(nuevo);
+            } catch (DataIntegrityViolationException e) {
+                // Otro intento creó la fila en el medio: entonces alcanza con sumarle.
+                repositorio.sumarFallo(llave, ahora);
+            }
         }
+
+        IntentoLogin r = repositorio.findById(llave).orElse(null);
+        if (r == null || r.getFallos() < tolerancia) return;
+
+        int minutos = MINUTOS_BLOQUEO[Math.min(r.getBloqueos(), MINUTOS_BLOQUEO.length - 1)];
+
+        // La condición sobre los fallos hace que, si dos intentos llegan juntos
+        // al límite, solo uno bloquee; el otro no cambia nada.
+        if (repositorio.bloquearSiCorresponde(llave, ahora.plusMinutes(minutos), tolerancia) == 0)
+            return;
+
+        // Queda en auditoría: si alguien está atacando, se ve.
+        try {
+            auditoriaService.registrar("BLOQUEO_LOGIN", "SEGURIDAD", null,
+                    "Bloqueado por " + minutos + " minuto(s) tras " + tolerancia
+                            + " intentos fallidos para " + descripcion);
+        } catch (Exception ignorado) { /* el bloqueo vale igual aunque falle el registro */ }
     }
 
     /** Entró bien: se borra lo acumulado para que no arrastre bloqueos. */
+    @Transactional
     public void registrarExito(String usuario, String ip) {
-        registros.remove("usuario:" + normalizar(usuario));
-        registros.remove("ip:" + normalizar(ip));
+        repositorio.deleteById("usuario:" + normalizar(usuario));
+        repositorio.deleteById("ip:" + normalizar(ip));
     }
 
-    /** Saca de memoria lo que ya no sirve, para que el mapa no crezca sin límite. */
-    private void limpiarViejos() {
-        LocalDateTime corte = LocalDateTime.now().minus(MEMORIA);
-        registros.entrySet().removeIf(e -> {
-            Registro r = e.getValue();
-            boolean bloqueoVigente = r.bloqueadoHasta != null && r.bloqueadoHasta.isAfter(LocalDateTime.now());
-            boolean falloReciente = r.ultimoFallo != null && r.ultimoFallo.isAfter(corte);
-            return !bloqueoVigente && !falloReciente;
-        });
+    /**
+     * Saca lo que ya no sirve, para que la tabla no crezca sin límite.
+     *
+     * <p>Va programada y no en cada intento: limpiar en cada login sería
+     * escribir en la base cada vez que alguien entra, y lo que se borra no
+     * cambia ninguna decisión —un bloqueo vencido ya no frena a nadie—.
+     */
+    @Scheduled(fixedDelay = 10 * 60 * 1000, initialDelay = 60 * 1000)
+    @Transactional
+    public void limpiarViejos() {
+        LocalDateTime ahora = LocalDateTime.now();
+        repositorio.limpiar(ahora, ahora.minus(MEMORIA));
     }
 
     private String normalizar(String s) {

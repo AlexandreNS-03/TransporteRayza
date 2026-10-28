@@ -27,6 +27,20 @@ public class Usuario {
     private Boolean activo = true;
 
     /**
+     * Desde cuándo valen las sesiones de esta cuenta.
+     *
+     * <p>Un token firmado no se puede "borrar": una vez emitido, vale hasta que
+     * vence. Esta fecha es la forma de matarlos sin guardar una lista de
+     * tokens: si el token se emitió ANTES de esta fecha, ya no sirve. Se mueve
+     * al cambiar la contraseña, al cambiar el rol y al desactivar la cuenta.
+     *
+     * <p>NULL significa "valen todos", que es lo que tenían las cuentas que ya
+     * existían cuando esto se agregó.
+     */
+    @Column(name = "sesiones_desde")
+    private LocalDateTime sesionesDesde;
+
+    /**
      * Pedir un código por correo además de la contraseña.
      *
      * Va apagado por defecto y se prende cuenta por cuenta: encenderlo para todos
@@ -124,6 +138,9 @@ public class Usuario {
     public Boolean getActivo() {
         return activo;
     }
+
+    public LocalDateTime getSesionesDesde() { return sesionesDesde; }
+    public void setSesionesDesde(LocalDateTime v) { this.sesionesDesde = v; }
 
     public void setActivo(Boolean activo) {
         this.activo = activo;

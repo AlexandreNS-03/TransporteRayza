@@ -39,7 +39,8 @@ public class ClienteService {
     private final EmailService emailService;
 
     /** Mínimo de la contraseña. Seis caracteres se adivinan; ocho ya no tanto. */
-    public static final int MINIMO_CLAVE = 8;
+    /** @deprecated usa {@link Claves#MINIMO}. Queda porque la pantalla lo muestra. */
+    public static final int MINIMO_CLAVE = Claves.MINIMO;
 
     /**
      * Un hash de descarte, contra el que se compara cuando el correo no tiene
@@ -146,15 +147,20 @@ public class ClienteService {
     }
 
     /**
-     * Cambia la contraseña desde adentro de la cuenta.
+     * Cambia la contraseña desde adentro de la cuenta, y devuelve un token nuevo.
      *
-     * Pide la actual aunque ya esté la sesión abierta: si alguien se sienta en
-     * la computadora con la sesión puesta, que no pueda quedarse con la cuenta.
-     * Y se avisa por correo, porque un cambio que el dueño no hizo tiene que
-     * enterarse en el momento.
+     * <p>Pide la actual aunque ya esté la sesión abierta: si alguien se sienta
+     * en la computadora con la sesión puesta, que no pueda quedarse con la
+     * cuenta. Y se avisa por correo, porque un cambio que el dueño no hizo tiene
+     * que enterarse en el momento.
+     *
+     * <p>El token nuevo no es un lujo: al cambiar la clave se cortan todas las
+     * sesiones de la cuenta, y sin esto el navegador que acaba de hacer el
+     * cambio se quedaría afuera de inmediato —el usuario vería "iniciá sesión"
+     * justo después de escribir su contraseña nueva dos veces—.
      */
     @Transactional
-    public void cambiarClave(String email, String actual, String nueva) {
+    public String cambiarClave(String email, String actual, String nueva) {
         Cliente c = obtenerPorEmail(email);
         if (!passwordEncoder.matches(actual == null ? "" : actual, c.getPassword()))
             throw new RuntimeException("Tu contraseña actual no es correcta");
@@ -163,6 +169,10 @@ public class ClienteService {
             throw new RuntimeException("La contraseña nueva tiene que ser distinta de la actual");
 
         c.setPassword(passwordEncoder.encode(nueva));
+        // Cambiar la contraseña echa a quien estuviera adentro con la vieja:
+        // es justo el caso para el que uno la cambia. El navegador que hace el
+        // cambio recibe un token nuevo, así que no se cae su propia sesión.
+        c.setSesionesDesde(java.time.LocalDateTime.now());
         clienteRepository.save(c);
 
         try {
@@ -172,6 +182,8 @@ public class ClienteService {
             // la contraseña si el correo está caído.
             System.err.println("[Cuenta] no se pudo avisar el cambio de clave: " + e.getMessage());
         }
+
+        return jwtUtil.generateToken(c.getEmail(), "CLIENTE");
     }
 
     private static Cliente.Genero parseGenero(String valor) {
@@ -187,14 +199,9 @@ public class ClienteService {
         return v.length() == 2 ? v : null;
     }
 
-    /** Las reglas de la contraseña, en un solo lugar. */
+    /** Las reglas de la contraseña viven en {@link Claves}, para todas las cuentas. */
     public static void validarClave(String clave) {
-        if (clave == null || clave.length() < MINIMO_CLAVE)
-            throw new RuntimeException("La contraseña debe tener al menos " + MINIMO_CLAVE + " caracteres");
-        String s = clave.toLowerCase();
-        // Las cuatro que siempre aparecen primero en cualquier intento.
-        if (s.equals("12345678") || s.equals("contrasena") || s.equals("password") || s.equals("rayza123"))
-            throw new RuntimeException("Esa contraseña es de las primeras que alguien probaría. Elige otra.");
+        Claves.validar(clave);
     }
 
     public Cliente obtenerPorEmail(String email) {

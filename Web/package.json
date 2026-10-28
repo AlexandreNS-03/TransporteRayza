@@ -7,7 +7,9 @@
     "dev": "vite",
     "sitemap": "node scripts/generar-sitemap.mjs",
     "build": "npm run sitemap && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "csp:comprobar": "node scripts/comprobar-csp.mjs",
+    "prebuild": "node scripts/comprobar-csp.mjs"
   },
   "dependencies": {
     "axios": "^1.18.0",

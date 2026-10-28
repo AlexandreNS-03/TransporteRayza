@@ -48,6 +48,13 @@ public class SecurityConfig {
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
+                // Sin esto, un pedido sin token o con uno que ya no vale contestaba 403,
+                // que significa "sos vos pero no podés". Lo correcto es 401, "no sé quién
+                // sos": es lo que el panel y la web miran para mandar a iniciar sesión.
+                // El 403 queda para lo que de verdad es falta de permiso.
+                .exceptionHandling(e -> e.authenticationEntryPoint(
+                        new org.springframework.security.web.authentication.HttpStatusEntryPoint(
+                                org.springframework.http.HttpStatus.UNAUTHORIZED)))
                 .authorizeHttpRequests(auth -> auth
                         // Sin esto, cuando Spring reenvía internamente a /error (p. ej. falta
                         // un parámetro) la seguridad lo bloquea y el cliente recibe un 403
@@ -160,7 +167,12 @@ public class SecurityConfig {
                         /*VERIFICADOR DEL SISTEMA: lo consulta cualquiera que trabaje acá,
                           porque quien atiende es el primero en notar que algo falla.
                           El respaldo baja datos de todos los pasajeros: solo administración.*/
-                        .requestMatchers(HttpMethod.GET, "/api/diagnostico/respaldo").hasAnyRole("ADMIN", "SUPERVISOR")
+                        // Solo ADMIN: el respaldo es un ZIP con los datos de TODOS los
+                        // pasajeros —nombres, documentos, teléfonos, correos—, o sea la
+                        // mayor exportación de datos personales del sistema. Un
+                        // supervisor administra su sucursal; no necesita la base entera,
+                        // y si le roban la cuenta la pérdida es de otro tamaño.
+                        .requestMatchers(HttpMethod.GET, "/api/diagnostico/respaldo").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/diagnostico/**").hasAnyRole("ADMIN", "SUPERVISOR", "EMPLEADO")
 
                         .requestMatchers(HttpMethod.POST,  "/api/soporte").hasAnyRole("ADMIN", "SUPERVISOR", "EMPLEADO")

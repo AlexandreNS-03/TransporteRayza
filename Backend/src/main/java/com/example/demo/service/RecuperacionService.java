@@ -42,7 +42,6 @@ public class RecuperacionService {
      */
     private static final int ESPERA_ENTRE_PEDIDOS_MINUTOS = 2;
 
-    private static final int LARGO_MINIMO_CLAVE = 8;
 
     /* La misma variable que usan los demás correos (app.web.url). Con una propia
        los enlaces de recuperación habrían ignorado el valor configurado. */
@@ -118,13 +117,12 @@ public class RecuperacionService {
     /** Cambia la contraseña si el enlace sirve. Lo quema apenas se usa. */
     @Transactional
     public void restablecer(String token, String nuevaClave) {
-        ClienteService.validarClave(nuevaClave);
+        // La misma regla que en el registro: recuperar la clave no puede ser la
+        // puerta para ponerse una más floja de la que el registro acepta.
+        Claves.validar(nuevaClave);
+
         if (token == null || token.isBlank())
             throw new RuntimeException("El enlace no es válido. Pide uno nuevo.");
-
-        if (nuevaClave == null || nuevaClave.length() < LARGO_MINIMO_CLAVE)
-            throw new RuntimeException("La contraseña debe tener al menos "
-                    + LARGO_MINIMO_CLAVE + " caracteres.");
 
         TokenRecuperacion t = tokenRepository.findByTokenHash(hashear(token)).orElse(null);
         if (t == null || !t.estaVigente())
@@ -134,6 +132,14 @@ public class RecuperacionService {
                 .orElseThrow(() -> new RuntimeException("La cuenta ya no existe"));
 
         cliente.setPassword(passwordEncoder.encode(nuevaClave));
+
+        // Recuperar la clave también corta lo que hubiera abierto: si alguien
+
+
+        // tenía la cuenta, recuperarla es como se lo saca de encima.
+
+
+        cliente.setSesionesDesde(java.time.LocalDateTime.now());
         clienteRepository.save(cliente);
 
         // Se quema antes de terminar: si dos pestañas envían a la vez, la segunda

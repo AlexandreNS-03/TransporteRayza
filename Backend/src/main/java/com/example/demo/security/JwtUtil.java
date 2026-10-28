@@ -39,6 +39,12 @@ public class JwtUtil {
         return getClaims(token).get("rol", String.class);
     }
 
+    /** Cuándo se emitió. Lo usa SesionesService para saber si sigue valiendo. */
+    public java.time.Instant extractEmitidoEn(String token) {
+        java.util.Date iat = getClaims(token).getIssuedAt();
+        return iat == null ? null : iat.toInstant();
+    }
+
     public boolean isTokenValid(String token) {
         try {
             getClaims(token);
