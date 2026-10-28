@@ -46,6 +46,11 @@ public class UsuarioService {
             throw new RuntimeException("El usuario ya existe");
         }
 
+        // Crear un usuario no validaba la contraseña en absoluto: se podía dar de
+        // alta un administrador con la clave "1". Es la misma regla que para los
+        // clientes, que son los que MENOS ven.
+        Claves.validar(req.getPassword(), req.getUsername());
+
         Usuario usuario = new Usuario();
         usuario.setId(UUID.randomUUID().toString());
         usuario.setUsername(req.getUsername());
@@ -143,9 +148,7 @@ public class UsuarioService {
         Usuario usuario = usuarioRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
-        if (req.getNuevaPassword() == null || req.getNuevaPassword().length() < 6) {
-            throw new RuntimeException("La contraseña debe tener al menos 6 caracteres");
-        }
+        Claves.validar(req.getNuevaPassword(), usuario.getUsername());
 
         usuario.setPassword(passwordEncoder.encode(req.getNuevaPassword()));
         usuarioRepository.save(usuario);
