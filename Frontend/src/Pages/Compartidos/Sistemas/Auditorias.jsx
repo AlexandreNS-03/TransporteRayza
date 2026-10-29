@@ -54,7 +54,7 @@ function Auditorias() {
     };
 
     // Al cambiar el rango o el módulo se vuelve a preguntar; el texto se filtra acá.
-    useEffect(() => { cargar(); /* eslint-disable-next-line */ }, [fechaDesde, fechaHasta, filtroModulo]);
+    useEffect(() => { cargar(); }, [fechaDesde, fechaHasta, filtroModulo]);
 
     /** Lo que está a la vista, tal cual, para abrirlo en Excel. */
     const exportar = async () => {

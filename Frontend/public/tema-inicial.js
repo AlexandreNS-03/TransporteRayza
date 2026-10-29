@@ -12,4 +12,4 @@
 try {
   var t = localStorage.getItem("rayza_tema");
   if (t === "oscuro") document.documentElement.setAttribute("data-tema", "oscuro");
-} catch (e) { /* modo privado: queda el tema claro */ }
+} catch { /* modo privado: queda el tema claro */ }

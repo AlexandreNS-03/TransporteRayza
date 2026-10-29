@@ -9,8 +9,6 @@ const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8080";
 function Sucursales() {
     const usuario = JSON.parse(localStorage.getItem("usuario"));
     const esAdmin = usuario?.rol === "ADMIN";
-    const esEmpleado= usuario?.rol === "EMPLEADO"
-    const esSupervisor = usuario?.rol === "SUPERVISOR"
 
     const [sucursales, setSucursales]   = useState([]);
     const [cargando, setCargando]       = useState(true);

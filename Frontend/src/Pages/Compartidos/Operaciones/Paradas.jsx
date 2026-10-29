@@ -15,7 +15,6 @@ function Paradas() {
     const [cargandoRutas, setCargandoRutas] = useState(true);
     const [error, setError]               = useState(null);
     const [tabActivo, setTabActivo] = useState("paradas");
-    const [embarcaciones, setEmbarcaciones] = useState([]);
 
     // Modal
     const [modalAbierto, setModal]        = useState(false);
@@ -48,17 +47,8 @@ function Paradas() {
             const data = await apiFetch(`/api/rutas/${rutaId}`);
             setRutaDetalle(data);
             setParadas([...(data.paradas || [])].sort((a, b) => a.orden - b.orden));
-        } catch (err) { setError("Error al cargar paradas"); }
+        } catch { setError("Error al cargar paradas"); }
         finally { setCargando(false); }
-    };
-
-    const fetchEmbarcaciones = async () => {
-        try {
-            const data = await apiFetch("/api/embarcaciones");
-            // Filtrar solo las que tienen viajes en esta ruta
-            // Por ahora mostramos todas las activas
-            setEmbarcaciones(data.filter(e => e.activo));
-        } catch (err) { console.error(err); }
     };
 
     const abrirModalCrear = () => {
@@ -126,7 +116,7 @@ function Paradas() {
             });
             cerrarModal();
             fetchParadas();
-        } catch (err) { setErrorModal("Error al guardar parada"); }
+        } catch { setErrorModal("Error al guardar parada"); }
         finally { setGuardando(false); }
     };
 
@@ -163,7 +153,7 @@ function Paradas() {
                 })
             });
             fetchParadas();
-        } catch (err) { alert("Error al eliminar parada"); }
+        } catch { alert("Error al eliminar parada"); }
     };
 
     // Reordenar arrastrando
@@ -211,7 +201,7 @@ function Paradas() {
             });
             setReordenando(false);
             fetchParadas();
-        } catch (err) { alert("Error al guardar orden"); }
+        } catch { alert("Error al guardar orden"); }
         finally { setGuardandoOrden(false); }
     };
 

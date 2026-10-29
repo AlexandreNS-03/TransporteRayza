@@ -109,7 +109,7 @@ function Embarque() {
                     try {
                         const data = await res.json();
                         mensaje = data.message || data.error || mensaje;
-                    } catch {}
+                    } catch { /* el cuerpo no era JSON: queda el mensaje de arriba */ }
                 }
                 throw new Error(mensaje);
             }
@@ -140,7 +140,7 @@ function Embarque() {
                 let mensaje = "Error al registrar el pre-embarque";
                 if (res.status === 403) mensaje = "No tienes permiso para registrar el pre-embarque";
                 else if (res.status === 401) mensaje = "Tu sesión expiró, vuelve a iniciar sesión";
-                else { try { const d = await res.json(); mensaje = d.message || d.error || mensaje; } catch {} }
+                else { try { const d = await res.json(); mensaje = d.message || d.error || mensaje; } catch { /* el cuerpo no era JSON: queda el mensaje de arriba */ } }
                 throw new Error(mensaje);
             }
             setToast({ tipo: "success", mensaje: `${pasajeroNombre} subió al carro.` });
@@ -203,7 +203,7 @@ function Embarque() {
                 if (res.status === 403)      mensaje = "No tienes permiso para embarcar pasajeros";
                 else if (res.status === 401) mensaje = "Tu sesión expiró, vuelve a iniciar sesión";
                 else {
-                    try { const d = await res.json(); mensaje = d.message || d.error || mensaje; } catch {}
+                    try { const d = await res.json(); mensaje = d.message || d.error || mensaje; } catch { /* el cuerpo no era JSON: queda el mensaje de arriba */ }
                 }
                 throw new Error(mensaje);
             }

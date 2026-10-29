@@ -25,7 +25,6 @@ const VACIO = {
     preparado: false,
 };
 
-const VUELTAS = 6;              // vueltas completas antes de frenar
 const DURACION_GIRO = 15000;    // ms; el mismo que ve el público en la web
 
 const fmt = (iso) => (iso ? iso.replace("T", " ").slice(0, 16) : "—");

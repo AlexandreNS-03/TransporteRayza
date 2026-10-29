@@ -11,7 +11,6 @@ function AdminDashboard() {
     const rol = usuario?.rol;
     const esAdmin      = rol === "ADMIN";
     const esSupervisor = rol === "SUPERVISOR";
-    const esEmpleado   = rol === "EMPLEADO";
 
     const cerrarSesion = () => {
         localStorage.removeItem("usuario");

@@ -176,7 +176,7 @@ function Viajes() {
             });
             if (!res.ok) {
                 let m = "No se pudo cancelar el viaje";
-                try { const d = await res.json(); m = d.message || d.error || m; } catch {}
+                try { const d = await res.json(); m = d.message || d.error || m; } catch { /* el cuerpo no era JSON: queda el mensaje de arriba */ }
                 throw new Error(m);
             }
             setViajeCancelar(null);

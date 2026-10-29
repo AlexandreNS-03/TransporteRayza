@@ -120,7 +120,7 @@ function Dashboard() {
                 netoCerradasHoy: cerradasHoy.reduce((s, c) => s + (Number(c.totalNeto) || 0), 0),
                 digitalCerradasHoy: cerradasHoy.reduce((s, c) => s + (Number(c.totalDigital) || 0), 0),
             });
-        } catch (err) { setError("Error al cargar el dashboard"); }
+        } catch { setError("Error al cargar el dashboard"); }
         finally { setCargando(false); }
     };
 
