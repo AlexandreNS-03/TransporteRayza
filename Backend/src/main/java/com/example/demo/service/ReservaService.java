@@ -55,9 +55,13 @@ public class ReservaService {
      * instrumento. Con dos cobrando tarjeta, "TARJETA" ya no dice a qué
      * liquidación pertenece la venta, y conciliar deja de ser posible. Se
      * guarda, no se deduce.
+     *
+     * <p>Públicos porque devolver una venta necesita saber quién la cobró para
+     * pedirle a ÉSE la devolución, y tener el literal "IZIPAY" escrito en dos
+     * archivos es exactamente lo que se desincroniza.
      */
-    private static final String PROC_IZIPAY      = "IZIPAY";
-    private static final String PROC_MERCADOPAGO = "MERCADOPAGO";
+    public static final String PROC_IZIPAY      = "IZIPAY";
+    public static final String PROC_MERCADOPAGO = "MERCADOPAGO";
     /** Pagado con saldo de la wallet. No es plata que entra hoy: entró cuando se recargó. */
     private static final String METODO_SALDO  = "SALDO";
 
