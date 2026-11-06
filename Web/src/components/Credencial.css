@@ -105,16 +105,17 @@
   position: relative;
   display: flex; align-items: center; gap: 11px; min-width: 0;
 }
-/* El timón, como el escudo de una tarjeta. Va directo sobre el azul, sin disco
-   detrás: un círculo blanco en una esquina se ve pegado, como una calcomanía.
-   El archivo es una silueta blanca —el original es azul marino sobre blanco y
-   sobre esta tarjeta desaparecería—, y a 32 px lo que se reconoce es la forma
-   del timón, no la letra de adentro. La sombra lo despega del degradado. */
+/* El avatar junto al nombre, como la foto de un carnet de socio. Antes iba acá
+   el timón de la empresa; la marca ya está escrita arriba en la misma tarjeta,
+   así que repetirla gastaba el único lugar donde cabe algo de la persona. */
 .credencial-sello {
   flex: none;
   width: clamp(34px, 10cqw, 46px); height: clamp(34px, 10cqw, 46px);
   object-fit: contain;
-  filter: drop-shadow(0 1px 3px rgba(0,0,0,.35));
+  /* El aro lo pone la tarjeta, no el dibujo: acá el fondo es azul oscuro con
+     brillo encima, y un aro oscuro dentro del archivo se perdería. */
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px rgba(255,255,255,.5), 0 1px 4px rgba(0,0,0,.35);
 }
 .credencial-quien { min-width: 0; display: flex; flex-direction: column; }
 .credencial-quien strong {

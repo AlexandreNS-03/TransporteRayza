@@ -94,9 +94,12 @@ export default function CuentaLayout({ titulo, children }) {
               vistazo que estás en TU cuenta, y no cambia al navegar. */}
           <aside className="cuenta-lateral">
             <div className="cuenta-yo">
-              <span className="cuenta-inicial" aria-hidden="true">
-                {(perfil.nombres || "V").trim().charAt(0).toUpperCase()}
-              </span>
+              {/* Decorativo: quién eres lo dicen el nombre y el correo de al
+                  lado, que además son lo que hay que leer. Antes iba la
+                  inicial del nombre, que no decía nada que no dijera el
+                  nombre entero dos centímetros a la derecha. */}
+              <img className="cuenta-avatar" src="/avatar-pasajero.svg" alt="" aria-hidden="true"
+                   width={48} height={48} />
               <div className="cuenta-yo-texto">
                 <strong>{nombre || "Viajero"}</strong>
                 <span>{perfil.email}</span>

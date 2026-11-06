@@ -41,13 +41,13 @@
   padding: 16px 18px;
   color: #fff;
 }
-.cuenta-inicial {
+/* El aro va acá y no dentro del SVG: este es el único lugar que sabe que el
+   fondo es --brand-800. Dibujado dentro del archivo, en azul oscuro, se perdía
+   contra la barra y el avatar parecía cortado por abajo. */
+.cuenta-avatar {
   flex: none;
-  width: 42px; height: 42px; border-radius: 50%;
-  display: grid; place-items: center;
-  background: var(--brand);
-  font-family: var(--font-head); font-weight: 700; font-size: 19px;
-  color: #06283a;
+  width: 48px; height: 48px; border-radius: 50%;
+  box-shadow: 0 0 0 2px rgba(255,255,255,.55);
 }
 .cuenta-yo-texto { min-width: 0; display: flex; flex-direction: column; }
 .cuenta-yo-texto strong {
