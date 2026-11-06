@@ -107,14 +107,11 @@ export default function Credencial({ perfil }) {
       <p className="credencial-codigo">{codigo}</p>
 
       <footer className="credencial-pie">
-        {/* El avatar de la cuenta, el mismo de la barra lateral: esto es una
-            tarjeta de socio y lo que va junto al nombre es la persona, no otra
-            vez la marca —ya está escrita arriba, en la misma tarjeta.
-
-            Decorativo y marcado como tal: es un dibujo genérico, no la foto de
-            nadie. No es documento de identidad y la tarjeta no lo insinúa: el
-            nombre y el código son lo que vale en el mostrador. */}
-        <img className="credencial-sello" src="/avatar-pasajero.svg" alt="" aria-hidden="true"
+        {/* El timón de la empresa, en silueta blanca y a 128 px. No se usa
+            /logo-tr.png: pesa 112 KB para verse a 34, y además es azul marino
+            sobre blanco, que sobre esta tarjeta no se vería. Decorativo: la
+            marca ya está escrita arriba. */}
+        <img className="credencial-sello" src="/logo-timon.png" alt="" aria-hidden="true"
              width={128} height={128} loading="lazy" />
         <span className="credencial-quien">
           <strong>{nombre || "Viajero"}</strong>
