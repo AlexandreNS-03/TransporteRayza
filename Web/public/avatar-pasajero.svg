@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Pasajero">
+  <!-- Avatar genérico de la cuenta. Lo lleva todo el mundo, así que va con
+       sombrero y no con pelo: el pelo corto oscuro se lee como varón y la
+       mitad de los pasajeros no lo son. El sombrero además se reconoce a
+       42 px, que es el tamaño al que de verdad se muestra.
+
+       Sin aro: el aro lo pone el CSS de donde se use, que es lo único que
+       sabe de qué color es el fondo. Dibujado acá, sobre el azul de la barra
+       de la cuenta desaparecía y el avatar parecía cortado. -->
+  <defs><clipPath id="rz-disco"><circle cx="60" cy="60" r="60"/></clipPath></defs>
+  <g clip-path="url(#rz-disco)">
+    <circle cx="60" cy="60" r="60" fill="#e6f5fc"/>
+    <path d="M0 88 q14 -6 28 0 t28 0 t28 0 t28 0 t28 0 V120 H0 Z" fill="#1ea6dd" opacity=".35"/>
+    <path d="M0 97 q14 -6 28 0 t28 0 t28 0 t28 0 t28 0 V120 H0 Z" fill="#0b5578" opacity=".9"/>
+    <path d="M26 120 q0 -27 34 -27 t34 27 Z" fill="#0b5578"/>
+    <path d="M39 97 q-4 12 -4 23 h15 l3 -25 Z" fill="#e01e2a"/>
+    <path d="M81 97 q4 12 4 23 H70 l-3 -25 Z" fill="#e01e2a"/>
+    <path d="M46 95 h28 l-2 7 H48 Z" fill="#bd1420"/>
+    <rect x="52" y="110" width="16" height="4" rx="2" fill="#bd1420"/>
+    <path d="M53 84 h14 v10 q-7 5 -14 0 Z" fill="#e8b68d"/>
+    <circle cx="60" cy="71" r="17" fill="#f2c7a0"/>
+    <ellipse cx="60" cy="60" rx="27" ry="6" fill="#e0a93b"/>
+    <path d="M45 60 q0 -15 15 -15 t15 15 Z" fill="#e0a93b"/>
+    <path d="M45 60 q0 -15 15 -15 t15 15 Z" fill="#c9922c" opacity=".35"/>
+    <rect x="45" y="55" width="30" height="5" rx="2.5" fill="#0b5578"/>
+    <circle cx="54" cy="72" r="2" fill="#2b2118"/>
+    <circle cx="66" cy="72" r="2" fill="#2b2118"/>
+    <path d="M55 78 q5 4 10 0" stroke="#2b2118" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+  </g>
+</svg>
