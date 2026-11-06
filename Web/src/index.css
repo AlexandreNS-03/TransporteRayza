@@ -878,6 +878,34 @@ footer.site .logo .mark { width: 34px; height: 34px; }
 .pago-tarjeta { max-width: 460px; margin: 18px auto 0; }
 .pago-tarjeta #izipay-form { margin-top: 0; }
 
+/* ---------- El color del formulario de Izipay ----------
+
+   Única perilla de color que el tema de Izipay deja abierta: su hoja de estilos
+   lee `var(--kr-global-color-primary, …)` —con respaldo, o sea puesta para que
+   la pise la página—. Sin esto el botón de pagar sale turquesa, el color de
+   Izipay, en medio de una compra que hasta ese paso fue roja y azul.
+
+   Va el rojo y no el azul porque ese botón REEMPLAZA al nuestro: Izipay trae su
+   propio "Pagar", la página esconde el suyo (.btn-primary, que es --accent) y
+   el de ellos aparece en el mismo lugar. Si cambiara de color parecería otro
+   botón. Blanco sobre este rojo da 4,8:1 medido en el navegador: pasa AA.
+
+   OJO, acá está la trampa: tiene que ir en el CONTENEDOR, nunca en :root. La
+   biblioteca de Izipay, al arrancar, escribe `--kr-global-color-primary:#2AD2C9`
+   como estilo EN LÍNEA sobre el <html>. Un estilo en línea le gana a cualquier
+   regla, así que desde :root esto no pinta nada —probado—. Declarada más abajo
+   en el árbol sí gana, porque una variable la resuelve el ancestro más cercano
+   que la declare, y el contenedor está más cerca del botón que el <html>.
+   Por eso van los tres contenedores nombrados y no un selector general.
+
+   Y no es un !important sobre las tripas de Izipay: eso se sigue sin hacer,
+   porque se rompe en cualquier actualización suya. Esto es su propia variable. */
+#izipay-form,
+#izipay-form-enc,
+#izipay-recarga {
+  --kr-global-color-primary: var(--accent);
+}
+
 .pago-tarjeta-cab {
   display: flex; align-items: center; gap: 12px;
   padding: 14px 16px; margin-bottom: 16px;

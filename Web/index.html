@@ -47,6 +47,10 @@
          JavaScript ya se descargó y ejecutó, casi un segundo más tarde.
          Si cambia el orden de los destinos, actualizar esta ruta. -->
     <link rel="preload" as="image" href="/destinos/iquits.jpg" fetchpriority="high" />
+    <!-- De acá sale el formulario de pago. Abrir la conexión (DNS + TLS) cuesta
+         cero bytes y se descuenta del tiempo que la persona espera cuando llega
+         al paso de pagar, que es donde menos se puede esperar. -->
+    <link rel="preconnect" href="https://static.micuentaweb.pe" crossorigin />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet" />

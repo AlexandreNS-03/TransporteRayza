@@ -9,6 +9,7 @@
 import { useEffect, useRef } from "react";
 import LogoPasarela from "./LogoPasarela";
 import { soles } from "../services/publicApi";
+import { precargarIzipay } from "../services/izipay";
 import { IconCard, IconPhone, IconWallet, IconMenuApp, IconTeclado, IconCheckCircle, IconLock } from "./Icons";
 
 const LARGO_CODIGO = 6;
@@ -22,6 +23,12 @@ const LARGO_CODIGO = 6;
  * cifra la manda el servidor, no la pantalla: el saldo es de alguien.
  */
 export function MetodosPago({ metodo, onElegir, deshabilitado, saldo }) {
+  // Elegir "Tarjeta" y tocar "Pagar" son dos momentos distintos, y entre los dos
+  // hay segundos. Se aprovechan para ir bajando el formulario de Izipay (~750 KB)
+  // en vez de empezar recién cuando ya está esperando. Solo cuando eligió
+  // tarjeta: a quien paga con Yape o con saldo no se le gasta el plan de datos.
+  useEffect(() => { if (metodo === "tarjeta") precargarIzipay(); }, [metodo]);
+
   const opciones = [
     { id: "tarjeta", logo: "izipay.png", alt: "Izipay", respaldo: <IconCard />, nombre: "Tarjeta", detalle: "Débito o crédito" },
     { id: "yape",    logo: "yape.png",   alt: "Yape",   respaldo: <IconPhone />, nombre: "Yape",   detalle: "Con tu celular" },

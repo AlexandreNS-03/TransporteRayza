@@ -7,7 +7,7 @@ import {
     rastrearEncomienda, metodosDePago, formularioPagoEncomienda,
     pagarEncomienda, pagarEncomiendaYape,
 } from "../services/publicApi";
-import { pagarConIzipay, limpiarIzipay } from "../services/izipay";
+import { pagarConIzipay, limpiarIzipay, precargarIzipay } from "../services/izipay";
 import { tokenizarYape } from "../services/yape";
 
 // El lector de QR arrastra la librería que decodifica la imagen: se descarga
@@ -66,6 +66,10 @@ function PagaCarga() {
         setPagado(true);
         setMedio(null);
     };
+
+    // Entre elegir "Tarjeta" y tocar "Pagar" hay segundos: se usan para ir
+    // bajando el formulario de Izipay, igual que en la compra de pasajes.
+    useEffect(() => { if (medio === "tarjeta") precargarIzipay(); }, [medio]);
 
     const pagarTarjeta = async () => {
         setPagando(true); setErrorPago(null);
