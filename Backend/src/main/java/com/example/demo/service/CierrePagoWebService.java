@@ -36,11 +36,15 @@ public class CierrePagoWebService {
 
     /** Deja las ventas pagadas y sus asientos confirmados, y cierra la transacción. */
     @Transactional
-    public void marcarPagadas(List<Venta> pendientes, String referencia, String metodo) {
+    public void marcarPagadas(List<Venta> pendientes, String referencia, String metodo,
+                              String procesador) {
         for (Venta v : pendientes) {
             v.setEstado(Venta.EstadoVenta.PAGADO);
             v.setPasarelaReferencia(referencia);
             if (metodo != null) v.setMetodoPago(metodo);
+            // Quién cobró, aparte de con qué pagó el pasajero: es lo que dice
+            // contra qué liquidación se concilia. Vacío si no hubo pasarela.
+            if (procesador != null) v.setProcesador(procesador);
             v.setReservaExpira(null);
             ventaRepository.save(v);
             asientoService.confirmarAsiento(v.getId());

@@ -500,6 +500,7 @@ SELECT 'COLUMNA FALTANTE', c.tabla, c.col FROM (
   UNION ALL   SELECT 'ventas' AS tabla, 'preembarcado_por' AS col
   UNION ALL   SELECT 'ventas' AS tabla, 'preembarque_estado' AS col
   UNION ALL   SELECT 'ventas' AS tabla, 'procedencia' AS col
+  UNION ALL   SELECT 'ventas' AS tabla, 'procesador' AS col
   UNION ALL   SELECT 'ventas' AS tabla, 'reserva_expira' AS col
   UNION ALL   SELECT 'ventas' AS tabla, 'resolucion' AS col
   UNION ALL   SELECT 'ventas' AS tabla, 'serie_comprobante' AS col
