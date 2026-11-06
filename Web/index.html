@@ -3,15 +3,29 @@
   <head>
     <meta charset="UTF-8" />
     <!--
-      El ícono es el timón dibujado, no el emblema. El emblema completo lleva
-      tres líneas de texto y un bote: en una pestaña, a 16 px, es una mancha
-      azul, y pesaba 112 KB que se bajaban en cada página para verse a 16.
+      El ícono es el emblema de la empresa: el timón con el bote y la ruta.
+      Hubo un intento de reemplazarlo por un timón dibujado y limpio, que a
+      16 px se lee mejor, pero no es la marca y se revirtió. Esto es lo que la
+      gente reconoce.
 
-      El SVG lo entienden Chrome, Firefox, Edge y Safari; el PNG es solo para
-      iOS, que para el ícono de la pantalla de inicio no acepta SVG.
+      Son tres archivos y no uno, y ahí está casi toda la diferencia:
+
+      - favicon-32.png es el que de verdad usa la pestaña. Va redimensionado
+        acá con buen filtro en vez de dejar que el navegador encoja una imagen
+        diez veces más grande, que es lo que lo ensuciaba.
+      - favicon-192.png lo usan los marcadores y Android.
+      - apple-touch-icon.png es para iOS, que no acepta SVG, lo compone sobre
+        NEGRO si tiene transparencia —por eso va aplanado sobre blanco— y le
+        pone sus propias esquinas redondeadas, así que va cuadrado.
+
+      Salen todos del emblema original (360x360, 112 KB), recortado al
+      contenido y centrado: venía con un margen vacío a la izquierda que en la
+      pestaña se traducía en un ícono más chico y corrido. El original está en
+      el historial: git show dc8b560^:Web/public/logo-tr.png
     -->
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=20261105" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=20261105" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png?v=20261106" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png?v=20261106" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=20261106" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Compra tu pasaje en línea entre Requena, Iquitos, Nauta y los puertos del río. Eliges tu asiento, pagas con tarjeta o Yape y recibes tu boleto con QR al instante." />
     <meta name="theme-color" content="#0b2c5e" />
