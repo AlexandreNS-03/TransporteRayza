@@ -45,10 +45,19 @@ public class ReservaService {
     /** Tope de pasajes por compra en línea (una familia; no acapara medio bote). */
     private static final int MAX_PASAJEROS = 5;
 
-    /** Con qué se pagó en línea. Junto a canal=WEB dice también por qué pasarela
-     *  entró la plata: TARJETA la cobra Izipay y YAPE la cobra Mercado Pago. */
+    /** Con qué pagó el pasajero. Es lo que ve él, no quién cobró. */
     private static final String METODO_IZIPAY = "TARJETA";
     private static final String METODO_YAPE   = "YAPE";
+
+    /**
+     * Quién cobró. Hasta ahora se deducía del método —TARJETA era Izipay y YAPE
+     * era Mercado Pago—, pero eso solo vale mientras haya un proveedor por
+     * instrumento. Con dos cobrando tarjeta, "TARJETA" ya no dice a qué
+     * liquidación pertenece la venta, y conciliar deja de ser posible. Se
+     * guarda, no se deduce.
+     */
+    private static final String PROC_IZIPAY      = "IZIPAY";
+    private static final String PROC_MERCADOPAGO = "MERCADOPAGO";
     /** Pagado con saldo de la wallet. No es plata que entra hoy: entró cuando se recargó. */
     private static final String METODO_SALDO  = "SALDO";
 
@@ -471,7 +480,7 @@ public class ReservaService {
         if (!pago.pagado)
             throw new RuntimeException(pago.motivo != null ? pago.motivo : "El pago no se pudo confirmar");
 
-        return confirmarPago(v, pago.referencia, METODO_IZIPAY);
+        return confirmarPago(v, pago.referencia, METODO_IZIPAY, PROC_IZIPAY);
     }
 
     /**
@@ -498,7 +507,7 @@ public class ReservaService {
         if (!pago.pagado)
             throw new RuntimeException(pago.motivo != null ? pago.motivo : "El pago con Yape no se pudo confirmar");
 
-        return confirmarPago(v, pago.referencia, METODO_YAPE);
+        return confirmarPago(v, pago.referencia, METODO_YAPE, PROC_MERCADOPAGO);
     }
 
     /**
@@ -529,7 +538,7 @@ public class ReservaService {
         walletService.consumir(emailAutenticado, v.getPrecio(), referencia,
                 "Pasaje " + safe(v.getParadaOrigen()) + " → " + safe(v.getParadaDestino()));
         try {
-            return confirmarPago(v, referencia, METODO_SALDO);
+            return confirmarPago(v, referencia, METODO_SALDO, null);
         } catch (RuntimeException e) {
             walletService.devolver(referencia,
                     "No se pudo cerrar la compra: te devolvimos el saldo");
@@ -586,13 +595,13 @@ public class ReservaService {
     public ConfirmacionGrupoDTO pagarGrupo(List<String> reservaIds, String krAnswer, String krHash) {
         List<Venta> pendientes = grupoPendiente(reservaIds);
         if (pendientes.isEmpty())
-            return confirmarPagoGrupo(reservaIds, pendientes, null, null);   // ya estaba pagado (reintento)
+            return confirmarPagoGrupo(reservaIds, pendientes, null, null, null);   // ya estaba pagado (reintento)
 
         IzipayService.Resultado pago = izipayService.verificarPago(krAnswer, krHash);
         if (!pago.pagado)
             throw new RuntimeException(pago.motivo != null ? pago.motivo : "El pago no se pudo confirmar");
 
-        return confirmarPagoGrupo(reservaIds, pendientes, pago.referencia, METODO_IZIPAY);
+        return confirmarPagoGrupo(reservaIds, pendientes, pago.referencia, METODO_IZIPAY, PROC_IZIPAY);
     }
 
     /** Pago del grupo con Yape: un solo cobro por el total, con idempotencia por grupo. */
@@ -603,7 +612,7 @@ public class ReservaService {
     public ConfirmacionGrupoDTO pagarGrupoYape(List<String> reservaIds, String token, String deviceId) {
         List<Venta> pendientes = grupoPendiente(reservaIds);
         if (pendientes.isEmpty())
-            return confirmarPagoGrupo(reservaIds, pendientes, null, null);
+            return confirmarPagoGrupo(reservaIds, pendientes, null, null, null);
 
         BigDecimal total = BigDecimal.ZERO;
         for (Venta v : pendientes) total = total.add(v.getPrecio());
@@ -622,7 +631,7 @@ public class ReservaService {
         if (!pago.pagado)
             throw new RuntimeException(pago.motivo != null ? pago.motivo : "El pago con Yape no se pudo confirmar");
 
-        return confirmarPagoGrupo(reservaIds, pendientes, pago.referencia, METODO_YAPE);
+        return confirmarPagoGrupo(reservaIds, pendientes, pago.referencia, METODO_YAPE, PROC_MERCADOPAGO);
     }
 
     /**
@@ -639,7 +648,7 @@ public class ReservaService {
 
         List<Venta> pendientes = grupoPendiente(reservaIds);
         if (pendientes.isEmpty())
-            return confirmarPagoGrupo(reservaIds, pendientes, null, null);
+            return confirmarPagoGrupo(reservaIds, pendientes, null, null, null);
 
         BigDecimal total = BigDecimal.ZERO;
         for (Venta v : pendientes) { exigirDueno(v, emailAutenticado); total = total.add(v.getPrecio()); }
@@ -650,7 +659,7 @@ public class ReservaService {
                 pendientes.size() + " pasaje(s) " + safe(primera.getParadaOrigen())
                         + " → " + safe(primera.getParadaDestino()));
         try {
-            return confirmarPagoGrupo(reservaIds, pendientes, referencia, METODO_SALDO);
+            return confirmarPagoGrupo(reservaIds, pendientes, referencia, METODO_SALDO, null);
         } catch (RuntimeException e) {
             walletService.devolver(referencia,
                     "No se pudo cerrar la compra: te devolvimos el saldo");
@@ -710,7 +719,8 @@ public class ReservaService {
         for (Venta v : pendientes) {
             v.setEstado(Venta.EstadoVenta.PAGADO);
             v.setPasarelaReferencia(referencia);
-            v.setMetodoPago(METODO_IZIPAY);   // el IPN solo lo manda Izipay
+            v.setMetodoPago(METODO_IZIPAY);
+            v.setProcesador(PROC_IZIPAY);     // el IPN solo lo manda Izipay
             v.setReservaExpira(null);
             ventaRepository.save(v);
             asientoService.confirmarAsiento(v.getId());
@@ -727,7 +737,7 @@ public class ReservaService {
 
     private ConfirmacionGrupoDTO confirmarPagoGrupo(List<String> reservaIds,
                                                     List<Venta> pendientes, String referencia,
-                                                    String metodo) {
+                                                    String metodo, String procesador) {
         Set<String> pendIds = new HashSet<>();
         for (Venta v : pendientes) pendIds.add(v.getId());
 
@@ -750,7 +760,7 @@ public class ReservaService {
         // tomar al marcarla pagada. Según si Hibernate ya había volcado el UPDATE,
         // unos comprobantes entraban y otros morían por "lock wait timeout": el
         // documento ya estaba emitido en SUNAT pero no quedaba registrado acá.
-        cierrePagoWebService.marcarPagadas(pendientes, referencia, metodo);
+        cierrePagoWebService.marcarPagadas(pendientes, referencia, metodo, procesador);
 
         // El código del sorteo, ya fuera de la transacción del pago y por la misma
         // razón que los comprobantes: nada que sea accesorio al cobro entra ahí.
@@ -848,13 +858,16 @@ public class ReservaService {
      * siendo válida: se avisa en la respuesta y el comprobante se puede reintentar
      * desde el sistema, sin volver a cobrar.
      */
-    private ConfirmacionDTO confirmarPago(Venta v, String referenciaPasarela, String metodo) {
+    private ConfirmacionDTO confirmarPago(Venta v, String referenciaPasarela, String metodo,
+                                          String procesador) {
         v.setEstado(Venta.EstadoVenta.PAGADO);
         v.setPasarelaReferencia(referenciaPasarela);
-        // Con qué se pagó en línea. Junto con canal=WEB identifica la pasarela:
-        // TARJETA = Izipay, YAPE = Mercado Pago. Sin esto la venta quedaba con
-        // método nulo y los reportes la contaban como efectivo de caja.
+        // Con qué se pagó. Sin esto la venta quedaba con método nulo y los
+        // reportes la contaban como efectivo de caja.
         if (metodo != null) v.setMetodoPago(metodo);
+        // Y quién cobró, que es otra pregunta: es lo que dice contra qué
+        // liquidación se concilia esta venta. Vacío cuando no hubo pasarela.
+        if (procesador != null) v.setProcesador(procesador);
         v.setReservaExpira(null);
         ventaRepository.save(v);
 

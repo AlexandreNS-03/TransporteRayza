@@ -181,9 +181,24 @@ public class Venta {
     @Column(name = "aviso_pago_enviado")
     private LocalDateTime avisoPagoEnviado;
 
-    /** Referencia de la transacción en la pasarela (Izipay). */
+    /** Referencia de la transacción en la pasarela. */
     @Column(name = "pasarela_referencia", length = 100)
     private String pasarelaReferencia;
+
+    /**
+     * Quién cobró de verdad: IZIPAY, MERCADOPAGO. Vacío si no pasó por ninguna
+     * pasarela (mostrador, o saldo de la wallet, que ya estaba cobrado).
+     *
+     * <p>Va aparte de {@code metodoPago} porque son dos preguntas distintas.
+     * {@code metodoPago} dice <em>con qué</em> pagó el pasajero —tarjeta, Yape—
+     * y esto dice <em>a quién hay que reclamarle</em> esa plata. Hasta ahora
+     * coincidían: toda TARJETA la cobraba Izipay y todo YAPE, Mercado Pago, y
+     * el código lo daba por sentado. En cuanto un segundo proveedor cobre
+     * tarjetas, "TARJETA" deja de decir a qué liquidación pertenece la venta y
+     * la conciliación no cuadra.
+     */
+    @Column(name = "procesador", length = 20)
+    private String procesador;
 
     /**
      * Identificador del pedido enviado a la pasarela. Permite ubicar la(s)
@@ -368,6 +383,9 @@ public class Venta {
 
     public String getOrdenPago() { return ordenPago; }
     public void setOrdenPago(String o) { this.ordenPago = o; }
+
+    public String getProcesador() { return procesador; }
+    public void setProcesador(String p) { this.procesador = p; }
 
     public String getPasarelaReferencia() { return pasarelaReferencia; }
     public void setPasarelaReferencia(String r) { this.pasarelaReferencia = r; }
