@@ -54,6 +54,15 @@ public class VentaDTO {
     private boolean requierePreembarque;
     private String estado;
     private String canal;              // MOSTRADOR | WEB
+
+    /**
+     * Quién cobró: IZIPAY, MERCADOPAGO, o vacío si no hubo pasarela.
+     *
+     * Lo necesita la pantalla de "Por resolver": con Izipay la devolución la
+     * hace el sistema y no sale plata de la caja, y eso cambia lo que hay que
+     * avisarle a quien aprieta el botón.
+     */
+    private String procesador;
     private String grupoVentaId;       // pasajes vendidos juntos (misma operación)
     private String fechaVenta;
     private String usuarioNombre;
@@ -191,6 +200,9 @@ public class VentaDTO {
 
     public String getCanal() { return canal; }
     public void setCanal(String canal) { this.canal = canal; }
+
+    public String getProcesador() { return procesador; }
+    public void setProcesador(String procesador) { this.procesador = procesador; }
 
     public String getFechaVenta() { return fechaVenta; }
     public void setFechaVenta(String fechaVenta) { this.fechaVenta = fechaVenta; }

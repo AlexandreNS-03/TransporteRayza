@@ -31,6 +31,7 @@ public class CancelacionService {
     private final AuditoriaService auditoriaService;
     private final AlcanceSucursal alcance;
     private final WalletService walletService;
+    private final IzipayService izipayService;
 
     public CancelacionService(ViajeRepository viajeRepository,
                               VentaRepository ventaRepository,
@@ -39,7 +40,8 @@ public class CancelacionService {
                               CajaService cajaService,
                               AuditoriaService auditoriaService,
                               AlcanceSucursal alcance,
-                              WalletService walletService) {
+                              WalletService walletService,
+                              IzipayService izipayService) {
         this.viajeRepository = viajeRepository;
         this.alcance = alcance;
         this.ventaRepository = ventaRepository;
@@ -48,6 +50,7 @@ public class CancelacionService {
         this.cajaService = cajaService;
         this.auditoriaService = auditoriaService;
         this.walletService = walletService;
+        this.izipayService = izipayService;
     }
 
     /** Cancela el viaje y deja sus pasajes pagados marcados como "por resolver". */
@@ -97,11 +100,26 @@ public class CancelacionService {
      * Devuelve el dinero: anula el pasaje y registra el egreso en la caja de
      * quien entrega la plata (por eso se confirma acá y no al cancelar).
      *
-     * <p><strong>Lo pagado con saldo vuelve al saldo</strong>, y entonces no
-     * sale nada de la caja. Esa plata nunca entró a la caja —entró a la cuenta
-     * de la pasarela el día que la persona recargó—, así que entregarla en
-     * billetes deja el cajón corto por algo que ese mostrador no cobró. Y
-     * devolverla al saldo es instantáneo y no cuesta comisión.
+     * <p>Hay <strong>tres</strong> caminos, según de dónde salió la plata:
+     *
+     * <ol>
+     *   <li><strong>Pagado con saldo</strong> → vuelve al saldo. No sale nada
+     *       de la caja: esa plata nunca entró al cajón, entró a la cuenta de la
+     *       pasarela el día que la persona recargó. Entregarla en billetes deja
+     *       el cajón corto por algo que ese mostrador no cobró.</li>
+     *   <li><strong>Cobrado por Izipay</strong> → se le pide a Izipay que la
+     *       devuelva, y tampoco sale de la caja. Antes esto era entrar al Back
+     *       Office a mano mientras el sistema igual anotaba un egreso.</li>
+     *   <li><strong>Todo lo demás</strong> (efectivo del mostrador, y también
+     *       Yape de Mercado Pago, que todavía no tiene devolución automática)
+     *       → como siempre: egreso en la caja.</li>
+     * </ol>
+     *
+     * <p>El orden importa. La llamada a Izipay va <strong>al final</strong>, ya
+     * con todo escrito: si falla, no hace falta deshacer nada porque la
+     * transacción entera se va para atrás y el pasaje queda como estaba. Al
+     * revés —devolver primero y anotar después— un fallo al guardar dejaría la
+     * plata devuelta y el pasaje vivo.
      */
     @Transactional
     public Venta devolver(String ventaId, String usuarioNombre) {
@@ -112,6 +130,32 @@ public class CancelacionService {
         v.setResolucion(Venta.Resolucion.DEVUELTO);
         ventaRepository.save(v);
         asientoService.liberarAsiento(ventaId);
+
+        if (loCobroIzipay(v)) {
+            IzipayService.Devolucion d = izipayService.reembolsar(
+                    v.getPasarelaReferencia(), aCentimos(v.getPrecio()),
+                    "Devolucion " + v.getViajeCodigo() + " - venta " + v.getId());
+
+            if (d.hecha) {
+                auditoriaService.registrar("DEVOLVER", "VENTAS", v.getId(),
+                        "Devolución S/ " + v.getPrecio() + " por Izipay (" + d.operacion + ")"
+                                + (d.referencia != null ? " ref " + d.referencia : "")
+                                + " por cancelación de " + v.getViajeCodigo()
+                                + " — no sale de la caja: la cobró la pasarela");
+                return v;
+            }
+
+            // Izipay no pudo. Se sigue por el camino de siempre —egreso con
+            // método digital, que no toca el conteo de efectivo— y la auditoría
+            // dice con todas las letras que falta hacerlo a mano, porque si no
+            // nadie se entera hasta que el cliente reclama.
+            registrarEgreso(v, usuarioNombre);
+            auditoriaService.registrar("DEVOLVER", "VENTAS", v.getId(),
+                    "Devolución S/ " + v.getPrecio() + " por cancelación de " + v.getViajeCodigo()
+                            + " — PENDIENTE DE HACER A MANO EN EL BACK OFFICE DE IZIPAY: "
+                            + d.motivo);
+            return v;
+        }
 
         if (sePagoConSaldo(v)) {
             // La referencia es la de ESTA venta: un cobro puede haber sido de
@@ -128,16 +172,42 @@ public class CancelacionService {
             return v;
         }
 
-        cajaService.registrarMovimientoAutomatico(usuarioNombre,
-                MovimientoCaja.TipoMovimiento.EGRESO, v.getPrecio(),
-                "Devolución por viaje cancelado " + v.getViajeCodigo()
-                        + " — " + v.getPasajeroNombre(),
-                v.getMetodoPago());
+        registrarEgreso(v, usuarioNombre);
 
         auditoriaService.registrar("DEVOLVER", "VENTAS", v.getId(),
                 "Devolución S/ " + v.getPrecio() + " a " + v.getPasajeroNombre()
                         + " por cancelación de " + v.getViajeCodigo());
         return v;
+    }
+
+    /** El egreso de toda la vida, con el método con el que pagó el pasajero. */
+    private void registrarEgreso(Venta v, String usuarioNombre) {
+        cajaService.registrarMovimientoAutomatico(usuarioNombre,
+                MovimientoCaja.TipoMovimiento.EGRESO, v.getPrecio(),
+                "Devolución por viaje cancelado " + v.getViajeCodigo()
+                        + " — " + v.getPasajeroNombre(),
+                v.getMetodoPago());
+    }
+
+    /**
+     * ¿Esta venta la cobró Izipay, y por lo tanto se le puede pedir a Izipay
+     * que la devuelva?
+     *
+     * <p>Se mira el <strong>procesador</strong>, no el método de pago. "TARJETA"
+     * dice con qué pagó el pasajero, no quién cobró, y el día que haya dos
+     * proveedores de tarjeta pedirle la devolución al equivocado es plata.
+     * Las ventas viejas, de antes de que se guardara el procesador, tienen el
+     * campo vacío y se van por el camino de siempre: devolverlas automáticamente
+     * sin saber quién cobró sería adivinar.
+     */
+    private boolean loCobroIzipay(Venta v) {
+        return ReservaService.PROC_IZIPAY.equalsIgnoreCase(v.getProcesador())
+                && v.getPrecio() != null && v.getPrecio().signum() > 0;
+    }
+
+    /** Izipay cobra en céntimos; acá los montos son soles con dos decimales. */
+    private static int aCentimos(BigDecimal soles) {
+        return soles.movePointRight(2).setScale(0, java.math.RoundingMode.HALF_UP).intValueExact();
     }
 
     /**

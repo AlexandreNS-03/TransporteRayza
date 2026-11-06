@@ -70,12 +70,29 @@ function PorResolver() {
     };
 
     const devolver = (v) => {
-        // Lo cobrado por la web no está en el cajón (entra a Izipay o Mercado
-        // Pago): quien devuelve en efectivo tiene que saberlo antes de abrirlo.
-        const avisoWeb = v.canal === "WEB"
-            ? `\n\nOJO: este pasaje se pagó por la web (${METODO_LABEL[v.metodoPago] || v.metodoPago}). Ese dinero no está en tu cajón.`
-            : "";
-        if (!confirm(`¿Devolver S/ ${Number(v.precio).toFixed(2)} a ${v.pasajeroNombre}? Se registrará el egreso en tu caja.${avisoWeb}`)) return;
+        // Tres avisos distintos porque son tres cosas distintas, y quien aprieta
+        // el botón tiene que saber cuál le toca ANTES de abrir el cajón.
+        const monto = `S/ ${Number(v.precio).toFixed(2)}`;
+        let aviso;
+
+        if (v.procesador === "IZIPAY") {
+            // Desde ahora el sistema se lo pide a Izipay. No sale nada de la
+            // caja y no hay que entrar al Back Office a mano.
+            aviso = `¿Devolver ${monto} a ${v.pasajeroNombre}?\n\n`
+                  + "Se le pide la devolución a Izipay y vuelve a la tarjeta con la que pagó. "
+                  + "No sale plata de tu caja y no tienes que hacer nada más.\n\n"
+                  + "Si Izipay no puede (pasa al devolver un pasaje de una compra de varios el "
+                  + "mismo día), te avisamos y queda anotado que hay que hacerlo desde el Back Office.";
+        } else if (v.canal === "WEB") {
+            // Yape de Mercado Pago, y las ventas viejas sin procesador guardado.
+            aviso = `¿Devolver ${monto} a ${v.pasajeroNombre}? Se registrará el egreso en tu caja.\n\n`
+                  + `OJO: este pasaje se pagó por la web (${METODO_LABEL[v.metodoPago] || v.metodoPago}). `
+                  + "Ese dinero no está en tu cajón y la devolución hay que hacerla por el canal de pago.";
+        } else {
+            aviso = `¿Devolver ${monto} a ${v.pasajeroNombre}? Se registrará el egreso en tu caja.`;
+        }
+
+        if (!confirm(aviso)) return;
         accion(v, "devolver", "dinero devuelto");
     };
 

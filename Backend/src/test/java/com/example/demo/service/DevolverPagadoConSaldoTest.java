@@ -81,7 +81,10 @@ class DevolverPagadoConSaldoTest {
         };
 
         cancelaciones = new CancelacionService(null, ventaRepo, null,
-                asientos, caja, auditoria, new AlcanceSucursal(null), wallet);
+                asientos, caja, auditoria, new AlcanceSucursal(null), wallet,
+                // Sin credenciales, IzipayService no llama a nadie. Acá no hace
+                // falta más: ninguna de estas ventas la cobró Izipay.
+                new IzipayService());
     }
 
     private Venta pasaje(String id, String metodoPago, String correo) {
